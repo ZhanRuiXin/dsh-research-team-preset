@@ -1,0 +1,27 @@
+{
+  "name": "@local/dsh-research-team-preset",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "科研团队模式，面向端到端科研项目，覆盖文献调研、方案与主张的顾问评估、实现、实验、复核与论文产出，适合多人分工、证据可追溯、成果统一验收的研究工作。",
+  "exports": {
+    ".": "./settings/index.js",
+    "./tool": "./plugin/index.js",
+    "./modeled-teammates": "./plugin/modeled-teammates.js",
+    "./settings": "./settings/index.js",
+    "./client": "./client/index.js"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-plugin-manager",
+        "@deepseek-ai/dsh-api-remotes"
+      ],
+      "platform": "web"
+    }
+  }
+}

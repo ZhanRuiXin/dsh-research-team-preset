@@ -21,7 +21,8 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 | **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann eine Karte auf `done` setzen |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
 | **Laufzeit** | PTC (`run_code` + generiertes SDK), eine Subagent-Ebene pro Mitglied |
-| **Sprache** | Englisches System-Prompt; vollständiges englisches README plus vollständige Übersetzungen in 11 Sprachen |
+
+<p align="center">Englisches System-Prompt; vollständiges englisches README plus vollständige Übersetzungen in 11 Sprachen</p>
 
 ## Für wen es gedacht ist
 
@@ -38,11 +39,11 @@ Research Team Mode ist ein **DSH-Bundle auf Profilebene**. Das Bundle installier
 
 | Funktion | Provider | Hinweise |
 | --- | --- | --- |
-| DSH | DeepSeek Harness `0.2.x` | Entwickelt gegen `0.2.1-rc.5`; andere Releases können funktionieren, sind aber nicht garantiert |
-| Agent Teams | `@deepseek-ai/dsh-experimental-agent-team-profile` | Stellt `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` und die Team-Services bereit |
-| Task Board | `dsh-taskboard` | Stellt `taskboard_*` und das Board in der Web-GUI bereit |
-| PTC-Laufzeit | `@deepseek-ai/dsh-agent-tool-presentation` und `@deepseek-ai/dsh-ptc-runtime-node` | Teil der DSH-Basis; aktiviert `run_code` |
-| Git Bash (optional, Windows) | `dsh-gitbash-shell` | Fügt Agenten, die es benötigen, ein `bash`-Tool hinzu |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Entwickelt gegen `0.2.1-rc.5`; andere Releases können funktionieren, sind aber nicht garantiert |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Stellt `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` und die Team-Services bereit |
+| Task Board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Stellt `taskboard_*` und das Board in der Web-GUI bereit |
+| PTC-Laufzeit | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) und [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Teil der DSH-Basis; aktiviert `run_code` |
+| Git Bash (optional, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | Fügt Agenten, die es benötigen, ein `bash`-Tool hinzu |
 | Web-GUI | DSH Web/Desktop | Erforderlich für das Einstellungsformular und das Task Board |
 
 Wenn eine Abhängigkeit fehlt, kann der Modus trotzdem teilweise geladen werden, aber die Team-Tools, das Board oder die Einstellungsseite sind dann nicht verfügbar. Der Plugin-Manager fragt diese Bundles nicht ab und verknüpft sie nicht automatisch.
@@ -52,9 +53,9 @@ Wenn eine Abhängigkeit fehlt, kann der Modus trotzdem teilweise geladen werden,
 Dieses Repository ist ein lokales DSH-Bundle. Aus einem Checkout:
 
 1. **Aktivieren Sie die Voraussetzungen** im Zielprofil:
-   - Agent Teams: `@deepseek-ai/dsh-experimental-agent-team-profile`
-   - Task Board: `dsh-taskboard`
-   - Optional `dsh-gitbash-shell` unter Windows.
+   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
+   - Task Board: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
+   - Optional [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) unter Windows.
 2. **Installieren Sie dieses Bundle** über die Installationsaktion der Plugins-Seite bzw. des Plugin-Managers mit einem lokalen Link:
 
    ```text
@@ -247,11 +248,11 @@ Version 1.0.0 behebt die bekannte Ursache: Der alte Loader übergab das gesamte 
 
 ### Team-Tools fehlen
 
-Aktivieren Sie `@deepseek-ai/dsh-experimental-agent-team-profile` im selben Profil und starten Sie neu. Der Installer fragt danach nicht.
+Aktivieren Sie [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) im selben Profil und starten Sie neu. Der Installer fragt danach nicht.
 
 ### Task-Board-Tools fehlen
 
-Aktivieren Sie `dsh-taskboard` im selben Profil und starten Sie neu.
+Aktivieren Sie [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) im selben Profil und starten Sie neu.
 
 ### `spawn_teammate_with_model` ist nicht verfügbar
 
@@ -306,4 +307,4 @@ MIT. Siehe [LICENSE](../LICENSE).
 
 ## Danksagungen
 
-Basiert auf DeepSeek Harness und Cordis. Die Task-Board-Integration verwendet das Plugin `dsh-taskboard`; die Team-Tools stammen aus dem offiziellen Agent-Teams-Profil-Bundle. Danke an die Plugin-Autoren und alle, die den Modus an echten Forschungsprojekten testen.
+Basiert auf [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) und [Cordis](https://github.com/cordiverse/cordis). Die Task-Board-Integration verwendet das Plugin [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard); die Team-Tools stammen aus dem offiziellen Agent-Teams-Profil-Bundle. Danke an die Plugin-Autoren und alle, die den Modus an echten Forschungsprojekten testen.

@@ -21,7 +21,8 @@ Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 �
 | **완료** | `in_review`가 에이전트의 마지막 지점입니다. 사용자만 카드를 `done`으로 옮길 수 있습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
 | **런타임** | PTC(`run_code` + 생성된 SDK), 멤버당 하위 에이전트 계층 1개 |
-| **언어** | 영어 시스템 프롬프트; 전체 영어 README와 11개 언어의 전체 번역 |
+
+<p align="center">영어 시스템 프롬프트; 전체 영어 README와 11개 언어의 전체 번역</p>
 
 ## 대상 사용자
 
@@ -38,11 +39,11 @@ Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 �
 
 | 기능 | 제공자 | 비고 |
 | --- | --- | --- |
-| DSH | DeepSeek Harness `0.2.x` | `0.2.1-rc.5` 기준으로 개발되었습니다. 다른 릴리스에서도 동작할 수 있지만 보장되지는 않습니다 |
-| Agent Teams | `@deepseek-ai/dsh-experimental-agent-team-profile` | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다 |
-| 작업 보드 | `dsh-taskboard` | `taskboard_*`와 Web GUI 보드를 제공합니다 |
-| PTC 런타임 | `@deepseek-ai/dsh-agent-tool-presentation` 및 `@deepseek-ai/dsh-ptc-runtime-node` | DSH 기본 구성의 일부이며 `run_code`를 활성화합니다 |
-| Git Bash(선택 사항, Windows) | `dsh-gitbash-shell` | 필요한 에이전트에 `bash` 도구를 추가합니다 |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` 기준으로 개발되었습니다. 다른 릴리스에서도 동작할 수 있지만 보장되지는 않습니다 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다 |
+| 작업 보드 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*`와 Web GUI 보드를 제공합니다 |
+| PTC 런타임 | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 및 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH 기본 구성의 일부이며 `run_code`를 활성화합니다 |
+| Git Bash(선택 사항, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 필요한 에이전트에 `bash` 도구를 추가합니다 |
 | Web GUI | DSH Web/Desktop | 설정 폼과 작업 보드에 필요합니다 |
 
 의존성이 없으면 모드는 부분적으로 로드될 수 있지만, 팀 도구, 보드 또는 설정 페이지를 사용할 수 없습니다. 플러그인 관리자는 이러한 번들을 제안하지 않으며 자동으로 연결하지도 않습니다.
@@ -52,9 +53,9 @@ Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 �
 이 저장소는 로컬 DSH 번들입니다. 체크아웃에서:
 
 1. 대상 프로필에서 **사전 요구 사항을 활성화**합니다:
-   - Agent Teams: `@deepseek-ai/dsh-experimental-agent-team-profile`
-   - 작업 보드: `dsh-taskboard`
-   - Windows에서는 선택적으로 `dsh-gitbash-shell`.
+   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
+   - 작업 보드: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
+   - Windows에서는 선택적으로 [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell).
 2. Plugins 페이지/플러그인 관리자의 설치 기능에서 로컬 링크를 사용해 **이 번들을 설치**합니다:
 
    ```text
@@ -247,11 +248,11 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### 팀 도구가 없음
 
-같은 프로필에서 `@deepseek-ai/dsh-experimental-agent-team-profile`을 활성화하고 재시작하십시오. 설치 프로그램은 이에 대해 묻지 않습니다.
+같은 프로필에서 [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)을 활성화하고 재시작하십시오. 설치 프로그램은 이에 대해 묻지 않습니다.
 
 ### 작업 보드 도구가 없음
 
-같은 프로필에서 `dsh-taskboard`를 활성화하고 재시작하십시오.
+같은 프로필에서 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)를 활성화하고 재시작하십시오.
 
 ### `spawn_teammate_with_model`을 사용할 수 없음
 
@@ -306,4 +307,4 @@ MIT. [LICENSE](../LICENSE)를 참고하십시오.
 
 ## 감사의 글
 
-DeepSeek Harness와 Cordis를 기반으로 만들어졌습니다. 작업 보드 통합은 `dsh-taskboard` 플러그인을 사용하고, 팀 도구는 공식 Agent Teams 프로필 번들에서 제공됩니다. 플러그인 작성자들과 실제 연구 프로젝트에서 이 모드를 시험해 준 모든 분께 감사드립니다.
+[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)와 [Cordis](https://github.com/cordiverse/cordis)를 기반으로 만들어졌습니다. 작업 보드 통합은 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 플러그인을 사용하고, 팀 도구는 공식 Agent Teams 프로필 번들에서 제공됩니다. 플러그인 작성자들과 실제 연구 프로젝트에서 이 모드를 시험해 준 모든 분께 감사드립니다.

@@ -21,7 +21,8 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
-| **Language** | English system prompt; full English README plus full translations in 11 languages |
+
+<p align="center">English system prompt; full English README plus full translations in 11 languages</p>
 
 ## Who it is for
 
@@ -38,11 +39,11 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 
 | Capability | Provider | Notes |
 | --- | --- | --- |
-| DSH | DeepSeek Harness `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
-| Agent Teams | `@deepseek-ai/dsh-experimental-agent-team-profile` | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, and the Team services |
-| Task board | `dsh-taskboard` | Provides `taskboard_*` and the Web GUI board |
-| PTC runtime | `@deepseek-ai/dsh-agent-tool-presentation` and `@deepseek-ai/dsh-ptc-runtime-node` | Part of the DSH base; enables `run_code` |
-| Git Bash (optional, Windows) | `dsh-gitbash-shell` | Adds a `bash` tool for agents that need it |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, and the Team services |
+| Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Provides `taskboard_*` and the Web GUI board |
+| PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
+| Git Bash (optional, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | Adds a `bash` tool for agents that need it |
 | Web GUI | DSH Web/Desktop | Required for the settings form and the task board |
 
 If a dependency is missing, the mode can still load partially, but the team tools, the board, or the settings page will be unavailable. The plugin manager does not prompt for these bundles and does not link them automatically.
@@ -52,9 +53,9 @@ If a dependency is missing, the mode can still load partially, but the team tool
 This repository is a local DSH bundle. From a checkout:
 
 1. **Enable the prerequisites** in the target profile:
-   - Agent Teams: `@deepseek-ai/dsh-experimental-agent-team-profile`
-   - Task board: `dsh-taskboard`
-   - Optionally `dsh-gitbash-shell` on Windows.
+   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
+   - Task board: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
+   - Optionally [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) on Windows.
 2. **Install this bundle** with the Plugins page/plugin manager's install action, using a local link:
 
    ```text
@@ -247,11 +248,11 @@ Version 1.0.0 fixes the known cause: the old loader passed the whole `{ roles: .
 
 ### Team tools are missing
 
-Enable `@deepseek-ai/dsh-experimental-agent-team-profile` in the same profile and restart. The installer does not prompt for it.
+Enable [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) in the same profile and restart. The installer does not prompt for it.
 
 ### Task-board tools are missing
 
-Enable `dsh-taskboard` in the same profile and restart.
+Enable [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) in the same profile and restart.
 
 ### `spawn_teammate_with_model` is unavailable
 
@@ -306,4 +307,4 @@ MIT. See [LICENSE](LICENSE).
 
 ## Acknowledgements
 
-Built on DeepSeek Harness and Cordis. The task-board integration uses the `dsh-taskboard` plugin; team tools come from the official Agent Teams profile bundle. Thanks to the plugin authors and everyone who tests the mode on real research projects.
+Built on [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) and [Cordis](https://github.com/cordiverse/cordis). The task-board integration uses the [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) plugin; team tools come from the official Agent Teams profile bundle. Thanks to the plugin authors and everyone who tests the mode on real research projects.

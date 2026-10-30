@@ -21,7 +21,8 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 | **完了** | `in_review` がエージェントの最終地点。カードを `done` に移動できるのはユーザーだけ |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
 | **ランタイム** | PTC（`run_code` + 生成 SDK）。メンバーごとにサブエージェント 1 層 |
-| **言語** | システムプロンプトは英語。完全な英語 README と 11 言語の完全翻訳 |
+
+<p align="center">システムプロンプトは英語。完全な英語 README と 11 言語の完全翻訳</p>
 
 ## 対象となるユーザー
 
@@ -38,11 +39,11 @@ Research Team Mode は**プロファイルレベルの DSH バンドル**です�
 
 | 機能 | Provider | 備考 |
 | --- | --- | --- |
-| DSH | DeepSeek Harness `0.2.x` | `0.2.1-rc.5` を基準に開発。他のリリースでも動作する可能性はありますが保証はありません |
-| Agent Teams | `@deepseek-ai/dsh-experimental-agent-team-profile` | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、および Team サービスを提供 |
-| タスクボード | `dsh-taskboard` | `taskboard_*` と Web GUI のボードを提供 |
-| PTC ランタイム | `@deepseek-ai/dsh-agent-tool-presentation` と `@deepseek-ai/dsh-ptc-runtime-node` | DSH ベースの一部。`run_code` を有効化 |
-| Git Bash（任意、Windows） | `dsh-gitbash-shell` | 必要とするエージェントに `bash` ツールを追加 |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` を基準に開発。他のリリースでも動作する可能性はありますが保証はありません |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、および Team サービスを提供 |
+| タスクボード | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` と Web GUI のボードを提供 |
+| PTC ランタイム | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) と [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH ベースの一部。`run_code` を有効化 |
+| Git Bash（任意、Windows） | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 必要とするエージェントに `bash` ツールを追加 |
 | Web GUI | DSH Web/Desktop | 設定フォームとタスクボードに必要 |
 
 依存関係が欠けていてもモードは部分的に読み込まれますが、チームツール、ボード、設定ページのいずれかが利用できなくなります。プラグインマネージャーはこれらのバンドルを促したり、自動でリンクしたりすることはありません。
@@ -52,9 +53,9 @@ Research Team Mode は**プロファイルレベルの DSH バンドル**です�
 このリポジトリはローカルの DSH バンドルです。チェックアウトから次の手順で行います。
 
 1. 対象のプロファイルで**前提条件を有効化**します:
-   - Agent Teams: `@deepseek-ai/dsh-experimental-agent-team-profile`
-   - タスクボード: `dsh-taskboard`
-   - Windows では任意で `dsh-gitbash-shell`。
+   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
+   - タスクボード: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
+   - Windows では任意で [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell)。
 2. Plugins ページ／プラグインマネージャーのインストール操作で、ローカルリンクを指定して**このバンドルをインストール**します:
 
    ```text
@@ -247,11 +248,11 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### チームツールが見つからない
 
-同じプロファイルで `@deepseek-ai/dsh-experimental-agent-team-profile` を有効化し、再起動してください。インストーラーはこれを促しません。
+同じプロファイルで [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) を有効化し、再起動してください。インストーラーはこれを促しません。
 
 ### タスクボードのツールが見つからない
 
-同じプロファイルで `dsh-taskboard` を有効化し、再起動してください。
+同じプロファイルで [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) を有効化し、再起動してください。
 
 ### `spawn_teammate_with_model` が利用できない
 
@@ -306,4 +307,4 @@ MIT。[LICENSE](../LICENSE) を参照してください。
 
 ## 謝辞
 
-DeepSeek Harness と Cordis の上に構築されています。タスクボード連携は `dsh-taskboard` プラグインを使用し、チームツールは公式の Agent Teams プロファイルバンドルから提供されます。プラグインの作者と、実際の研究プロジェクトでこのモードを試してくれるすべての人に感謝します。
+[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) と [Cordis](https://github.com/cordiverse/cordis) の上に構築されています。タスクボード連携は [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) プラグインを使用し、チームツールは公式の Agent Teams プロファイルバンドルから提供されます。プラグインの作者と、実際の研究プロジェクトでこのモードを試してくれるすべての人に感謝します。

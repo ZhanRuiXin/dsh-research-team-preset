@@ -21,7 +21,8 @@
 | **الإنجاز** | `in_review` هي آخر محطة للوكيل؛ ولا ينقل البطاقة إلى `done` إلا المستخدم |
 | **توجيه النماذج** | provider وmodel وقوة الاستدلال لكل دور من نموذج إعدادات في صفحة Plugins |
 | **بيئة التشغيل** | PTC (`run_code` + SDK المولَّد)، وطبقة subagent واحدة لكل عضو |
-| **اللغة** | system prompt بالإنكليزية؛ README إنكليزي كامل مع ترجمات كاملة بـ 11 لغة |
+
+<p align="center">system prompt بالإنكليزية؛ README إنكليزي كامل مع ترجمات كاملة بـ 11 لغة</p>
 
 ## لمن هذا الوضع
 
@@ -38,11 +39,11 @@
 
 | القدرة | المزوّد | ملاحظات |
 | --- | --- | --- |
-| DSH | DeepSeek Harness `0.2.x` | طُوِّر على `0.2.1-rc.5`؛ قد تعمل إصدارات أخرى، لكن ذلك غير مضمون |
-| Agent Teams | `@deepseek-ai/dsh-experimental-agent-team-profile` | يوفّر `spawn_teammate` و`send_message` و`wait_agent` و`interrupt_agent` وخدمات Team |
-| لوحة المهام | `dsh-taskboard` | يوفّر `taskboard_*` ولوحة Web GUI |
-| بيئة PTC | `@deepseek-ai/dsh-agent-tool-presentation` و`@deepseek-ai/dsh-ptc-runtime-node` | جزء من أساس DSH؛ يتيح `run_code` |
-| Git Bash (اختياري، Windows) | `dsh-gitbash-shell` | يضيف أداة `bash` للوكلاء الذين يحتاجون إليها |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | طُوِّر على `0.2.1-rc.5`؛ قد تعمل إصدارات أخرى، لكن ذلك غير مضمون |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | يوفّر `spawn_teammate` و`send_message` و`wait_agent` و`interrupt_agent` وخدمات Team |
+| لوحة المهام | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | يوفّر `taskboard_*` ولوحة Web GUI |
+| بيئة PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) و[`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | جزء من أساس DSH؛ يتيح `run_code` |
+| Git Bash (اختياري، Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | يضيف أداة `bash` للوكلاء الذين يحتاجون إليها |
 | Web GUI | DSH Web/Desktop | مطلوب لنموذج الإعدادات ولوحة المهام |
 
 إذا غابت إحدى التبعيات، يظل الوضع قادرًا على التحميل جزئيًا، لكن أدوات الفريق أو اللوحة أو صفحة الإعدادات ستكون غير متاحة. ولا يطلب مدير الإضافات هذه الـ bundles ولا يربطها تلقائيًا.
@@ -52,9 +53,9 @@
 هذا المستودع bundle محلي في DSH. بدءًا من نسخة checkout:
 
 1. **فعّل المتطلبات المسبقة** في الـ profile المستهدف:
-   - Agent Teams: `@deepseek-ai/dsh-experimental-agent-team-profile`
-   - لوحة المهام: `dsh-taskboard`
-   - اختياريًا `dsh-gitbash-shell` على Windows.
+   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
+   - لوحة المهام: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
+   - اختياريًا [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) على Windows.
 2. **ثبّت هذا الـ bundle** عبر إجراء التثبيت في صفحة Plugins/مدير الإضافات، باستخدام رابط محلي:
 
    ```text
@@ -247,11 +248,11 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### أدوات الفريق مفقودة
 
-فعّل `@deepseek-ai/dsh-experimental-agent-team-profile` في الـ profile نفسه وأعد التشغيل. فالمثبّت لا يطلب ذلك.
+فعّل [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) في الـ profile نفسه وأعد التشغيل. فالمثبّت لا يطلب ذلك.
 
 ### أدوات لوحة المهام مفقودة
 
-فعّل `dsh-taskboard` في الـ profile نفسه وأعد التشغيل.
+فعّل [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) في الـ profile نفسه وأعد التشغيل.
 
 ### الأداة `spawn_teammate_with_model` غير متاحة
 
@@ -306,4 +307,4 @@ MIT. راجع [LICENSE](../LICENSE).
 
 ## شكر وتقدير
 
-بُني على DeepSeek Harness وCordis. يستخدم تكامل لوحة المهام إضافة `dsh-taskboard`؛ وأدوات الفريق تأتي من bundle الـ profile الرسمي Agent Teams. شكرًا لمؤلفي الإضافات ولكل من يختبر الوضع في مشاريع بحثية حقيقية.
+بُني على [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) و[Cordis](https://github.com/cordiverse/cordis). يستخدم تكامل لوحة المهام إضافة [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)؛ وأدوات الفريق تأتي من bundle الـ profile الرسمي Agent Teams. شكرًا لمؤلفي الإضافات ولكل من يختبر الوضع في مشاريع بحثية حقيقية.

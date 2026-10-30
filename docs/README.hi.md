@@ -21,7 +21,8 @@ Research Team Mode एक DSH एजेंट प्रीसेट है ज�
 | **पूर्णता** | `in_review` एजेंट का अंतिम पड़ाव है; कार्ड को केवल उपयोगकर्ता ही `done` में बदल सकता है |
 | **मॉडल रूटिंग** | Plugins पृष्ठ के सेटिंग्स फ़ॉर्म से प्रति भूमिका provider, model और reasoning effort |
 | **रनटाइम** | PTC (`run_code` + जनरेट किया गया SDK), प्रति सदस्य एक subagent परत |
-| **भाषा** | अंग्रेज़ी सिस्टम प्रॉम्प्ट; पूरा अंग्रेज़ी README और 11 भाषाओं में पूर्ण अनुवाद |
+
+<p align="center">अंग्रेज़ी सिस्टम प्रॉम्प्ट; पूरा अंग्रेज़ी README और 11 भाषाओं में पूर्ण अनुवाद</p>
 
 ## किसके लिए है
 
@@ -38,11 +39,11 @@ Research Team Mode एक **प्रोफ़ाइल-स्तरीय DSH �
 
 | क्षमता | प्रदाता | नोट्स |
 | --- | --- | --- |
-| DSH | DeepSeek Harness `0.2.x` | `0.2.1-rc.5` के विरुद्ध विकसित; अन्य रिलीज़ काम कर सकते हैं, परंतु गारंटी नहीं है |
-| Agent Teams | `@deepseek-ai/dsh-experimental-agent-team-profile` | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` और Team सेवाएँ प्रदान करता है |
-| Task board | `dsh-taskboard` | `taskboard_*` और Web GUI बोर्ड प्रदान करता है |
-| PTC runtime | `@deepseek-ai/dsh-agent-tool-presentation` और `@deepseek-ai/dsh-ptc-runtime-node` | DSH बेस का हिस्सा; `run_code` सक्षम करता है |
-| Git Bash (वैकल्पिक, Windows) | `dsh-gitbash-shell` | उन एजेंटों के लिए `bash` टूल जोड़ता है जिन्हें इसकी आवश्यकता होती है |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` के विरुद्ध विकसित; अन्य रिलीज़ काम कर सकते हैं, परंतु गारंटी नहीं है |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` और Team सेवाएँ प्रदान करता है |
+| Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` और Web GUI बोर्ड प्रदान करता है |
+| PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) और [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH बेस का हिस्सा; `run_code` सक्षम करता है |
+| Git Bash (वैकल्पिक, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | उन एजेंटों के लिए `bash` टूल जोड़ता है जिन्हें इसकी आवश्यकता होती है |
 | Web GUI | DSH Web/Desktop | सेटिंग्स फ़ॉर्म और टास्क बोर्ड के लिए आवश्यक |
 
 यदि कोई निर्भरता अनुपस्थित है, तो मोड फिर भी आंशिक रूप से लोड हो सकता है, लेकिन टीम टूल, बोर्ड या सेटिंग्स पृष्ठ उपलब्ध नहीं होंगे। प्लगइन मैनेजर इन बंडलों के लिए संकेत नहीं देता और उन्हें स्वतः लिंक नहीं करता।
@@ -52,9 +53,9 @@ Research Team Mode एक **प्रोफ़ाइल-स्तरीय DSH �
 यह रिपॉज़िटरी एक स्थानीय DSH बंडल है। किसी चेकआउट से:
 
 1. लक्ष्य प्रोफ़ाइल में **पूर्वापेक्षाएँ सक्षम करें**:
-   - Agent Teams: `@deepseek-ai/dsh-experimental-agent-team-profile`
-   - Task board: `dsh-taskboard`
-   - Windows पर वैकल्पिक रूप से `dsh-gitbash-shell`।
+   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
+   - Task board: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
+   - Windows पर वैकल्पिक रूप से [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell)।
 2. Plugins पृष्ठ/plugin manager की install क्रिया से, स्थानीय लिंक का उपयोग करते हुए **इस बंडल को इंस्टॉल करें**:
 
    ```text
@@ -247,11 +248,11 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### टीम टूल अनुपस्थित हैं
 
-उसी प्रोफ़ाइल में `@deepseek-ai/dsh-experimental-agent-team-profile` सक्षम करें और पुनः प्रारंभ करें। इंस्टॉलर इसके लिए संकेत नहीं देता।
+उसी प्रोफ़ाइल में [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) सक्षम करें और पुनः प्रारंभ करें। इंस्टॉलर इसके लिए संकेत नहीं देता।
 
 ### टास्क-बोर्ड टूल अनुपस्थित हैं
 
-उसी प्रोफ़ाइल में `dsh-taskboard` सक्षम करें और पुनः प्रारंभ करें।
+उसी प्रोफ़ाइल में [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) सक्षम करें और पुनः प्रारंभ करें।
 
 ### `spawn_teammate_with_model` उपलब्ध नहीं है
 
@@ -306,4 +307,4 @@ MIT। [LICENSE](../LICENSE) देखें।
 
 ## आभार
 
-DeepSeek Harness और Cordis पर आधारित। टास्क-बोर्ड एकीकरण `dsh-taskboard` plugin का उपयोग करता है; टीम टूल आधिकारिक Agent Teams प्रोफ़ाइल बंडल से आते हैं। plugin लेखकों और उन सभी का धन्यवाद जो वास्तविक शोध प्रोजेक्टों पर इस मोड का परीक्षण करते हैं।
+[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) और [Cordis](https://github.com/cordiverse/cordis) पर आधारित। टास्क-बोर्ड एकीकरण [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) plugin का उपयोग करता है; टीम टूल आधिकारिक Agent Teams प्रोफ़ाइल बंडल से आते हैं। plugin लेखकों और उन सभी का धन्यवाद जो वास्तविक शोध प्रोजेक्टों पर इस मोड का परीक्षण करते हैं।

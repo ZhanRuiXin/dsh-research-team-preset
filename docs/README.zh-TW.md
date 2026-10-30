@@ -21,7 +21,8 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對�
 | **完成** | `in_review` 是 agent 的最後一站；只有使用者能把卡片移到 `done` |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
 | **執行環境** | PTC（`run_code` + 產生的 SDK），每位成員一層 subagent |
-| **語言** | 英文系統提示詞；完整英文 README 加上 11 種語言的完整翻譯 |
+
+<p align="center">英文系統提示詞；完整英文 README 加上 11 種語言的完整翻譯</p>
 
 ## 適用對象
 
@@ -38,11 +39,11 @@ Research Team Mode 是一個 **profile 層級的 DSH bundle**。此 bundle 不�
 
 | 能力 | 提供者 | 備註 |
 | --- | --- | --- |
-| DSH | DeepSeek Harness `0.2.x` | 以 `0.2.1-rc.5` 為開發基準；其他版本可能可用但不保證 |
-| Agent Teams | `@deepseek-ai/dsh-experimental-agent-team-profile` | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 與 Team 服務 |
-| 任務看板 | `dsh-taskboard` | 提供 `taskboard_*` 與 Web GUI 看板 |
-| PTC runtime | `@deepseek-ai/dsh-agent-tool-presentation` 與 `@deepseek-ai/dsh-ptc-runtime-node` | 屬於 DSH 基礎的一部分；啟用 `run_code` |
-| Git Bash（選用，Windows） | `dsh-gitbash-shell` | 為需要的 agent 新增 `bash` 工具 |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 以 `0.2.1-rc.5` 為開發基準；其他版本可能可用但不保證 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 與 Team 服務 |
+| 任務看板 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | 提供 `taskboard_*` 與 Web GUI 看板 |
+| PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 與 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | 屬於 DSH 基礎的一部分；啟用 `run_code` |
+| Git Bash（選用，Windows） | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 為需要的 agent 新增 `bash` 工具 |
 | Web GUI | DSH Web/Desktop | 設定表單與任務看板所必需 |
 
 若缺少相依項目，此模式仍可部分載入，但團隊工具、看板或設定頁面將無法使用。外掛管理員不會提示這些 bundle，也不會自動連結它們。
@@ -52,9 +53,9 @@ Research Team Mode 是一個 **profile 層級的 DSH bundle**。此 bundle 不�
 此儲存庫是本機的 DSH bundle。從 checkout 開始：
 
 1. **在目標 profile 中啟用先決條件**：
-   - Agent Teams：`@deepseek-ai/dsh-experimental-agent-team-profile`
-   - 任務看板：`dsh-taskboard`
-   - Windows 上可選用 `dsh-gitbash-shell`。
+   - Agent Teams：[`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
+   - 任務看板：[`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
+   - Windows 上可選用 [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell)。
 2. **安裝此 bundle**，使用 Plugins 頁面／外掛管理員的安裝動作，並使用本機連結：
 
    ```text
@@ -247,11 +248,11 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### 缺少團隊工具
 
-在同一個 profile 中啟用 `@deepseek-ai/dsh-experimental-agent-team-profile` 並重新啟動。安裝器不會提示它。
+在同一個 profile 中啟用 [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) 並重新啟動。安裝器不會提示它。
 
 ### 缺少任務看板工具
 
-在同一個 profile 中啟用 `dsh-taskboard` 並重新啟動。
+在同一個 profile 中啟用 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 並重新啟動。
 
 ### `spawn_teammate_with_model` 無法使用
 
@@ -306,4 +307,4 @@ MIT。參見 [LICENSE](../LICENSE)。
 
 ## 致謝
 
-建構於 DeepSeek Harness 與 Cordis 之上。任務看板整合使用 `dsh-taskboard` 外掛；團隊工具來自官方 Agent Teams profile bundle。感謝外掛作者，以及所有在真實研究專案上測試此模式的人。
+建構於 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 與 [Cordis](https://github.com/cordiverse/cordis) 之上。任務看板整合使用 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 外掛；團隊工具來自官方 Agent Teams profile bundle。感謝外掛作者，以及所有在真實研究專案上測試此模式的人。

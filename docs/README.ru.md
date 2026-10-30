@@ -21,7 +21,8 @@ Research Team Mode — это DSH agent preset для проведения ск�
 | **Завершение** | `in_review` — последняя остановка агента; только пользователь может перевести карточку в `done` |
 | **Маршрутизация моделей** | Провайдер, модель и усилие рассуждения для каждой роли через форму настроек на странице Plugins |
 | **Среда выполнения** | PTC (`run_code` + сгенерированный SDK), один уровень subagent на участника |
-| **Язык** | Английский system prompt; полный английский README и полные переводы на 11 языков |
+
+<p align="center">Английский system prompt; полный английский README и полные переводы на 11 языков</p>
 
 ## Для кого
 
@@ -38,11 +39,11 @@ Research Team Mode — это **bundle DSH уровня профиля**. Bundle
 
 | Возможность | Провайдер | Примечания |
 | --- | --- | --- |
-| DSH | DeepSeek Harness `0.2.x` | Разработано для `0.2.1-rc.5`; другие версии могут работать, но не гарантируются |
-| Agent Teams | `@deepseek-ai/dsh-experimental-agent-team-profile` | Предоставляет `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` и сервисы Team |
-| Доска задач | `dsh-taskboard` | Предоставляет `taskboard_*` и доску в Web GUI |
-| Среда PTC | `@deepseek-ai/dsh-agent-tool-presentation` и `@deepseek-ai/dsh-ptc-runtime-node` | Входит в базовый DSH; включает `run_code` |
-| Git Bash (опционально, Windows) | `dsh-gitbash-shell` | Добавляет инструмент `bash` для агентов, которым он нужен |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Разработано для `0.2.1-rc.5`; другие версии могут работать, но не гарантируются |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Предоставляет `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` и сервисы Team |
+| Доска задач | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Предоставляет `taskboard_*` и доску в Web GUI |
+| Среда PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) и [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Входит в базовый DSH; включает `run_code` |
+| Git Bash (опционально, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | Добавляет инструмент `bash` для агентов, которым он нужен |
 | Web GUI | DSH Web/Desktop | Требуется для формы настроек и доски задач |
 
 Если зависимости не хватает, режим всё равно может загрузиться частично, но инструменты команды, доска или страница настроек будут недоступны. Менеджер плагинов не запрашивает эти bundle и не связывает их автоматически.
@@ -52,9 +53,9 @@ Research Team Mode — это **bundle DSH уровня профиля**. Bundle
 Этот репозиторий — локальный DSH bundle. Из checkout:
 
 1. **Включите предварительные условия** в целевом профиле:
-   - Agent Teams: `@deepseek-ai/dsh-experimental-agent-team-profile`
-   - Доска задач: `dsh-taskboard`
-   - Опционально `dsh-gitbash-shell` в Windows.
+   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
+   - Доска задач: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
+   - Опционально [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) в Windows.
 2. **Установите этот bundle** действием установки на странице Plugins или в менеджере плагинов, используя локальную ссылку:
 
    ```text
@@ -247,11 +248,11 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### Инструменты команды отсутствуют
 
-Включите `@deepseek-ai/dsh-experimental-agent-team-profile` в том же профиле и перезапустите. Установщик это не предлагает.
+Включите [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) в том же профиле и перезапустите. Установщик это не предлагает.
 
 ### Инструменты доски задач отсутствуют
 
-Включите `dsh-taskboard` в том же профиле и перезапустите.
+Включите [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) в том же профиле и перезапустите.
 
 ### `spawn_teammate_with_model` недоступен
 
@@ -306,4 +307,4 @@ MIT. См. [LICENSE](../LICENSE).
 
 ## Благодарности
 
-Построено на DeepSeek Harness и Cordis. Интеграция с доской задач использует плагин `dsh-taskboard`; инструменты команды берутся из официального профильного bundle Agent Teams. Спасибо авторам плагинов и всем, кто тестирует режим на реальных исследовательских проектах.
+Построено на [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) и [Cordis](https://github.com/cordiverse/cordis). Интеграция с доской задач использует плагин [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard); инструменты команды берутся из официального профильного bundle Agent Teams. Спасибо авторам плагинов и всем, кто тестирует режим на реальных исследовательских проектах.

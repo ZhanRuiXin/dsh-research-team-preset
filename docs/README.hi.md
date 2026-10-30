@@ -4,6 +4,8 @@
 
 **भाषाएँ:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · **हिन्दी**
 
+> यह पृष्ठ एक संक्षिप्त परिचय है। पूरा और आधिकारिक दस्तावेज़ [English README](../README.md) में है।
+
 ## अवलोकन
 
 Research Team Mode एक DSH एजेंट प्रीसेट है जो एक सत्र को छोटी, समन्वित शोध टीम में बदलता है। Lead काम की योजना, टास्क बोर्ड, कार्ड वितरण, परिणाम एकीकरण और उपयोगकर्ता से संवाद संभालता है। छह डिफ़ॉल्ट भूमिकाएँ सलाह, साहित्य और साक्ष्य, कोड, रन, स्वतंत्र समीक्षा और पेपर लेखन को कवर करती हैं।

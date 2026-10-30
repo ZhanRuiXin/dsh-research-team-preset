@@ -4,6 +4,8 @@
 
 **語言：** [English](../README.md) · [简体中文](README.zh-CN.md) · **繁體中文** · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md)
 
+> 本頁是簡短介紹；完整、權威的文件見 [English README](../README.md)。
+
 ## 簡介
 
 科研團隊模式是一個 DSH agent preset，把一次工作階段變成一個小型、分工明確的研究團隊。Lead 負責目標釐清、任務拆解、看板管理、分派追蹤、結果整合和與使用者溝通；六名預設成員分別涵蓋顧問評估、文獻與證據、程式碼建構、訓練與執行、獨立複核和論文寫作。

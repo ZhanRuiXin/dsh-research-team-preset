@@ -4,6 +4,8 @@
 
 **언어:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · **한국어** · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md)
 
+> 이 페이지는 짧은 소개입니다. 전체 문서는 [English README](../README.md)를 참고하세요.
+
 ## 개요
 
 Research Team Mode는 하나의 세션을 작고 협력적인 연구 팀으로 바꾸는 DSH 에이전트 프리셋입니다. Lead가 목표 정리, 작업 분해, 작업 보드 관리, 배정, 결과 통합, 사용자와의 소통을 맡고, 여섯 명의 기본 멤버가 자문 평가, 문헌과 증거, 코드, 실행, 독립 검토, 논문 작성을 담당합니다.

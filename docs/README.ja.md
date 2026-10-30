@@ -4,6 +4,8 @@
 
 **言語:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · **日本語** · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md)
 
+> このページは短い紹介です。完全で正式なドキュメントは [English README](../README.md) を参照してください。
+
 ## 概要
 
 Research Team Mode は、1 つのセッションを小規模で協調的な研究チームに変える DSH エージェントプリセットです。Lead が目標の整理、タスク分解、タスクボード管理、割り当て、結果の統合、ユーザーとの対話を担当し、6 名の既定メンバーが顧問評価、文献と証拠、コード、実行、独立レビュー、論文執筆を分担します。

@@ -4,6 +4,8 @@
 
 **Idiomas:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · **Español** · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md)
 
+> Esta página es una introducción breve. La documentación completa y canónica está en el [English README](../README.md).
+
 ## Descripción general
 
 Research Team Mode es un preset de agente de DSH que convierte una sesión en un pequeño equipo de investigación coordinado. El Lead planifica el trabajo, mantiene el tablero de tareas, reparte las tarjetas, integra resultados y conversa con el usuario. Seis roles predeterminados cubren asesoría, literatura y evidencia, código, ejecuciones, revisión independiente y redacción del artículo.

@@ -4,7 +4,7 @@
 
 **Version 1.0.0** · **Updated 2026-10-31**
 
-**Languages:** English · [简体中文](docs/README.zh-CN.md) · [繁體中文](docs/README.zh-TW.md) · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) · [Deutsch](docs/README.de.md) · [Français](docs/README.fr.md) · [Español](docs/README.es.md) · [Português (Brasil)](docs/README.pt-BR.md) · [Русский](docs/README.ru.md) · [العربية](docs/README.ar.md) · [हिन्दी](docs/README.hi.md)
+**Languages:** English · [简体中文](docs/README.zh-CN.md) · [繁體中文](docs/README.zh-TW.md) · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) · [Deutsch](docs/README.de.md) · [Français](docs/README.fr.md) · [Español](docs/README.es.md) · [Português (Brasil)](docs/README.pt-BR.md) · [Русский](docs/README.ru.md) · [العربية](docs/README.ar.md) · [हिन्दी](docs/README.hi.md) · [Language guide](docs/LANGUAGES.md)
 
 ---
 
@@ -23,7 +23,7 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
-| **Language** | English system prompt; English README plus 11 translated introductions |
+| **Language** | English system prompt; English README plus short introductions in 11 languages |
 
 ## Who it is for
 
@@ -190,7 +190,8 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config form (model/effort dropdowns)
 └── docs/
-    ├── README.md                 # Language guide
+    ├── LANGUAGES.md              # Language guide and documentation layers
+    ├── README.en.md
     ├── README.zh-CN.md
     ├── README.zh-TW.md
     ├── README.ja.md
@@ -300,11 +301,14 @@ There is no automated test suite yet. The settings route, model catalog, task-bo
 
 ## Translations
 
-English is the canonical README. Each language has a short introduction in `docs/`; the full source of truth remains this English README. Translations are AI-assisted and welcome corrections.
+English is the canonical, complete README. The pages under `docs/` are **short introductions, not word-for-word translations**, and they share one structure and version. See the [Language guide](docs/LANGUAGES.md) for the layered documentation map.
+
+An English short introduction is available at [docs/README.en.md](docs/README.en.md); the full source of truth remains this README.
 
 | Language | Introduction |
 | --- | --- |
-| English | This README |
+| English (full) | This README |
+| English (short) | [docs/README.en.md](docs/README.en.md) |
 | 简体中文 | [docs/README.zh-CN.md](docs/README.zh-CN.md) |
 | 繁體中文 | [docs/README.zh-TW.md](docs/README.zh-TW.md) |
 | 日本語 | [docs/README.ja.md](docs/README.ja.md) |

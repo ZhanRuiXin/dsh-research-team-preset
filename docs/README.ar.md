@@ -4,6 +4,8 @@
 
 **اللغات:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · **العربية** · [हिन्दी](README.hi.md)
 
+> هذه الصفحة مقدمة مختصرة. الوثائق الكاملة والمرجعية موجودة في [English README](../README.md).
+
 ## نظرة عامة
 
 Research Team Mode هو إعداد وكيل DSH يحوّل جلسة واحدة إلى فريق بحث صغير ومنسّق. يتولى القائد (Lead) تخطيط العمل وإدارة لوحة المهام وتوزيع البطاقات ودمج النتائج والتواصل مع المستخدم. وتغطي ستة أدوار افتراضية الاستشارة العلمية، والأدبيات والأدلة، والشفرة، والتشغيل، والمراجعة المستقلة، وكتابة الورقة.

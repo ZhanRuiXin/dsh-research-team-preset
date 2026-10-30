@@ -1,38 +1,332 @@
-# Research Team Mode — 简体中文
+# Research Team Mode
 
-**版本：** 1.0.0 · **更新：** 2026-10-31
+**一个 DSH agent preset，把一次会话变成一个小型、协同工作的研究团队。**
 
-**语言：** [English](../README.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md)
+**版本 1.0.0** · **更新 2026-10-31**
 
-> 本页是简短介绍；完整、权威的文档见 [English README](../README.md)。
+**语言：** [English](../README.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [语言指南](LANGUAGES.md)
 
-## 简介
+---
 
-科研团队模式是一个 DSH agent preset，把一次会话变成一个小型、分工明确的研究团队。Lead 负责目标澄清、任务拆解、看板管理、分派跟进、结果整合和与用户沟通；六名默认成员分别覆盖顾问评估、文献与证据、代码构建、训练与运行、独立复核和论文写作。
+## 概述
 
-它适合跨越数天或数周、需要可追溯证据和清晰角色边界的研究工作，不适合简单问答或一次性小改动。
+Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊天的方式运行端到端研究。Lead 负责规划工作、维护任务看板、分派卡片、整合结果并与用户沟通。六名默认专家分别覆盖顾问评估、文献与证据、代码、运行、独立复核和论文写作。
 
-## 适合谁
+该模式面向持续数天或数周、需要可追溯证据、并能从清晰角色边界中获益的研究工作。它不是一次性问答模式：Lead 只创建任务真正需要的角色。
+
+## 一览
+
+| | |
+| --- | --- |
+| **默认角色** | 6 个：advisor、researcher、builder、runner、reviewer、writer |
+| **工作流** | 任务看板优先：建卡、认领、执行、报告、复核、用户验收 |
+| **完成** | `in_review` 是 agent 的最后一站；只有用户才能把卡片移到 `done` |
+| **模型路由** | 通过「插件」页的设置表单，按角色配置 provider、model 和推理强度 |
+| **运行时** | PTC（`run_code` + 生成的 SDK），每名成员一层 subagent |
+| **语言** | 英文 system prompt；完整英文 README，另有 11 种语言的完整翻译 |
+
+## 适用对象
 
 - 同时包含文献调研、实现、实验和论文产出的研究项目。
-- 需要把主张追溯到论文、日志或运行记录的团队。
+- 需要把主张追溯到来源、运行记录或日志的证据链的团队。
 - 希望有独立顾问和独立 reviewer，而不是只有一个通用 agent 的用户。
-- 最终验收权应该留给用户，而不是 agent 自动完成的工作。
+- 最终验收决定应由用户而非 agent 做出的工作。
 
-## 主要能力
+**不适用：** 快速事实性问题、单文件修改，或一次性回答就足够的任务。该模式会要求 Lead 直接回答简单问题，只在实质性研究时调动团队。
 
-- **六名默认成员**：advisor（学术顾问）、researcher（资料员）、builder（代码构建）、runner（训练与运行）、reviewer（审查）、writer（论文写作）。
-- **任务看板优先**：Lead 建卡，成员认领、执行、提交执行报告，reviewer 独立复核。
-- **按角色选择模型**：在插件设置页为每名成员选择 provider、model 和思考强度。
-- **完成权归用户**：agent 最多把卡片移到 `in_review`，`done` 只能由用户在 GUI 确认。
-- **PTC 运行时**：以 `run_code` 和生成的 SDK 执行批量操作，减少往返。
-- **可追溯**：证据、运行记录和决策留在任务卡评论里，而不是只留在聊天中。
+## 运行要求
 
-## 快速开始
+Research Team Mode 是一个 **profile 级 DSH bundle**。该 bundle 不会安装或启用它所用到的 profile bundle；DSH 的包安装器处理的是 npm 依赖，而不是功能 bundle。请先在同一 profile 中启用这些依赖。
 
-1. 在同一个 DSH profile 中启用 Agent Teams（`@deepseek-ai/dsh-experimental-agent-team-profile`）和 `dsh-taskboard`。
-2. 安装本 bundle（本地路径或 `link:`），重启 DSH。
-3. 新建会话，选择「科研团队模式」；任务卡使用 `presetId=research-team`。
-4. 打开「插件 → @local/dsh-research-team-preset → research-team-settings → 配置」，为成员设置默认模型。
+| 能力 | 提供方 | 说明 |
+| --- | --- | --- |
+| DSH | DeepSeek Harness `0.2.x` | 基于 `0.2.1-rc.5` 开发；其他版本可能可用，但不保证 |
+| Agent Teams | `@deepseek-ai/dsh-experimental-agent-team-profile` | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服务 |
+| 任务看板 | `dsh-taskboard` | 提供 `taskboard_*` 和 Web GUI 看板 |
+| PTC 运行时 | `@deepseek-ai/dsh-agent-tool-presentation` 和 `@deepseek-ai/dsh-ptc-runtime-node` | DSH 基础组件的一部分；用于启用 `run_code` |
+| Git Bash（可选，Windows） | `dsh-gitbash-shell` | 为需要它的 agent 增加 `bash` 工具 |
+| Web GUI | DSH Web/Desktop | 设置表单和任务看板需要它 |
 
-完整的安装、配置、任务板流程和已知问题见 [English README](../README.md)。本页是 AI 辅助翻译，欢迎修正。
+如果缺少某个依赖，该模式仍可部分加载，但团队工具、看板或设置页将不可用。插件管理器不会提示这些 bundle，也不会自动链接它们。
+
+## 安装
+
+本仓库是一个本地 DSH bundle。从 checkout 开始：
+
+1. **在目标 profile 中启用前置依赖：**
+   - Agent Teams：`@deepseek-ai/dsh-experimental-agent-team-profile`
+   - 任务看板：`dsh-taskboard`
+   - 在 Windows 上可选安装 `dsh-gitbash-shell`。
+2. **安装本 bundle**：使用「插件」页/插件管理器的安装操作，通过本地链接安装：
+
+   ```text
+   link:/absolute/path/to/research-team-preset
+   ```
+
+   本地文件夹路径同样可用。如果你打算从该 checkout 更新，请保留该 link；替换文件夹后需要重新安装。
+3. **重启 DSH。** Preset 行和 bundle 的 client 部分会在启动时加载。
+4. **确认该 bundle 已在同一 profile 中启用。**
+5. **新建会话**，并在模式选择器中选择 **Research Team Mode**。
+6. 对于任务看板执行会话，创建卡片时使用 `presetId=research-team`，使执行使用相同的 persona 和工具。
+
+> 该模式是 profile 级 bundle：在一个 profile 中安装并不会在另一个 profile 中启用它。请按 profile 重复安装和前置依赖步骤。
+
+## 首次运行
+
+在开始实际工作前，让 Lead 检查环境和看板：
+
+```text
+list_agents        # create only the roles the task needs
+research_project   # resolve the current project/workspaceId
+taskboard_list     # check existing cards in this project
+```
+
+一个典型的第一项任务：
+
+```text
+User: "Survey the literature on X, implement the baseline, and draft the method section."
+Lead: research_project -> taskboard_create(presetId=research-team) -> dispatch
+Members: claim cards -> execute -> checklist + execution report -> in_review
+Reviewer: independent PASS/FAIL with evidence
+Lead: summarize -> user acceptance (done)
+```
+
+## 默认团队
+
+| 角色 | 职责 |
+| --- | --- |
+| `advisor` | 独立评估方向、框架、核心主张、证据充分性和论文策略；给出继续 / 修改 / 停止的建议。仅提供建议，不是关卡 |
+| `researcher` | 文献检索、获取、精读、证据提取，并维护「主张 → 来源 → 位置」证据表 |
+| `builder` | 代码、配置、数据管线、测试和可复现的入口；不负责长时间训练 |
+| `runner` | 启动并监控训练/评估；记录 run id、配置、随机种子、指标、日志、检查点和产物路径 |
+| `reviewer` | 独立核验文献笔记、代码、结果和论文主张/引用；给出带阻断性证据的 PASS/FAIL |
+| `writer` | LaTeX 论文草稿：正文、章节、表格、图注、引用和图表代码；不运行实验，也不修改代码/模型 |
+
+Lead 负责目标澄清、任务拆解、看板管理、分派、整合、总结、最终产物组装和交付。成员可以为一个限定范围的子任务使用一层 subagent；成员不能创建新的 teammate。
+
+## 任务看板工作流
+
+```text
+User goal
+Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
+       -> comment the owner -> send_message
+Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
+       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
+       -> taskboard_comment_add -> taskboard_move -> in_review
+Reviewer: independent PASS/FAIL with evidence
+Advisor: optional independent recommendation at key decisions or before submission
+Lead:  summarize -> report card ids/status/evidence/risks to the user
+User:  accept in the GUI -> done (agents can never move a card to done)
+```
+
+看板是唯一的任务账本。不要只在聊天中跟踪交付物。`team_task_*` 用于临时协作，不用于交付物。
+
+## 按角色的模型设置
+
+打开：
+
+```text
+Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
+```
+
+每个默认成员占一行：
+
+- **Model**：一个下拉框，包含所有 provider 的模型，provider 分组标题不可点击。选择一个模型会同时设置 provider 和 model。
+- **Reasoning effort**：第二个下拉框，包含所选模型声明的推理强度，外加一个「模型默认」选项。
+
+空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取该角色的默认值；显式传入的 `model` 会覆盖它。直接调用 `spawn_teammate` 始终继承 Lead。
+
+行名称很重要：`research-team-settings` 必须保持在**包根目录** `@local/dsh-research-team-preset`。DSH 的 client 模块扫描器只会为精确的包根行发现 `dsh.client`；子路径名称会启动 host 插件，但永远不会加载页面。
+
+### 设置存储位置
+
+```text
+$DSH_HOME/research-team-settings.json
+```
+
+```json
+{
+  "roles": {
+    "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+    "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
+  }
+}
+```
+
+- JSON 文件是唯一事实来源。host 插件在启动时加载它；`getSettings()` 和 `modelForRole()` 会从中刷新，因此页面和下一个 teammate 都能看到最新值。
+- 文件缺失或暂时无法读取时，会保留最后一次有效的内存快照，而不是将其清空。
+- 设置文件**不在**本仓库中。请单独备份。它按 `DSH_HOME` 区分，而不是按 profile 区分。
+- 不存储任何凭据；只保存 provider/model/effort 字符串。
+- 保存设置无需重启 DSH 即可生效。首次安装设置行/client 页面，以及修改 preset/插件后，需要重启。
+- 1.0.0 版本修复了早期构建中的一个加载器 bug：文件把角色包在 `"roles"` 下，而旧加载器把整个对象传给角色规范化器，导致重启后设置全部为空。当前加载器会解包 `"roles"`，并兼容只包含角色映射的裸格式。
+
+## 配置参考
+
+| 设置 | 位置 | 说明 |
+| --- | --- | --- |
+| Preset id | `cordis.patch.yml` | `research-team`；任务卡应使用 `presetId=research-team` |
+| Persona | `cordis.patch.yml` | 英文 system prompt；模式级规则 |
+| `research-modeled-teammates.enabled` | `cordis.patch.yml` | 设为 `false` 可移除 `spawn_teammate_with_model` 及其服务包装 |
+| `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn 工具使用的 subagent provider；默认 `spawn` / `fork` |
+| `research-team-settings` 行 | `cordis.patch.yml` | 顶层 host 行；保持包根名称 |
+| 按角色路由 | `$DSH_HOME/research-team-settings.json` | 六个默认角色的 provider/model/reasoningEffort |
+
+## 仓库结构
+
+```text
+research-team-preset/
+├── README.md                     # This file (canonical, English)
+├── CHANGELOG.md
+├── LICENSE
+├── .gitignore
+├── package.json                  # DSH bundle manifest and exports
+├── cordis.patch.yml              # Preset + top-level settings row
+├── plugin/
+│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
+│   └── settings-store.js         # Shared settings snapshot + disk refresh
+├── settings/
+│   └── index.js                  # Settings file + /api/dsh-research-team-settings
+├── client/
+│   └── index.js                  # plugins.row.config form (model/effort dropdowns)
+└── docs/
+    ├── LANGUAGES.md              # Language guide
+    ├── README.zh-CN.md
+    ├── README.zh-TW.md
+    ├── README.ja.md
+    ├── README.ko.md
+    ├── README.de.md
+    ├── README.fr.md
+    ├── README.es.md
+    ├── README.pt-BR.md
+    ├── README.ru.md
+    ├── README.ar.md
+    └── README.hi.md
+```
+
+## 工作原理
+
+- **Preset**：`cordis.patch.yml` 声明 persona、工具行、modeled-teammates 子模块和顶层设置行。
+- **任务看板提示**：`plugin/index.js` 在 preset 作用域注册英文协议段（`plugin:dsh-taskboard`），并提供 `research_project` 用于解析当前工作区。
+- **按角色路由**：`plugin/modeled-teammates.js` 通过 `AsyncLocalStorage` 包装 `subagents.startActivation`，只对 `spawn_teammate_with_model` 调用注入 `agentOptions`。官方 Agent Teams 包未被修改。
+- **设置**：`settings/index.js` 加载/保存 JSON 文件并提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 通过 `plugins.row.config` 注册「插件」页的行表单。
+- **刷新**：`plugin/settings-store.js` 持有内存快照，在读取和 spawn 时从磁盘刷新，读取失败时保留最后一次有效快照。
+
+## 验证清单
+
+```text
+plugin_manager list_plugins              # bundle active
+Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-research-team
+new session -> Research Team Mode
+list_agents                              # roles can be created
+research_project                         # returns the current workspaceId
+taskboard_list                           # matches the GUI board
+Plugins -> bundle -> research-team-settings -> Configure   # page visible
+save a role model -> restart -> page still shows it
+```
+
+无需 UI 也可以检查设置的持久化路径：
+
+```text
+GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
+```
+
+## 故障排查
+
+### 设置似乎在重启后被重置
+
+1.0.0 版本修复了已知原因：旧加载器把整个 `{ roles: ... }` 对象传给角色规范化器，导致设置全部为空。请更新到 1.0.0 或更高版本，重启 DSH，并检查：
+
+- `$DSH_HOME/research-team-settings.json` 存在并且包含已保存的角色；
+- `research-team-settings` 行的名称完全为 `@local/dsh-research-team-preset`；
+- 当前 host 运行的是本 checkout，而不是过期的已安装副本。
+
+### 设置页没有出现在「插件」中
+
+- 该行必须是包根，而不是 `@local/dsh-research-team-preset/settings`。
+- client 部分在安装后需要重启 DSH 并刷新浏览器。
+- 检查 bundle 是否已在 profile 中启用。
+
+### 团队工具缺失
+
+在同一 profile 中启用 `@deepseek-ai/dsh-experimental-agent-team-profile` 并重启。安装器不会提示安装它。
+
+### 任务看板工具缺失
+
+在同一 profile 中启用 `dsh-taskboard` 并重启。
+
+### `spawn_teammate_with_model` 不可用
+
+该子模块包装了一个内部 subagent 服务。DSH 升级可能改变激活结构。检查失败信息；如果包装器无法安装，请设置 `research-modeled-teammates.enabled: false`，重启，并使用普通的 `spawn_teammate`。
+
+### 预设未列出
+
+确认 bundle 已安装并启用，重启 DSH，然后新建会话。Preset 声明在启动时加载。
+
+### `research_project` 无法解析工作区
+
+在 GUI 中把工作目录作为 DSH 项目/工作区打开，或传入已知项目；该工具不会猜测。
+
+## 已知限制
+
+- 按角色的模型路由是一个内部服务包装，不是官方的 Agent Teams 扩展。DSH 升级可能破坏它；回退方案见上文。
+- profile 级依赖不会被自动安装或启用。本仓库记录它们，但不负责管理。
+- 角色设置保存在 `$DSH_HOME` 下的独立 JSON 文件中；它们不属于 DSH 标准配置导出/备份的一部分。更换机器时请复制该文件。
+- 模型菜单是带 provider 分组的原生 `<select>`，不是可搜索的自定义选择器。
+- 该模式不会在会话启动时自动创建六名 teammate。Lead 按任务需要创建角色。
+- 成员可以使用一层 subagent；更深层的委派被有意禁用。
+
+## 开发
+
+本仓库是一个本地 DSH bundle，host 代码没有构建步骤。client 页面是 `client/index.js` 中的预构建 `window.__ModuleLoader__.load` 模块。
+
+典型循环：
+
+1. 将 checkout 作为 `link:` 依赖安装到 DSH profile 中。
+2. 编辑 host/client 文件。
+3. 重启 DSH（preset 和 client 模块在启动时加载；HMR 可能处理部分 host 变更）。
+4. 检查设置路由和「插件」页。
+
+有用的检查：
+
+```bash
+node --check settings/index.js
+node --check plugin/index.js
+node --check plugin/modeled-teammates.js
+node --check client/index.js
+```
+
+目前还没有自动化测试套件。设置路由、模型目录、任务看板流程和重启后的持久化是最有价值的人工检查项。
+
+## 翻译
+
+英文 README 是权威版本。`docs/` 下的每个页面都是**本 README 的完整翻译**，包含相同的章节、表格、代码块和版本；这些翻译由 AI 辅助完成，欢迎指正。参见[语言指南](LANGUAGES.md)。
+
+| 语言 | 翻译 |
+| --- | --- |
+| English（完整版） | [../README.md](../README.md) |
+| 简体中文 | 本页 |
+| 繁體中文 | [README.zh-TW.md](README.zh-TW.md) |
+| 日本語 | [README.ja.md](README.ja.md) |
+| 한국어 | [README.ko.md](README.ko.md) |
+| Deutsch | [README.de.md](README.de.md) |
+| Français | [README.fr.md](README.fr.md) |
+| Español | [README.es.md](README.es.md) |
+| Português (Brasil) | [README.pt-BR.md](README.pt-BR.md) |
+| Русский | [README.ru.md](README.ru.md) |
+| العربية | [README.ar.md](README.ar.md) |
+| हिन्दी | [README.hi.md](README.hi.md) |
+
+## 版本管理
+
+采用语义化版本。当前版本为 **1.0.0**；参见 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文档使用相同版本。
+
+## 许可证
+
+MIT。参见 [LICENSE](../LICENSE)。
+
+## 致谢
+
+构建于 DeepSeek Harness 和 Cordis 之上。任务看板集成使用 `dsh-taskboard` 插件；团队工具来自官方 Agent Teams profile bundle。感谢插件作者，以及所有在真实研究项目中测试该模式的人。
+
+**语言：** [English](../README.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [语言指南](LANGUAGES.md)

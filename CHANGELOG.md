@@ -11,6 +11,7 @@ Initial shareable release.
 - Opt-in `spawn_teammate_with_model` submodule for per-role provider, model, and reasoning effort.
 - Plugins-page settings form with one row per member, a provider-grouped model menu, and a separate reasoning-effort menu.
 - Settings persisted to `$DSH_HOME/research-team-settings.json`, refreshed from disk on reads and teammate spawns.
-- English system prompt and English README; short introductions in 11 additional languages under `docs/`.
+- English system prompt and English README; full translations in 11 additional languages under `docs/`.
+- Language guide and translation brief under `docs/`.
 - Fixed a settings loader bug: the file stores roles under `"roles"`, but the old loader passed the whole object to the role normalizer and produced all-empty settings after a restart.
 - MIT license, changelog, language guide, and repository metadata for sharing.

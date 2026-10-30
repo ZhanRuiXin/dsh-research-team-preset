@@ -23,7 +23,7 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
-| **Language** | English system prompt; English README plus short introductions in 11 languages |
+| **Language** | English system prompt; full English README plus full translations in 11 languages |
 
 ## Who it is for
 
@@ -190,8 +190,7 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config form (model/effort dropdowns)
 └── docs/
-    ├── LANGUAGES.md              # Language guide and documentation layers
-    ├── README.en.md
+    ├── LANGUAGES.md              # Language guide
     ├── README.zh-CN.md
     ├── README.zh-TW.md
     ├── README.ja.md
@@ -301,14 +300,11 @@ There is no automated test suite yet. The settings route, model catalog, task-bo
 
 ## Translations
 
-English is the canonical, complete README. The pages under `docs/` are **short introductions, not word-for-word translations**, and they share one structure and version. See the [Language guide](docs/LANGUAGES.md) for the layered documentation map.
+English is the canonical README. Each page under `docs/` is a **full translation of this README**, with the same sections, tables, code blocks, and version; the translations are AI-assisted and welcome corrections. See the [Language guide](docs/LANGUAGES.md).
 
-An English short introduction is available at [docs/README.en.md](docs/README.en.md); the full source of truth remains this README.
-
-| Language | Introduction |
+| Language | Translation |
 | --- | --- |
 | English (full) | This README |
-| English (short) | [docs/README.en.md](docs/README.en.md) |
 | 简体中文 | [docs/README.zh-CN.md](docs/README.zh-CN.md) |
 | 繁體中文 | [docs/README.zh-TW.md](docs/README.zh-TW.md) |
 | 日本語 | [docs/README.ja.md](docs/README.ja.md) |
@@ -333,4 +329,4 @@ MIT. See [LICENSE](LICENSE).
 
 Built on DeepSeek Harness and Cordis. The task-board integration uses the `dsh-taskboard` plugin; team tools come from the official Agent Teams profile bundle. Thanks to the plugin authors and everyone who tests the mode on real research projects.
 
-**Languages:** [简体中文](docs/README.zh-CN.md) · [繁體中文](docs/README.zh-TW.md) · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) · [Deutsch](docs/README.de.md) · [Français](docs/README.fr.md) · [Español](docs/README.es.md) · [Português (Brasil)](docs/README.pt-BR.md) · [Русский](docs/README.ru.md) · [العربية](docs/README.ar.md) · [हिन्दी](docs/README.hi.md)
+**Languages:** **English** · [简体中文](docs/README.zh-CN.md) · [繁體中文](docs/README.zh-TW.md) · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) · [Deutsch](docs/README.de.md) · [Français](docs/README.fr.md) · [Español](docs/README.es.md) · [Português (Brasil)](docs/README.pt-BR.md) · [Русский](docs/README.ru.md) · [العربية](docs/README.ar.md) · [हिन्दी](docs/README.hi.md) · [Language guide](docs/LANGUAGES.md)

@@ -28,12 +28,7 @@ Overwrite the existing short introduction. Do not modify other files.
 
 - Title exactly `# Research Team Mode` (no language suffix).
 - Version line with exact values: `**Version 1.0.0** · **Updated 2026-10-31**`; localize the labels if natural.
-- Language selector after the version, with links:
-  - English: `../README.md`
-  - Other translations: sibling `README.<code>.md`
-  - Current language: bold, not a link
-  - Language guide: `LANGUAGES.md`
-- Repeat the language selector at the bottom.
+- Do not add a language selector or a separate Translations section. Language discovery lives in the repository's `docs/` folder and `LANGUAGES.md`.
 - Follow the English README section order exactly: Overview, At a glance, Who it is for, Requirements, Install, First run, Default team, Task board workflow, Per-role model settings, Configuration reference, Repository layout, How it works, Verification checklist, Troubleshooting, Known limitations, Development, Versioning, License, Acknowledgements.
 
 ## Links in a file under `docs/`
@@ -43,17 +38,14 @@ Overwrite the existing short introduction. Do not modify other files.
 | `README.md` / English | `../README.md` |
 | `CHANGELOG.md` | `../CHANGELOG.md` |
 | `LICENSE` | `../LICENSE` |
-| `docs/LANGUAGES.md` | `LANGUAGES.md` |
-| `docs/README.<code>.md` | `README.<code>.md` |
-| Other translation pages | sibling `README.<code>.md` |
 
-No link may point to `docs/docs/` or to a nonexistent file. No English short-intro row or `README.en.md` reference.
+No link may point to `docs/docs/` or to a nonexistent file. Do not add a language selector, a Translations table, or a `README.en.md` reference.
 
 ## Translation rules
 
 - Translate prose, headings, table headers/cells, list items, and inline text.
 - Keep code blocks, shell commands, paths, URLs, JSON keys, version numbers, dates, role names (`advisor`, `researcher`, `builder`, `runner`, `reviewer`, `writer`), tool names (`taskboard_*`, `spawn_teammate_with_model`, `run_code`, etc.), provider/model examples, and the product name **Research Team Mode** in English.
-- Do not add a separate `## Translations` section or language table. The top and bottom language selectors are the navigation; the language guide covers the rest.
+- Do not add a separate `## Translations` section, language table, or language selector. The repository's `docs/` folder and `LANGUAGES.md` are the language index.
 - Preserve tables, code fences, and the `**At a glance**` structure.
 - Translate labels such as "Version" and "Updated" naturally; keep `1.0.0` and `2026-10-31`.
 - Do not add a "short introduction" banner or a translator note inside the document.
@@ -65,7 +57,7 @@ Before finishing, check that:
 
 - the target file exists and is much longer than the old 36-line intro;
 - all local links resolve from `docs/`;
-- the language selector is present at the top and bottom;
+- no language selector or separate Translations section is present;
 - the section order matches the English README;
 - no other file was changed.
 

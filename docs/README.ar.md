@@ -4,8 +4,6 @@
 
 **الإصدار 1.0.0** · **آخر تحديث 2026-10-31**
 
-**اللغات:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · **العربية** · [हिन्दी](README.hi.md) · [دليل اللغات](LANGUAGES.md)
-
 ---
 
 ## نظرة عامة
@@ -309,5 +307,3 @@ MIT. راجع [LICENSE](../LICENSE).
 ## شكر وتقدير
 
 بُني على DeepSeek Harness وCordis. يستخدم تكامل لوحة المهام إضافة `dsh-taskboard`؛ وأدوات الفريق تأتي من bundle الـ profile الرسمي Agent Teams. شكرًا لمؤلفي الإضافات ولكل من يختبر الوضع في مشاريع بحثية حقيقية.
-
-**اللغات:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · **العربية** · [हिन्दी](README.hi.md) · [دليل اللغات](LANGUAGES.md)

@@ -4,8 +4,6 @@
 
 **संस्करण 1.0.0** · **अद्यतन 2026-10-31**
 
-**भाषाएँ:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · **हिन्दी** · [भाषा गाइड](LANGUAGES.md)
-
 ---
 
 ## अवलोकन
@@ -309,5 +307,3 @@ MIT। [LICENSE](../LICENSE) देखें।
 ## आभार
 
 DeepSeek Harness और Cordis पर आधारित। टास्क-बोर्ड एकीकरण `dsh-taskboard` plugin का उपयोग करता है; टीम टूल आधिकारिक Agent Teams प्रोफ़ाइल बंडल से आते हैं। plugin लेखकों और उन सभी का धन्यवाद जो वास्तविक शोध प्रोजेक्टों पर इस मोड का परीक्षण करते हैं।
-
-**भाषाएँ:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · **हिन्दी** · [भाषा गाइड](LANGUAGES.md)

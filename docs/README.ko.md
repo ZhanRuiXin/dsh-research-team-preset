@@ -4,8 +4,6 @@
 
 **버전 1.0.0** · **업데이트 2026-10-31**
 
-**언어:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · **한국어** · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [언어 안내](LANGUAGES.md)
-
 ---
 
 ## 개요
@@ -309,5 +307,3 @@ MIT. [LICENSE](../LICENSE)를 참고하십시오.
 ## 감사의 글
 
 DeepSeek Harness와 Cordis를 기반으로 만들어졌습니다. 작업 보드 통합은 `dsh-taskboard` 플러그인을 사용하고, 팀 도구는 공식 Agent Teams 프로필 번들에서 제공됩니다. 플러그인 작성자들과 실제 연구 프로젝트에서 이 모드를 시험해 준 모든 분께 감사드립니다.
-
-**언어:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · **한국어** · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [언어 안내](LANGUAGES.md)

@@ -2,8 +2,6 @@
 
 **Version 1.0.0** · **Updated 2026-10-31**
 
-**Languages:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md)
-
 ## Documentation layers
 
 | File | Role | Language |

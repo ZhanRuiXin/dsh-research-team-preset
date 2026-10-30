@@ -4,8 +4,6 @@
 
 **バージョン 1.0.0** · **更新 2026-10-31**
 
-**言語:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · **日本語** · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [言語ガイド](LANGUAGES.md)
-
 ---
 
 ## 概要
@@ -309,5 +307,3 @@ MIT。[LICENSE](../LICENSE) を参照してください。
 ## 謝辞
 
 DeepSeek Harness と Cordis の上に構築されています。タスクボード連携は `dsh-taskboard` プラグインを使用し、チームツールは公式の Agent Teams プロファイルバンドルから提供されます。プラグインの作者と、実際の研究プロジェクトでこのモードを試してくれるすべての人に感謝します。
-
-**言語:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · **日本語** · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [言語ガイド](LANGUAGES.md)

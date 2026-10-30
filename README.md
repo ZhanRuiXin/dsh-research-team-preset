@@ -4,8 +4,6 @@
 
 **Version 1.0.0** · **Updated 2026-10-31**
 
-**Languages:** English · [简体中文](docs/README.zh-CN.md) · [繁體中文](docs/README.zh-TW.md) · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) · [Deutsch](docs/README.de.md) · [Français](docs/README.fr.md) · [Español](docs/README.es.md) · [Português (Brasil)](docs/README.pt-BR.md) · [Русский](docs/README.ru.md) · [العربية](docs/README.ar.md) · [हिन्दी](docs/README.hi.md) · [Language guide](docs/LANGUAGES.md)
-
 ---
 
 ## Overview
@@ -309,5 +307,3 @@ MIT. See [LICENSE](LICENSE).
 ## Acknowledgements
 
 Built on DeepSeek Harness and Cordis. The task-board integration uses the `dsh-taskboard` plugin; team tools come from the official Agent Teams profile bundle. Thanks to the plugin authors and everyone who tests the mode on real research projects.
-
-**Languages:** **English** · [简体中文](docs/README.zh-CN.md) · [繁體中文](docs/README.zh-TW.md) · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) · [Deutsch](docs/README.de.md) · [Français](docs/README.fr.md) · [Español](docs/README.es.md) · [Português (Brasil)](docs/README.pt-BR.md) · [Русский](docs/README.ru.md) · [العربية](docs/README.ar.md) · [हिन्दी](docs/README.hi.md) · [Language guide](docs/LANGUAGES.md)

@@ -4,8 +4,6 @@
 
 **版本 1.0.0** · **更新 2026-10-31**
 
-**语言：** [English](../README.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [语言指南](LANGUAGES.md)
-
 ---
 
 ## 概述
@@ -309,5 +307,3 @@ MIT。参见 [LICENSE](../LICENSE)。
 ## 致谢
 
 构建于 DeepSeek Harness 和 Cordis 之上。任务看板集成使用 `dsh-taskboard` 插件；团队工具来自官方 Agent Teams profile bundle。感谢插件作者，以及所有在真实研究项目中测试该模式的人。
-
-**语言：** [English](../README.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [语言指南](LANGUAGES.md)

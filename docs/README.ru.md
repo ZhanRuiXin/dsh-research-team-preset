@@ -4,8 +4,6 @@
 
 **Версия 1.0.0** · **Обновлено 2026-10-31**
 
-**Языки:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · **Русский** · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [Руководство по языкам](LANGUAGES.md)
-
 ---
 
 ## Обзор
@@ -309,5 +307,3 @@ MIT. См. [LICENSE](../LICENSE).
 ## Благодарности
 
 Построено на DeepSeek Harness и Cordis. Интеграция с доской задач использует плагин `dsh-taskboard`; инструменты команды берутся из официального профильного bundle Agent Teams. Спасибо авторам плагинов и всем, кто тестирует режим на реальных исследовательских проектах.
-
-**Языки:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · **Русский** · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [Руководство по языкам](LANGUAGES.md)

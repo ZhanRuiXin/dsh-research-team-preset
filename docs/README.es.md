@@ -4,8 +4,6 @@
 
 **Versión 1.0.0** · **Actualizado 2026-10-31**
 
-**Idiomas:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · **Español** · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [Guía de idiomas](LANGUAGES.md)
-
 ---
 
 ## Descripción general
@@ -309,5 +307,3 @@ MIT. Consulta [LICENSE](../LICENSE).
 ## Agradecimientos
 
 Construido sobre DeepSeek Harness y Cordis. La integración con el tablero de tareas usa el plugin `dsh-taskboard`; las herramientas de equipo provienen del bundle oficial del perfil Agent Teams. Gracias a los autores de los plugins y a todas las personas que prueban el modo en proyectos de investigación reales.
-
-**Idiomas:** [English](../README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · **Español** · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md) · [Guía de idiomas](LANGUAGES.md)

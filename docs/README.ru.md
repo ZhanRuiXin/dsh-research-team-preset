@@ -4,6 +4,8 @@
 
 **Версия 1.0.0** · **Обновлено 2026-10-31**
 
+<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <strong>Русский</strong> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
+
 ---
 
 ## Обзор
@@ -21,8 +23,6 @@ Research Team Mode — это DSH agent preset для проведения ск�
 | **Завершение** | `in_review` — последняя остановка агента; только пользователь может перевести карточку в `done` |
 | **Маршрутизация моделей** | Провайдер, модель и усилие рассуждения для каждой роли через форму настроек на странице Plugins |
 | **Среда выполнения** | PTC (`run_code` + сгенерированный SDK), один уровень subagent на участника |
-
-<p align="center">Английский system prompt; полный английский README и полные переводы на 11 языков</p>
 
 ## Для кого
 
@@ -189,7 +189,6 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config form (model/effort dropdowns)
 └── docs/
-    ├── LANGUAGES.md              # Language guide
     ├── README.zh-CN.md
     ├── README.zh-TW.md
     ├── README.ja.md

@@ -4,6 +4,8 @@
 
 **バージョン 1.0.0** · **更新 2026-10-31**
 
+<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <strong>日本語</strong> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
+
 ---
 
 ## 概要
@@ -21,8 +23,6 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 | **完了** | `in_review` がエージェントの最終地点。カードを `done` に移動できるのはユーザーだけ |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
 | **ランタイム** | PTC（`run_code` + 生成 SDK）。メンバーごとにサブエージェント 1 層 |
-
-<p align="center">システムプロンプトは英語。完全な英語 README と 11 言語の完全翻訳</p>
 
 ## 対象となるユーザー
 
@@ -189,7 +189,6 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config form (model/effort dropdowns)
 └── docs/
-    ├── LANGUAGES.md              # Language guide
     ├── README.zh-CN.md
     ├── README.zh-TW.md
     ├── README.ja.md

@@ -4,6 +4,8 @@
 
 **संस्करण 1.0.0** · **अद्यतन 2026-10-31**
 
+<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <strong>हिन्दी</strong></p>
+
 ---
 
 ## अवलोकन
@@ -21,8 +23,6 @@ Research Team Mode एक DSH एजेंट प्रीसेट है ज�
 | **पूर्णता** | `in_review` एजेंट का अंतिम पड़ाव है; कार्ड को केवल उपयोगकर्ता ही `done` में बदल सकता है |
 | **मॉडल रूटिंग** | Plugins पृष्ठ के सेटिंग्स फ़ॉर्म से प्रति भूमिका provider, model और reasoning effort |
 | **रनटाइम** | PTC (`run_code` + जनरेट किया गया SDK), प्रति सदस्य एक subagent परत |
-
-<p align="center">अंग्रेज़ी सिस्टम प्रॉम्प्ट; पूरा अंग्रेज़ी README और 11 भाषाओं में पूर्ण अनुवाद</p>
 
 ## किसके लिए है
 
@@ -189,7 +189,6 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config form (model/effort dropdowns)
 └── docs/
-    ├── LANGUAGES.md              # Language guide
     ├── README.zh-CN.md
     ├── README.zh-TW.md
     ├── README.ja.md

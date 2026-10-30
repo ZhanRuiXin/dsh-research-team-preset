@@ -4,6 +4,8 @@
 
 **Versión 1.0.0** · **Actualizado 2026-10-31**
 
+<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <strong>Español</strong> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
+
 ---
 
 ## Descripción general
@@ -21,8 +23,6 @@ El modo está pensado para investigaciones que abarcan días o semanas, que nece
 | **Finalización** | `in_review` es la última parada del agente; solo el usuario puede mover una tarjeta a `done` |
 | **Enrutamiento de modelos** | Proveedor, modelo y esfuerzo de razonamiento por rol desde un formulario de ajustes de la página de Plugins |
 | **Runtime** | PTC (`run_code` + SDK generado), una capa de subagente por miembro |
-
-<p align="center">Prompt del sistema en inglés; README completo en inglés más traducciones completas en 11 idiomas</p>
 
 ## Para quién es
 
@@ -189,7 +189,6 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config form (model/effort dropdowns)
 └── docs/
-    ├── LANGUAGES.md              # Language guide
     ├── README.zh-CN.md
     ├── README.zh-TW.md
     ├── README.ja.md

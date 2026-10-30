@@ -4,6 +4,8 @@
 
 **الإصدار 1.0.0** · **آخر تحديث 2026-10-31**
 
+<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <strong>العربية</strong> · <a href="README.hi.md">हिन्दी</a></p>
+
 ---
 
 ## نظرة عامة
@@ -21,8 +23,6 @@
 | **الإنجاز** | `in_review` هي آخر محطة للوكيل؛ ولا ينقل البطاقة إلى `done` إلا المستخدم |
 | **توجيه النماذج** | provider وmodel وقوة الاستدلال لكل دور من نموذج إعدادات في صفحة Plugins |
 | **بيئة التشغيل** | PTC (`run_code` + SDK المولَّد)، وطبقة subagent واحدة لكل عضو |
-
-<p align="center">system prompt بالإنكليزية؛ README إنكليزي كامل مع ترجمات كاملة بـ 11 لغة</p>
 
 ## لمن هذا الوضع
 
@@ -189,7 +189,6 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config form (model/effort dropdowns)
 └── docs/
-    ├── LANGUAGES.md              # Language guide
     ├── README.zh-CN.md
     ├── README.zh-TW.md
     ├── README.ja.md

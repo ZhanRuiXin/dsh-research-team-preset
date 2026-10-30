@@ -4,6 +4,8 @@
 
 **版本 1.0.0** · **更新 2026-10-31**
 
+<p align="center"><a href="../README.md">English</a> · <strong>简体中文</strong> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
+
 ---
 
 ## 概述
@@ -21,8 +23,6 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 | **完成** | `in_review` 是 agent 的最后一站；只有用户才能把卡片移到 `done` |
 | **模型路由** | 通过「插件」页的设置表单，按角色配置 provider、model 和推理强度 |
 | **运行时** | PTC（`run_code` + 生成的 SDK），每名成员一层 subagent |
-
-<p align="center">英文 system prompt；完整英文 README，另有 11 种语言的完整翻译</p>
 
 ## 适用对象
 
@@ -189,7 +189,6 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config form (model/effort dropdowns)
 └── docs/
-    ├── LANGUAGES.md              # Language guide
     ├── README.zh-CN.md
     ├── README.zh-TW.md
     ├── README.ja.md

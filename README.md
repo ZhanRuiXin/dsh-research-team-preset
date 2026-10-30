@@ -298,25 +298,6 @@ node --check client/index.js
 
 There is no automated test suite yet. The settings route, model catalog, task-board flow, and restart persistence are the highest-value manual checks.
 
-## Translations
-
-English is the canonical README. Each page under `docs/` is a **full translation of this README**, with the same sections, tables, code blocks, and version; the translations are AI-assisted and welcome corrections. See the [Language guide](docs/LANGUAGES.md).
-
-| Language | Translation |
-| --- | --- |
-| English (full) | This README |
-| 简体中文 | [docs/README.zh-CN.md](docs/README.zh-CN.md) |
-| 繁體中文 | [docs/README.zh-TW.md](docs/README.zh-TW.md) |
-| 日本語 | [docs/README.ja.md](docs/README.ja.md) |
-| 한국어 | [docs/README.ko.md](docs/README.ko.md) |
-| Deutsch | [docs/README.de.md](docs/README.de.md) |
-| Français | [docs/README.fr.md](docs/README.fr.md) |
-| Español | [docs/README.es.md](docs/README.es.md) |
-| Português (Brasil) | [docs/README.pt-BR.md](docs/README.pt-BR.md) |
-| Русский | [docs/README.ru.md](docs/README.ru.md) |
-| العربية | [docs/README.ar.md](docs/README.ar.md) |
-| हिन्दी | [docs/README.hi.md](docs/README.hi.md) |
-
 ## Versioning
 
 Semantic versioning. The current release is **1.0.0**; see [CHANGELOG.md](CHANGELOG.md). The docs under `docs/` carry the same version.

@@ -298,25 +298,6 @@ node --check client/index.js
 
 अभी कोई स्वचालित टेस्ट सूट नहीं है। सेटिंग्स रूट, मॉडल कैटलॉग, टास्क-बोर्ड प्रवाह और पुनः प्रारंभ पर्सिस्टेंस सबसे मूल्यवान मैनुअल जाँचें हैं।
 
-## अनुवाद
-
-अंग्रेज़ी मानक README है। `docs/` के अंतर्गत प्रत्येक पृष्ठ **इस README का पूर्ण अनुवाद** है, समान अनुभागों, तालिकाओं, कोड ब्लॉकों और संस्करण के साथ; अनुवाद AI-सहायता प्राप्त हैं और सुधारों का स्वागत है। [भाषा गाइड](LANGUAGES.md) देखें।
-
-| भाषा | अनुवाद |
-| --- | --- |
-| अंग्रेज़ी (पूर्ण) | [English README](../README.md) |
-| 简体中文 | [README.zh-CN.md](README.zh-CN.md) |
-| 繁體中文 | [README.zh-TW.md](README.zh-TW.md) |
-| 日本語 | [README.ja.md](README.ja.md) |
-| 한국어 | [README.ko.md](README.ko.md) |
-| Deutsch | [README.de.md](README.de.md) |
-| Français | [README.fr.md](README.fr.md) |
-| Español | [README.es.md](README.es.md) |
-| Português (Brasil) | [README.pt-BR.md](README.pt-BR.md) |
-| Русский | [README.ru.md](README.ru.md) |
-| العربية | [README.ar.md](README.ar.md) |
-| हिन्दी | [README.hi.md](README.hi.md) |
-
 ## संस्करणन
 
 सिमेंटिक संस्करणन। वर्तमान रिलीज़ **1.0.0** है; [CHANGELOG.md](../CHANGELOG.md) देखें। `docs/` के अंतर्गत दस्तावेज़ समान संस्करण रखते हैं।

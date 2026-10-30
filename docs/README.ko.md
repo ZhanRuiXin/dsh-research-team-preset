@@ -298,25 +298,6 @@ node --check client/index.js
 
 아직 자동화된 테스트 스위트는 없습니다. 설정 라우트, 모델 카탈로그, 작업 보드 흐름, 재시작 후 지속성이 가장 가치 있는 수동 점검 항목입니다.
 
-## 번역
-
-영어가 표준 README입니다. `docs/` 아래의 각 페이지는 **이 README의 전체 번역**이며 동일한 섹션, 표, 코드 블록, 버전을 가집니다. 번역은 AI 지원으로 작성되었으며 수정을 환영합니다. [언어 안내](LANGUAGES.md)를 참고하십시오.
-
-| 언어 | 번역 |
-| --- | --- |
-| 영어 (전체) | [English README](../README.md) |
-| 简体中文 | [README.zh-CN.md](README.zh-CN.md) |
-| 繁體中文 | [README.zh-TW.md](README.zh-TW.md) |
-| 日本語 | [README.ja.md](README.ja.md) |
-| 한국어 | [README.ko.md](README.ko.md) |
-| Deutsch | [README.de.md](README.de.md) |
-| Français | [README.fr.md](README.fr.md) |
-| Español | [README.es.md](README.es.md) |
-| Português (Brasil) | [README.pt-BR.md](README.pt-BR.md) |
-| Русский | [README.ru.md](README.ru.md) |
-| العربية | [README.ar.md](README.ar.md) |
-| हिन्दी | [README.hi.md](README.hi.md) |
-
 ## 버전 관리
 
 시맨틱 버전 관리를 사용합니다. 현재 릴리스는 **1.0.0**이며 [CHANGELOG.md](../CHANGELOG.md)를 참고하십시오. `docs/` 아래 문서도 같은 버전을 따릅니다.

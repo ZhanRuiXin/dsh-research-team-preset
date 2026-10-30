@@ -298,25 +298,6 @@ node --check client/index.js
 
 Автоматизированного набора тестов пока нет. Маршрут настроек, каталог моделей, процесс доски задач и сохранение после перезапуска — самые ценные ручные проверки.
 
-## Переводы
-
-Английский — канонический README. Каждая страница в `docs/` — это **полный перевод этого README** с теми же разделами, таблицами, блоками кода и версией; переводы выполнены с помощью ИИ, исправления приветствуются. См. [Руководство по языкам](LANGUAGES.md).
-
-| Язык | Перевод |
-| --- | --- |
-| English (полный) | [English README](../README.md) |
-| 简体中文 | [README.zh-CN.md](README.zh-CN.md) |
-| 繁體中文 | [README.zh-TW.md](README.zh-TW.md) |
-| 日本語 | [README.ja.md](README.ja.md) |
-| 한국어 | [README.ko.md](README.ko.md) |
-| Deutsch | [README.de.md](README.de.md) |
-| Français | [README.fr.md](README.fr.md) |
-| Español | [README.es.md](README.es.md) |
-| Português (Brasil) | [README.pt-BR.md](README.pt-BR.md) |
-| Русский | [README.ru.md](README.ru.md) |
-| العربية | [README.ar.md](README.ar.md) |
-| हिन्दी | [README.hi.md](README.hi.md) |
-
 ## Версионирование
 
 Семантическое версионирование. Текущая версия — **1.0.0**; см. [CHANGELOG.md](../CHANGELOG.md). Документы в `docs/` несут ту же версию.

@@ -298,25 +298,6 @@ node --check client/index.js
 
 自動テストスイートはまだありません。設定ルート、モデルカタログ、タスクボードのフロー、再起動後の永続化が、最も価値のある手動チェック項目です。
 
-## 翻訳
-
-英語の README が正式（canonical）です。`docs/` 配下の各ページは**この README の完全な翻訳**であり、同じ節、表、コードブロック、バージョンを持ちます。翻訳は AI 支援によるもので、修正を歓迎します。[言語ガイド](LANGUAGES.md) を参照してください。
-
-| 言語 | 翻訳 |
-| --- | --- |
-| 英語（全文） | [English README](../README.md) |
-| 简体中文 | [README.zh-CN.md](README.zh-CN.md) |
-| 繁體中文 | [README.zh-TW.md](README.zh-TW.md) |
-| 日本語 | [README.ja.md](README.ja.md) |
-| 한국어 | [README.ko.md](README.ko.md) |
-| Deutsch | [README.de.md](README.de.md) |
-| Français | [README.fr.md](README.fr.md) |
-| Español | [README.es.md](README.es.md) |
-| Português (Brasil) | [README.pt-BR.md](README.pt-BR.md) |
-| Русский | [README.ru.md](README.ru.md) |
-| العربية | [README.ar.md](README.ar.md) |
-| हिन्दी | [README.hi.md](README.hi.md) |
-
 ## バージョニング
 
 セマンティックバージョニングを採用しています。現在のリリースは **1.0.0** です。[CHANGELOG.md](../CHANGELOG.md) を参照してください。`docs/` 配下のドキュメントも同じバージョンを持ちます。

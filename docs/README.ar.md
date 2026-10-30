@@ -298,25 +298,6 @@ node --check client/index.js
 
 لا توجد مجموعة اختبارات آلية بعد. ومسار الإعدادات وكتالوج النماذج وسير عمل لوحة المهام والاستمرارية بعد إعادة التشغيل هي الفحوص اليدوية الأعلى قيمة.
 
-## الترجمات
-
-الـ README الإنكليزي هو النسخة المرجعية. وكل صفحة تحت `docs/` هي **ترجمة كاملة لهذا الـ README**، بالأقسام والجداول وكتل الشيفرة والإصدار نفسها؛ والترجمات منجزة بمساعدة الذكاء الاصطناعي ونرحّب بالتصحيحات. راجع [دليل اللغات](LANGUAGES.md).
-
-| اللغة | الترجمة |
-| --- | --- |
-| الإنجليزية (كاملة) | [../README.md](../README.md) |
-| 简体中文 | [README.zh-CN.md](README.zh-CN.md) |
-| 繁體中文 | [README.zh-TW.md](README.zh-TW.md) |
-| 日本語 | [README.ja.md](README.ja.md) |
-| 한국어 | [README.ko.md](README.ko.md) |
-| Deutsch | [README.de.md](README.de.md) |
-| Français | [README.fr.md](README.fr.md) |
-| Español | [README.es.md](README.es.md) |
-| Português (Brasil) | [README.pt-BR.md](README.pt-BR.md) |
-| Русский | [README.ru.md](README.ru.md) |
-| العربية | هذه الصفحة |
-| हिन्दी | [README.hi.md](README.hi.md) |
-
 ## إدارة الإصدارات
 
 ترقيم دلالي للإصدارات (semantic versioning). الإصدار الحالي هو **1.0.0**؛ راجع [CHANGELOG.md](../CHANGELOG.md). وتحمل الوثائق تحت `docs/` الإصدار نفسه.

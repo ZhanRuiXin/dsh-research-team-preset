@@ -298,25 +298,6 @@ node --check client/index.js
 
 目前还没有自动化测试套件。设置路由、模型目录、任务看板流程和重启后的持久化是最有价值的人工检查项。
 
-## 翻译
-
-英文 README 是权威版本。`docs/` 下的每个页面都是**本 README 的完整翻译**，包含相同的章节、表格、代码块和版本；这些翻译由 AI 辅助完成，欢迎指正。参见[语言指南](LANGUAGES.md)。
-
-| 语言 | 翻译 |
-| --- | --- |
-| English（完整版） | [../README.md](../README.md) |
-| 简体中文 | 本页 |
-| 繁體中文 | [README.zh-TW.md](README.zh-TW.md) |
-| 日本語 | [README.ja.md](README.ja.md) |
-| 한국어 | [README.ko.md](README.ko.md) |
-| Deutsch | [README.de.md](README.de.md) |
-| Français | [README.fr.md](README.fr.md) |
-| Español | [README.es.md](README.es.md) |
-| Português (Brasil) | [README.pt-BR.md](README.pt-BR.md) |
-| Русский | [README.ru.md](README.ru.md) |
-| العربية | [README.ar.md](README.ar.md) |
-| हिन्दी | [README.hi.md](README.hi.md) |
-
 ## 版本管理
 
 采用语义化版本。当前版本为 **1.0.0**；参见 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文档使用相同版本。

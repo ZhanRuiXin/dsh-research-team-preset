@@ -298,25 +298,6 @@ node --check client/index.js
 
 Ainda não há uma suíte de testes automatizados. A rota de configurações, o catálogo de modelos, o fluxo do quadro de tarefas e a persistência após reiniciar são as verificações manuais de maior valor.
 
-## Traduções
-
-O inglês é o README canônico. Cada página em `docs/` é uma **tradução completa deste README**, com as mesmas seções, tabelas, blocos de código e versão; as traduções são assistidas por IA e correções são bem-vindas. Consulte o [Guia de idiomas](LANGUAGES.md).
-
-| Idioma | Tradução |
-| --- | --- |
-| Inglês (completo) | [README em inglês](../README.md) |
-| 简体中文 | [README.zh-CN.md](README.zh-CN.md) |
-| 繁體中文 | [README.zh-TW.md](README.zh-TW.md) |
-| 日本語 | [README.ja.md](README.ja.md) |
-| 한국어 | [README.ko.md](README.ko.md) |
-| Deutsch | [README.de.md](README.de.md) |
-| Français | [README.fr.md](README.fr.md) |
-| Español | [README.es.md](README.es.md) |
-| Português (Brasil) | [README.pt-BR.md](README.pt-BR.md) |
-| Русский | [README.ru.md](README.ru.md) |
-| العربية | [README.ar.md](README.ar.md) |
-| हिन्दी | [README.hi.md](README.hi.md) |
-
 ## Versionamento
 
 Versionamento semântico. A versão atual é **1.0.0**; consulte o [CHANGELOG.md](../CHANGELOG.md). A documentação em `docs/` carrega a mesma versão.

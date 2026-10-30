@@ -34,7 +34,7 @@ Overwrite the existing short introduction. Do not modify other files.
   - Current language: bold, not a link
   - Language guide: `LANGUAGES.md`
 - Repeat the language selector at the bottom.
-- Follow the English README section order exactly: Overview, At a glance, Who it is for, Requirements, Install, First run, Default team, Task board workflow, Per-role model settings, Configuration reference, Repository layout, How it works, Verification checklist, Troubleshooting, Known limitations, Development, Translations, Versioning, License, Acknowledgements.
+- Follow the English README section order exactly: Overview, At a glance, Who it is for, Requirements, Install, First run, Default team, Task board workflow, Per-role model settings, Configuration reference, Repository layout, How it works, Verification checklist, Troubleshooting, Known limitations, Development, Versioning, License, Acknowledgements.
 
 ## Links in a file under `docs/`
 
@@ -53,7 +53,7 @@ No link may point to `docs/docs/` or to a nonexistent file. No English short-int
 
 - Translate prose, headings, table headers/cells, list items, and inline text.
 - Keep code blocks, shell commands, paths, URLs, JSON keys, version numbers, dates, role names (`advisor`, `researcher`, `builder`, `runner`, `reviewer`, `writer`), tool names (`taskboard_*`, `spawn_teammate_with_model`, `run_code`, etc.), provider/model examples, and the product name **Research Team Mode** in English.
-- Keep the `## Translations` table: English full `../README.md`, all other languages sibling links. Do not add an English short-intro row.
+- Do not add a separate `## Translations` section or language table. The top and bottom language selectors are the navigation; the language guide covers the rest.
 - Preserve tables, code fences, and the `**At a glance**` structure.
 - Translate labels such as "Version" and "Updated" naturally; keep `1.0.0` and `2026-10-31`.
 - Do not add a "short introduction" banner or a translator note inside the document.

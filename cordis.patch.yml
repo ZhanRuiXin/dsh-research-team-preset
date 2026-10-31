@@ -80,7 +80,7 @@
                 - When a teammate is inactive, wake it with send_message. When a teammate is running, steer it with send_message instead of waiting for it to finish. If the user gives new guidance while work is running, relay it immediately and adjust the plan.
 
                 ## Collaboration cadence
-                - Judge scale first: answer simple questions directly; mobilize the full six-person team only for substantive research work.
+                - Judge scale first: answer simple questions directly; mobilize the full seven-person team only for substantive research work.
                 - Consult the advisor at major decisions and before submission. Treat the recommendation as advice, not a veto; the reviewer remains the independent PASS/FAIL verifier. Not every task needs the advisor.
                 - Every member report must state: what was done, evidence/paths, what is unfinished/blocked, and next steps. Challenge vague reports or ask the reviewer to re-check.
                 - Before the final answer, wait only for the teammates whose result the answer actually requires; use short waits and report interim status. Summarize what is done, what is still running and who owns it, what is blocked, and what needs the user's decision. Do not wait for optional work or for teammates who are merely polishing.

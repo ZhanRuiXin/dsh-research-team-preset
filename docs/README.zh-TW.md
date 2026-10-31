@@ -22,7 +22,8 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對�
 | **工作流程** | 任務看板優先：建立、認領、執行、回報、審查、使用者驗收 |
 | **完成** | `in_review` 是 agent 的最後一站；只有使用者能把卡片移到 `done` |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
-| **Git** | 鼓勵建立儲存庫；破壞性改動走卡片分支；驗收通過後才合併 |
+| **Git** | 實質性工作開始時由 agent 初始化；破壞性改動走分支；驗收通過後才合併 |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 每張卡一個有界檔案；恢復時先讀 PLAN 和 INDEX |
 | **執行環境** | PTC（`run_code` + 產生的 SDK），每位成員一層 subagent |
 
 ## 適用對象
@@ -124,11 +125,17 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 ## Git 工作流程
 
-此模式鼓勵把研究程式碼與設定納入版本管理，但不會自行建立儲存庫。專案還沒有儲存庫時，Lead 先提議 `git init`，等使用者確認後再建立。
+此模式在實質性工作開始時初始化耐久記錄，由 agent 判斷請求是真正的工作還是簡單問題。工作區還不在任何儲存庫裡時，agent 呼叫 `research_workspace_init`，它會建立 `worklog/PLAN.md` 和 `worklog/INDEX.md`，並執行 `git init`。它不會建立巢狀儲存庫，也不會提交腳手架。
 
 破壞性或風險較高的改動在依卡片命名的分支上進行，例如 `task/<標題>+<id>`，不直接改預設分支。卡片記錄 base 與 head 提交，reviewer 以 `git diff <base>..<head>` 作為程式碼審查依據，並仍會重跑驗收檢查。
 
 分支只在卡片被驗收後合併，合併後刪除。資料集、checkpoint、日誌、快取等產物不納入版本庫。專案不是 git 儲存庫時，審查退回用檔案雜湊快照加卡片上記錄的證據。
+
+## 工作日誌
+
+可能跨工作階段的工作會在程式碼旁邊保留一份小而受限的記錄。`worklog/PLAN.md` 存目標、目前里程碑、活躍卡片、阻塞項與帶日期的決策；`worklog/INDEX.md` 每張活躍卡一行。每張卡有 `worklog/<task-id>.md`，頂部是目前狀態區塊，下面是簡短的追加條目。
+
+恢復時 agent 先讀 PLAN 和 INDEX，再只讀目標卡的狀態區塊與尾部，不整讀檔案也不整讀目錄。PLAN 控制在約一百行，單卡檔案約兩百行，完成的卡從索引撤掉。三種檔案的精簡範本就在預設 persona 裡，任何工作階段都能直接建立或更新，不需要讀本儲存庫。
 
 ## 各角色模型設定
 
@@ -282,7 +289,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - 角色設定存放在 `$DSH_HOME` 下的獨立 JSON 檔；它們不屬於 DSH 標準設定匯出／備份。移動機器時請複製該檔案。
 - 模型選單是原生 `<select>` 加上 provider 群組，不是可搜尋的自訂選擇器。
 - 此模式不會在工作階段開始時自動 spawn 七名隊友。Lead 會依任務需要建立角色。
-- 此模式不會在未經使用者確認時建立 git 儲存庫，分支也只在卡片被驗收後才合併。
+- 此模式不會在既有儲存庫內部再初始化儲存庫，也不會自行提交工作日誌或儲存庫腳手架。
 - 成員可使用一層 subagent；更深的委派會被刻意停用。
 
 ## 開發

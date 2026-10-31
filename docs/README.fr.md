@@ -22,7 +22,8 @@ Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semai
 | **Flux de travail** | Priorité au tableau des tâches : créer, prendre en charge, exécuter, rapporter, relire, acceptation par l'utilisateur |
 | **Achèvement** | `in_review` est le dernier arrêt de l'agent ; seul l'utilisateur peut déplacer une carte vers `done` |
 | **Routage des modèles** | Provider, model et effort de raisonnement par rôle, depuis un formulaire de réglages de la page Plugins |
-| **Git** | Dépôt encouragé ; changements destructifs sur une branche de carte ; fusion après acceptation seulement |
+| **Git** | Initialisé par l'agent au début du travail substantiel ; changements destructifs sur une branche ; fusion après acceptation seulement |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + un fichier borné par carte ; la reprise lit PLAN et INDEX d'abord |
 | **Runtime** | PTC (`run_code` + SDK généré), une couche de sous-agent par membre |
 
 ## À qui s'adresse ce mode
@@ -124,11 +125,17 @@ Le tableau est le registre unique des tâches. Ne suivez pas les livrables uniqu
 
 ## Flux Git
 
-Le mode encourage à placer le code et la configuration de recherche sous contrôle de version, mais il ne crée jamais de dépôt de lui-même. Quand un projet n'en a pas, le Lead propose `git init` et attend la confirmation de l'utilisateur.
+Le mode initialise un suivi durable au début du travail substantiel, et l'agent juge si une demande est un vrai travail ou une simple question. Dans un espace de travail qui n'est pas encore dans un dépôt, l'agent appelle `research_workspace_init`, qui crée `worklog/PLAN.md` et `worklog/INDEX.md` et exécute `git init`. Il ne crée jamais de dépôt imbriqué et ne commit pas l'échafaudage.
 
 Les changements destructifs ou risqués se font sur une branche nommée d'après la carte, par exemple `task/<title>+<id>`, plutôt que sur la branche par défaut. La carte enregistre les commits de base et de tête, et le reviewer lit `git diff <base>..<head>` comme base de la revue de code et relance les vérifications d'acceptation.
 
 Une branche n'est fusionnée qu'après l'acceptation de la carte, puis supprimée. Les artefacts générés (jeux de données, checkpoints, journaux, caches) restent hors du dépôt. Si le projet n'est pas un dépôt git, la revue s'appuie sur un instantané de hachages de fichiers et les preuves consignées sur la carte.
+
+## Worklog
+
+Le travail susceptible de s'étendre sur plusieurs sessions conserve un enregistrement petit et borné à côté du code. `worklog/PLAN.md` contient l'objectif, le jalon en cours, les cartes actives, les blocages et les décisions datées ; `worklog/INDEX.md` contient une ligne par carte active. Chaque carte reçoit `worklog/<task-id>.md` avec un bloc d'état courant en haut et de courtes entrées ajoutées en dessous.
+
+À la reprise, l'agent lit d'abord PLAN et INDEX, puis seulement le bloc d'état et la fin de la carte cible, jamais le fichier entier ni le répertoire entier. PLAN reste sous environ 100 lignes, les fichiers de carte sous environ 200, et les cartes terminées sont retirées de l'index. Les modèles compacts des trois fichiers vivent dans la persona du preset, donc chaque session peut les créer ou les mettre à jour sans lire ce dépôt.
 
 ## Réglages de modèle par rôle
 
@@ -282,7 +289,7 @@ Ouvrez le répertoire de travail comme projet/espace de travail DSH dans l'inter
 - Les réglages de rôle vivent dans un fichier JSON autonome sous `$DSH_HOME` ; ils ne font pas partie de l'export ou de la sauvegarde de configuration standard de DSH. Copiez le fichier si vous changez de machine.
 - Le menu des modèles est un `<select>` natif avec des groupes de providers, pas un sélecteur personnalisé avec recherche.
 - Le mode ne lance pas automatiquement sept équipiers au démarrage de la session. Le Lead crée les rôles selon les besoins de la tâche.
-- Le mode ne crée pas de dépôt git sans la confirmation de l'utilisateur, et une branche n'est fusionnée qu'après l'acceptation de la carte.
+- Le mode n'initialise jamais de dépôt à l'intérieur d'un dépôt existant et ne commit jamais de lui-même le worklog ni l'échafaudage du dépôt.
 - Les membres peuvent utiliser une couche de sous-agent ; la délégation plus profonde est volontairement désactivée.
 
 ## Développement

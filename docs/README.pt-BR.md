@@ -22,7 +22,8 @@ O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rast
 | **Fluxo de trabalho** | Quadro de tarefas em primeiro lugar: criar, assumir, executar, relatar, revisar, aceitação do usuário |
 | **Conclusão** | `in_review` é a última parada do agente; somente o usuário pode mover um cartão para `done` |
 | **Roteamento de modelos** | Provedor, modelo e esforço de raciocínio por função, definidos em um formulário na página de Plugins |
-| **Git** | Repositório incentivado; mudanças destrutivas em uma branch do cartão; mesclagem somente após a aceitação |
+| **Git** | Inicializado pelo agente quando o trabalho substantivo começa; mudanças destrutivas em uma branch; mesclagem somente após a aceitação |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + um arquivo limitado por cartão; ao retomar, ler PLAN e INDEX primeiro |
 | **Runtime** | PTC (`run_code` + SDK gerado), uma camada de subagente por membro |
 
 ## Para quem
@@ -124,11 +125,17 @@ O quadro é o único registro de tarefas. Não mantenha o acompanhamento de entr
 
 ## Fluxo de trabalho com Git
 
-O modo incentiva manter código e configuração de pesquisa sob controle de versão, mas nunca cria um repositório por conta própria. Quando um projeto não tem um, o Lead propõe `git init` e espera a confirmação do usuário.
+O modo inicializa o rastreamento durável quando o trabalho substantivo começa, e o agente decide se uma solicitação é trabalho real ou uma pergunta simples. Em um espaço de trabalho que ainda não está dentro de um repositório, o agente chama `research_workspace_init`, que cria `worklog/PLAN.md` e `worklog/INDEX.md` e executa `git init`. Ele nunca cria um repositório aninhado nem faz commit do andaime.
 
 Mudanças destrutivas ou de risco acontecem em uma branch nomeada pela tarefa, por exemplo `task/<title>+<id>`, em vez de editar a branch padrão. O cartão registra os commits base e head, e o reviewer lê `git diff <base>..<head>` como base da revisão de código e executa novamente as verificações de aceitação.
 
 Uma branch só é mesclada depois que o cartão é aceito, e então é removida. Artefatos gerados, como conjuntos de dados, checkpoints, logs e caches, ficam fora do repositório. Se o projeto não for um repositório git, a revisão recorre a um snapshot de hashes de arquivos e às evidências registradas no cartão.
+
+## Worklog
+
+O trabalho que pode abranger várias sessões mantém um registro pequeno e limitado ao lado do código. `worklog/PLAN.md` contém o objetivo, o marco atual, os cartões ativos, os bloqueios e as decisões datadas; `worklog/INDEX.md` contém uma linha por cartão ativo. Cada cartão recebe `worklog/<task-id>.md` com um bloco de estado atual no topo e entradas curtas apenas de acréscimo abaixo.
+
+Ao retomar, o agente lê primeiro PLAN e INDEX e depois apenas o bloco de estado e o final do cartão alvo, nunca o arquivo inteiro nem o diretório inteiro. PLAN fica abaixo de cerca de 100 linhas, os arquivos de cartão abaixo de cerca de 200, e os cartões concluídos são retirados do índice. Modelos compactos dos três arquivos ficam na persona do preset, então qualquer sessão pode criá-los ou atualizá-los sem ler este repositório.
 
 ## Configurações de modelo por função
 
@@ -282,7 +289,7 @@ Abra o diretório de trabalho como um projeto/workspace do DSH na GUI ou passe u
 - As configurações de função ficam em um arquivo JSON autônomo em `$DSH_HOME`; elas não fazem parte da exportação/backup padrão de configuração do DSH. Copie o arquivo se você trocar de máquina.
 - O menu de modelos é um `<select>` nativo com grupos de provedor, não um seletor personalizado com busca.
 - O modo não cria automaticamente sete membros da equipe ao iniciar a sessão. O Lead cria as funções conforme a tarefa exige.
-- O modo não cria um repositório git sem a confirmação do usuário, e uma branch só é mesclada após o cartão ser aceito.
+- O modo nunca inicializa um repositório dentro de um repositório existente e nunca faz commit por conta própria do worklog nem do andaime do repositório.
 - Os membros podem usar uma camada de subagente; a delegação mais profunda é desativada intencionalmente.
 
 ## Desenvolvimento

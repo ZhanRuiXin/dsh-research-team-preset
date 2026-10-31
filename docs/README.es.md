@@ -22,7 +22,8 @@ El modo está pensado para investigaciones que abarcan días o semanas, que nece
 | **Flujo de trabajo** | Primero el tablero de tareas: crear, reclamar, ejecutar, informar, revisar, aceptación del usuario |
 | **Finalización** | `in_review` es la última parada del agente; solo el usuario puede mover una tarjeta a `done` |
 | **Enrutamiento de modelos** | Proveedor, modelo y esfuerzo de razonamiento por rol desde un formulario de ajustes de la página de Plugins |
-| **Git** | Se recomienda repositorio; cambios destructivos en una rama de la tarjeta; fusión solo tras la aceptación |
+| **Git** | El agente lo inicializa al empezar el trabajo sustantivo; cambios destructivos en una rama; fusión solo tras la aceptación |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + un archivo acotado por tarjeta; al reanudar se leen PLAN e INDEX primero |
 | **Runtime** | PTC (`run_code` + SDK generado), una capa de subagente por miembro |
 
 ## Para quién es
@@ -124,11 +125,17 @@ El tablero es el único registro de tareas. No lleves el seguimiento de los entr
 
 ## Flujo de trabajo con Git
 
-El modo anima a mantener el código y la configuración de investigación bajo control de versiones, pero nunca crea un repositorio por su cuenta. Cuando un proyecto no tiene uno, el Lead propone `git init` y espera la confirmación del usuario.
+El modo inicializa el seguimiento duradero cuando empieza el trabajo sustantivo, y el agente decide si una petición es trabajo real o una pregunta simple. En un espacio de trabajo que aún no está dentro de un repositorio, el agente llama a `research_workspace_init`, que crea `worklog/PLAN.md` y `worklog/INDEX.md` y ejecuta `git init`. Nunca crea un repositorio anidado ni hace commit del andamiaje.
 
 Los cambios destructivos o de riesgo se hacen en una rama con el nombre de la tarjeta, por ejemplo `task/<title>+<id>`, en lugar de editar la rama predeterminada. La tarjeta registra los commits base y head, y el reviewer lee `git diff <base>..<head>` como base de la revisión de código y vuelve a ejecutar las comprobaciones de aceptación.
 
 Una rama solo se fusiona después de que la tarjeta sea aceptada, y luego se elimina. Los artefactos generados, como conjuntos de datos, checkpoints, logs y cachés, quedan fuera del repositorio. Si el proyecto no es un repositorio git, la revisión recurre a una instantánea de hashes de archivos y a la evidencia registrada en la tarjeta.
+
+## Worklog
+
+El trabajo que puede abarcar varias sesiones mantiene un registro pequeño y acotado junto al código. `worklog/PLAN.md` contiene el objetivo, el hito actual, las tarjetas activas, los bloqueos y las decisiones fechadas; `worklog/INDEX.md` contiene una línea por tarjeta activa. Cada tarjeta recibe `worklog/<task-id>.md` con un bloque de estado actual arriba y entradas breves solo de adición debajo.
+
+Al reanudar, el agente lee primero PLAN e INDEX y luego solo el bloque de estado y el final de la tarjeta objetivo, nunca el archivo entero ni el directorio entero. PLAN se mantiene por debajo de unas 100 líneas, los archivos de tarjeta por debajo de unas 200, y las tarjetas terminadas se retiran del índice. Las plantillas compactas de los tres archivos están en la persona del preset, así que cualquier sesión puede crearlas o actualizarlas sin leer este repositorio.
 
 ## Ajustes de modelo por rol
 
@@ -282,7 +289,7 @@ Abre el directorio de trabajo como proyecto/espacio de trabajo de DSH en la GUI 
 - Los ajustes de rol viven en un archivo JSON independiente bajo `$DSH_HOME`; no forman parte de la exportación/copia de seguridad estándar de la configuración de DSH. Copia el archivo si cambias de máquina.
 - El menú de modelos es un `<select>` nativo con grupos de proveedores, no un selector personalizado con búsqueda.
 - El modo no genera automáticamente siete compañeros de equipo al iniciar la sesión. El Lead crea los roles según lo requiera la tarea.
-- El modo no crea un repositorio git sin la confirmación del usuario, y una rama solo se fusiona después de que la tarjeta sea aceptada.
+- El modo nunca inicializa un repositorio dentro de un repositorio existente, y nunca hace commit por su cuenta del worklog ni del andamiaje del repositorio.
 - Los miembros pueden usar una capa de subagente; la delegación más profunda está deshabilitada intencionalmente.
 
 ## Desarrollo

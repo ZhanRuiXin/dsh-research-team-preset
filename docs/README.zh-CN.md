@@ -22,7 +22,8 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 | **工作流** | 任务看板优先：建卡、认领、执行、报告、复核、用户验收 |
 | **完成** | `in_review` 是 agent 的最后一站；只有用户才能把卡片移到 `done` |
 | **模型路由** | 通过「插件」页的设置表单，按角色配置 provider、model 和推理强度 |
-| **Git** | 鼓励建仓；破坏性改动走卡片分支；验收通过后才合并 |
+| **Git** | 实质性工作开始时由 agent 初始化；破坏性改动走分支；验收通过后才合并 |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 每卡一个有界文件；恢复时先读 PLAN 和 INDEX |
 | **运行时** | PTC（`run_code` + 生成的 SDK），每名成员一层 subagent |
 
 ## 适用对象
@@ -124,11 +125,17 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 ## Git 工作流
 
-该模式鼓励把研究代码与配置纳入版本管理，但不会自行创建仓库。项目还没有仓库时，Lead 先提议 `git init`，等用户确认后再建。
+该模式在实质性工作开始时初始化耐久记录，由 agent 判断请求是真正的工作还是简单问题。工作区还不在任何仓库里时，agent 调用 `research_workspace_init`，它会创建 `worklog/PLAN.md` 和 `worklog/INDEX.md`，并执行 `git init`。它不会创建嵌套仓库，也不会提交脚手架。
 
 破坏性或风险较高的改动在按卡片命名的分支上进行，例如 `task/<标题>+<id>`，不直接改默认分支。卡片记录 base 和 head 提交，reviewer 以 `git diff <base>..<head>` 作为代码审查的依据，并仍然复跑验收检查。
 
 分支只在卡片被验收后合并，合并后删除。数据集、checkpoint、日志、缓存等生成物不入库。项目不是 git 仓库时，审查退回用文件哈希快照加卡片上记录的证据。
+
+## 工作日志
+
+可能跨会话的工作会在代码旁边保留一份小而受限的记录。`worklog/PLAN.md` 存目标、当前里程碑、活跃卡片、阻塞项和带日期的决策；`worklog/INDEX.md` 每张活跃卡一行。每张卡有 `worklog/<task-id>.md`，顶部是当前状态块，下面是简短的追加条目。
+
+恢复时 agent 先读 PLAN 和 INDEX，再只读目标卡的状态块和尾部，不整读文件也不整读目录。PLAN 控制在约一百行，单卡文件约两百行，完成的卡从索引里撤掉。三种文件的精简模板就在预设 persona 里，任何会话都能直接创建或更新，不需要读本仓库。
 
 ## 按角色的模型设置
 
@@ -282,7 +289,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - 角色设置保存在 `$DSH_HOME` 下的独立 JSON 文件中；它们不属于 DSH 标准配置导出/备份的一部分。更换机器时请复制该文件。
 - 模型菜单是带 provider 分组的原生 `<select>`，不是可搜索的自定义选择器。
 - 该模式不会在会话启动时自动创建七名 teammate。Lead 按任务需要创建角色。
-- 该模式不会在未经用户确认时创建 git 仓库，分支也只在卡片被验收后才合并。
+- 该模式不会在已有仓库内部再初始化仓库，也不会自行提交工作日志或仓库脚手架。
 - 成员可以使用一层 subagent；更深层的委派被有意禁用。
 
 ## 开发

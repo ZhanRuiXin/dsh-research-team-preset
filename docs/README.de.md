@@ -22,7 +22,8 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 | **Workflow** | Task Board zuerst: erstellen, übernehmen, ausführen, berichten, prüfen, Abnahme durch die nutzende Person |
 | **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann eine Karte auf `done` setzen |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
-| **Git** | Repository empfohlen; destruktive Änderungen auf einem Karten-Branch; Zusammenführung erst nach Abnahme |
+| **Git** | Wird beim Start substanzieller Arbeit vom Agenten initialisiert; destruktive Änderungen auf einem Branch; Zusammenführung erst nach Abnahme |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + eine begrenzte Datei pro Karte; beim Wiederaufnehmen zuerst PLAN und INDEX lesen |
 | **Laufzeit** | PTC (`run_code` + generiertes SDK), eine Subagent-Ebene pro Mitglied |
 
 ## Für wen es gedacht ist
@@ -124,11 +125,17 @@ Das Board ist das einzige Aufgabenregister. Behalten Sie die Nachverfolgung von 
 
 ## Git-Workflow
 
-Der Modus empfiehlt, Forschungscode und Konfiguration unter Versionskontrolle zu halten, legt aber niemals selbst ein Repository an. Hat ein Projekt keines, schlägt der Lead `git init` vor und wartet auf die Bestätigung der nutzenden Person.
+Der Modus initialisiert dauerhafte Nachverfolgung, wenn substanzielle Arbeit beginnt, und der Agent entscheidet, ob eine Anfrage echte Arbeit oder eine einfache Frage ist. Liegt der Arbeitsbereich noch nicht in einem Repository, ruft der Agent `research_workspace_init` auf; das erstellt `worklog/PLAN.md` und `worklog/INDEX.md` und führt `git init` aus. Es legt niemals ein verschachteltes Repository an und committet das Gerüst nicht.
 
 Destruktive oder riskante Änderungen laufen auf einem nach der Karte benannten Branch, etwa `task/<title>+<id>`, statt den Standardbranch direkt zu bearbeiten. Die Karte hält Base- und Head-Commit fest, und der Reviewer liest `git diff <base>..<head>` als Grundlage der Codeprüfung und führt die Abnahmeprüfungen erneut aus.
 
 Ein Branch wird erst nach der Abnahme der Karte zusammengeführt und danach gelöscht. Generierte Artefakte wie Datensätze, Checkpoints, Logs und Caches bleiben außerhalb des Repositories. Ist das Projekt kein Git-Repository, stützt sich die Prüfung auf einen Dateihash-Snapshot und die auf der Karte festgehaltenen Belege.
+
+## Worklog
+
+Arbeit, die Sitzungen überspannen kann, hält eine kleine, begrenzte Aufzeichnung neben dem Code. `worklog/PLAN.md` enthält Ziel, aktuellen Meilenstein, aktive Karten, Blocker und datierte Entscheidungen; `worklog/INDEX.md` enthält eine Zeile pro aktiver Karte. Jede Karte erhält `worklog/<task-id>.md` mit einem aktuellen Statusblock oben und kurzen, nur angehängten Einträgen darunter.
+
+Beim Wiederaufnehmen liest der Agent zuerst PLAN und INDEX und dann nur den Statusblock und das Ende der Zielkarte, nie die ganze Datei oder das ganze Verzeichnis. PLAN bleibt unter etwa 100 Zeilen, Kartendateien unter etwa 200, und abgeschlossene Karten werden aus dem Index entfernt. Kompakte Vorlagen für alle drei Dateien liegen in der Preset-Persona, sodass jede Sitzung sie ohne dieses Repository erstellen oder aktualisieren kann.
 
 ## Modelleinstellungen pro Rolle
 
@@ -282,7 +289,7 @@ Bestätigen Sie, dass das Bundle installiert und aktiviert ist, starten Sie DSH 
 - Rolleneinstellungen liegen in einer eigenständigen JSON-Datei unter `$DSH_HOME`; sie sind nicht Teil des Standard-Konfigurationsexports bzw. -Backups von DSH. Kopieren Sie die Datei, wenn Sie den Rechner wechseln.
 - Das Modellmenü ist ein natives `<select>` mit Provider-Gruppen, keine durchsuchbare eigene Auswahlkomponente.
 - Der Modus startet beim Sitzungsbeginn nicht automatisch sieben Teammitglieder. Der Lead erstellt Rollen nach Bedarf der Aufgabe.
-- Der Modus legt ohne Bestätigung der nutzenden Person kein Git-Repository an, und ein Branch wird erst nach der Abnahme der Karte zusammengeführt.
+- Der Modus initialisiert niemals ein Repository innerhalb eines bestehenden Repositories und committet Worklog oder Repository-Gerüst nicht von selbst.
 - Mitglieder dürfen eine Subagent-Ebene nutzen; tiefere Delegation ist bewusst deaktiviert.
 
 ## Entwicklung

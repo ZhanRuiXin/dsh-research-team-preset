@@ -2,7 +2,7 @@
 
 **Un preset d'agent DSH qui transforme une session en une petite équipe de recherche coordonnée.**
 
-**Version 1.1.0** · **Mise à jour 2026-10-31**
+**Version 0.1.0** · **Mise à jour 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <strong>Français</strong> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -22,6 +22,7 @@ Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semai
 | **Flux de travail** | Priorité au tableau des tâches : créer, prendre en charge, exécuter, rapporter, relire, acceptation par l'utilisateur |
 | **Achèvement** | `in_review` est le dernier arrêt de l'agent ; seul l'utilisateur peut déplacer une carte vers `done` |
 | **Routage des modèles** | Provider, model et effort de raisonnement par rôle, depuis un formulaire de réglages de la page Plugins |
+| **Git** | Dépôt encouragé ; changements destructifs sur une branche de carte ; fusion après acceptation seulement |
 | **Runtime** | PTC (`run_code` + SDK généré), une couche de sous-agent par membre |
 
 ## À qui s'adresse ce mode
@@ -121,6 +122,14 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 Le tableau est le registre unique des tâches. Ne suivez pas les livrables uniquement dans le chat. `team_task_*` sert à la coordination transitoire, pas aux livrables.
 
+## Flux Git
+
+Le mode encourage à placer le code et la configuration de recherche sous contrôle de version, mais il ne crée jamais de dépôt de lui-même. Quand un projet n'en a pas, le Lead propose `git init` et attend la confirmation de l'utilisateur.
+
+Les changements destructifs ou risqués se font sur une branche nommée d'après la carte, par exemple `task/<title>+<id>`, plutôt que sur la branche par défaut. La carte enregistre les commits de base et de tête, et le reviewer lit `git diff <base>..<head>` comme base de la revue de code et relance les vérifications d'acceptation.
+
+Une branche n'est fusionnée qu'après l'acceptation de la carte, puis supprimée. Les artefacts générés (jeux de données, checkpoints, journaux, caches) restent hors du dépôt. Si le projet n'est pas un dépôt git, la revue s'appuie sur un instantané de hachages de fichiers et les preuves consignées sur la carte.
+
 ## Réglages de modèle par rôle
 
 Ouvrez :
@@ -158,7 +167,7 @@ $DSH_HOME/research-team-settings.json
 - Le fichier de réglages **ne** se trouve **pas** dans ce dépôt. Sauvegardez-le séparément. Il est propre à chaque `DSH_HOME`, pas à chaque profil.
 - Aucun identifiant n'est stocké ; uniquement des chaînes provider/model/effort.
 - Les enregistrements de réglages prennent effet sans redémarrage de DSH. Un redémarrage est nécessaire pour la première installation de la ligne de réglages et de la page client, ainsi que pour les changements de preset ou de plugin.
-- La version 1.0.0 corrige un bug de chargeur des versions précédentes : le fichier encapsule les rôles sous `"roles"`, et l'ancien chargeur passait l'objet entier au normaliseur de rôles, produisant des réglages entièrement vides après redémarrage. Le chargeur actuel extrait la clé `"roles"` et accepte une table de rôles nue pour compatibilité.
+- La version 0.1.0 corrige un bug de chargeur des versions précédentes : le fichier encapsule les rôles sous `"roles"`, et l'ancien chargeur passait l'objet entier au normaliseur de rôles, produisant des réglages entièrement vides après redémarrage. Le chargeur actuel extrait la clé `"roles"` et accepte une table de rôles nue pour compatibilité.
 
 ## Référence de configuration
 
@@ -234,7 +243,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### Les réglages semblent se réinitialiser après un redémarrage
 
-La version 1.0.0 corrige la cause connue : l'ancien chargeur passait tout l'objet `{ roles: ... }` au normaliseur de rôles et produisait des réglages entièrement vides. Mettez à jour vers 1.0.0 ou une version ultérieure, redémarrez DSH et vérifiez que :
+La version 0.1.0 corrige la cause connue : l'ancien chargeur passait tout l'objet `{ roles: ... }` au normaliseur de rôles et produisait des réglages entièrement vides. Mettez à jour vers 0.1.0 ou une version ultérieure, redémarrez DSH et vérifiez que :
 
 - `$DSH_HOME/research-team-settings.json` existe et contient les rôles enregistrés ;
 - la ligne `research-team-settings` est nommée exactement `@local/dsh-research-team-preset` ;
@@ -273,6 +282,7 @@ Ouvrez le répertoire de travail comme projet/espace de travail DSH dans l'inter
 - Les réglages de rôle vivent dans un fichier JSON autonome sous `$DSH_HOME` ; ils ne font pas partie de l'export ou de la sauvegarde de configuration standard de DSH. Copiez le fichier si vous changez de machine.
 - Le menu des modèles est un `<select>` natif avec des groupes de providers, pas un sélecteur personnalisé avec recherche.
 - Le mode ne lance pas automatiquement sept équipiers au démarrage de la session. Le Lead crée les rôles selon les besoins de la tâche.
+- Le mode ne crée pas de dépôt git sans la confirmation de l'utilisateur, et une branche n'est fusionnée qu'après l'acceptation de la carte.
 - Les membres peuvent utiliser une couche de sous-agent ; la délégation plus profonde est volontairement désactivée.
 
 ## Développement
@@ -299,7 +309,7 @@ Il n'y a pas encore de suite de tests automatisés. La route de réglages, le ca
 
 ## Versionnage
 
-Versionnage sémantique. La version actuelle est **1.1.0** ; voir [CHANGELOG.md](../CHANGELOG.md). Les documents sous `docs/` portent la même version.
+Versionnage sémantique. La version actuelle est **0.1.0** ; voir [CHANGELOG.md](../CHANGELOG.md). Les documents sous `docs/` portent la même version.
 
 ## Licence
 

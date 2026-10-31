@@ -2,7 +2,7 @@
 
 **Ein DSH-Agent-Preset, das eine Sitzung in ein kleines, koordiniertes Forschungsteam verwandelt.**
 
-**Version 1.1.0** · **Aktualisiert 2026-10-31**
+**Version 0.1.0** · **Aktualisiert 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <strong>Deutsch</strong> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -22,6 +22,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 | **Workflow** | Task Board zuerst: erstellen, übernehmen, ausführen, berichten, prüfen, Abnahme durch die nutzende Person |
 | **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann eine Karte auf `done` setzen |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
+| **Git** | Repository empfohlen; destruktive Änderungen auf einem Karten-Branch; Zusammenführung erst nach Abnahme |
 | **Laufzeit** | PTC (`run_code` + generiertes SDK), eine Subagent-Ebene pro Mitglied |
 
 ## Für wen es gedacht ist
@@ -121,6 +122,14 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 Das Board ist das einzige Aufgabenregister. Behalten Sie die Nachverfolgung von Deliverables nicht nur im Chat. `team_task_*` dient der temporären Koordination, nicht der Verwaltung von Deliverables.
 
+## Git-Workflow
+
+Der Modus empfiehlt, Forschungscode und Konfiguration unter Versionskontrolle zu halten, legt aber niemals selbst ein Repository an. Hat ein Projekt keines, schlägt der Lead `git init` vor und wartet auf die Bestätigung der nutzenden Person.
+
+Destruktive oder riskante Änderungen laufen auf einem nach der Karte benannten Branch, etwa `task/<title>+<id>`, statt den Standardbranch direkt zu bearbeiten. Die Karte hält Base- und Head-Commit fest, und der Reviewer liest `git diff <base>..<head>` als Grundlage der Codeprüfung und führt die Abnahmeprüfungen erneut aus.
+
+Ein Branch wird erst nach der Abnahme der Karte zusammengeführt und danach gelöscht. Generierte Artefakte wie Datensätze, Checkpoints, Logs und Caches bleiben außerhalb des Repositories. Ist das Projekt kein Git-Repository, stützt sich die Prüfung auf einen Dateihash-Snapshot und die auf der Karte festgehaltenen Belege.
+
 ## Modelleinstellungen pro Rolle
 
 Öffnen Sie:
@@ -158,7 +167,7 @@ $DSH_HOME/research-team-settings.json
 - Die Einstellungsdatei ist **nicht** Teil dieses Repositorys. Sichern Sie sie separat. Sie gilt pro `DSH_HOME`, nicht pro Profil.
 - Es werden keine Zugangsdaten gespeichert, nur Provider-/Modell-/Effort-Strings.
 - Gespeicherte Einstellungen werden ohne DSH-Neustart wirksam. Ein Neustart ist bei der Erstinstallation der Einstellungszeile bzw. der Client-Seite sowie bei Änderungen an Preset/Plugin erforderlich.
-- Version 1.0.0 behebt einen Loader-Bug in früheren Builds: Die Datei kapselt Rollen unter `"roles"`, und der alte Loader übergab das gesamte Objekt an den Rollen-Normalisierer, was nach einem Neustart zu vollständig leeren Einstellungen führte. Der aktuelle Loader entpackt `"roles"` und unterstützt aus Kompatibilitätsgründen auch eine bloße Rollen-Map.
+- Version 0.1.0 behebt einen Loader-Bug in früheren Builds: Die Datei kapselt Rollen unter `"roles"`, und der alte Loader übergab das gesamte Objekt an den Rollen-Normalisierer, was nach einem Neustart zu vollständig leeren Einstellungen führte. Der aktuelle Loader entpackt `"roles"` und unterstützt aus Kompatibilitätsgründen auch eine bloße Rollen-Map.
 
 ## Konfigurationsreferenz
 
@@ -234,7 +243,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### Einstellungen scheinen nach einem Neustart zurückgesetzt zu werden
 
-Version 1.0.0 behebt die bekannte Ursache: Der alte Loader übergab das gesamte Objekt `{ roles: ... }` an den Rollen-Normalisierer und erzeugte vollständig leere Einstellungen. Aktualisieren Sie auf 1.0.0 oder höher, starten Sie DSH neu und prüfen Sie, dass:
+Version 0.1.0 behebt die bekannte Ursache: Der alte Loader übergab das gesamte Objekt `{ roles: ... }` an den Rollen-Normalisierer und erzeugte vollständig leere Einstellungen. Aktualisieren Sie auf 0.1.0 oder höher, starten Sie DSH neu und prüfen Sie, dass:
 
 - `$DSH_HOME/research-team-settings.json` existiert und die gespeicherten Rollen enthält;
 - die Zeile `research-team-settings` exakt `@local/dsh-research-team-preset` heißt;
@@ -273,6 +282,7 @@ Bestätigen Sie, dass das Bundle installiert und aktiviert ist, starten Sie DSH 
 - Rolleneinstellungen liegen in einer eigenständigen JSON-Datei unter `$DSH_HOME`; sie sind nicht Teil des Standard-Konfigurationsexports bzw. -Backups von DSH. Kopieren Sie die Datei, wenn Sie den Rechner wechseln.
 - Das Modellmenü ist ein natives `<select>` mit Provider-Gruppen, keine durchsuchbare eigene Auswahlkomponente.
 - Der Modus startet beim Sitzungsbeginn nicht automatisch sieben Teammitglieder. Der Lead erstellt Rollen nach Bedarf der Aufgabe.
+- Der Modus legt ohne Bestätigung der nutzenden Person kein Git-Repository an, und ein Branch wird erst nach der Abnahme der Karte zusammengeführt.
 - Mitglieder dürfen eine Subagent-Ebene nutzen; tiefere Delegation ist bewusst deaktiviert.
 
 ## Entwicklung
@@ -299,7 +309,7 @@ Es gibt noch keine automatisierte Testsuite. Die Einstellungsroute, der Modellka
 
 ## Versionierung
 
-Semantische Versionierung. Die aktuelle Version ist **1.1.0**; siehe [CHANGELOG.md](../CHANGELOG.md). Die Dokumente unter `docs/` tragen dieselbe Version.
+Semantische Versionierung. Die aktuelle Version ist **0.1.0**; siehe [CHANGELOG.md](../CHANGELOG.md). Die Dokumente unter `docs/` tragen dieselbe Version.
 
 ## Lizenz
 

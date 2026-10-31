@@ -2,7 +2,7 @@
 
 **一个 DSH agent preset，把一次会话变成一个小型、协同工作的研究团队。**
 
-**版本 1.1.0** · **更新 2026-10-31**
+**版本 0.1.0** · **更新 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <strong>简体中文</strong> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -22,6 +22,7 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 | **工作流** | 任务看板优先：建卡、认领、执行、报告、复核、用户验收 |
 | **完成** | `in_review` 是 agent 的最后一站；只有用户才能把卡片移到 `done` |
 | **模型路由** | 通过「插件」页的设置表单，按角色配置 provider、model 和推理强度 |
+| **Git** | 鼓励建仓；破坏性改动走卡片分支；验收通过后才合并 |
 | **运行时** | PTC（`run_code` + 生成的 SDK），每名成员一层 subagent |
 
 ## 适用对象
@@ -121,6 +122,14 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 看板是唯一的任务账本。不要只在聊天中跟踪交付物。`team_task_*` 用于临时协作，不用于交付物。
 
+## Git 工作流
+
+该模式鼓励把研究代码与配置纳入版本管理，但不会自行创建仓库。项目还没有仓库时，Lead 先提议 `git init`，等用户确认后再建。
+
+破坏性或风险较高的改动在按卡片命名的分支上进行，例如 `task/<标题>+<id>`，不直接改默认分支。卡片记录 base 和 head 提交，reviewer 以 `git diff <base>..<head>` 作为代码审查的依据，并仍然复跑验收检查。
+
+分支只在卡片被验收后合并，合并后删除。数据集、checkpoint、日志、缓存等生成物不入库。项目不是 git 仓库时，审查退回用文件哈希快照加卡片上记录的证据。
+
 ## 按角色的模型设置
 
 打开：
@@ -158,7 +167,7 @@ $DSH_HOME/research-team-settings.json
 - 设置文件**不在**本仓库中。请单独备份。它按 `DSH_HOME` 区分，而不是按 profile 区分。
 - 不存储任何凭据；只保存 provider/model/effort 字符串。
 - 保存设置无需重启 DSH 即可生效。首次安装设置行/client 页面，以及修改 preset/插件后，需要重启。
-- 1.0.0 版本修复了早期构建中的一个加载器 bug：文件把角色包在 `"roles"` 下，而旧加载器把整个对象传给角色规范化器，导致重启后设置全部为空。当前加载器会解包 `"roles"`，并兼容只包含角色映射的裸格式。
+- 0.1.0 版本修复了早期构建中的一个加载器 bug：文件把角色包在 `"roles"` 下，而旧加载器把整个对象传给角色规范化器，导致重启后设置全部为空。当前加载器会解包 `"roles"`，并兼容只包含角色映射的裸格式。
 
 ## 配置参考
 
@@ -234,7 +243,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### 设置似乎在重启后被重置
 
-1.0.0 版本修复了已知原因：旧加载器把整个 `{ roles: ... }` 对象传给角色规范化器，导致设置全部为空。请更新到 1.0.0 或更高版本，重启 DSH，并检查：
+0.1.0 版本修复了已知原因：旧加载器把整个 `{ roles: ... }` 对象传给角色规范化器，导致设置全部为空。请更新到 0.1.0 或更高版本，重启 DSH，并检查：
 
 - `$DSH_HOME/research-team-settings.json` 存在并且包含已保存的角色；
 - `research-team-settings` 行的名称完全为 `@local/dsh-research-team-preset`；
@@ -273,6 +282,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - 角色设置保存在 `$DSH_HOME` 下的独立 JSON 文件中；它们不属于 DSH 标准配置导出/备份的一部分。更换机器时请复制该文件。
 - 模型菜单是带 provider 分组的原生 `<select>`，不是可搜索的自定义选择器。
 - 该模式不会在会话启动时自动创建七名 teammate。Lead 按任务需要创建角色。
+- 该模式不会在未经用户确认时创建 git 仓库，分支也只在卡片被验收后才合并。
 - 成员可以使用一层 subagent；更深层的委派被有意禁用。
 
 ## 开发
@@ -299,7 +309,7 @@ node --check client/index.js
 
 ## 版本管理
 
-采用语义化版本。当前版本为 **1.1.0**；参见 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文档使用相同版本。
+采用语义化版本。当前版本为 **0.1.0**；参见 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文档使用相同版本。
 
 ## 许可证
 

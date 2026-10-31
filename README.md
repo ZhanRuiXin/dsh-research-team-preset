@@ -2,7 +2,7 @@
 
 **A DSH agent preset that turns one session into a small, coordinated research team.**
 
-**Version 1.1.0** · **Updated 2026-10-31**
+**Version 0.1.0** · **Updated 2026-10-31**
 
 <p align="center"><strong>English</strong> · <a href="docs/README.zh-CN.md">简体中文</a> · <a href="docs/README.zh-TW.md">繁體中文</a> · <a href="docs/README.ja.md">日本語</a> · <a href="docs/README.ko.md">한국어</a> · <a href="docs/README.de.md">Deutsch</a> · <a href="docs/README.fr.md">Français</a> · <a href="docs/README.es.md">Español</a> · <a href="docs/README.pt-BR.md">Português (Brasil)</a> · <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.ar.md">العربية</a> · <a href="docs/README.hi.md">हिन्दी</a></p>
 
@@ -22,6 +22,7 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | **Workflow** | Task-board-first: create, claim, execute, report, review, user acceptance |
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
+| **Git** | Repository encouraged; destructive changes on a card branch; merged only after acceptance |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
 
 ## Who it is for
@@ -121,6 +122,14 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 The board is the single task ledger. Do not keep deliverable tracking only in chat. `team_task_*` is for transient coordination, not deliverables.
 
+## Git workflow
+
+The mode encourages keeping research code and configuration under version control, and it never creates a repository on its own. When a project has no repository, the Lead proposes `git init` and waits for the user's confirmation.
+
+Destructive or risky changes run on a branch named after the card, for example `task/<title>+<id>`, instead of editing the default branch in place. The card records the base and head commits, and the reviewer reads `git diff <base>..<head>` as the code-review basis and still re-runs the acceptance checks.
+
+A branch is merged only after the card is accepted, then deleted. Generated artifacts such as datasets, checkpoints, logs, and caches stay out of the repository. When the project is not a git repository, review falls back to a file-hash snapshot plus the evidence recorded on the card.
+
 ## Per-role model settings
 
 Open:
@@ -158,7 +167,7 @@ $DSH_HOME/research-team-settings.json
 - The settings file is **not** in this repository. Back it up separately. It is per `DSH_HOME`, not per profile.
 - No credentials are stored; only provider/model/effort strings.
 - Settings saves apply without a DSH restart. Restart is required for the first install of the settings row/client page and for preset/plugin changes.
-- Version 1.0.0 fixes a loader bug in earlier builds: the file wraps roles under `"roles"`, and the old loader passed the whole object to the role normalizer, producing all-empty settings after restart. The current loader unwraps `"roles"` and supports a bare role map for compatibility.
+- Version 0.1.0 fixes a loader bug in earlier builds: the file wraps roles under `"roles"`, and the old loader passed the whole object to the role normalizer, producing all-empty settings after restart. The current loader unwraps `"roles"` and supports a bare role map for compatibility.
 
 ## Configuration reference
 
@@ -234,7 +243,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### Settings appear to reset after restart
 
-Version 1.0.0 fixes the known cause: the old loader passed the whole `{ roles: ... }` object to the role normalizer and produced all-empty settings. Update to 1.0.0 or later, restart DSH, and check that:
+Version 0.1.0 fixes the known cause: the old loader passed the whole `{ roles: ... }` object to the role normalizer and produced all-empty settings. Update to 0.1.0 or later, restart DSH, and check that:
 
 - `$DSH_HOME/research-team-settings.json` exists and contains the saved roles;
 - the `research-team-settings` row is named exactly `@local/dsh-research-team-preset`;
@@ -273,6 +282,7 @@ Open the working directory as a DSH project/workspace in the GUI or pass a known
 - Role settings live in a standalone JSON file under `$DSH_HOME`; they are not part of DSH's standard config export/backup. Copy the file if you move machines.
 - The model menu is a native `<select>` with provider groups, not a searchable custom picker.
 - The mode does not auto-spawn seven teammates on session start. The Lead creates roles as the task requires.
+- The mode does not create a git repository without the user's confirmation, and a branch is merged only after the card is accepted.
 - Members may use one subagent layer; deeper delegation is intentionally disabled.
 
 ## Development
@@ -299,7 +309,7 @@ There is no automated test suite yet. The settings route, model catalog, task-bo
 
 ## Versioning
 
-Semantic versioning. The current release is **1.1.0**; see [CHANGELOG.md](CHANGELOG.md). The docs under `docs/` carry the same version.
+Semantic versioning. The current release is **0.1.0**; see [CHANGELOG.md](CHANGELOG.md). The docs under `docs/` carry the same version.
 
 ## License
 

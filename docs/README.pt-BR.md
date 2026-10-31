@@ -2,7 +2,7 @@
 
 **Um preset de agente do DSH que transforma uma sessão em uma pequena equipe de pesquisa coordenada.**
 
-**Versão 1.1.0** · **Atualizado 2026-10-31**
+**Versão 0.1.0** · **Atualizado 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <strong>Português (Brasil)</strong> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -22,6 +22,7 @@ O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rast
 | **Fluxo de trabalho** | Quadro de tarefas em primeiro lugar: criar, assumir, executar, relatar, revisar, aceitação do usuário |
 | **Conclusão** | `in_review` é a última parada do agente; somente o usuário pode mover um cartão para `done` |
 | **Roteamento de modelos** | Provedor, modelo e esforço de raciocínio por função, definidos em um formulário na página de Plugins |
+| **Git** | Repositório incentivado; mudanças destrutivas em uma branch do cartão; mesclagem somente após a aceitação |
 | **Runtime** | PTC (`run_code` + SDK gerado), uma camada de subagente por membro |
 
 ## Para quem
@@ -121,6 +122,14 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 O quadro é o único registro de tarefas. Não mantenha o acompanhamento de entregáveis apenas no chat. `team_task_*` serve para coordenação transitória, não para entregáveis.
 
+## Fluxo de trabalho com Git
+
+O modo incentiva manter código e configuração de pesquisa sob controle de versão, mas nunca cria um repositório por conta própria. Quando um projeto não tem um, o Lead propõe `git init` e espera a confirmação do usuário.
+
+Mudanças destrutivas ou de risco acontecem em uma branch nomeada pela tarefa, por exemplo `task/<title>+<id>`, em vez de editar a branch padrão. O cartão registra os commits base e head, e o reviewer lê `git diff <base>..<head>` como base da revisão de código e executa novamente as verificações de aceitação.
+
+Uma branch só é mesclada depois que o cartão é aceito, e então é removida. Artefatos gerados, como conjuntos de dados, checkpoints, logs e caches, ficam fora do repositório. Se o projeto não for um repositório git, a revisão recorre a um snapshot de hashes de arquivos e às evidências registradas no cartão.
+
 ## Configurações de modelo por função
 
 Abra:
@@ -158,7 +167,7 @@ $DSH_HOME/research-team-settings.json
 - O arquivo de configurações **não** está neste repositório. Faça backup separadamente. Ele é por `DSH_HOME`, e não por perfil.
 - Nenhuma credencial é armazenada; apenas strings de provedor/modelo/esforço.
 - Salvar configurações tem efeito sem reiniciar o DSH. Reiniciar é necessário para a primeira instalação da linha de configurações/página cliente e para mudanças de preset/plugin.
-- A versão 1.0.0 corrige um bug de loader em builds anteriores: o arquivo agrupa as funções sob `"roles"`, e o loader antigo passava o objeto inteiro para o normalizador de funções, o que produzia configurações totalmente vazias após reiniciar. O loader atual desembrulha `"roles"` e também aceita um mapa de funções sem wrapper, por compatibilidade.
+- A versão 0.1.0 corrige um bug de loader em builds anteriores: o arquivo agrupa as funções sob `"roles"`, e o loader antigo passava o objeto inteiro para o normalizador de funções, o que produzia configurações totalmente vazias após reiniciar. O loader atual desembrulha `"roles"` e também aceita um mapa de funções sem wrapper, por compatibilidade.
 
 ## Referência de configuração
 
@@ -234,7 +243,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### As configurações parecem ser redefinidas após reiniciar
 
-A versão 1.0.0 corrige a causa conhecida: o loader antigo passava o objeto `{ roles: ... }` inteiro para o normalizador de funções e produzia configurações totalmente vazias. Atualize para 1.0.0 ou mais recente, reinicie o DSH e verifique se:
+A versão 0.1.0 corrige a causa conhecida: o loader antigo passava o objeto `{ roles: ... }` inteiro para o normalizador de funções e produzia configurações totalmente vazias. Atualize para 0.1.0 ou mais recente, reinicie o DSH e verifique se:
 
 - `$DSH_HOME/research-team-settings.json` existe e contém as funções salvas;
 - a linha `research-team-settings` tem exatamente o nome `@local/dsh-research-team-preset`;
@@ -273,6 +282,7 @@ Abra o diretório de trabalho como um projeto/workspace do DSH na GUI ou passe u
 - As configurações de função ficam em um arquivo JSON autônomo em `$DSH_HOME`; elas não fazem parte da exportação/backup padrão de configuração do DSH. Copie o arquivo se você trocar de máquina.
 - O menu de modelos é um `<select>` nativo com grupos de provedor, não um seletor personalizado com busca.
 - O modo não cria automaticamente sete membros da equipe ao iniciar a sessão. O Lead cria as funções conforme a tarefa exige.
+- O modo não cria um repositório git sem a confirmação do usuário, e uma branch só é mesclada após o cartão ser aceito.
 - Os membros podem usar uma camada de subagente; a delegação mais profunda é desativada intencionalmente.
 
 ## Desenvolvimento
@@ -299,7 +309,7 @@ Ainda não há uma suíte de testes automatizados. A rota de configurações, o 
 
 ## Versionamento
 
-Versionamento semântico. A versão atual é **1.1.0**; consulte o [CHANGELOG.md](../CHANGELOG.md). A documentação em `docs/` carrega a mesma versão.
+Versionamento semântico. A versão atual é **0.1.0**; consulte o [CHANGELOG.md](../CHANGELOG.md). A documentação em `docs/` carrega a mesma versão.
 
 ## Licença
 

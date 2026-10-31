@@ -2,7 +2,7 @@
 
 **一個把單一工作階段變成小型、協同研究團隊的 DSH agent preset。**
 
-**版本 1.1.0** · **更新 2026-10-31**
+**版本 0.1.0** · **更新 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <strong>繁體中文</strong> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -22,6 +22,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對�
 | **工作流程** | 任務看板優先：建立、認領、執行、回報、審查、使用者驗收 |
 | **完成** | `in_review` 是 agent 的最後一站；只有使用者能把卡片移到 `done` |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
+| **Git** | 鼓勵建立儲存庫；破壞性改動走卡片分支；驗收通過後才合併 |
 | **執行環境** | PTC（`run_code` + 產生的 SDK），每位成員一層 subagent |
 
 ## 適用對象
@@ -121,6 +122,14 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 看板是唯一的任務帳本。不要只在聊天中追蹤交付項目。`team_task_*` 用於短暫協調，不用於交付項目。
 
+## Git 工作流程
+
+此模式鼓勵把研究程式碼與設定納入版本管理，但不會自行建立儲存庫。專案還沒有儲存庫時，Lead 先提議 `git init`，等使用者確認後再建立。
+
+破壞性或風險較高的改動在依卡片命名的分支上進行，例如 `task/<標題>+<id>`，不直接改預設分支。卡片記錄 base 與 head 提交，reviewer 以 `git diff <base>..<head>` 作為程式碼審查依據，並仍會重跑驗收檢查。
+
+分支只在卡片被驗收後合併，合併後刪除。資料集、checkpoint、日誌、快取等產物不納入版本庫。專案不是 git 儲存庫時，審查退回用檔案雜湊快照加卡片上記錄的證據。
+
 ## 各角色模型設定
 
 開啟：
@@ -158,7 +167,7 @@ $DSH_HOME/research-team-settings.json
 - 設定檔**不在**此儲存庫中。請另行備份。它隸屬於 `DSH_HOME`，而不是每個 profile。
 - 不儲存任何憑證；只儲存 provider/model/effort 字串。
 - 設定儲存無需重新啟動 DSH 即可生效。首次安裝設定列／用戶端頁面，以及變更 preset／外掛時，仍需重新啟動。
-- 版本 1.0.0 修正了早期版本的載入器錯誤：檔案將角色包在 `"roles"` 之下，而舊載入器把整個物件傳給角色正規化器，導致重新啟動後設定全為空。目前的載入器會解開 `"roles"`，並為了相容性支援未包裝的角色映射。
+- 版本 0.1.0 修正了早期版本的載入器錯誤：檔案將角色包在 `"roles"` 之下，而舊載入器把整個物件傳給角色正規化器，導致重新啟動後設定全為空。目前的載入器會解開 `"roles"`，並為了相容性支援未包裝的角色映射。
 
 ## 設定參考
 
@@ -234,7 +243,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### 重新啟動後設定似乎重設
 
-版本 1.0.0 修正了已知原因：舊載入器把整個 `{ roles: ... }` 物件傳給角色正規化器，產生全空的設定。請更新到 1.0.0 或更新版本、重新啟動 DSH，並檢查：
+版本 0.1.0 修正了已知原因：舊載入器把整個 `{ roles: ... }` 物件傳給角色正規化器，產生全空的設定。請更新到 0.1.0 或更新版本、重新啟動 DSH，並檢查：
 
 - `$DSH_HOME/research-team-settings.json` 存在且包含已儲存的角色；
 - `research-team-settings` 列的名稱完全是 `@local/dsh-research-team-preset`；
@@ -273,6 +282,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - 角色設定存放在 `$DSH_HOME` 下的獨立 JSON 檔；它們不屬於 DSH 標準設定匯出／備份。移動機器時請複製該檔案。
 - 模型選單是原生 `<select>` 加上 provider 群組，不是可搜尋的自訂選擇器。
 - 此模式不會在工作階段開始時自動 spawn 七名隊友。Lead 會依任務需要建立角色。
+- 此模式不會在未經使用者確認時建立 git 儲存庫，分支也只在卡片被驗收後才合併。
 - 成員可使用一層 subagent；更深的委派會被刻意停用。
 
 ## 開發
@@ -299,7 +309,7 @@ node --check client/index.js
 
 ## 版本
 
-語意化版本。目前版本是 **1.1.0**；參見 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文件帶有相同版本。
+語意化版本。目前版本是 **0.1.0**；參見 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文件帶有相同版本。
 
 ## 授權
 

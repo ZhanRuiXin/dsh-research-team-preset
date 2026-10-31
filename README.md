@@ -22,7 +22,8 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | **Workflow** | Task-board-first: create, claim, execute, report, review, user acceptance |
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
-| **Git** | Repository encouraged; destructive changes on a card branch; merged only after acceptance |
+| **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + one bounded file per card; resume reads PLAN and INDEX first |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
 
 ## Who it is for
@@ -124,11 +125,17 @@ The board is the single task ledger. Do not keep deliverable tracking only in ch
 
 ## Git workflow
 
-The mode encourages keeping research code and configuration under version control, and it never creates a repository on its own. When a project has no repository, the Lead proposes `git init` and waits for the user's confirmation.
+The mode initializes durable tracking when substantive work starts, and the agent judges whether a request is real work or a simple question. In a workspace that is not already inside a repository, the agent calls `research_workspace_init`, which creates `worklog/PLAN.md` and `worklog/INDEX.md` and runs `git init`. It never creates a nested repository and never commits the scaffold.
 
 Destructive or risky changes run on a branch named after the card, for example `task/<title>+<id>`, instead of editing the default branch in place. The card records the base and head commits, and the reviewer reads `git diff <base>..<head>` as the code-review basis and still re-runs the acceptance checks.
 
 A branch is merged only after the card is accepted, then deleted. Generated artifacts such as datasets, checkpoints, logs, and caches stay out of the repository. When the project is not a git repository, review falls back to a file-hash snapshot plus the evidence recorded on the card.
+
+## Worklog
+
+Work that may span sessions keeps a small, bounded record next to the code. `worklog/PLAN.md` holds the objective, current milestone, active cards, blockers, and dated decisions; `worklog/INDEX.md` holds one line per active card. Each card gets `worklog/<task-id>.md` with a current-state block at the top and short append-only entries below.
+
+On resume the agent reads PLAN and INDEX first, then only the target card's state block and tail, never the whole file or the whole directory. PLAN stays under about 100 lines and card files under about 200, with finished cards trimmed from the index. Compact templates for all three files live in the preset persona, so every session can create or update them without reading this repository.
 
 ## Per-role model settings
 
@@ -282,7 +289,7 @@ Open the working directory as a DSH project/workspace in the GUI or pass a known
 - Role settings live in a standalone JSON file under `$DSH_HOME`; they are not part of DSH's standard config export/backup. Copy the file if you move machines.
 - The model menu is a native `<select>` with provider groups, not a searchable custom picker.
 - The mode does not auto-spawn seven teammates on session start. The Lead creates roles as the task requires.
-- The mode does not create a git repository without the user's confirmation, and a branch is merged only after the card is accepted.
+- The mode never initializes a repository inside an existing repository, and it never commits the worklog or repository scaffold on its own.
 - Members may use one subagent layer; deeper delegation is intentionally disabled.
 
 ## Development

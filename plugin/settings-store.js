@@ -7,7 +7,7 @@
  * page apply to the next teammate without restarting DSH.
  */
 
-export const ROLE_NAMES = Object.freeze(['advisor', 'researcher', 'builder', 'runner', 'reviewer', 'writer'])
+export const ROLE_NAMES = Object.freeze(['advisor', 'researcher', 'data', 'builder', 'runner', 'reviewer', 'writer'])
 
 let current = Object.freeze({ roles: Object.freeze({}) })
 let loader

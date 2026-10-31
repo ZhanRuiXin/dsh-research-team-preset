@@ -2,7 +2,7 @@
 
 **1 つのセッションを、小規模で連携の取れた研究チームに変える DSH エージェントプリセット。**
 
-**バージョン 1.0.0** · **更新 2026-10-31**
+**バージョン 1.1.0** · **更新 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <strong>日本語</strong> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -10,7 +10,7 @@
 
 ## 概要
 
-Research Team Mode は、単一のチャットではなくチームとしてエンドツーエンドの研究を進めるための DSH エージェントプリセットです。Lead が作業を計画し、タスクボードを維持し、カードを割り当て、結果を統合し、ユーザーと対話します。6 名の既定スペシャリストが、顧問レビュー、文献と証拠、コード、実行、独立レビュー、論文執筆を担当します。
+Research Team Mode は、単一のチャットではなくチームとしてエンドツーエンドの研究を進めるための DSH エージェントプリセットです。Lead が作業を計画し、タスクボードを維持し、カードを割り当て、結果を統合し、ユーザーと対話します。7 名の既定スペシャリストが、顧問レビュー、文献と証拠、データ取得、コード、実行、独立レビュー、論文執筆を担当します。
 
 このモードは、数日から数週間にわたる研究、追跡可能な証拠を必要とする研究、明確な役割の境界が有効な研究のために作られています。単発の Q&A モードではありません。Lead は、タスクが実際に必要とする役割だけを作成します。
 
@@ -18,7 +18,7 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 
 | | |
 | --- | --- |
-| **既定の役割** | 6: advisor, researcher, builder, runner, reviewer, writer |
+| **既定の役割** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
 | **ワークフロー** | タスクボード優先：作成、claim、実行、報告、レビュー、ユーザーによる受け入れ |
 | **完了** | `in_review` がエージェントの最終地点。カードを `done` に移動できるのはユーザーだけ |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
@@ -96,6 +96,7 @@ Lead: summarize -> user acceptance (done)
 | --- | --- |
 | `advisor` | 方向性、フレーミング、中心的な主張、証拠の十分性、論文戦略についての独立した評価。proceed / revise / stop を勧告。助言のみで、ゲートではありません |
 | `researcher` | 文献検索、入手、精読、証拠の抽出、および主張 → 出典 → 位置の証拠表 |
+| `data` | 外部データセットとモデル重みの取得。出所の入手可能性とライセンス／アクセス状況の追跡、再開とレート制限に対応した取得ツール、公開元ハッシュによる完全性検証、展開、manifest 契約、検証済みの小さなサンプル、ディスク台帳を担当します。訓練コードの作成や評価プロトコルの変更は行いません |
 | `builder` | コード、設定、データパイプライン、テスト、再現可能なエントリーポイント。長時間の訓練実行は行いません |
 | `runner` | 訓練／評価の開始と監視。実行 ID、設定、シード、メトリクス、ログ、チェックポイント、成果物のパスを記録 |
 | `reviewer` | 文献ノート、コード、結果、論文の主張／引用の独立した検証。ブロッキングとなる証拠を伴う PASS/FAIL |
@@ -168,7 +169,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | `false` にすると `spawn_teammate_with_model` とそのサービスラッパーを削除 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn ツールが使うサブエージェント provider。既定値は `spawn` / `fork` |
 | `research-team-settings` 行 | `cordis.patch.yml` | トップレベルのホスト行。パッケージルート名を保つ |
-| 役割ごとのルート | `$DSH_HOME/research-team-settings.json` | 6 つの既定役割の provider/model/reasoningEffort |
+| 役割ごとのルート | `$DSH_HOME/research-team-settings.json` | 7 つの既定役割の provider/model/reasoningEffort |
 
 ## リポジトリ構成
 
@@ -271,7 +272,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - プロファイルレベルの依存関係は自動ではインストールも有効化もされません。このリポジトリはそれらを文書化しますが、管理はしません。
 - 役割設定は `$DSH_HOME` 配下の独立した JSON ファイルにあり、DSH 標準の設定エクスポート／バックアップには含まれません。マシンを移行する場合はファイルをコピーしてください。
 - モデルメニューは provider グループ付きのネイティブ `<select>` であり、検索可能なカスタムピッカーではありません。
-- このモードはセッション開始時に 6 名のチームメイトを自動生成しません。Lead がタスクの必要に応じて役割を作成します。
+- このモードはセッション開始時に 7 名のチームメイトを自動生成しません。Lead がタスクの必要に応じて役割を作成します。
 - メンバーはサブエージェントを 1 層まで使えます。より深い委任は意図的に無効化されています。
 
 ## 開発
@@ -298,7 +299,7 @@ node --check client/index.js
 
 ## バージョニング
 
-セマンティックバージョニングを採用しています。現在のリリースは **1.0.0** です。[CHANGELOG.md](../CHANGELOG.md) を参照してください。`docs/` 配下のドキュメントも同じバージョンを持ちます。
+セマンティックバージョニングを採用しています。現在のリリースは **1.1.0** です。[CHANGELOG.md](../CHANGELOG.md) を参照してください。`docs/` 配下のドキュメントも同じバージョンを持ちます。
 
 ## ライセンス
 

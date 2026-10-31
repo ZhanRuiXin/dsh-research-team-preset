@@ -2,7 +2,7 @@
 
 **一个 DSH agent preset，把一次会话变成一个小型、协同工作的研究团队。**
 
-**版本 1.0.0** · **更新 2026-10-31**
+**版本 1.1.0** · **更新 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <strong>简体中文</strong> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -10,7 +10,7 @@
 
 ## 概述
 
-Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊天的方式运行端到端研究。Lead 负责规划工作、维护任务看板、分派卡片、整合结果并与用户沟通。六名默认专家分别覆盖顾问评估、文献与证据、代码、运行、独立复核和论文写作。
+Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊天的方式运行端到端研究。Lead 负责规划工作、维护任务看板、分派卡片、整合结果并与用户沟通。七名默认专家分别覆盖顾问评估、文献与证据、数据获取、代码、运行、独立复核和论文写作。
 
 该模式面向持续数天或数周、需要可追溯证据、并能从清晰角色边界中获益的研究工作。它不是一次性问答模式：Lead 只创建任务真正需要的角色。
 
@@ -18,7 +18,7 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 
 | | |
 | --- | --- |
-| **默认角色** | 6 个：advisor、researcher、builder、runner、reviewer、writer |
+| **默认角色** | 7 个：advisor、researcher、data、builder、runner、reviewer、writer |
 | **工作流** | 任务看板优先：建卡、认领、执行、报告、复核、用户验收 |
 | **完成** | `in_review` 是 agent 的最后一站；只有用户才能把卡片移到 `done` |
 | **模型路由** | 通过「插件」页的设置表单，按角色配置 provider、model 和推理强度 |
@@ -96,6 +96,7 @@ Lead: summarize -> user acceptance (done)
 | --- | --- |
 | `advisor` | 独立评估方向、框架、核心主张、证据充分性和论文策略；给出继续 / 修改 / 停止的建议。仅提供建议，不是关卡 |
 | `researcher` | 文献检索、获取、精读、证据提取，并维护「主张 → 来源 → 位置」证据表 |
+| `data` | 外部数据集与模型权重的获取，含来源可得性与许可/访问状态跟踪、带续传与限速处理的下载工具、按发布方哈希做的完整性校验、解压、manifest 契约、一个小样本与磁盘账本；不写训练代码，也不改评估协议 |
 | `builder` | 代码、配置、数据管线、测试和可复现的入口；不负责长时间训练 |
 | `runner` | 启动并监控训练/评估；记录 run id、配置、随机种子、指标、日志、检查点和产物路径 |
 | `reviewer` | 独立核验文献笔记、代码、结果和论文主张/引用；给出带阻断性证据的 PASS/FAIL |
@@ -168,7 +169,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | 设为 `false` 可移除 `spawn_teammate_with_model` 及其服务包装 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn 工具使用的 subagent provider；默认 `spawn` / `fork` |
 | `research-team-settings` 行 | `cordis.patch.yml` | 顶层 host 行；保持包根名称 |
-| 按角色路由 | `$DSH_HOME/research-team-settings.json` | 六个默认角色的 provider/model/reasoningEffort |
+| 按角色路由 | `$DSH_HOME/research-team-settings.json` | 七个默认角色的 provider/model/reasoningEffort |
 
 ## 仓库结构
 
@@ -271,7 +272,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - profile 级依赖不会被自动安装或启用。本仓库记录它们，但不负责管理。
 - 角色设置保存在 `$DSH_HOME` 下的独立 JSON 文件中；它们不属于 DSH 标准配置导出/备份的一部分。更换机器时请复制该文件。
 - 模型菜单是带 provider 分组的原生 `<select>`，不是可搜索的自定义选择器。
-- 该模式不会在会话启动时自动创建六名 teammate。Lead 按任务需要创建角色。
+- 该模式不会在会话启动时自动创建七名 teammate。Lead 按任务需要创建角色。
 - 成员可以使用一层 subagent；更深层的委派被有意禁用。
 
 ## 开发
@@ -298,7 +299,7 @@ node --check client/index.js
 
 ## 版本管理
 
-采用语义化版本。当前版本为 **1.0.0**；参见 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文档使用相同版本。
+采用语义化版本。当前版本为 **1.1.0**；参见 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文档使用相同版本。
 
 ## 许可证
 

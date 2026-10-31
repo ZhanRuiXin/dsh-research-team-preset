@@ -2,7 +2,7 @@
 
 **하나의 세션을 작고 긴밀하게 협력하는 연구 팀으로 바꾸는 DSH 에이전트 프리셋입니다.**
 
-**버전 1.0.0** · **업데이트 2026-10-31**
+**버전 1.1.0** · **업데이트 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <strong>한국어</strong> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -10,7 +10,7 @@
 
 ## 개요
 
-Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 연구를 수행하기 위한 DSH 에이전트 프리셋입니다. Lead는 작업을 계획하고, 작업 보드를 유지하며, 카드를 배정하고, 결과를 통합하고, 사용자와 소통합니다. 여섯 명의 기본 전문가가 자문 검토, 문헌과 증거, 코드, 실행, 독립 검토, 논문 작성을 담당합니다.
+Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 연구를 수행하기 위한 DSH 에이전트 프리셋입니다. Lead는 작업을 계획하고, 작업 보드를 유지하며, 카드를 배정하고, 결과를 통합하고, 사용자와 소통합니다. 일곱 명의 기본 전문가가 자문 검토, 문헌과 증거, 데이터 확보, 코드, 실행, 독립 검토, 논문 작성을 담당합니다.
 
 이 모드는 며칠 또는 몇 주에 걸친 연구, 추적 가능한 증거가 필요한 작업, 명확한 역할 경계가 도움이 되는 작업을 위해 만들어졌습니다. 일회성 질의응답 모드가 아닙니다. Lead는 작업에 실제로 필요한 역할만 생성합니다.
 
@@ -18,7 +18,7 @@ Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 �
 
 | | |
 | --- | --- |
-| **기본 역할** | 6개: advisor, researcher, builder, runner, reviewer, writer |
+| **기본 역할** | 7개: advisor, researcher, data, builder, runner, reviewer, writer |
 | **워크플로** | 작업 보드 우선: 생성, 인수, 실행, 보고, 검토, 사용자 수락 |
 | **완료** | `in_review`가 에이전트의 마지막 지점입니다. 사용자만 카드를 `done`으로 옮길 수 있습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
@@ -96,6 +96,7 @@ Lead: summarize -> user acceptance (done)
 | --- | --- |
 | `advisor` | 방향, 프레이밍, 핵심 주장, 증거의 충분성, 논문 전략에 대한 독립적 평가를 제공하고 계속 진행 / 수정 / 중단을 권고합니다. 자문 역할만 하며 게이트가 아닙니다 |
 | `researcher` | 문헌 검색, 확보, 정독, 증거 추출, 그리고 주장 → 출처 → 위치 증거 표 |
+| `data` | 외부 데이터셋 및 모델 가중치 확보. 출처 가용성과 라이선스/접근 상태 추적, 재개와 속도 제한을 처리하는 다운로드 도구, 게시자 해시 기반 무결성 검증, 압축 해제, manifest 계약, 검증된 소규모 샘플, 디스크 장부를 담당합니다. 훈련 코드를 작성하거나 평가 프로토콜을 변경하지 않습니다 |
 | `builder` | 코드, 구성, 데이터 파이프라인, 테스트, 재현 가능한 진입점; 장시간 훈련 실행은 하지 않습니다 |
 | `runner` | 훈련/평가를 시작하고 모니터링하며, 실행 id, 구성, 시드, 지표, 로그, 체크포인트, 산출물 경로를 기록합니다 |
 | `reviewer` | 문헌 노트, 코드, 결과, 논문의 주장/인용을 독립적으로 검증하고, 차단 증거와 함께 PASS/FAIL을 판정합니다 |
@@ -168,7 +169,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | `false`로 설정하면 `spawn_teammate_with_model`과 해당 서비스 래퍼가 제거됩니다 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn 도구가 사용하는 하위 에이전트 제공자; 기본값 `spawn` / `fork` |
 | `research-team-settings` 행 | `cordis.patch.yml` | 최상위 호스트 행; 패키지 루트 이름을 유지하십시오 |
-| 역할별 라우트 | `$DSH_HOME/research-team-settings.json` | 여섯 기본 역할의 provider/model/reasoningEffort |
+| 역할별 라우트 | `$DSH_HOME/research-team-settings.json` | 일곱 기본 역할의 provider/model/reasoningEffort |
 
 ## 저장소 구조
 
@@ -271,7 +272,7 @@ GUI에서 작업 디렉터리를 DSH 프로젝트/워크스페이스로 열거�
 - 프로필 수준 의존성은 자동으로 설치되거나 활성화되지 않습니다. 이 저장소는 이를 문서화할 뿐 관리하지 않습니다.
 - 역할 설정은 `$DSH_HOME` 아래의 독립 JSON 파일에 있으며, DSH의 표준 구성 내보내기/백업에 포함되지 않습니다. 다른 머신으로 옮길 때는 이 파일을 복사하십시오.
 - 모델 메뉴는 제공자 그룹이 있는 네이티브 `<select>`이며, 검색 가능한 사용자 정의 선택기가 아닙니다.
-- 이 모드는 세션 시작 시 여섯 팀원을 자동으로 생성하지 않습니다. Lead가 작업에 필요한 만큼 역할을 만듭니다.
+- 이 모드는 세션 시작 시 일곱 팀원을 자동으로 생성하지 않습니다. Lead가 작업에 필요한 만큼 역할을 만듭니다.
 - 멤버는 하위 에이전트 계층을 하나 사용할 수 있으며, 더 깊은 위임은 의도적으로 비활성화되어 있습니다.
 
 ## 개발
@@ -298,7 +299,7 @@ node --check client/index.js
 
 ## 버전 관리
 
-시맨틱 버전 관리를 사용합니다. 현재 릴리스는 **1.0.0**이며 [CHANGELOG.md](../CHANGELOG.md)를 참고하십시오. `docs/` 아래 문서도 같은 버전을 따릅니다.
+시맨틱 버전 관리를 사용합니다. 현재 릴리스는 **1.1.0**이며 [CHANGELOG.md](../CHANGELOG.md)를 참고하십시오. `docs/` 아래 문서도 같은 버전을 따릅니다.
 
 ## 라이선스
 

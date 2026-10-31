@@ -2,6 +2,12 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning.
 
+## 1.1.0 — 2026-10-31
+
+- Adds `data` as a seventh standard role for external dataset and model-weight acquisition: source availability and license/access tracking, download tooling with resume and rate-limit handling, integrity checks against publisher hashes, unpacking, the manifest contract, one small validated sample, and the disk ledger.
+- Establishes the data handoff: the manifest plus a validated sample unblocks format-adaptation code, so builder work depends on the sample card rather than the full transfer, and a multi-hour download never stalls the builder.
+- Updates the roster, the Plugins-page settings rows, and all 12 language documents from six to seven roles.
+
 ## 1.0.0 — 2026-10-31
 
 Initial shareable release.

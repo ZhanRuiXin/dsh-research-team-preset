@@ -2,7 +2,7 @@
 
 **Un preset d'agent DSH qui transforme une session en une petite équipe de recherche coordonnée.**
 
-**Version 1.0.0** · **Mise à jour 2026-10-31**
+**Version 1.1.0** · **Mise à jour 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <strong>Français</strong> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -10,7 +10,7 @@
 
 ## Aperçu
 
-Research Team Mode est un preset d'agent DSH qui permet de mener une recherche de bout en bout en équipe plutôt qu'en une seule conversation. Le Lead planifie le travail, tient le tableau des tâches, répartit les cartes, intègre les résultats et dialogue avec l'utilisateur. Six spécialistes par défaut couvrent l'avis consultatif, la littérature et les preuves, le code, les exécutions, la revue indépendante et la rédaction de l'article.
+Research Team Mode est un preset d'agent DSH qui permet de mener une recherche de bout en bout en équipe plutôt qu'en une seule conversation. Le Lead planifie le travail, tient le tableau des tâches, répartit les cartes, intègre les résultats et dialogue avec l'utilisateur. Sept spécialistes par défaut couvrent l'avis consultatif, la littérature et les preuves, l'acquisition de données, le code, les exécutions, la revue indépendante et la rédaction de l'article.
 
 Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semaines, exigent des preuves traçables et bénéficient de frontières de rôles claires. Ce n'est pas un mode de questions-réponses en un seul échange : le Lead ne crée que les rôles dont une tâche a réellement besoin.
 
@@ -18,7 +18,7 @@ Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semai
 
 | | |
 | --- | --- |
-| **Rôles par défaut** | 6 : advisor, researcher, builder, runner, reviewer, writer |
+| **Rôles par défaut** | 7 : advisor, researcher, data, builder, runner, reviewer, writer |
 | **Flux de travail** | Priorité au tableau des tâches : créer, prendre en charge, exécuter, rapporter, relire, acceptation par l'utilisateur |
 | **Achèvement** | `in_review` est le dernier arrêt de l'agent ; seul l'utilisateur peut déplacer une carte vers `done` |
 | **Routage des modèles** | Provider, model et effort de raisonnement par rôle, depuis un formulaire de réglages de la page Plugins |
@@ -96,6 +96,7 @@ Lead: summarize -> user acceptance (done)
 | --- | --- |
 | `advisor` | Évaluation indépendante de la direction, du cadrage, des affirmations centrales, de la suffisance des preuves et de la stratégie de l'article ; recommande de poursuivre / réviser / arrêter. Consultatif uniquement, pas un verrou |
 | `researcher` | Recherche bibliographique, acquisition, lecture attentive, extraction de preuves et tableau de preuves affirmation → source → emplacement |
+| `data` | Acquisition de jeux de données et de poids de modèles externes, avec disponibilité de la source et statut de licence/accès, outillage de téléchargement gérant reprise et limites de débit, vérification d'intégrité par rapport aux hachages de l'éditeur, décompression, contrat de manifeste, petit échantillon validé et registre disque. Ne rédige pas de code d'entraînement et ne modifie pas le protocole d'évaluation |
 | `builder` | Code, configuration, pipelines de données, tests et points d'entrée reproductibles ; pas de longues exécutions d'entraînement |
 | `runner` | Lancer et suivre l'entraînement/l'évaluation ; consigner les run ids, configurations, graines, métriques, journaux, checkpoints et chemins d'artefacts |
 | `reviewer` | Vérification indépendante des notes de littérature, du code, des résultats et des affirmations/citations de l'article ; PASS/FAIL avec preuves bloquantes |
@@ -168,7 +169,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Mettre `false` pour retirer `spawn_teammate_with_model` et son enveloppe de service |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Fournisseurs de sous-agents utilisés par l'outil de spawn modélisé ; valeurs par défaut `spawn` / `fork` |
 | Ligne `research-team-settings` | `cordis.patch.yml` | Ligne hôte de premier niveau ; conservez le nom à la racine du paquet |
-| Routes par rôle | `$DSH_HOME/research-team-settings.json` | Provider/model/reasoningEffort pour les six rôles par défaut |
+| Routes par rôle | `$DSH_HOME/research-team-settings.json` | Provider/model/reasoningEffort pour les sept rôles par défaut |
 
 ## Arborescence du dépôt
 
@@ -271,7 +272,7 @@ Ouvrez le répertoire de travail comme projet/espace de travail DSH dans l'inter
 - Les dépendances au niveau du profil ne sont ni installées ni activées automatiquement. Ce dépôt les documente mais ne les gère pas.
 - Les réglages de rôle vivent dans un fichier JSON autonome sous `$DSH_HOME` ; ils ne font pas partie de l'export ou de la sauvegarde de configuration standard de DSH. Copiez le fichier si vous changez de machine.
 - Le menu des modèles est un `<select>` natif avec des groupes de providers, pas un sélecteur personnalisé avec recherche.
-- Le mode ne lance pas automatiquement six équipiers au démarrage de la session. Le Lead crée les rôles selon les besoins de la tâche.
+- Le mode ne lance pas automatiquement sept équipiers au démarrage de la session. Le Lead crée les rôles selon les besoins de la tâche.
 - Les membres peuvent utiliser une couche de sous-agent ; la délégation plus profonde est volontairement désactivée.
 
 ## Développement
@@ -298,7 +299,7 @@ Il n'y a pas encore de suite de tests automatisés. La route de réglages, le ca
 
 ## Versionnage
 
-Versionnage sémantique. La version actuelle est **1.0.0** ; voir [CHANGELOG.md](../CHANGELOG.md). Les documents sous `docs/` portent la même version.
+Versionnage sémantique. La version actuelle est **1.1.0** ; voir [CHANGELOG.md](../CHANGELOG.md). Les documents sous `docs/` portent la même version.
 
 ## Licence
 

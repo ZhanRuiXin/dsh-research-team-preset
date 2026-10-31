@@ -2,7 +2,7 @@
 
 **Un preset de agente de DSH que convierte una sesión en un pequeño equipo de investigación coordinado.**
 
-**Versión 1.0.0** · **Actualizado 2026-10-31**
+**Versión 1.1.0** · **Actualizado 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <strong>Español</strong> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -10,7 +10,7 @@
 
 ## Descripción general
 
-Research Team Mode es un preset de agente de DSH para ejecutar investigación de principio a fin como un equipo en lugar de un único chat. El Lead planifica el trabajo, mantiene el tablero de tareas, despacha las tarjetas, integra los resultados y habla con el usuario. Seis especialistas predeterminados cubren la revisión asesora, la literatura y la evidencia, el código, las ejecuciones, la revisión independiente y la redacción de artículos.
+Research Team Mode es un preset de agente de DSH para ejecutar investigación de principio a fin como un equipo en lugar de un único chat. El Lead planifica el trabajo, mantiene el tablero de tareas, despacha las tarjetas, integra los resultados y habla con el usuario. Siete especialistas predeterminados cubren la revisión asesora, la literatura y la evidencia, la adquisición de datos, el código, las ejecuciones, la revisión independiente y la redacción de artículos.
 
 El modo está pensado para investigaciones que abarcan días o semanas, que necesitan evidencia trazable y que se benefician de límites de rol claros. No es un modo de preguntas y respuestas de una sola vez: el Lead crea solo los roles que una tarea necesita realmente.
 
@@ -18,7 +18,7 @@ El modo está pensado para investigaciones que abarcan días o semanas, que nece
 
 | | |
 | --- | --- |
-| **Roles predeterminados** | 6: advisor, researcher, builder, runner, reviewer, writer |
+| **Roles predeterminados** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
 | **Flujo de trabajo** | Primero el tablero de tareas: crear, reclamar, ejecutar, informar, revisar, aceptación del usuario |
 | **Finalización** | `in_review` es la última parada del agente; solo el usuario puede mover una tarjeta a `done` |
 | **Enrutamiento de modelos** | Proveedor, modelo y esfuerzo de razonamiento por rol desde un formulario de ajustes de la página de Plugins |
@@ -96,6 +96,7 @@ Lead: summarize -> user acceptance (done)
 | --- | --- |
 | `advisor` | Evaluación independiente de la dirección, el enfoque, las afirmaciones centrales, la suficiencia de la evidencia y la estrategia del artículo; recomienda continuar / revisar / detenerse. Solo asesoramiento, no una puerta |
 | `researcher` | Búsqueda de literatura, adquisición, lectura atenta, extracción de evidencia y una tabla de evidencia afirmación → fuente → ubicación |
+| `data` | Adquisición de conjuntos de datos y pesos de modelos externos, con disponibilidad de la fuente y estado de licencia/acceso, herramientas de descarga con reanudación y manejo de límites de tasa, verificación de integridad contra hashes del editor, descompresión, contrato de manifiesto, muestra pequeña validada y registro de disco. No escribe código de entrenamiento ni modifica el protocolo de evaluación |
 | `builder` | Código, configuración, canalizaciones de datos, pruebas y puntos de entrada reproducibles; sin entrenamientos largos |
 | `runner` | Iniciar y monitorear entrenamiento/evaluación; registrar ids de ejecución, configuraciones, semillas, métricas, logs, checkpoints y rutas de artefactos |
 | `reviewer` | Verificación independiente de las notas de literatura, el código, los resultados y las afirmaciones/citas del artículo; PASS/FAIL con evidencia bloqueante |
@@ -168,7 +169,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Establece `false` para eliminar `spawn_teammate_with_model` y su envoltorio de servicio |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Proveedores de subagente que usa la herramienta de spawn modelada; valores predeterminados `spawn` / `fork` |
 | Fila `research-team-settings` | `cordis.patch.yml` | Fila host de nivel superior; mantén el nombre en la raíz del paquete |
-| Rutas por rol | `$DSH_HOME/research-team-settings.json` | Proveedor/modelo/reasoningEffort para los seis roles predeterminados |
+| Rutas por rol | `$DSH_HOME/research-team-settings.json` | Proveedor/modelo/reasoningEffort para los siete roles predeterminados |
 
 ## Estructura del repositorio
 
@@ -271,7 +272,7 @@ Abre el directorio de trabajo como proyecto/espacio de trabajo de DSH en la GUI 
 - Las dependencias a nivel de perfil no se instalan ni se habilitan automáticamente. Este repositorio las documenta pero no las gestiona.
 - Los ajustes de rol viven en un archivo JSON independiente bajo `$DSH_HOME`; no forman parte de la exportación/copia de seguridad estándar de la configuración de DSH. Copia el archivo si cambias de máquina.
 - El menú de modelos es un `<select>` nativo con grupos de proveedores, no un selector personalizado con búsqueda.
-- El modo no genera automáticamente seis compañeros de equipo al iniciar la sesión. El Lead crea los roles según lo requiera la tarea.
+- El modo no genera automáticamente siete compañeros de equipo al iniciar la sesión. El Lead crea los roles según lo requiera la tarea.
 - Los miembros pueden usar una capa de subagente; la delegación más profunda está deshabilitada intencionalmente.
 
 ## Desarrollo
@@ -298,7 +299,7 @@ Todavía no hay una suite de pruebas automatizada. La ruta de ajustes, el catál
 
 ## Versionado
 
-Versionado semántico. La versión actual es **1.0.0**; consulta [CHANGELOG.md](../CHANGELOG.md). La documentación bajo `docs/` lleva la misma versión.
+Versionado semántico. La versión actual es **1.1.0**; consulta [CHANGELOG.md](../CHANGELOG.md). La documentación bajo `docs/` lleva la misma versión.
 
 ## Licencia
 

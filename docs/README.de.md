@@ -2,7 +2,7 @@
 
 **Ein DSH-Agent-Preset, das eine Sitzung in ein kleines, koordiniertes Forschungsteam verwandelt.**
 
-**Version 1.0.0** · **Aktualisiert 2026-10-31**
+**Version 1.1.0** · **Aktualisiert 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <strong>Deutsch</strong> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -10,7 +10,7 @@
 
 ## Überblick
 
-Research Team Mode ist ein DSH-Agent-Preset, mit dem sich End-to-End-Forschung als Team statt in einem einzigen Chat betreiben lässt. Der Lead plant die Arbeit, führt das Task Board, verteilt Karten, integriert Ergebnisse und kommuniziert mit der nutzenden Person. Sechs Standardrollen decken Beratung, Literatur und Evidenz, Code, Läufe, unabhängige Prüfung und das Schreiben des Papers ab.
+Research Team Mode ist ein DSH-Agent-Preset, mit dem sich End-to-End-Forschung als Team statt in einem einzigen Chat betreiben lässt. Der Lead plant die Arbeit, führt das Task Board, verteilt Karten, integriert Ergebnisse und kommuniziert mit der nutzenden Person. Sieben Standardrollen decken Beratung, Literatur und Evidenz, Datenbeschaffung, Code, Läufe, unabhängige Prüfung und das Schreiben des Papers ab.
 
 Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt, nachvollziehbare Evidenz benötigt und von klaren Rollengrenzen profitiert. Er ist kein Modus für einmalige Fragen und Antworten: Der Lead erstellt nur die Rollen, die eine Aufgabe tatsächlich braucht.
 
@@ -18,7 +18,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 
 | | |
 | --- | --- |
-| **Standardrollen** | 6: advisor, researcher, builder, runner, reviewer, writer |
+| **Standardrollen** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Task Board zuerst: erstellen, übernehmen, ausführen, berichten, prüfen, Abnahme durch die nutzende Person |
 | **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann eine Karte auf `done` setzen |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
@@ -96,6 +96,7 @@ Lead: summarize -> user acceptance (done)
 | --- | --- |
 | `advisor` | Unabhängige Bewertung von Richtung, Framing, zentralen Behauptungen, Evidenzlage und Paper-Strategie; empfiehlt proceed / revise / stop. Nur beratend, kein Gate |
 | `researcher` | Literatursuche, Beschaffung, Close Reading, Evidenzextraktion und eine Evidenztabelle Behauptung → Quelle → Fundstelle |
+| `data` | Beschaffung externer Datensätze und Modellgewichte, einschließlich Verfügbarkeit der Quelle und Lizenz-/Zugangsstatus, Download-Werkzeugen mit Wiederaufnahme und Umgang mit Rate-Limits, Integritätsprüfung gegen Herausgeber-Hashes, Entpacken, Manifest-Vertrag, einer kleinen validierten Stichprobe und des Disk-Ledgers. Schreibt keinen Trainingscode und ändert das Evaluationsprotokoll nicht |
 | `builder` | Code, Konfiguration, Datenpipelines, Tests und reproduzierbare Einstiegspunkte; keine langen Trainingsläufe |
 | `runner` | Startet und überwacht Training/Evaluation; zeichnet Run-IDs, Konfigurationen, Seeds, Metriken, Logs, Checkpoints und Artefaktpfade auf |
 | `reviewer` | Unabhängige Verifikation von Literaturnotizen, Code, Ergebnissen und Paper-Behauptungen/-Zitaten; PASS/FAIL mit blockierender Evidenz |
@@ -168,7 +169,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Auf `false` setzen, um `spawn_teammate_with_model` und dessen Service-Wrapper zu entfernen |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Subagent-Provider des modeled Spawn-Tools; Standard `spawn` / `fork` |
 | Zeile `research-team-settings` | `cordis.patch.yml` | Host-Zeile auf oberster Ebene; Paketwurzelnamen beibehalten |
-| Rollenspezifische Routen | `$DSH_HOME/research-team-settings.json` | Provider/model/reasoningEffort für die sechs Standardrollen |
+| Rollenspezifische Routen | `$DSH_HOME/research-team-settings.json` | Provider/model/reasoningEffort für die sieben Standardrollen |
 
 ## Repository-Struktur
 
@@ -271,7 +272,7 @@ Bestätigen Sie, dass das Bundle installiert und aktiviert ist, starten Sie DSH 
 - Abhängigkeiten auf Profilebene werden nicht automatisch installiert oder aktiviert. Dieses Repository dokumentiert sie, verwaltet sie aber nicht.
 - Rolleneinstellungen liegen in einer eigenständigen JSON-Datei unter `$DSH_HOME`; sie sind nicht Teil des Standard-Konfigurationsexports bzw. -Backups von DSH. Kopieren Sie die Datei, wenn Sie den Rechner wechseln.
 - Das Modellmenü ist ein natives `<select>` mit Provider-Gruppen, keine durchsuchbare eigene Auswahlkomponente.
-- Der Modus startet beim Sitzungsbeginn nicht automatisch sechs Teammitglieder. Der Lead erstellt Rollen nach Bedarf der Aufgabe.
+- Der Modus startet beim Sitzungsbeginn nicht automatisch sieben Teammitglieder. Der Lead erstellt Rollen nach Bedarf der Aufgabe.
 - Mitglieder dürfen eine Subagent-Ebene nutzen; tiefere Delegation ist bewusst deaktiviert.
 
 ## Entwicklung
@@ -298,7 +299,7 @@ Es gibt noch keine automatisierte Testsuite. Die Einstellungsroute, der Modellka
 
 ## Versionierung
 
-Semantische Versionierung. Die aktuelle Version ist **1.0.0**; siehe [CHANGELOG.md](../CHANGELOG.md). Die Dokumente unter `docs/` tragen dieselbe Version.
+Semantische Versionierung. Die aktuelle Version ist **1.1.0**; siehe [CHANGELOG.md](../CHANGELOG.md). Die Dokumente unter `docs/` tragen dieselbe Version.
 
 ## Lizenz
 

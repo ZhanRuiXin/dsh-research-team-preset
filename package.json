@@ -1,10 +1,10 @@
 {
   "name": "@local/dsh-research-team-preset",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "license": "MIT",
   "type": "module",
-  "description": "科研团队模式，面向端到端科研项目，覆盖文献调研、方案与主张的顾问评估、实现、实验、复核与论文产出，适合多人分工、证据可追溯、成果统一验收的研究工作。",
+  "description": "科研团队模式，面向端到端科研项目，覆盖文献调研、数据获取、方案与主张的顾问评估、实现、实验、复核与论文产出，适合多人分工、证据可追溯、成果统一验收的研究工作。",
   "exports": {
     ".": "./settings/index.js",
     "./tool": "./plugin/index.js",

@@ -2,7 +2,7 @@
 
 **一個把單一工作階段變成小型、協同研究團隊的 DSH agent preset。**
 
-**版本 1.0.0** · **更新 2026-10-31**
+**版本 1.1.0** · **更新 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <strong>繁體中文</strong> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -10,7 +10,7 @@
 
 ## 概觀
 
-Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對話的方式執行端到端研究。Lead 負責規劃工作、維護任務看板、分派卡片、整合結果，並與使用者溝通。六名預設專家分別涵蓋顧問審查、文獻與證據、程式碼、執行、獨立複核與論文寫作。
+Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對話的方式執行端到端研究。Lead 負責規劃工作、維護任務看板、分派卡片、整合結果，並與使用者溝通。七名預設專家分別涵蓋顧問審查、文獻與證據、資料取得、程式碼、執行、獨立複核與論文寫作。
 
 此模式是為橫跨數天或數週、需要可追溯證據，且受益於清楚角色界線的研究而打造。它不是一次問答模式：Lead 只會建立任務實際需要的角色。
 
@@ -18,7 +18,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對�
 
 | | |
 | --- | --- |
-| **預設角色** | 6 名：advisor、researcher、builder、runner、reviewer、writer |
+| **預設角色** | 7 名：advisor、researcher、data、builder、runner、reviewer、writer |
 | **工作流程** | 任務看板優先：建立、認領、執行、回報、審查、使用者驗收 |
 | **完成** | `in_review` 是 agent 的最後一站；只有使用者能把卡片移到 `done` |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
@@ -96,6 +96,7 @@ Lead: summarize -> user acceptance (done)
 | --- | --- |
 | `advisor` | 獨立評估方向、框架、核心主張、證據充分性與論文策略；建議 proceed / revise / stop。僅供顧問參考，不是關卡 |
 | `researcher` | 文獻搜尋、取得、精讀、證據擷取，以及「主張 → 來源 → 位置」證據表 |
+| `data` | 外部資料集與模型權重的取得，包含來源可得性與授權／存取狀態追蹤、含續傳與限速處理的下載工具、依發布方雜湊值做的完整性校驗、解壓縮、manifest 契約、小型驗證樣本與磁碟帳本；不寫訓練程式碼，也不改評估協定 |
 | `builder` | 程式碼、設定、資料管線、測試與可重現的進入點；不負責長時間訓練 |
 | `runner` | 啟動並監控訓練／評估；記錄 run id、config、seed、指標、日誌、checkpoint 與產物路徑 |
 | `reviewer` | 獨立驗證文獻筆記、程式碼、結果與論文主張／引用；以阻擋性證據給出 PASS/FAIL |
@@ -168,7 +169,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | 設為 `false` 可移除 `spawn_teammate_with_model` 及其服務包裝 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | 模型化 spawn 工具使用的 subagent provider；預設為 `spawn` / `fork` |
 | `research-team-settings` 列 | `cordis.patch.yml` | 頂層主機列；請保留套件根目錄名稱 |
-| 各角色路由 | `$DSH_HOME/research-team-settings.json` | 六個預設角色的 provider/model/reasoningEffort |
+| 各角色路由 | `$DSH_HOME/research-team-settings.json` | 七個預設角色的 provider/model/reasoningEffort |
 
 ## 儲存庫結構
 
@@ -271,7 +272,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - Profile 層級相依項目不會自動安裝或啟用。此儲存庫記錄它們，但不管理它們。
 - 角色設定存放在 `$DSH_HOME` 下的獨立 JSON 檔；它們不屬於 DSH 標準設定匯出／備份。移動機器時請複製該檔案。
 - 模型選單是原生 `<select>` 加上 provider 群組，不是可搜尋的自訂選擇器。
-- 此模式不會在工作階段開始時自動 spawn 六名隊友。Lead 會依任務需要建立角色。
+- 此模式不會在工作階段開始時自動 spawn 七名隊友。Lead 會依任務需要建立角色。
 - 成員可使用一層 subagent；更深的委派會被刻意停用。
 
 ## 開發
@@ -298,7 +299,7 @@ node --check client/index.js
 
 ## 版本
 
-語意化版本。目前版本是 **1.0.0**；參見 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文件帶有相同版本。
+語意化版本。目前版本是 **1.1.0**；參見 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文件帶有相同版本。
 
 ## 授權
 

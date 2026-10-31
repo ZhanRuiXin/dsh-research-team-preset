@@ -2,7 +2,7 @@
 
 **Um preset de agente do DSH que transforma uma sessão em uma pequena equipe de pesquisa coordenada.**
 
-**Versão 1.0.0** · **Atualizado 2026-10-31**
+**Versão 1.1.0** · **Atualizado 2026-10-31**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <strong>Português (Brasil)</strong> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -10,7 +10,7 @@
 
 ## Visão geral
 
-Research Team Mode é um preset de agente do DSH para conduzir pesquisa de ponta a ponta como uma equipe, em vez de um único chat. O Lead planeja o trabalho, mantém o quadro de tarefas, distribui os cartões, integra os resultados e conversa com o usuário. Seis especialistas padrão cobrem revisão consultiva, literatura e evidências, código, execuções, revisão independente e redação do artigo.
+Research Team Mode é um preset de agente do DSH para conduzir pesquisa de ponta a ponta como uma equipe, em vez de um único chat. O Lead planeja o trabalho, mantém o quadro de tarefas, distribui os cartões, integra os resultados e conversa com o usuário. Sete especialistas padrão cobrem revisão consultiva, literatura e evidências, obtenção de dados, código, execuções, revisão independente e redação do artigo.
 
 O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rastreáveis e se beneficiam de limites claros de função. Não é um modo de perguntas e respostas pontuais: o Lead cria apenas as funções que a tarefa realmente precisa.
 
@@ -18,7 +18,7 @@ O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rast
 
 | | |
 | --- | --- |
-| **Funções padrão** | 6: advisor, researcher, builder, runner, reviewer, writer |
+| **Funções padrão** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
 | **Fluxo de trabalho** | Quadro de tarefas em primeiro lugar: criar, assumir, executar, relatar, revisar, aceitação do usuário |
 | **Conclusão** | `in_review` é a última parada do agente; somente o usuário pode mover um cartão para `done` |
 | **Roteamento de modelos** | Provedor, modelo e esforço de raciocínio por função, definidos em um formulário na página de Plugins |
@@ -96,6 +96,7 @@ Lead: summarize -> user acceptance (done)
 | --- | --- |
 | `advisor` | Avaliação independente da direção, do enquadramento, das afirmações centrais, da suficiência das evidências e da estratégia do artigo; recomenda prosseguir / revisar / parar. Apenas consultivo, não é um ponto de bloqueio |
 | `researcher` | Busca, obtenção e leitura detalhada de literatura, extração de evidências e uma tabela de evidências afirmação → fonte → localização |
+| `data` | Obtenção de conjuntos de dados e pesos de modelos externos, incluindo disponibilidade da fonte e status de licença/acesso, ferramentas de download com retomada e tratamento de limites de taxa, verificação de integridade contra hashes do publicador, descompactação, contrato de manifesto, amostra pequena validada e registro de disco. Não escreve código de treinamento nem altera o protocolo de avaliação |
 | `builder` | Código, configuração, pipelines de dados, testes e pontos de entrada reproduzíveis; sem treinamentos longos |
 | `runner` | Inicia e monitora treinamento/avaliação; registra ids de execução, configurações, seeds, métricas, logs, checkpoints e caminhos de artefatos |
 | `reviewer` | Verificação independente de notas de literatura, código, resultados e afirmações/citações do artigo; PASS/FAIL com evidências bloqueantes |
@@ -168,7 +169,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Defina como `false` para remover `spawn_teammate_with_model` e seu wrapper de serviço |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Provedores de subagente usados pela ferramenta de spawn modelada; padrões `spawn` / `fork` |
 | Linha `research-team-settings` | `cordis.patch.yml` | Linha host de nível superior; mantenha o nome na raiz do pacote |
-| Rotas por função | `$DSH_HOME/research-team-settings.json` | Provedor/modelo/reasoningEffort para as seis funções padrão |
+| Rotas por função | `$DSH_HOME/research-team-settings.json` | Provedor/modelo/reasoningEffort para as sete funções padrão |
 
 ## Estrutura do repositório
 
@@ -271,7 +272,7 @@ Abra o diretório de trabalho como um projeto/workspace do DSH na GUI ou passe u
 - Dependências de nível de perfil não são instaladas nem ativadas automaticamente. Este repositório as documenta, mas não as gerencia.
 - As configurações de função ficam em um arquivo JSON autônomo em `$DSH_HOME`; elas não fazem parte da exportação/backup padrão de configuração do DSH. Copie o arquivo se você trocar de máquina.
 - O menu de modelos é um `<select>` nativo com grupos de provedor, não um seletor personalizado com busca.
-- O modo não cria automaticamente seis membros da equipe ao iniciar a sessão. O Lead cria as funções conforme a tarefa exige.
+- O modo não cria automaticamente sete membros da equipe ao iniciar a sessão. O Lead cria as funções conforme a tarefa exige.
 - Os membros podem usar uma camada de subagente; a delegação mais profunda é desativada intencionalmente.
 
 ## Desenvolvimento
@@ -298,7 +299,7 @@ Ainda não há uma suíte de testes automatizados. A rota de configurações, o 
 
 ## Versionamento
 
-Versionamento semântico. A versão atual é **1.0.0**; consulte o [CHANGELOG.md](../CHANGELOG.md). A documentação em `docs/` carrega a mesma versão.
+Versionamento semântico. A versão atual é **1.1.0**; consulte o [CHANGELOG.md](../CHANGELOG.md). A documentação em `docs/` carrega a mesma versão.
 
 ## Licença
 

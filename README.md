@@ -2,7 +2,7 @@
 
 **A DSH agent preset that turns one session into a small, coordinated research team.**
 
-**Version 1.0.0** · **Updated 2026-10-31**
+**Version 1.1.0** · **Updated 2026-10-31**
 
 <p align="center"><strong>English</strong> · <a href="docs/README.zh-CN.md">简体中文</a> · <a href="docs/README.zh-TW.md">繁體中文</a> · <a href="docs/README.ja.md">日本語</a> · <a href="docs/README.ko.md">한국어</a> · <a href="docs/README.de.md">Deutsch</a> · <a href="docs/README.fr.md">Français</a> · <a href="docs/README.es.md">Español</a> · <a href="docs/README.pt-BR.md">Português (Brasil)</a> · <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.ar.md">العربية</a> · <a href="docs/README.hi.md">हिन्दी</a></p>
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps the task board, dispatches cards, integrates results, and talks to the user. Six default specialists cover advisory review, literature and evidence, code, runs, independent review, and paper writing.
+Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps the task board, dispatches cards, integrates results, and talks to the user. Seven default specialists cover advisory review, literature and evidence, data acquisition, code, runs, independent review, and paper writing.
 
 The mode is built for research that spans days or weeks, needs traceable evidence, and benefits from clear role boundaries. It is not a one-shot Q&A mode: the Lead creates only the roles a task actually needs.
 
@@ -18,7 +18,7 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 
 | | |
 | --- | --- |
-| **Default roles** | 6: advisor, researcher, builder, runner, reviewer, writer |
+| **Default roles** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Task-board-first: create, claim, execute, report, review, user acceptance |
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
@@ -96,6 +96,7 @@ Lead: summarize -> user acceptance (done)
 | --- | --- |
 | `advisor` | Independent assessment of direction, framing, central claims, evidence sufficiency, and paper strategy; recommends proceed / revise / stop. Advisory only, not a gate |
 | `researcher` | Literature search, acquisition, close reading, evidence extraction, and a claim → source → location evidence table |
+| `data` | External dataset and model-weight acquisition, including source availability and license/access status, download tooling with resume and rate-limit handling, integrity checks against publisher hashes, unpacking, the manifest contract, a small validated sample, and the disk ledger; does not write training code or change the evaluation protocol |
 | `builder` | Code, configuration, data pipelines, tests, and reproducible entry points; no long training runs |
 | `runner` | Start and monitor training/evaluation; record run ids, configs, seeds, metrics, logs, checkpoints, and artifact paths |
 | `reviewer` | Independent verification of literature notes, code, results, and paper claims/citations; PASS/FAIL with blocking evidence |
@@ -168,7 +169,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Set `false` to remove `spawn_teammate_with_model` and its service wrapper |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Subagent providers used by the modeled spawn tool; defaults `spawn` / `fork` |
 | `research-team-settings` row | `cordis.patch.yml` | Top-level host row; keep the package-root name |
-| Per-role routes | `$DSH_HOME/research-team-settings.json` | Provider/model/reasoningEffort for the six default roles |
+| Per-role routes | `$DSH_HOME/research-team-settings.json` | Provider/model/reasoningEffort for the seven default roles |
 
 ## Repository layout
 
@@ -271,7 +272,7 @@ Open the working directory as a DSH project/workspace in the GUI or pass a known
 - Profile-level dependencies are not installed or enabled automatically. This repository documents them but does not manage them.
 - Role settings live in a standalone JSON file under `$DSH_HOME`; they are not part of DSH's standard config export/backup. Copy the file if you move machines.
 - The model menu is a native `<select>` with provider groups, not a searchable custom picker.
-- The mode does not auto-spawn six teammates on session start. The Lead creates roles as the task requires.
+- The mode does not auto-spawn seven teammates on session start. The Lead creates roles as the task requires.
 - Members may use one subagent layer; deeper delegation is intentionally disabled.
 
 ## Development
@@ -298,7 +299,7 @@ There is no automated test suite yet. The settings route, model catalog, task-bo
 
 ## Versioning
 
-Semantic versioning. The current release is **1.0.0**; see [CHANGELOG.md](CHANGELOG.md). The docs under `docs/` carry the same version.
+Semantic versioning. The current release is **1.1.0**; see [CHANGELOG.md](CHANGELOG.md). The docs under `docs/` carry the same version.
 
 ## License
 

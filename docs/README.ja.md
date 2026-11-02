@@ -10,7 +10,7 @@
 
 ## 概要
 
-Research Team Mode は、単一のチャットではなくチームとしてエンドツーエンドの研究を進めるための DSH エージェントプリセットです。Lead が作業を計画し、タスクボードを維持し、カードを割り当て、結果を統合し、ユーザーと対話します。7 名の既定スペシャリストが、顧問レビュー、文献と証拠、データ取得、コード、実行、独立レビュー、論文執筆を担当します。
+Research Team Mode は、単一のチャットではなくチームとしてエンドツーエンドの研究を進めるための DSH エージェントプリセットです。Lead が作業を計画し、2 つの台帳（ユーザーゲート用のボードカード、内部ステップ用のチームタスク）を維持し、作業を割り当て、結果を統合し、ユーザーと対話します。7 名の既定スペシャリストが、顧問レビュー、文献と証拠、データ取得、コード、実行、独立レビュー、論文執筆を担当します。
 
 このモードは、数日から数週間にわたる研究、追跡可能な証拠を必要とする研究、明確な役割の境界が有効な研究のために作られています。単発の Q&A モードではありません。Lead は、タスクが実際に必要とする役割だけを作成します。
 
@@ -19,11 +19,11 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 | | |
 | --- | --- |
 | **既定の役割** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
-| **ワークフロー** | タスクボード優先：作成、claim、実行、報告、レビュー、ユーザーによる受け入れ |
+| **ワークフロー** | ゲート方式：内部ステップは `team_task_*`、ユーザーゲートはボード。作成、claim、実行、報告、レビュー、ユーザーによる受け入れ |
 | **完了** | `in_review` がエージェントの最終地点。カードを `done` に移動できるのはユーザーだけ |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
 | **Git** | 実質的な作業の開始時にエージェントが初期化。破壊的な変更はブランチで行い、受け入れ後にのみマージ |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + カードごとに 1 つの有界ファイル。再開時は PLAN と INDEX を先に読む |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + ゲート対象カードごとに 1 つの有界ファイル。再開時は PLAN と INDEX を先に読む |
 | **ランタイム** | PTC（`run_code` + 生成 SDK）。メンバーごとにサブエージェント 1 層 |
 
 ## 対象となるユーザー
@@ -42,7 +42,7 @@ Research Team Mode は**プロファイルレベルの DSH バンドル**です�
 | 機能 | Provider | 備考 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` を基準に開発。他のリリースでも動作する可能性はありますが保証はありません |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、および Team サービスを提供 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*`、および Team サービスを提供 |
 | タスクボード | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` と Web GUI のボードを提供 |
 | PTC ランタイム | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) と [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH ベースの一部。`run_code` を有効化 |
 | Git Bash（任意、Windows） | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 必要とするエージェントに `bash` ツールを追加 |
@@ -86,8 +86,8 @@ taskboard_list     # check existing cards in this project
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create(presetId=research-team) -> dispatch
-Members: claim cards -> execute -> checklist + execution report -> in_review
+Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
+Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -121,13 +121,13 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-ユーザーの確認や受け入れが必要なステップだけがボードのカードになります。成果物のチェックポイント、ユーザーが承認すべきスコープ判断、リスクの高い変更、最終引き渡しが対象です。内部ステップ、自己承認したサブタスク、メンバー間の引き継ぎは `team_task_*` で追跡し、ボードには載せません。ゲートに達したら、成果物・証拠・レビュー判定はカードに残します。
+ユーザーの確認や受け入れが必要なステップだけがボードのカードになります。成果物のチェックポイント、ユーザーが承認すべきスコープ判断、リスクの高い変更、最終引き渡しが対象です。内部ステップ、自己承認したサブタスク、メンバー間の引き継ぎは `team_task_*` で追跡し、ボードには載せません。ゲートに達したら、成果物・証拠・レビュー判定はカードに残します。チームメンバー間のやり取りは英語で行い、ユーザー向けの返信、カード、成果物はユーザーの言語に合わせます。
 
 ## Git ワークフロー
 
 このモードは実質的な作業の開始時に耐久記録を初期化し、その要求が本当の作業か単純な質問かはエージェントが判断します。ワークスペースがまだリポジトリ内にない場合、エージェントは `research_workspace_init` を呼び、`worklog/PLAN.md` と `worklog/INDEX.md` を作成して `git init` を実行します。ネストしたリポジトリは作成せず、足場をコミットすることもありません。
 
-破壊的またはリスクの高い変更は、既定ブランチを直接編集せず、カード名のブランチ（例 `task/<title>+<id>`）で行います。カードには base と head のコミットを記録し、reviewer は `git diff <base>..<head>` をコードレビューの根拠とし、受け入れチェックも再実行します。
+破壊的またはリスクの高い変更は、既定ブランチを直接編集せず、ステップ名のブランチ（例 `task/<title>+<id>`。ゲート対象の作業はカード、内部作業はチームタスク）で行います。カードまたはチームタスクには base と head のコミットを記録し、reviewer は `git diff <base>..<head>` をコードレビューの根拠とし、受け入れチェックも再実行します。
 
 ブランチはカードが受け入れられた後にのみマージし、その後削除します。データセット、チェックポイント、ログ、キャッシュなどの生成物はリポジトリに入れません。git リポジトリでない場合は、ファイルハッシュのスナップショットとカードの証拠でレビューします。
 

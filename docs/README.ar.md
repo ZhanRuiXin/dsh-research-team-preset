@@ -10,7 +10,7 @@
 
 ## نظرة عامة
 
-يُعدّ Research Team Mode إعداد وكيل (agent preset) في DSH لتشغيل بحث متكامل من أوله إلى آخره كفريق، بدلًا من محادثة واحدة. يتولى الـ Lead تخطيط العمل، والاحتفاظ بلوحة المهام، وإرسال البطاقات، ودمج النتائج، والتحدث مع المستخدم. وتغطي سبعة أدوار متخصصة افتراضية المراجعة الاستشارية، والأدبيات والأدلة، والحصول على البيانات، والشفرة، والتشغيل، والمراجعة المستقلة، وكتابة الورقة.
+يُعدّ Research Team Mode إعداد وكيل (agent preset) في DSH لتشغيل بحث متكامل من أوله إلى آخره كفريق، بدلًا من محادثة واحدة. يتولى الـ Lead تخطيط العمل، والاحتفاظ بالسجلّين (بطاقات اللوحة لبوابات المستخدم، ومهام الفريق للخطوات الداخلية)، وإرسال العمل، ودمج النتائج، والتحدث مع المستخدم. وتغطي سبعة أدوار متخصصة افتراضية المراجعة الاستشارية، والأدبيات والأدلة، والحصول على البيانات، والشفرة، والتشغيل، والمراجعة المستقلة، وكتابة الورقة.
 
 صُمم هذا الوضع للبحوث الممتدة على أيام أو أسابيع، والتي تحتاج إلى أدلة قابلة للتتبع وتستفيد من حدود واضحة بين الأدوار. وهو ليس وضع سؤال وجواب لمرة واحدة: فالـ Lead لا يُنشئ إلا الأدوار التي تحتاجها المهمة فعلًا.
 
@@ -19,11 +19,11 @@
 | | |
 | --- | --- |
 | **الأدوار الافتراضية** | 7: advisor، researcher، data، builder، runner، reviewer، writer |
-| **سير العمل** | لوحة المهام أولًا: الإنشاء، والاعتماد، والتنفيذ، والتقرير، والمراجعة، وقبول المستخدم |
+| **سير العمل** | قائم على البوابات: الخطوات الداخلية في `team_task_*`، وبوابات المستخدم على اللوحة؛ الإنشاء، والاعتماد، والتنفيذ، والتقرير، والمراجعة، وقبول المستخدم |
 | **الإنجاز** | `in_review` هي آخر محطة للوكيل؛ ولا ينقل البطاقة إلى `done` إلا المستخدم |
 | **توجيه النماذج** | provider وmodel وقوة الاستدلال لكل دور من نموذج إعدادات في صفحة Plugins |
 | **Git** | يهيّئه الوكيل عند بدء العمل الجوهري؛ التغييرات المدمِّرة على فرع؛ الدمج بعد القبول فقط |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + ملف محدود لكل بطاقة؛ عند الاستئناف تُقرأ PLAN وINDEX أولًا |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + ملف محدود لكل بطاقة مرتبطة ببوابة؛ عند الاستئناف تُقرأ PLAN وINDEX أولًا |
 | **بيئة التشغيل** | PTC (`run_code` + SDK المولَّد)، وطبقة subagent واحدة لكل عضو |
 
 ## لمن هذا الوضع
@@ -42,7 +42,7 @@
 | القدرة | المزوّد | ملاحظات |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | طُوِّر على `0.2.1-rc.5`؛ قد تعمل إصدارات أخرى، لكن ذلك غير مضمون |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | يوفّر `spawn_teammate` و`send_message` و`wait_agent` و`interrupt_agent` وخدمات Team |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | يوفّر `spawn_teammate` و`send_message` و`wait_agent` و`interrupt_agent` و`team_task_*` وخدمات Team |
 | لوحة المهام | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | يوفّر `taskboard_*` ولوحة Web GUI |
 | بيئة PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) و[`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | جزء من أساس DSH؛ يتيح `run_code` |
 | Git Bash (اختياري، Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | يضيف أداة `bash` للوكلاء الذين يحتاجون إليها |
@@ -86,8 +86,8 @@ taskboard_list     # check existing cards in this project
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create(presetId=research-team) -> dispatch
-Members: claim cards -> execute -> checklist + execution report -> in_review
+Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
+Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -121,13 +121,13 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-لا تحصل إلا الخطوات التي تنتظر مراجعة المستخدم أو قبوله على بطاقة في اللوحة: نقاط تسليم المخرجات، وقرارات النطاق التي يجب أن يؤكدها المستخدم، والتغييرات الخطرة، والتسليم النهائي. أما الخطوات الداخلية والمهام الفرعية المعتمدة ذاتيًا والتسليم بين الأعضاء فتُتابع في `team_task_*` وتبقى خارج اللوحة؛ وعند الوصول إلى بوابة المراجعة تحتفظ البطاقة بالمخرج وأدلته وحكم المراجعة.
+لا تحصل إلا الخطوات التي تنتظر مراجعة المستخدم أو قبوله على بطاقة في اللوحة: نقاط تسليم المخرجات، وقرارات النطاق التي يجب أن يؤكدها المستخدم، والتغييرات الخطرة، والتسليم النهائي. أما الخطوات الداخلية والمهام الفرعية المعتمدة ذاتيًا والتسليم بين الأعضاء فتُتابع في `team_task_*` وتبقى خارج اللوحة؛ وعند الوصول إلى بوابة المراجعة تحتفظ البطاقة بالمخرج وأدلته وحكم المراجعة. وينسّق أعضاء الفريق فيما بينهم باللغة الإنجليزية؛ أما الردود والبطاقات والمخرجات الموجّهة إلى المستخدم فتتبع لغة المستخدم.
 
 ## سير عمل Git
 
 يهيّئ الوضع تتبعًا دائمًا عند بدء العمل الجوهري، ويقدّر الوكيل ما إذا كان الطلب عملًا حقيقيًا أم سؤالًا بسيطًا. وإذا لم تكن مساحة العمل داخل مستودع بعد، يستدعي الوكيل `research_workspace_init`، الذي ينشئ `worklog/PLAN.md` و`worklog/INDEX.md` وينفّذ `git init`. ولا ينشئ مستودعًا متداخلًا أبدًا ولا يثبّت الهيكل الأولي.
 
-تُنفَّذ التغييرات المدمِّرة أو عالية المخاطر على فرع يحمل اسم البطاقة، مثل `task/<title>+<id>`، بدلًا من تعديل الفرع الافتراضي مباشرة. وتسجّل البطاقة كوميتَي base وhead، ويقرأ reviewer ناتج `git diff <base>..<head>` أساسًا لمراجعة الشيفرة، ويعيد تشغيل فحوص القبول أيضًا.
+تُنفَّذ التغييرات المدمِّرة أو عالية المخاطر على فرع يحمل اسم الخطوة، مثل `task/<title>+<id>` (البطاقة للعمل المرتبط ببوابة، ومهمة الفريق للعمل الداخلي)، بدلًا من تعديل الفرع الافتراضي مباشرة. وتسجّل البطاقة أو مهمة الفريق كوميتَي base وhead، ويقرأ reviewer ناتج `git diff <base>..<head>` أساسًا لمراجعة الشيفرة، ويعيد تشغيل فحوص القبول أيضًا.
 
 لا يُدمج الفرع إلا بعد قبول البطاقة، ثم يُحذف. وتبقى المخرجات المولّدة مثل مجموعات البيانات ونقاط الحفظ والسجلات والذاكرات المؤقتة خارج المستودع. وإذا لم يكن المشروع مستودع git، تعتمد المراجعة على لقطة تجزئات الملفات والأدلة المسجلة على البطاقة.
 

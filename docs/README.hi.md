@@ -10,7 +10,7 @@
 
 ## अवलोकन
 
-Research Team Mode एक DSH एजेंट प्रीसेट है जो एकल चैट के बजाय एक टीम के रूप में एंड-टू-एंड शोध चलाने के लिए बनाया गया है। Lead काम की योजना बनाता है, टास्क बोर्ड रखता है, कार्ड वितरित करता है, परिणामों को एकीकृत करता है और उपयोगकर्ता से बात करता है। सात डिफ़ॉल्ट विशेषज्ञ सलाहकारी समीक्षा, साहित्य और साक्ष्य, डेटा अधिग्रहण, कोड, रन, स्वतंत्र समीक्षा और पेपर लेखन को कवर करते हैं।
+Research Team Mode एक DSH एजेंट प्रीसेट है जो एकल चैट के बजाय एक टीम के रूप में एंड-टू-एंड शोध चलाने के लिए बनाया गया है। Lead काम की योजना बनाता है, दोनों बहीखाते रखता है (उपयोगकर्ता गेट के लिए बोर्ड कार्ड, आंतरिक चरणों के लिए टीम टास्क), काम वितरित करता है, परिणामों को एकीकृत करता है और उपयोगकर्ता से बात करता है। सात डिफ़ॉल्ट विशेषज्ञ सलाहकारी समीक्षा, साहित्य और साक्ष्य, डेटा अधिग्रहण, कोड, रन, स्वतंत्र समीक्षा और पेपर लेखन को कवर करते हैं।
 
 यह मोड ऐसे शोध के लिए बना है जो कई दिनों या हफ़्तों तक चलता है, जिसमें साक्ष्य को ट्रेस किया जा सके और स्पष्ट भूमिका-सीमाओं का लाभ मिलता है। यह एक-बार के प्रश्नोत्तर वाला मोड नहीं है: Lead केवल वही भूमिकाएँ बनाता है जिनकी किसी काम को वास्तव में ज़रूरत होती है।
 
@@ -19,11 +19,11 @@ Research Team Mode एक DSH एजेंट प्रीसेट है ज�
 | | |
 | --- | --- |
 | **डिफ़ॉल्ट भूमिकाएँ** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
-| **वर्कफ़्लो** | पहले टास्क बोर्ड: बनाएँ, claim करें, निष्पादित करें, रिपोर्ट करें, समीक्षा करें, उपयोगकर्ता की स्वीकृति |
+| **वर्कफ़्लो** | गेट-आधारित: आंतरिक चरण `team_task_*` में, उपयोगकर्ता गेट बोर्ड पर; बनाएँ, claim करें, निष्पादित करें, रिपोर्ट करें, समीक्षा करें, उपयोगकर्ता की स्वीकृति |
 | **पूर्णता** | `in_review` एजेंट का अंतिम पड़ाव है; कार्ड को केवल उपयोगकर्ता ही `done` में बदल सकता है |
 | **मॉडल रूटिंग** | Plugins पृष्ठ के सेटिंग्स फ़ॉर्म से प्रति भूमिका provider, model और reasoning effort |
 | **Git** | ठोस काम शुरू होने पर एजेंट इसे आरंभ करता है; विनाशकारी बदलाव ब्रांच पर; स्वीकृति के बाद ही मर्ज |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + प्रति कार्ड एक सीमित फ़ाइल; फिर से शुरू करते समय पहले PLAN और INDEX पढ़ें |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + हर गेट वाले कार्ड के लिए एक सीमित फ़ाइल; फिर से शुरू करते समय पहले PLAN और INDEX पढ़ें |
 | **रनटाइम** | PTC (`run_code` + जनरेट किया गया SDK), प्रति सदस्य एक subagent परत |
 
 ## किसके लिए है
@@ -42,7 +42,7 @@ Research Team Mode एक **प्रोफ़ाइल-स्तरीय DSH �
 | क्षमता | प्रदाता | नोट्स |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` के विरुद्ध विकसित; अन्य रिलीज़ काम कर सकते हैं, परंतु गारंटी नहीं है |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` और Team सेवाएँ प्रदान करता है |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` और Team सेवाएँ प्रदान करता है |
 | Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` और Web GUI बोर्ड प्रदान करता है |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) और [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH बेस का हिस्सा; `run_code` सक्षम करता है |
 | Git Bash (वैकल्पिक, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | उन एजेंटों के लिए `bash` टूल जोड़ता है जिन्हें इसकी आवश्यकता होती है |
@@ -86,8 +86,8 @@ taskboard_list     # check existing cards in this project
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create(presetId=research-team) -> dispatch
-Members: claim cards -> execute -> checklist + execution report -> in_review
+Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
+Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -121,13 +121,13 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-केवल वे चरण जो उपयोगकर्ता की समीक्षा या स्वीकृति की प्रतीक्षा करते हैं, बोर्ड कार्ड पाते हैं: डिलीवरेबल चेकपॉइंट, उपयोगकर्ता द्वारा पुष्टि किए जाने वाले दायरे के निर्णय, जोखिम भरे बदलाव और अंतिम हैंडऑफ़। आंतरिक चरण, स्वयं-स्वीकृत उप-कार्य और सदस्यों के बीच हैंडऑफ़ `team_task_*` में ट्रैक होते हैं और बोर्ड से बाहर रहते हैं; गेट पर पहुँचने पर कार्ड डिलीवरेबल, उसके प्रमाण और समीक्षा निर्णय रखता है।
+केवल वे चरण जो उपयोगकर्ता की समीक्षा या स्वीकृति की प्रतीक्षा करते हैं, बोर्ड कार्ड पाते हैं: डिलीवरेबल चेकपॉइंट, उपयोगकर्ता द्वारा पुष्टि किए जाने वाले दायरे के निर्णय, जोखिम भरे बदलाव और अंतिम हैंडऑफ़। आंतरिक चरण, स्वयं-स्वीकृत उप-कार्य और सदस्यों के बीच हैंडऑफ़ `team_task_*` में ट्रैक होते हैं और बोर्ड से बाहर रहते हैं; गेट पर पहुँचने पर कार्ड डिलीवरेबल, उसके प्रमाण और समीक्षा निर्णय रखता है। टीम सदस्य आंतरिक रूप से अंग्रेज़ी में समन्वय करते हैं; उपयोगकर्ता-सम्मुख उत्तर, कार्ड और डिलीवरेबल उपयोगकर्ता की भाषा में होते हैं।
 
 ## Git वर्कफ़्लो
 
 यह मोड ठोस काम शुरू होने पर टिकाऊ ट्रैकिंग आरंभ करता है, और यह एजेंट तय करता है कि अनुरोध वास्तविक काम है या साधारण प्रश्न। जब कार्यक्षेत्र पहले से किसी रिपॉज़िटरी में न हो, तो एजेंट `research_workspace_init` कॉल करता है, जो `worklog/PLAN.md` और `worklog/INDEX.md` बनाता है और `git init` चलाता है। यह कभी नेस्टेड रिपॉज़िटरी नहीं बनाता और scaffold को कमिट नहीं करता।
 
-विनाशकारी या जोखिम भरे परिवर्तन कार्ड के नाम वाली ब्रांच पर होते हैं, जैसे `task/<title>+<id>`, न कि सीधे डिफ़ॉल्ट ब्रांच पर। कार्ड base और head कमिट दर्ज करता है, और reviewer कोड समीक्षा के आधार के रूप में `git diff <base>..<head>` पढ़ता है और स्वीकृति जाँच भी दोबारा चलाता है।
+विनाशकारी या जोखिम भरे परिवर्तन चरण के नाम वाली ब्रांच पर होते हैं, जैसे `task/<title>+<id>` (गेट वाले काम के लिए कार्ड, आंतरिक काम के लिए टीम टास्क), न कि सीधे डिफ़ॉल्ट ब्रांच पर। कार्ड या टीम टास्क base और head कमिट दर्ज करता है, और reviewer कोड समीक्षा के आधार के रूप में `git diff <base>..<head>` पढ़ता है और स्वीकृति जाँच भी दोबारा चलाता है।
 
 ब्रांच का मर्ज कार्ड के स्वीकार होने के बाद ही होता है, फिर उसे हटा दिया जाता है। डेटासेट, चेकपॉइंट, लॉग और कैश जैसे उत्पन्न आर्टिफ़ैक्ट रिपॉज़िटरी से बाहर रहते हैं। यदि प्रोजेक्ट git रिपॉज़िटरी नहीं है, तो समीक्षा फ़ाइल-हैश स्नैपशॉट और कार्ड पर दर्ज साक्ष्य पर आधारित होती है।
 

@@ -10,7 +10,7 @@
 
 ## Visão geral
 
-Research Team Mode é um preset de agente do DSH para conduzir pesquisa de ponta a ponta como uma equipe, em vez de um único chat. O Lead planeja o trabalho, mantém o quadro de tarefas, distribui os cartões, integra os resultados e conversa com o usuário. Sete especialistas padrão cobrem revisão consultiva, literatura e evidências, obtenção de dados, código, execuções, revisão independente e redação do artigo.
+Research Team Mode é um preset de agente do DSH para conduzir pesquisa de ponta a ponta como uma equipe, em vez de um único chat. O Lead planeja o trabalho, mantém os dois registros (cartões do quadro para os gates do usuário, tarefas de equipe para as etapas internas), distribui o trabalho, integra os resultados e conversa com o usuário. Sete especialistas padrão cobrem revisão consultiva, literatura e evidências, obtenção de dados, código, execuções, revisão independente e redação do artigo.
 
 O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rastreáveis e se beneficiam de limites claros de função. Não é um modo de perguntas e respostas pontuais: o Lead cria apenas as funções que a tarefa realmente precisa.
 
@@ -19,11 +19,11 @@ O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rast
 | | |
 | --- | --- |
 | **Funções padrão** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
-| **Fluxo de trabalho** | Quadro de tarefas em primeiro lugar: criar, assumir, executar, relatar, revisar, aceitação do usuário |
+| **Fluxo de trabalho** | Baseado em gates: etapas internas em `team_task_*`, gates do usuário no quadro; criar, assumir, executar, relatar, revisar, aceitação do usuário |
 | **Conclusão** | `in_review` é a última parada do agente; somente o usuário pode mover um cartão para `done` |
 | **Roteamento de modelos** | Provedor, modelo e esforço de raciocínio por função, definidos em um formulário na página de Plugins |
 | **Git** | Inicializado pelo agente quando o trabalho substantivo começa; mudanças destrutivas em uma branch; mesclagem somente após a aceitação |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + um arquivo limitado por cartão; ao retomar, ler PLAN e INDEX primeiro |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + um arquivo limitado por cartão com gate; ao retomar, ler PLAN e INDEX primeiro |
 | **Runtime** | PTC (`run_code` + SDK gerado), uma camada de subagente por membro |
 
 ## Para quem
@@ -42,7 +42,7 @@ O Research Team Mode é um **bundle DSH de nível de perfil**. O bundle não ins
 | Capacidade | Provedor | Observações |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Desenvolvido com base em `0.2.1-rc.5`; outras versões podem funcionar, mas não são garantidas |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Fornece `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` e os serviços de Team |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Fornece `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` e os serviços de Team |
 | Quadro de tarefas | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Fornece `taskboard_*` e o quadro na Web GUI |
 | Runtime PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) e [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Parte da base do DSH; habilita `run_code` |
 | Git Bash (opcional, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | Adiciona uma ferramenta `bash` para agentes que precisam dela |
@@ -86,8 +86,8 @@ Uma primeira tarefa típica:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create(presetId=research-team) -> dispatch
-Members: claim cards -> execute -> checklist + execution report -> in_review
+Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
+Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -121,13 +121,13 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-Só etapas que aguardam revisão ou aceite do usuário recebem um cartão do quadro: marcos de entregável, decisões de escopo que o usuário precisa confirmar, mudanças de risco e a entrega final. Etapas internas, subtarefas autoaprovadas e passagens entre membros são acompanhadas em `team_task_*` e ficam fora do quadro; ao chegar ao gate, o cartão guarda o entregável, suas evidências e o veredito de revisão.
+Só etapas que aguardam revisão ou aceite do usuário recebem um cartão do quadro: marcos de entregável, decisões de escopo que o usuário precisa confirmar, mudanças de risco e a entrega final. Etapas internas, subtarefas autoaprovadas e passagens entre membros são acompanhadas em `team_task_*` e ficam fora do quadro; ao chegar ao gate, o cartão guarda o entregável, suas evidências e o veredito de revisão. Os membros da equipe se coordenam internamente em inglês; as respostas ao usuário, os cartões e os entregáveis seguem o idioma do usuário.
 
 ## Fluxo de trabalho com Git
 
 O modo inicializa o rastreamento durável quando o trabalho substantivo começa, e o agente decide se uma solicitação é trabalho real ou uma pergunta simples. Em um espaço de trabalho que ainda não está dentro de um repositório, o agente chama `research_workspace_init`, que cria `worklog/PLAN.md` e `worklog/INDEX.md` e executa `git init`. Ele nunca cria um repositório aninhado nem faz commit do andaime.
 
-Mudanças destrutivas ou de risco acontecem em uma branch nomeada pela tarefa, por exemplo `task/<title>+<id>`, em vez de editar a branch padrão. O cartão registra os commits base e head, e o reviewer lê `git diff <base>..<head>` como base da revisão de código e executa novamente as verificações de aceitação.
+Mudanças destrutivas ou de risco acontecem em uma branch nomeada pela etapa, por exemplo `task/<title>+<id>` (o cartão para o trabalho com gate, a tarefa de equipe para o trabalho interno), em vez de editar a branch padrão. O cartão ou a tarefa de equipe registra os commits base e head, e o reviewer lê `git diff <base>..<head>` como base da revisão de código e executa novamente as verificações de aceitação.
 
 Uma branch só é mesclada depois que o cartão é aceito, e então é removida. Artefatos gerados, como conjuntos de dados, checkpoints, logs e caches, ficam fora do repositório. Se o projeto não for um repositório git, a revisão recorre a um snapshot de hashes de arquivos e às evidências registradas no cartão.
 

@@ -10,7 +10,7 @@
 
 ## 개요
 
-Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 연구를 수행하기 위한 DSH 에이전트 프리셋입니다. Lead는 작업을 계획하고, 작업 보드를 유지하며, 카드를 배정하고, 결과를 통합하고, 사용자와 소통합니다. 일곱 명의 기본 전문가가 자문 검토, 문헌과 증거, 데이터 확보, 코드, 실행, 독립 검토, 논문 작성을 담당합니다.
+Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 연구를 수행하기 위한 DSH 에이전트 프리셋입니다. Lead는 작업을 계획하고, 두 장부(사용자 게이트는 보드 카드, 내부 단계는 팀 작업)를 유지하며, 작업을 배정하고, 결과를 통합하고, 사용자와 소통합니다. 일곱 명의 기본 전문가가 자문 검토, 문헌과 증거, 데이터 확보, 코드, 실행, 독립 검토, 논문 작성을 담당합니다.
 
 이 모드는 며칠 또는 몇 주에 걸친 연구, 추적 가능한 증거가 필요한 작업, 명확한 역할 경계가 도움이 되는 작업을 위해 만들어졌습니다. 일회성 질의응답 모드가 아닙니다. Lead는 작업에 실제로 필요한 역할만 생성합니다.
 
@@ -19,11 +19,11 @@ Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 �
 | | |
 | --- | --- |
 | **기본 역할** | 7개: advisor, researcher, data, builder, runner, reviewer, writer |
-| **워크플로** | 작업 보드 우선: 생성, 인수, 실행, 보고, 검토, 사용자 수락 |
+| **워크플로** | 게이트 기반: 내부 단계는 `team_task_*`, 사용자 게이트는 보드; 생성, 인수, 실행, 보고, 검토, 사용자 수락 |
 | **완료** | `in_review`가 에이전트의 마지막 지점입니다. 사용자만 카드를 `done`으로 옮길 수 있습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
 | **Git** | 실질적 작업이 시작될 때 에이전트가 초기화. 파괴적 변경은 브랜치에서 진행하고 수락 후에만 병합 |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 카드마다 하나의 제한된 파일. 재개 시 PLAN과 INDEX를 먼저 읽음 |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 게이트 카드마다 하나의 제한된 파일. 재개 시 PLAN과 INDEX를 먼저 읽음 |
 | **런타임** | PTC(`run_code` + 생성된 SDK), 멤버당 하위 에이전트 계층 1개 |
 
 ## 대상 사용자
@@ -42,7 +42,7 @@ Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 �
 | 기능 | 제공자 | 비고 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` 기준으로 개발되었습니다. 다른 릴리스에서도 동작할 수 있지만 보장되지는 않습니다 |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*`와 Team 서비스를 제공합니다 |
 | 작업 보드 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*`와 Web GUI 보드를 제공합니다 |
 | PTC 런타임 | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 및 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH 기본 구성의 일부이며 `run_code`를 활성화합니다 |
 | Git Bash(선택 사항, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 필요한 에이전트에 `bash` 도구를 추가합니다 |
@@ -86,8 +86,8 @@ taskboard_list     # check existing cards in this project
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create(presetId=research-team) -> dispatch
-Members: claim cards -> execute -> checklist + execution report -> in_review
+Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
+Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -121,13 +121,13 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-사용자의 검토나 승인이 필요한 단계만 보드 카드가 됩니다. 산출물 체크포인트, 사용자가 확인해야 할 범위 결정, 위험한 변경, 최종 인계가 여기에 해당합니다. 내부 단계, 스스로 승인한 하위 작업, 구성원 간 인계는 `team_task_*`로 추적하고 보드에는 올리지 않습니다. 게이트에 도달하면 산출물, 근거, 검토 판정은 카드에 남깁니다.
+사용자의 검토나 승인이 필요한 단계만 보드 카드가 됩니다. 산출물 체크포인트, 사용자가 확인해야 할 범위 결정, 위험한 변경, 최종 인계가 여기에 해당합니다. 내부 단계, 스스로 승인한 하위 작업, 구성원 간 인계는 `team_task_*`로 추적하고 보드에는 올리지 않습니다. 게이트에 도달하면 산출물, 근거, 검토 판정은 카드에 남깁니다. 팀원 간 조율은 내부적으로 영어로 하고, 사용자에게 보이는 답변·카드·산출물은 사용자의 언어를 따릅니다.
 
 ## Git 워크플로
 
 이 모드는 실질적 작업이 시작될 때 내구성 기록을 초기화하며, 요청이 실제 작업인지 단순 질문인지는 에이전트가 판단합니다. 워크스페이스가 아직 저장소 안에 없으면 에이전트는 `research_workspace_init`을 호출해 `worklog/PLAN.md`와 `worklog/INDEX.md`를 만들고 `git init`을 실행합니다. 중첩 저장소는 만들지 않으며 스캐폴드를 커밋하지도 않습니다.
 
-파괴적이거나 위험한 변경은 기본 브랜치를 직접 수정하지 않고 카드 이름의 브랜치(예 `task/<title>+<id>`)에서 진행합니다. 카드에 base와 head 커밋을 기록하고, reviewer는 `git diff <base>..<head>`를 코드 리뷰 근거로 삼고 승인 검사도 다시 실행합니다.
+파괴적이거나 위험한 변경은 기본 브랜치를 직접 수정하지 않고 단계 이름의 브랜치(예 `task/<title>+<id>`; 게이트 작업은 카드, 내부 작업은 팀 작업의 이름)에서 진행합니다. 카드 또는 팀 작업에 base와 head 커밋을 기록하고, reviewer는 `git diff <base>..<head>`를 코드 리뷰 근거로 삼고 승인 검사도 다시 실행합니다.
 
 브랜치는 카드가 수락된 뒤에만 병합하고 그다음 삭제합니다. 데이터셋, 체크포인트, 로그, 캐시 같은 생성물은 저장소에 넣지 않습니다. git 저장소가 아니면 파일 해시 스냅샷과 카드의 증거로 리뷰합니다.
 

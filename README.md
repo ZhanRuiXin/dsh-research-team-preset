@@ -10,7 +10,7 @@
 
 ## Overview
 
-Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps the task board, dispatches cards, integrates results, and talks to the user. Seven default specialists cover advisory review, literature and evidence, data acquisition, code, runs, independent review, and paper writing.
+Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps both ledgers (board cards for user gates, team tasks for internal steps), dispatches work, integrates results, and talks to the user. Seven default specialists cover advisory review, literature and evidence, data acquisition, code, runs, independent review, and paper writing.
 
 The mode is built for research that spans days or weeks, needs traceable evidence, and benefits from clear role boundaries. It is not a one-shot Q&A mode: the Lead creates only the roles a task actually needs.
 
@@ -19,11 +19,11 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | | |
 | --- | --- |
 | **Default roles** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
-| **Workflow** | Task-board-first: create, claim, execute, report, review, user acceptance |
+| **Workflow** | Gate-based: internal steps in `team_task_*`, user gates on the board; create, claim, execute, report, review, user acceptance |
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + one bounded file per card; resume reads PLAN and INDEX first |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + one bounded file per gated card; resume reads PLAN and INDEX first |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
 
 ## Who it is for
@@ -42,7 +42,7 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 | Capability | Provider | Notes |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, and the Team services |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*`, and the Team services |
 | Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Provides `taskboard_*` and the Web GUI board |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
 | Git Bash (optional, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | Adds a `bash` tool for agents that need it |
@@ -86,8 +86,8 @@ A typical first task:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create(presetId=research-team) -> dispatch
-Members: claim cards -> execute -> checklist + execution report -> in_review
+Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
+Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -121,13 +121,13 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-Only steps waiting for the user's review or acceptance get a board card: deliverable checkpoints, scope decisions the user must confirm, risky changes, and the final handoff. Internal steps, self-approved subtasks, and member-to-member handoffs are tracked in `team_task_*` and stay off the board; when a gate is reached, the card keeps the deliverable, its evidence, and the review verdict.
+Only steps waiting for the user's review or acceptance get a board card: deliverable checkpoints, scope decisions the user must confirm, risky changes, and the final handoff. Internal steps, self-approved subtasks, and member-to-member handoffs are tracked in `team_task_*` and stay off the board; when a gate is reached, the card keeps the deliverable, its evidence, and the review verdict. Team members coordinate internally in English; user-facing replies, cards, and deliverables follow the user's language.
 
 ## Git workflow
 
 The mode initializes durable tracking when substantive work starts, and the agent judges whether a request is real work or a simple question. In a workspace that is not already inside a repository, the agent calls `research_workspace_init`, which creates `worklog/PLAN.md` and `worklog/INDEX.md` and runs `git init`. It never creates a nested repository and never commits the scaffold.
 
-Destructive or risky changes run on a branch named after the card, for example `task/<title>+<id>`, instead of editing the default branch in place. The card records the base and head commits, and the reviewer reads `git diff <base>..<head>` as the code-review basis and still re-runs the acceptance checks.
+Destructive or risky changes run on a branch named after the step, for example `task/<title>+<id>` (the card for gated work, the team task for internal work), instead of editing the default branch in place. The card or team task records the base and head commits, and the reviewer reads `git diff <base>..<head>` as the code-review basis and still re-runs the acceptance checks.
 
 A branch is merged only after the card is accepted, then deleted. Generated artifacts such as datasets, checkpoints, logs, and caches stay out of the repository. When the project is not a git repository, review falls back to a file-hash snapshot plus the evidence recorded on the card.
 

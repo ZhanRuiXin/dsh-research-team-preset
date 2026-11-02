@@ -10,7 +10,7 @@
 
 ## 概觀
 
-Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對話的方式執行端到端研究。Lead 負責規劃工作、維護任務看板、分派卡片、整合結果，並與使用者溝通。七名預設專家分別涵蓋顧問審查、文獻與證據、資料取得、程式碼、執行、獨立複核與論文寫作。
+Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對話的方式執行端到端研究。Lead 負責規劃工作、維護兩套記錄（使用者關卡用看板卡片，內部步驟用團隊任務）、分派工作、整合結果，並與使用者溝通。七名預設專家分別涵蓋顧問審查、文獻與證據、資料取得、程式碼、執行、獨立複核與論文寫作。
 
 此模式是為橫跨數天或數週、需要可追溯證據，且受益於清楚角色界線的研究而打造。它不是一次問答模式：Lead 只會建立任務實際需要的角色。
 
@@ -19,11 +19,11 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對�
 | | |
 | --- | --- |
 | **預設角色** | 7 名：advisor、researcher、data、builder、runner、reviewer、writer |
-| **工作流程** | 任務看板優先：建立、認領、執行、回報、審查、使用者驗收 |
+| **工作流程** | 關卡制：內部步驟在 `team_task_*` 中，使用者關卡在看板上；建立、認領、執行、回報、審查、使用者驗收 |
 | **完成** | `in_review` 是 agent 的最後一站；只有使用者能把卡片移到 `done` |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
 | **Git** | 實質性工作開始時由 agent 初始化；破壞性改動走分支；驗收通過後才合併 |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 每張卡一個有界檔案；恢復時先讀 PLAN 和 INDEX |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 每張關卡卡片一個有界檔案；恢復時先讀 PLAN 和 INDEX |
 | **執行環境** | PTC（`run_code` + 產生的 SDK），每位成員一層 subagent |
 
 ## 適用對象
@@ -42,7 +42,7 @@ Research Team Mode 是一個 **profile 層級的 DSH bundle**。此 bundle 不�
 | 能力 | 提供者 | 備註 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 以 `0.2.1-rc.5` 為開發基準；其他版本可能可用但不保證 |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 與 Team 服務 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*` 與 Team 服務 |
 | 任務看板 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | 提供 `taskboard_*` 與 Web GUI 看板 |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 與 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | 屬於 DSH 基礎的一部分；啟用 `run_code` |
 | Git Bash（選用，Windows） | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 為需要的 agent 新增 `bash` 工具 |
@@ -86,8 +86,8 @@ taskboard_list     # check existing cards in this project
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create(presetId=research-team) -> dispatch
-Members: claim cards -> execute -> checklist + execution report -> in_review
+Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
+Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -121,13 +121,13 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-只有需要使用者審查或驗收的步驟才建立看板卡片，例如交付項目節點、需要使用者確認的範圍決策、風險改動和最終交接。內部步驟、自行核准的子任務以及成員之間的交接用 `team_task_*` 追蹤，不進入看板；到達驗收節點時，交付項目、證據和評審結論都記錄在卡片上。
+只有需要使用者審查或驗收的步驟才建立看板卡片，例如交付項目節點、需要使用者確認的範圍決策、風險改動和最終交接。內部步驟、自行核准的子任務以及成員之間的交接用 `team_task_*` 追蹤，不進入看板；到達驗收節點時，交付項目、證據和評審結論都記錄在卡片上。團隊成員之間以英文協作；面向使用者的回覆、卡片與交付項目則使用使用者的語言。
 
 ## Git 工作流程
 
 此模式在實質性工作開始時初始化耐久記錄，由 agent 判斷請求是真正的工作還是簡單問題。工作區還不在任何儲存庫裡時，agent 呼叫 `research_workspace_init`，它會建立 `worklog/PLAN.md` 和 `worklog/INDEX.md`，並執行 `git init`。它不會建立巢狀儲存庫，也不會提交腳手架。
 
-破壞性或風險較高的改動在依卡片命名的分支上進行，例如 `task/<標題>+<id>`，不直接改預設分支。卡片記錄 base 與 head 提交，reviewer 以 `git diff <base>..<head>` 作為程式碼審查依據，並仍會重跑驗收檢查。
+破壞性或風險較高的改動在依步驟命名的分支上進行，例如 `task/<title>+<id>`（有使用者關卡的工作用卡片，內部工作用團隊任務），不直接改預設分支。卡片或團隊任務記錄 base 與 head 提交，reviewer 以 `git diff <base>..<head>` 作為程式碼審查依據，並仍會重跑驗收檢查。
 
 分支只在卡片被驗收後合併，合併後刪除。資料集、checkpoint、日誌、快取等產物不納入版本庫。專案不是 git 儲存庫時，審查退回用檔案雜湊快照加卡片上記錄的證據。
 

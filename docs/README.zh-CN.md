@@ -10,7 +10,7 @@
 
 ## 概述
 
-Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊天的方式运行端到端研究。Lead 负责规划工作、维护任务看板、分派卡片、整合结果并与用户沟通。七名默认专家分别覆盖顾问评估、文献与证据、数据获取、代码、运行、独立复核和论文写作。
+Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊天的方式运行端到端研究。Lead 负责规划工作、维护两套记录（用户关卡用看板卡片，内部步骤用团队任务）、分派工作、整合结果并与用户沟通。七名默认专家分别覆盖顾问评估、文献与证据、数据获取、代码、运行、独立复核和论文写作。
 
 该模式面向持续数天或数周、需要可追溯证据、并能从清晰角色边界中获益的研究工作。它不是一次性问答模式：Lead 只创建任务真正需要的角色。
 
@@ -19,11 +19,11 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 | | |
 | --- | --- |
 | **默认角色** | 7 个：advisor、researcher、data、builder、runner、reviewer、writer |
-| **工作流** | 任务看板优先：建卡、认领、执行、报告、复核、用户验收 |
+| **工作流** | 关卡制：内部步骤在 `team_task_*` 中，用户关卡在看板上；建卡、认领、执行、报告、复核、用户验收 |
 | **完成** | `in_review` 是 agent 的最后一站；只有用户才能把卡片移到 `done` |
 | **模型路由** | 通过「插件」页的设置表单，按角色配置 provider、model 和推理强度 |
 | **Git** | 实质性工作开始时由 agent 初始化；破坏性改动走分支；验收通过后才合并 |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 每卡一个有界文件；恢复时先读 PLAN 和 INDEX |
+| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 每张关卡卡片一个有界文件；恢复时先读 PLAN 和 INDEX |
 | **运行时** | PTC（`run_code` + 生成的 SDK），每名成员一层 subagent |
 
 ## 适用对象
@@ -42,7 +42,7 @@ Research Team Mode 是一个 **profile 级 DSH bundle**。该 bundle 不会安�
 | 能力 | 提供方 | 说明 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 基于 `0.2.1-rc.5` 开发；其他版本可能可用，但不保证 |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服务 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*` 以及 Team 服务 |
 | 任务看板 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | 提供 `taskboard_*` 和 Web GUI 看板 |
 | PTC 运行时 | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 和 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH 基础组件的一部分；用于启用 `run_code` |
 | Git Bash（可选，Windows） | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 为需要它的 agent 增加 `bash` 工具 |
@@ -86,8 +86,8 @@ taskboard_list     # check existing cards in this project
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create(presetId=research-team) -> dispatch
-Members: claim cards -> execute -> checklist + execution report -> in_review
+Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
+Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -121,13 +121,13 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-只有需要用户审查或验收的步骤才建立看板卡片，例如交付物节点、需要用户确认的范围决策、风险改动和最终交接。内部步骤、自行批准的子任务以及成员之间的交接用 `team_task_*` 跟踪，不进入看板；到达验收节点时，交付物、证据和评审结论都记录在卡片上。
+只有需要用户审查或验收的步骤才建立看板卡片，例如交付物节点、需要用户确认的范围决策、风险改动和最终交接。内部步骤、自行批准的子任务以及成员之间的交接用 `team_task_*` 跟踪，不进入看板；到达验收节点时，交付物、证据和评审结论都记录在卡片上。团队成员之间用英语协作；面向用户的回复、卡片和交付物则使用用户的语言。
 
 ## Git 工作流
 
 该模式在实质性工作开始时初始化耐久记录，由 agent 判断请求是真正的工作还是简单问题。工作区还不在任何仓库里时，agent 调用 `research_workspace_init`，它会创建 `worklog/PLAN.md` 和 `worklog/INDEX.md`，并执行 `git init`。它不会创建嵌套仓库，也不会提交脚手架。
 
-破坏性或风险较高的改动在按卡片命名的分支上进行，例如 `task/<标题>+<id>`，不直接改默认分支。卡片记录 base 和 head 提交，reviewer 以 `git diff <base>..<head>` 作为代码审查的依据，并仍然复跑验收检查。
+破坏性或风险较高的改动在按步骤命名的分支上进行，例如 `task/<title>+<id>`（有用户关卡的工作用卡片，内部工作用团队任务），不直接改默认分支。卡片或团队任务记录 base 和 head 提交，reviewer 以 `git diff <base>..<head>` 作为代码审查的依据，并仍然复跑验收检查。
 
 分支只在卡片被验收后合并，合并后删除。数据集、checkpoint、日志、缓存等生成物不入库。项目不是 git 仓库时，审查退回用文件哈希快照加卡片上记录的证据。
 

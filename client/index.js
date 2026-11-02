@@ -16,6 +16,8 @@ window.__ModuleLoader__.load({
       { id: 'reviewer', zh: '资料/代码审查' },
       { id: 'writer', zh: '论文写作' }
     ]
+    const MAX_PROFILES = 50
+    const MAX_NAME = 60
 
     const controlStyle = {
       width: '100%',
@@ -41,9 +43,19 @@ window.__ModuleLoader__.load({
       fontSize: '13px',
       cursor: 'pointer'
     }
+    const secondaryButtonStyle = {
+      ...buttonStyle,
+      background: 'var(--dsw-alias-bg-layer-3)',
+      color: 'var(--dsw-alias-label-primary)',
+      border: '0.5px solid var(--dsw-alias-border-l4)'
+    }
 
     function blankRoles() {
       return Object.fromEntries(ROLES.map((role) => [role.id, { provider: '', model: '', reasoningEffort: '' }]))
+    }
+
+    function blankProfile(id, name) {
+      return { id, name, roles: blankRoles() }
     }
 
     function normalizeRoles(value) {
@@ -61,6 +73,58 @@ window.__ModuleLoader__.load({
         }
       }
       return roles
+    }
+
+    function newProfileId(profiles) {
+      const used = new Set(profiles.map((profile) => profile.id))
+      let id
+      do {
+        id = `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+      } while (used.has(id))
+      return id
+    }
+
+    function nextProfileName(profiles) {
+      const names = new Set(profiles.map((profile) => profile.name))
+      let index = profiles.length + 1
+      let name = `配置 ${index}`
+      while (names.has(name)) {
+        index += 1
+        name = `配置 ${index}`
+      }
+      return name
+    }
+
+    function normalizeSettingsPayload(value) {
+      const source = value !== null && typeof value === 'object' ? value : {}
+      const rawProfiles = Array.isArray(source.profiles) ? source.profiles : []
+      const profiles = rawProfiles.map((item, index) => {
+        const profile = item !== null && typeof item === 'object' ? item : {}
+        const id = typeof profile.id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(profile.id) ? profile.id : `profile-${index + 1}`
+        const name = typeof profile.name === 'string' && profile.name.trim() !== '' ? profile.name.trim() : `配置 ${index + 1}`
+        return { id, name, roles: normalizeRoles(profile.roles) }
+      })
+      if (profiles.length === 0) profiles.push(blankProfile('default', '默认配置'))
+      if (rawProfiles.length === 0 && source.roles !== undefined) {
+        profiles[0].roles = normalizeRoles(source.roles)
+      }
+      const wanted = typeof source.activeProfileId === 'string' ? source.activeProfileId : ''
+      const activeProfileId = profiles.some((profile) => profile.id === wanted) ? wanted : profiles[0].id
+      return { version: 2, activeProfileId, profiles }
+    }
+
+    function validateProfiles(profiles) {
+      if (!Array.isArray(profiles) || profiles.length === 0) return '至少需要一套团队配置'
+      if (profiles.length > MAX_PROFILES) return `团队配置最多 ${MAX_PROFILES} 套`
+      const names = new Set()
+      for (const profile of profiles) {
+        const name = typeof profile.name === 'string' ? profile.name.trim() : ''
+        if (name === '') return '配置名称不能为空'
+        if (name.length > MAX_NAME) return `配置名称「${name.slice(0, 16)}…」超过 ${MAX_NAME} 个字符`
+        if (names.has(name)) return `配置名称「${name}」重复，请改成唯一名称`
+        names.add(name)
+      }
+      return ''
     }
 
     function normalizeCatalog(value) {
@@ -112,10 +176,12 @@ window.__ModuleLoader__.load({
 
     function SettingsPage(props) {
       const loadCatalog = props === null || props === undefined ? undefined : props.loadCatalog
-      const [roles, setRoles] = React.useState(null)
+      const [settings, setSettings] = React.useState(null)
       const [status, setStatus] = React.useState('loading')
       const [message, setMessage] = React.useState('')
       const [catalog, setCatalog] = React.useState({ status: 'loading', groups: [], error: '' })
+      const [confirmDelete, setConfirmDelete] = React.useState(false)
+      const [serverReady, setServerReady] = React.useState(false)
 
       React.useEffect(() => {
         let alive = true
@@ -124,7 +190,8 @@ window.__ModuleLoader__.load({
             const data = await response.json()
             if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`)
             if (alive) {
-              setRoles(normalizeRoles(data.roles))
+              setSettings(normalizeSettingsPayload(data))
+              setServerReady(data.version === 2 && Array.isArray(data.profiles))
               setStatus('ready')
             }
           })
@@ -161,13 +228,58 @@ window.__ModuleLoader__.load({
         loadModels()
       }, [])
 
-      function setRole(roleId, patch) {
-        setRoles((previous) => ({
-          ...(previous || blankRoles()),
-          [roleId]: { ...((previous || blankRoles())[roleId] || {}), ...patch }
-        }))
+      function markDirty() {
         setStatus('dirty')
         setMessage('')
+        setConfirmDelete(false)
+      }
+
+      function selectProfile(id) {
+        setSettings((previous) => previous === null ? previous : { ...previous, activeProfileId: id })
+        markDirty()
+      }
+
+      function renameProfile(name) {
+        const activeId = settings === null ? '' : settings.activeProfileId
+        setSettings((previous) => previous === null ? previous : ({
+          ...previous,
+          profiles: previous.profiles.map((profile) => profile.id === activeId ? { ...profile, name } : profile)
+        }))
+        markDirty()
+      }
+
+      function addProfile() {
+        setSettings((previous) => {
+          if (previous === null) return previous
+          const profile = blankProfile(newProfileId(previous.profiles), nextProfileName(previous.profiles))
+          return { ...previous, activeProfileId: profile.id, profiles: [...previous.profiles, profile] }
+        })
+        markDirty()
+      }
+
+      function removeProfile() {
+        if (settings === null || settings.profiles.length <= 1) return
+        if (!confirmDelete) {
+          setConfirmDelete(true)
+          return
+        }
+        const removedIndex = Math.max(0, settings.profiles.findIndex((profile) => profile.id === settings.activeProfileId))
+        const remaining = settings.profiles.filter((profile) => profile.id !== settings.activeProfileId)
+        const nextActive = remaining[Math.min(removedIndex, remaining.length - 1)].id
+        setSettings({ version: 2, activeProfileId: nextActive, profiles: remaining })
+        markDirty()
+        setConfirmDelete(false)
+      }
+
+      function setRole(roleId, patch) {
+        const activeId = settings === null ? '' : settings.activeProfileId
+        setSettings((previous) => previous === null ? previous : ({
+          ...previous,
+          profiles: previous.profiles.map((profile) => profile.id === activeId
+            ? { ...profile, roles: { ...profile.roles, [roleId]: { ...(profile.roles[roleId] || {}), ...patch } } }
+            : profile)
+        }))
+        markDirty()
       }
 
       function changeModelSelection(roleId, encoded) {
@@ -184,20 +296,39 @@ window.__ModuleLoader__.load({
       }
 
       if (status === 'loading') return h('p', { style: { margin: 0, color: 'var(--dsw-alias-label-secondary)' } }, '加载中…')
-      if (roles === null) return h('p', { style: { margin: 0, color: 'var(--dsw-alias-state-error-primary)' } }, `无法加载设置：${message}`)
+      if (settings === null) return h('p', { style: { margin: 0, color: 'var(--dsw-alias-state-error-primary)' } }, `无法加载设置：${message}`)
+      if (!serverReady) return h('p', { style: { margin: 0, color: 'var(--dsw-alias-state-error-primary)', fontSize: '13px', lineHeight: '20px' } }, '当前宿主仍是旧版设置接口（返回中没有 profiles）。请重启 DSH 后再打开此页面；在此之前保存会被拒绝，以免覆盖已有的团队配置。')
+
+      const profiles = settings.profiles
+      const active = profiles.find((profile) => profile.id === settings.activeProfileId) || profiles[0]
+      const canDelete = profiles.length > 1
 
       async function save() {
+        const problem = validateProfiles(profiles)
+        if (problem !== '') {
+          setStatus('error')
+          setMessage(problem)
+          return
+        }
         setStatus('saving')
         setMessage('')
         try {
           const response = await fetch(ROUTE, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ roles })
+            body: JSON.stringify({
+              version: 2,
+              activeProfileId: active.id,
+              profiles: profiles.map((profile) => ({
+                id: profile.id,
+                name: profile.name.trim(),
+                roles: profile.roles
+              }))
+            })
           })
           const data = await response.json()
           if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`)
-          setRoles(normalizeRoles(data.roles))
+          setSettings(normalizeSettingsPayload(data))
           setStatus('saved')
           setMessage('已保存，下一次创建 teammate 时生效。')
         } catch (error) {
@@ -222,12 +353,139 @@ window.__ModuleLoader__.load({
             ? h('p', { key: 'empty', style: { margin: 0, color: 'var(--dsw-alias-label-tertiary)', fontSize: '12px' } }, '模型目录为空；请先在模型设置里配置可用的 provider。')
             : null
 
+      const profileBar = h('div', {
+        key: 'profiles',
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+          padding: '12px',
+          border: '0.5px solid var(--dsw-alias-border-l3)',
+          borderRadius: 'var(--dsw-radius-lg)',
+          background: 'var(--dsw-alias-bg-layer-2)'
+        }
+      }, [
+        h('div', { key: 'picker', style: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' } }, [
+          h('span', { key: 'label', style: { fontSize: '13px', fontWeight: 500 } }, '团队配置'),
+          h('select', {
+            key: 'select',
+            value: active.id,
+            style: { ...controlStyle, width: '220px' },
+            onChange: (event) => selectProfile(event.target.value)
+          }, profiles.map((profile) => h('option', { key: profile.id, value: profile.id }, profile.name))),
+          h('button', { key: 'add', type: 'button', onClick: addProfile, style: secondaryButtonStyle }, '新建配置'),
+          h('button', {
+            key: 'remove',
+            type: 'button',
+            onClick: removeProfile,
+            disabled: !canDelete,
+            style: {
+              ...secondaryButtonStyle,
+              opacity: canDelete ? 1 : 0.45,
+              ...(confirmDelete ? {
+                background: 'var(--dsw-alias-state-error-primary)',
+                color: 'var(--dsw-alias-label-primary-foreground)',
+                border: '0'
+              } : {})
+            }
+          }, confirmDelete ? '确认删除' : '删除配置'),
+          confirmDelete
+            ? h('button', { key: 'cancel', type: 'button', onClick: () => setConfirmDelete(false), style: secondaryButtonStyle }, '取消')
+            : null
+        ]),
+        h('div', { key: 'naming', style: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' } }, [
+          h('span', { key: 'label', style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, '配置名称'),
+          h('input', {
+            key: 'name',
+            type: 'text',
+            value: active.name,
+            maxLength: MAX_NAME,
+            spellCheck: false,
+            style: { ...controlStyle, width: '260px' },
+            onChange: (event) => renameProfile(event.target.value)
+          }),
+          h('span', { key: 'count', style: { fontSize: '12px', color: 'var(--dsw-alias-label-tertiary)' } }, `共 ${profiles.length} 套配置；保存后使用「${active.name.trim() === '' ? '未命名' : active.name.trim()}」`)
+        ])
+      ])
+
+      const roleRows = ROLES.map((role) => {
+        const value = active.roles[role.id]
+        const group = catalog.groups.find((item) => item.id === value.provider)
+        const model = group === undefined ? undefined : group.models.find((item) => item.id === value.model)
+        const efforts = model !== undefined && model.reasoning !== undefined ? model.reasoning.efforts : []
+        const defaultEffort = model !== undefined && model.reasoning !== undefined ? model.reasoning.defaultEffort : ''
+
+        const modelValue = value.provider !== '' && value.model !== '' ? encodeModel(value.provider, value.model) : ''
+        const modelOptions = [h('option', { key: '', value: '' }, '继承 Lead')]
+        for (const item of catalog.groups) {
+          if (item.models.length === 0) continue
+          modelOptions.push(h('optgroup', {
+            key: `group:${item.id}`,
+            label: labelProvider(item)
+          }, item.models.map((modelItem) => h('option', {
+            key: `${item.id}\u0000${modelItem.id}`,
+            value: encodeModel(item.id, modelItem.id)
+          }, labelModel(modelItem)))))
+        }
+        if (value.provider !== '' && value.model !== '') {
+          const savedGroup = catalog.groups.find((item) => item.id === value.provider)
+          const available = savedGroup !== undefined && savedGroup.models.some((item) => item.id === value.model)
+          if (!available) {
+            modelOptions.push(h('optgroup', { key: 'saved-unavailable', label: '当前不可用' }, [
+              h('option', {
+                key: `saved:${value.provider}\u0000${value.model}`,
+                value: encodeModel(value.provider, value.model)
+              }, `${value.provider} / ${value.model}`)
+            ]))
+          }
+        }
+
+        const effortOptions = [h('option', { key: '', value: '' }, defaultEffort === '' ? '模型默认' : `模型默认（${defaultEffort}）`)]
+        for (const item of efforts) {
+          effortOptions.push(h('option', { key: item.id, value: item.id }, labelEffort(item)))
+        }
+        if (value.reasoningEffort !== '' && !efforts.some((item) => item.id === value.reasoningEffort)) {
+          effortOptions.push(h('option', { key: `saved:${value.reasoningEffort}`, value: value.reasoningEffort }, `${value.reasoningEffort}（当前不可用）`))
+        }
+
+        return h('div', {
+          key: role.id,
+          style: {
+            display: 'grid',
+            gridTemplateColumns: '150px minmax(0, 1fr) 170px',
+            gap: '12px',
+            alignItems: 'center',
+            padding: '10px 12px',
+            borderTop: '0.5px solid var(--dsw-alias-border-l3)'
+          }
+        }, [
+          h('div', { key: 'role', style: { minWidth: 0 } }, [
+            h('div', { key: 'zh', style: { fontSize: '13px', fontWeight: 500 } }, role.zh),
+            h('div', { key: 'id', style: { fontSize: '11px', color: 'var(--dsw-alias-label-tertiary)' } }, role.id)
+          ]),
+          h('select', {
+            key: 'model',
+            value: modelValue,
+            style: controlStyle,
+            onChange: (event) => changeModelSelection(role.id, event.target.value)
+          }, modelOptions),
+          h('select', {
+            key: 'effort',
+            value: value.reasoningEffort,
+            disabled: value.model === '',
+            style: { ...controlStyle, opacity: value.model === '' ? 0.55 : 1 },
+            onChange: (event) => changeEffort(role.id, event.target.value)
+          }, effortOptions)
+        ])
+      })
+
       return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '18px' } }, [
         h('div', { key: 'head' }, [
-          h('h3', { key: 'title', style: { margin: '0 0 6px', fontSize: '15px', fontWeight: 500 } }, '默认团队成员的 LLM 与思考强度'),
-          h('p', { key: 'note', style: { margin: 0, color: 'var(--dsw-alias-label-secondary)', fontSize: '13px', lineHeight: '20px' } }, '模型菜单把所有 provider 的模型放在一起，用不可点击的 provider 菜单头分组；选中模型即同时确定 Provider 和 Model。留空（继承 Lead）表示跟随 Lead；思考强度留空表示使用模型默认。保存后，下一次创建默认 teammate 时生效；显式传入 model 的调用仍然优先。'),
+          h('h3', { key: 'title', style: { margin: '0 0 6px', fontSize: '15px', fontWeight: 500 } }, '智能体团队的模型配置'),
+          h('p', { key: 'note', style: { margin: 0, color: 'var(--dsw-alias-label-secondary)', fontSize: '13px', lineHeight: '20px' } }, '每套配置包含 7 个默认成员的 Provider / Model / 思考强度，可以创建、命名、切换与删除多套配置。保存后，选中的配置用于下一次创建默认 teammate；显式传入 model 的调用仍然优先。留空（继承 Lead）表示跟随 Lead；思考强度留空表示使用模型默认。'),
           catalogNotice === null ? null : h('div', { key: 'catalog', style: { marginTop: '8px' } }, catalogNotice)
         ]),
+        profileBar,
         h('div', { key: 'roles', style: { border: '0.5px solid var(--dsw-alias-border-l3)', borderRadius: 'var(--dsw-radius-lg)', overflow: 'hidden' } }, [
           h('div', {
             key: 'header',
@@ -245,76 +503,7 @@ window.__ModuleLoader__.load({
             h('span', { key: 'model' }, '模型（Provider + Model）'),
             h('span', { key: 'effort' }, '思考强度')
           ]),
-          ...ROLES.map((role) => {
-          const value = roles[role.id]
-          const group = catalog.groups.find((item) => item.id === value.provider)
-          const model = group === undefined ? undefined : group.models.find((item) => item.id === value.model)
-          const efforts = model !== undefined && model.reasoning !== undefined ? model.reasoning.efforts : []
-          const defaultEffort = model !== undefined && model.reasoning !== undefined ? model.reasoning.defaultEffort : ''
-
-          const modelValue = value.provider !== '' && value.model !== '' ? encodeModel(value.provider, value.model) : ''
-          const modelOptions = [h('option', { key: '', value: '' }, '继承 Lead')]
-          for (const item of catalog.groups) {
-            if (item.models.length === 0) continue
-            modelOptions.push(h('optgroup', {
-              key: `group:${item.id}`,
-              label: labelProvider(item)
-            }, item.models.map((modelItem) => h('option', {
-              key: `${item.id}\u0000${modelItem.id}`,
-              value: encodeModel(item.id, modelItem.id)
-            }, labelModel(modelItem)))))
-          }
-          if (value.provider !== '' && value.model !== '') {
-            const savedGroup = catalog.groups.find((item) => item.id === value.provider)
-            const available = savedGroup !== undefined && savedGroup.models.some((item) => item.id === value.model)
-            if (!available) {
-              modelOptions.push(h('optgroup', { key: 'saved-unavailable', label: '当前不可用' }, [
-                h('option', {
-                  key: `saved:${value.provider}\u0000${value.model}`,
-                  value: encodeModel(value.provider, value.model)
-                }, `${value.provider} / ${value.model}`)
-              ]))
-            }
-          }
-
-          const effortOptions = [h('option', { key: '', value: '' }, defaultEffort === '' ? '模型默认' : `模型默认（${defaultEffort}）`)]
-          for (const item of efforts) {
-            effortOptions.push(h('option', { key: item.id, value: item.id }, labelEffort(item)))
-          }
-          if (value.reasoningEffort !== '' && !efforts.some((item) => item.id === value.reasoningEffort)) {
-            effortOptions.push(h('option', { key: `saved:${value.reasoningEffort}`, value: value.reasoningEffort }, `${value.reasoningEffort}（当前不可用）`))
-          }
-
-          return h('div', {
-            key: role.id,
-            style: {
-              display: 'grid',
-              gridTemplateColumns: '150px minmax(0, 1fr) 170px',
-              gap: '12px',
-              alignItems: 'center',
-              padding: '10px 12px',
-              borderTop: '0.5px solid var(--dsw-alias-border-l3)'
-            }
-          }, [
-            h('div', { key: 'role', style: { minWidth: 0 } }, [
-              h('div', { key: 'zh', style: { fontSize: '13px', fontWeight: 500 } }, role.zh),
-              h('div', { key: 'id', style: { fontSize: '11px', color: 'var(--dsw-alias-label-tertiary)' } }, role.id)
-            ]),
-            h('select', {
-              key: 'model',
-              value: modelValue,
-              style: controlStyle,
-              onChange: (event) => changeModelSelection(role.id, event.target.value)
-            }, modelOptions),
-            h('select', {
-              key: 'effort',
-              value: value.reasoningEffort,
-              disabled: value.model === '',
-              style: { ...controlStyle, opacity: value.model === '' ? 0.55 : 1 },
-              onChange: (event) => changeEffort(role.id, event.target.value)
-            }, effortOptions)
-          ])
-          })
+          ...roleRows
         ]),
         h('div', { key: 'actions', style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' } }, [
           h('button', {

@@ -137,7 +137,9 @@ Work that may span sessions keeps a small, bounded record next to the code. `wor
 
 On resume the agent reads PLAN and INDEX first, then only the target card's state block and tail, never the whole file or the whole directory. PLAN stays under about 100 lines and card files under about 200, with finished cards trimmed from the index. Compact templates for all three files live in the preset persona, so every session can create or update them without reading this repository.
 
-## Per-role model settings
+## Team model profiles
+
+The settings page keeps several named model profiles for the default team members and uses the selected one for the next spawn.
 
 Open:
 
@@ -145,12 +147,21 @@ Open:
 Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
 ```
 
-Each default member occupies one row:
+The profile bar at the top of the page:
+
+- **Switch** the profile (`团队配置` dropdown) that the next default teammate uses.
+- **新建配置** appends a profile with seven empty role rows.
+- **配置名称** renames the selected profile. Names are required, unique, and at most 60 characters.
+- **删除配置** deletes the selected profile after a second confirming click. The last remaining profile cannot be deleted.
+
+Each profile has one row per default member:
 
 - **Model**: one dropdown containing every provider's models, with non-clickable provider group headers. Selecting a model sets both provider and model.
 - **Reasoning effort**: a second dropdown with the selected model's advertised efforts, plus a model-default option.
 
-An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the per-role default when `model` is omitted; an explicit `model` overrides it. Plain `spawn_teammate` always inherits the Lead.
+An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. Plain `spawn_teammate` always inherits the Lead.
+
+The whole profile list is saved together, so switching profiles does not discard edits made in another one. The page validates names before saving and shows the server's error text when a save is rejected.
 
 The row name matters: `research-team-settings` must stay at the **package root** `@local/dsh-research-team-preset`. DSH's client-module scanner only discovers `dsh.client` for exact package-root rows; a subpath name starts the host plugin but never loads the page.
 
@@ -162,19 +173,36 @@ $DSH_HOME/research-team-settings.json
 
 ```json
 {
-  "roles": {
-    "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
-    "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
-  }
+  "version": 2,
+  "activeProfileId": "default",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "默认配置",
+      "roles": {
+        "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    },
+    {
+      "id": "p-example",
+      "name": "快速实验",
+      "roles": {
+        "advisor": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    }
+  ]
 }
 ```
 
+- `activeProfileId` names the profile used by the next teammate. The server falls back to the first profile when it is missing or unknown.
+- A legacy file (`{ "roles": { ... } }` or a bare role map) is migrated in memory to a single profile named `默认配置`; the file is rewritten in the profile shape on the next save. A legacy `POST { "roles": ... }` updates only the active profile, so older scripts cannot drop the other profiles.
 - The JSON file is the source of truth. The host plugin loads it at startup; `getSettings()` and `modelForRole()` refresh from it, so the page and the next teammate see the latest values.
 - A missing or temporarily unreadable file keeps the last good in-memory snapshot instead of clearing it.
 - The settings file is **not** in this repository. Back it up separately. It is per `DSH_HOME`, not per profile.
-- No credentials are stored; only provider/model/effort strings.
-- Settings saves apply without a DSH restart. Restart is required for the first install of the settings row/client page and for preset/plugin changes.
-- Version 0.1.0 fixes a loader bug in earlier builds: the file wraps roles under `"roles"`, and the old loader passed the whole object to the role normalizer, producing all-empty settings after restart. The current loader unwraps `"roles"` and supports a bare role map for compatibility.
+- No credentials are stored; only profile names and provider/model/effort strings.
+- Settings saves apply without a DSH restart: the store re-reads the file and the next spawn resolves the active profile. Changing this plugin's own code still needs a DSH restart, because the host half registers a WebSocket/HTTP route and a Plugins-page slot at host level.
+- Version 0.1.0 fixes a loader bug in earlier builds: the file wraps roles under `"roles"`, and the old loader passed the whole object to the role normalizer, producing all-empty settings after restart. The current loader unwraps `"roles"`, migrates old files, and supports a bare role map for compatibility.
 
 ## Configuration reference
 
@@ -185,7 +213,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Set `false` to remove `spawn_teammate_with_model` and its service wrapper |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Subagent providers used by the modeled spawn tool; defaults `spawn` / `fork` |
 | `research-team-settings` row | `cordis.patch.yml` | Top-level host row; keep the package-root name |
-| Per-role routes | `$DSH_HOME/research-team-settings.json` | Provider/model/reasoningEffort for the seven default roles |
+| Team model profiles | `$DSH_HOME/research-team-settings.json` | Named profiles; the active profile supplies provider/model/reasoningEffort for the seven default roles |
 
 ## Repository layout
 
@@ -200,11 +228,11 @@ research-team-preset/
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared settings snapshot + disk refresh
+│   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
-│   └── index.js                  # Settings file + /api/dsh-research-team-settings
+│   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
-│   └── index.js                  # plugins.row.config form (model/effort dropdowns)
+│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -224,8 +252,8 @@ research-team-preset/
 - **Preset**: `cordis.patch.yml` declares the persona, tool rows, the modeled-teammates submodule, and the top-level settings row.
 - **Task-board prompt**: `plugin/index.js` registers an English protocol section (`plugin:dsh-taskboard`) at the preset scope and provides `research_project` to resolve the current workspace.
 - **Per-role routing**: `plugin/modeled-teammates.js` wraps `subagents.startActivation` with `AsyncLocalStorage` and injects `agentOptions` only for a `spawn_teammate_with_model` call. The official Agent Teams package is untouched.
-- **Settings**: `settings/index.js` loads/saves the JSON file and serves `GET/POST /api/dsh-research-team-settings`; `client/index.js` registers the Plugins-page row form through `plugins.row.config`.
-- **Refresh**: `plugin/settings-store.js` holds the in-memory snapshot, refreshes from disk on reads and spawns, and keeps the last good snapshot if a read fails.
+- **Settings**: `settings/index.js` loads/saves the profile JSON file and serves `GET/POST /api/dsh-research-team-settings`; `client/index.js` registers the Plugins-page profile editor through `plugins.row.config`.
+- **Refresh**: `plugin/settings-store.js` holds the in-memory snapshot, resolves the active profile on every read and spawn, and keeps the last good snapshot if a read fails.
 
 ## Verification checklist
 
@@ -237,6 +265,10 @@ list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
 taskboard_list                           # matches the GUI board
 Plugins -> bundle -> research-team-settings -> Configure   # page visible
+新建配置 -> name it -> save -> reopen the page -> both profiles listed
+select another profile -> save -> spawn_teammate_with_model uses it
+delete one profile -> save -> only the remaining profile exists
+legacy {roles} file -> restart -> shown as 默认配置
 save a role model -> restart -> page still shows it
 ```
 
@@ -252,7 +284,8 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 Version 0.1.0 fixes the known cause: the old loader passed the whole `{ roles: ... }` object to the role normalizer and produced all-empty settings. Update to 0.1.0 or later, restart DSH, and check that:
 
-- `$DSH_HOME/research-team-settings.json` exists and contains the saved roles;
+- `$DSH_HOME/research-team-settings.json` exists and contains the saved profiles;
+- old `{ "roles": ... }` files are shown as a single `默认配置` profile and are rewritten in the profile shape on the next save;
 - the `research-team-settings` row is named exactly `@local/dsh-research-team-preset`;
 - the current host is running this checkout, not a stale installed copy.
 
@@ -286,7 +319,7 @@ Open the working directory as a DSH project/workspace in the GUI or pass a known
 
 - The per-role model routing is an internal service wrapper, not an official Agent Teams extension. DSH upgrades may break it; the fallback is documented above.
 - Profile-level dependencies are not installed or enabled automatically. This repository documents them but does not manage them.
-- Role settings live in a standalone JSON file under `$DSH_HOME`; they are not part of DSH's standard config export/backup. Copy the file if you move machines.
+- Team model profiles live in a standalone JSON file under `$DSH_HOME`; they are not part of DSH's standard config export/backup. Copy the file if you move machines.
 - The model menu is a native `<select>` with provider groups, not a searchable custom picker.
 - The mode does not auto-spawn seven teammates on session start. The Lead creates roles as the task requires.
 - The mode never initializes a repository inside an existing repository, and it never commits the worklog or repository scaffold on its own.

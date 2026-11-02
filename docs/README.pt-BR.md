@@ -10,7 +10,7 @@
 
 ## Visão geral
 
-Research Team Mode é um preset de agente do DSH para conduzir pesquisa de ponta a ponta como uma equipe, em vez de um único chat. O Lead planeja o trabalho, mantém os dois registros (cartões do quadro para os gates do usuário, tarefas de equipe para as etapas internas), distribui o trabalho, integra os resultados e conversa com o usuário. Sete especialistas padrão cobrem revisão consultiva, literatura e evidências, obtenção de dados, código, execuções, revisão independente e redação do artigo.
+Research Team Mode é um preset de agente do DSH para conduzir pesquisa de ponta a ponta como uma equipe, em vez de um único chat. O Lead planeja o trabalho, mantém os dois registros (cartões do quadro para os gates do usuário, tarefas de equipe para as etapas internas), distribui o trabalho, integra os resultados e conversa com o usuário. Oito especialistas padrão cobrem revisão consultiva, literatura e evidências, obtenção de dados, design experimental, código, execuções, revisão independente e redação do artigo.
 
 O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rastreáveis e se beneficiam de limites claros de função. Não é um modo de perguntas e respostas pontuais: o Lead cria apenas as funções que a tarefa realmente precisa.
 
@@ -18,7 +18,7 @@ O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rast
 
 | | |
 | --- | --- |
-| **Funções padrão** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
+| **Funções padrão** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Fluxo de trabalho** | Baseado em gates: etapas internas em `team_task_*`, gates do usuário no quadro; criar, assumir, executar, relatar, revisar, aceitação do usuário |
 | **Conclusão** | `in_review` é a última parada do agente; somente o usuário pode mover um cartão para `done` |
 | **Roteamento de modelos** | Provedor, modelo e esforço de raciocínio por função, definidos em um formulário na página de Plugins |
@@ -99,6 +99,7 @@ Lead: summarize -> user acceptance (done)
 | `advisor` | Avaliação independente da direção, do enquadramento, das afirmações centrais, da suficiência das evidências e da estratégia do artigo; recomenda prosseguir / revisar / parar. Apenas consultivo, não é um ponto de bloqueio |
 | `researcher` | Busca, obtenção e leitura detalhada de literatura, extração de evidências e uma tabela de evidências afirmação → fonte → localização. Primeiro busca na biblioteca compartilhada do Zotero, importa o artigo completo em sua versão formal com o PDF anexado quando falta uma obra necessária, remove duplicatas por DOI e título e compartilha as referências `zotero://` com a equipe |
 | `data` | Obtenção de conjuntos de dados e pesos de modelos externos, incluindo disponibilidade da fonte e status de licença/acesso, ferramentas de download com retomada e tratamento de limites de taxa, verificação de integridade contra hashes do publicador, descompactação, contrato de manifesto, amostra pequena validada e registro de disco. Não escreve código de treinamento nem altera o protocolo de avaliação |
+| `designer` | É responsável pelo documento de design do experimento: perguntas e hipóteses, protocolo e controles, linhas de base, ablações, métricas e plano estatístico, orçamento de computação e controle de mudanças de design enquanto as execuções estão em andamento; não escreve código de produção nem executa experimentos |
 | `builder` | Código, configuração, pipelines de dados, testes e pontos de entrada reproduzíveis; sem treinamentos longos |
 | `runner` | Inicia e monitora treinamento/avaliação; registra ids de execução, configurações, seeds, métricas, logs, checkpoints e caminhos de artefatos |
 | `reviewer` | Verificação independente de notas de literatura, código, resultados e afirmações/citações do artigo; PASS/FAIL com evidências bloqueantes |
@@ -109,6 +110,12 @@ O Lead é responsável por esclarecer o objetivo, decompor o trabalho, gerenciar
 ### Biblioteca compartilhada do Zotero
 
 O researcher considera a biblioteca Zotero do usuário como a fonte de literatura compartilhada da equipe. Busca nas coleções e nos itens existentes antes da web aberta, reutiliza os PDFs anexados e os trechos de anotação e importa um artigo ausente apenas em sua versão formal de registro, com o PDF anexado e arquivado em uma coleção do projeto. As importações removem duplicatas por DOI e título, não mexem nas etiquetas nem nas coleções do usuário e registram a referência de item `zotero://` na tabela de evidências e no cartão do quadro, para que cada colega leia o mesmo artigo e o reviewer possa conferir por amostragem as mesmas páginas. Quando o texto completo está atrás de um paywall ou só existem metadados, o researcher registra o link e marca a evidência como somente metadados, em vez de importar um substituto.
+
+## Propriedade do design
+
+O Lead não redige o design do experimento. No trabalho com forte ênfase em design, o designer é responsável por um documento de design no espaço de trabalho do projeto (`docs/design/<name>.md` ou o local de design já existente no projeto): a pergunta e as hipóteses, o protocolo e os controles, as linhas de base, as ablações, as métricas e o plano estatístico, o orçamento de computação e um registro de mudanças de design feitas enquanto as execuções estão em andamento.
+
+O builder implementa o design, o runner o executa e o reviewer verifica, no gate de proposta, se o design consegue responder à pergunta e, no gate de resultados, se a execução correspondeu a ele. O advisor dá uma leitura científica independente no gate de proposta. O Lead confirma que o documento de design existe e que as entradas do researcher e de data estão prontas, e então admite ou devolve a etapa. No trabalho liderado pela implementação, o builder redige o design e o advisor o revisa uma vez.
 
 ## Fluxo do quadro de tarefas
 
@@ -154,7 +161,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 A barra de perfis no topo da página:
 
 - **Alternar** o perfil (menu suspenso `团队配置`) que o próximo membro padrão da equipe usará.
-- **新建配置** acrescenta um perfil com sete linhas de função vazias.
+- **新建配置** acrescenta um perfil com oito linhas de função vazias.
 - **配置名称** renomeia o perfil selecionado. Os nomes são obrigatórios, exclusivos e têm no máximo 60 caracteres.
 - **删除配置** exclui o perfil selecionado após um segundo clique de confirmação. O último perfil restante não pode ser excluído.
 
@@ -164,6 +171,19 @@ Cada perfil tem uma linha por membro padrão:
 - **Esforço de raciocínio**: um segundo menu suspenso com os esforços oferecidos pelo modelo selecionado, além de uma opção de padrão do modelo.
 
 Um modelo vazio significa “herdar a rota do Lead”; um esforço vazio significa “usar o padrão do modelo”. `spawn_teammate_with_model` lê o padrão por função do perfil selecionado quando `model` é omitido; um `model` explícito tem precedência. O `spawn_teammate` simples sempre herda do Lead.
+
+Níveis de capacidade sugeridos, como ponto de partida e não como regra:
+
+| Função | Nível sugerido | Por quê |
+| --- | --- | --- |
+| `designer` | O mais alto | Um erro de design invalida todas as execuções |
+| `advisor` | O mais alto, de família diferente do designer | A crítica independente precisa de uma perspectiva diferente |
+| `builder` | Alto | Correção de código e contexto longo |
+| `reviewer` | Alto, de família diferente do builder e do runner | A auditoria de evidências precisa de sua própria lente |
+| `researcher` | Médio-alto | Julgamento sobre linhas de base e SOTA |
+| `writer` | Médio | Redação organizada a partir de evidências verificadas |
+| `data` | Médio-baixo | Obtenção procedural com ferramentas |
+| `runner` | Médio-baixo | Confiabilidade de ferramentas mais que raciocínio profundo |
 
 A lista completa de perfis é salva em conjunto, então alternar entre perfis não descarta edições feitas em outro. A página valida os nomes antes de salvar e mostra o texto de erro do servidor quando um salvamento é rejeitado.
 
@@ -185,6 +205,7 @@ $DSH_HOME/research-team-settings.json
       "name": "默认配置",
       "roles": {
         "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "designer": { "provider": "", "model": "", "reasoningEffort": "" },
         "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
       }
     },
@@ -217,7 +238,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Defina como `false` para remover `spawn_teammate_with_model` e seu wrapper de serviço |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Provedores de subagente usados pela ferramenta de spawn modelada; padrões `spawn` / `fork` |
 | Linha `research-team-settings` | `cordis.patch.yml` | Linha host de nível superior; mantenha o nome na raiz do pacote |
-| Perfis de modelo da equipe | `$DSH_HOME/research-team-settings.json` | Perfis nomeados; o perfil ativo fornece provider/model/reasoningEffort para as sete funções padrão |
+| Perfis de modelo da equipe | `$DSH_HOME/research-team-settings.json` | Perfis nomeados; o perfil ativo fornece provider/model/reasoningEffort para as oito funções padrão |
 
 ## Estrutura do repositório
 
@@ -325,7 +346,7 @@ Abra o diretório de trabalho como um projeto/workspace do DSH na GUI ou passe u
 - Dependências de nível de perfil não são instaladas nem ativadas automaticamente. Este repositório as documenta, mas não as gerencia.
 - Os perfis de modelo da equipe ficam em um arquivo JSON autônomo em `$DSH_HOME`; eles não fazem parte da exportação/backup padrão de configuração do DSH. Copie o arquivo se você trocar de máquina.
 - O menu de modelos é um `<select>` nativo com grupos de provedor, não um seletor personalizado com busca.
-- O modo não cria automaticamente sete membros da equipe ao iniciar a sessão. O Lead cria as funções conforme a tarefa exige.
+- O modo não cria automaticamente oito membros da equipe ao iniciar a sessão. O Lead cria as funções conforme a tarefa exige.
 - O modo nunca inicializa um repositório dentro de um repositório existente e nunca faz commit por conta própria do worklog nem do andaime do repositório.
 - Os membros podem usar uma camada de subagente; a delegação mais profunda é desativada intencionalmente.
 

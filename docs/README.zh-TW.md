@@ -10,7 +10,7 @@
 
 ## 概觀
 
-Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對話的方式執行端到端研究。Lead 負責規劃工作、維護兩套記錄（使用者關卡用看板卡片，內部步驟用團隊任務）、分派工作、整合結果，並與使用者溝通。七名預設專家分別涵蓋顧問審查、文獻與證據、資料取得、程式碼、執行、獨立複核與論文寫作。
+Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對話的方式執行端到端研究。Lead 負責規劃工作、維護兩套記錄（使用者關卡用看板卡片，內部步驟用團隊任務）、分派工作、整合結果，並與使用者溝通。八名預設專家分別涵蓋顧問審查、文獻與證據、資料取得、實驗設計、程式碼、執行、獨立複核與論文寫作。
 
 此模式是為橫跨數天或數週、需要可追溯證據，且受益於清楚角色界線的研究而打造。它不是一次問答模式：Lead 只會建立任務實際需要的角色。
 
@@ -18,7 +18,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對�
 
 | | |
 | --- | --- |
-| **預設角色** | 7 名：advisor、researcher、data、builder、runner、reviewer、writer |
+| **預設角色** | 8 名：advisor、designer、researcher、data、builder、runner、reviewer、writer |
 | **工作流程** | 關卡制：內部步驟在 `team_task_*` 中，使用者關卡在看板上；建立、認領、執行、回報、審查、使用者驗收 |
 | **完成** | `in_review` 是 agent 的最後一站；只有使用者能把卡片移到 `done` |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
@@ -99,6 +99,7 @@ Lead: summarize -> user acceptance (done)
 | `advisor` | 獨立評估方向、框架、核心主張、證據充分性與論文策略；建議 proceed / revise / stop。僅供顧問參考，不是關卡 |
 | `researcher` | 文獻搜尋、取得、精讀、證據擷取，以及「主張 → 來源 → 位置」證據表；優先搜尋共享 Zotero 文獻庫，缺少所需文獻時匯入附帶 PDF 的正式版全文，依 DOI／標題去重，並與團隊分享 `zotero://` 參照 |
 | `data` | 外部資料集與模型權重的取得，包含來源可得性與授權／存取狀態追蹤、含續傳與限速處理的下載工具、依發布方雜湊值做的完整性校驗、解壓縮、manifest 契約、小型驗證樣本與磁碟帳本；不寫訓練程式碼，也不改評估協定 |
+| `designer` | 擁有實驗設計文件：問題與假設、協定與對照、基線、消融、指標與統計計畫、算力預算，以及執行進行中的設計變更控制；不寫正式程式碼，也不執行實驗 |
 | `builder` | 程式碼、設定、資料管線、測試與可重現的進入點；不負責長時間訓練 |
 | `runner` | 啟動並監控訓練／評估；記錄 run id、config、seed、指標、日誌、checkpoint 與產物路徑 |
 | `reviewer` | 獨立驗證文獻筆記、程式碼、結果與論文主張／引用；以阻擋性證據給出 PASS/FAIL |
@@ -109,6 +110,12 @@ Lead 負責目標釐清、拆解、看板管理、分派、整合、摘要、最
 ### 共享 Zotero 文獻庫
 
 researcher 把使用者的 Zotero 文獻庫當作團隊的共享文獻來源：先搜尋既有的分類與條目，再搜尋公開網路；重複使用已附加的 PDF 與註記片段；只有在缺少某篇文獻時，才匯入正式版本（version of record）全文，附上 PDF 並歸檔到專案分類中。匯入時依 DOI 與標題去重，不去更動使用者的標籤與分類，並把 `zotero://` 條目參照記錄到證據表和看板卡片上，讓每位隊友讀到同一篇論文，reviewer 也能抽查相同的頁面。當全文受付費牆限制或只有中繼資料時，researcher 會記錄連結，並將證據標記為僅中繼資料，而不是匯入替代品。
+
+## 設計歸屬
+
+Lead 不撰寫實驗設計。對於以設計為主的工作，designer 在專案工作區中擁有一份設計文件（`docs/design/<name>.md` 或專案既有的設計位置）：問題與假設、協定與對照、基線、消融、指標與統計計畫、算力預算，以及執行進行中所做的設計變更日誌。
+
+builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢查該設計能否回答所提出的問題，並在結果關卡檢查執行是否與設計一致。advisor 在提案關卡給出獨立的科學判斷。Lead 確認設計文件存在，且 researcher 與 data 的輸入已就位，然後接納或退回該步驟。對於以實作為主的工作，由 builder 起草設計，advisor 審閱一次。
 
 ## 任務看板流程
 
@@ -154,7 +161,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 頁面頂端的配置列：
 
 - **切換**：選取下一次預設隊友要使用的配置（`团队配置` 下拉選單）。
-- **新建配置**：追加一個含七個空白角色列的配置。
+- **新建配置**：追加一個含八個空白角色列的配置。
 - **配置名称**：重新命名選取的配置。名稱為必填、唯一，且最多 60 個字元。
 - **删除配置**：二次確認點擊後刪除選取的配置。最後一個配置無法刪除。
 
@@ -164,6 +171,19 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 - **Reasoning effort**：第二個下拉選單，列出所選模型宣告支援的推理強度，外加一個模型預設選項。
 
 模型留空表示「沿用 Lead 的路由」；強度留空表示「使用模型預設值」。`spawn_teammate_with_model` 在省略 `model` 時會讀取所選配置中各角色的預設值；明確指定 `model` 則會覆寫。單純的 `spawn_teammate` 一律沿用 Lead。
+
+建議的能力層級，僅作為起點而非規則：
+
+| 角色 | 建議層級 | 理由 |
+| --- | --- | --- |
+| `designer` | 最強 | 設計上的錯誤會讓每一次執行都失效 |
+| `advisor` | 最強，且與 designer 屬於不同模型家族 | 獨立批評需要不同的視角 |
+| `builder` | 高 | 程式碼正確性與長上下文 |
+| `reviewer` | 高，與 builder、runner 屬於不同模型家族 | 證據審計需要自己的視角 |
+| `researcher` | 中高 | 基線與 SOTA 判斷 |
+| `writer` | 中 | 依據已核對證據進行有條理的寫作 |
+| `data` | 中低 | 藉由工具進行流程化取得 |
+| `runner` | 中低 | 工具可靠性重於深度推理 |
 
 整份配置清單會一起儲存，因此切換配置不會丟棄在另一個配置中所做的編輯。頁面在儲存前會驗證名稱，儲存被拒絕時會顯示伺服器的錯誤文字。
 
@@ -185,6 +205,7 @@ $DSH_HOME/research-team-settings.json
       "name": "默认配置",
       "roles": {
         "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "designer": { "provider": "", "model": "", "reasoningEffort": "" },
         "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
       }
     },
@@ -217,7 +238,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | 設為 `false` 可移除 `spawn_teammate_with_model` 及其服務包裝 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | 模型化 spawn 工具使用的 subagent provider；預設為 `spawn` / `fork` |
 | `research-team-settings` 列 | `cordis.patch.yml` | 頂層主機列；請保留套件根目錄名稱 |
-| 團隊模型配置 | `$DSH_HOME/research-team-settings.json` | 具名配置；作用中的配置為七個預設角色提供 provider/model/reasoningEffort |
+| 團隊模型配置 | `$DSH_HOME/research-team-settings.json` | 具名配置；作用中的配置為八個預設角色提供 provider/model/reasoningEffort |
 
 ## 儲存庫結構
 
@@ -325,7 +346,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - Profile 層級相依項目不會自動安裝或啟用。此儲存庫記錄它們，但不管理它們。
 - 團隊模型配置存放在 `$DSH_HOME` 下的獨立 JSON 檔；它們不屬於 DSH 標準設定匯出／備份的一部分。移動機器時請複製該檔案。
 - 模型選單是原生 `<select>` 加上 provider 群組，不是可搜尋的自訂選擇器。
-- 此模式不會在工作階段開始時自動 spawn 七名隊友。Lead 會依任務需要建立角色。
+- 此模式不會在工作階段開始時自動 spawn 八名隊友。Lead 會依任務需要建立角色。
 - 此模式不會在既有儲存庫內部再初始化儲存庫，也不會自行提交工作日誌或儲存庫腳手架。
 - 成員可使用一層 subagent；更深的委派會被刻意停用。
 

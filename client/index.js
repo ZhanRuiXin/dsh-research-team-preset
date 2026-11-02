@@ -11,6 +11,7 @@ window.__ModuleLoader__.load({
       { id: 'advisor', zh: '学术顾问' },
       { id: 'researcher', zh: '资料员' },
       { id: 'data', zh: '数据获取' },
+      { id: 'designer', zh: '实验设计' },
       { id: 'builder', zh: '代码构建' },
       { id: 'runner', zh: '训练与运行' },
       { id: 'reviewer', zh: '资料/代码审查' },
@@ -482,7 +483,7 @@ window.__ModuleLoader__.load({
       return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '18px' } }, [
         h('div', { key: 'head' }, [
           h('h3', { key: 'title', style: { margin: '0 0 6px', fontSize: '15px', fontWeight: 500 } }, '智能体团队的模型配置'),
-          h('p', { key: 'note', style: { margin: 0, color: 'var(--dsw-alias-label-secondary)', fontSize: '13px', lineHeight: '20px' } }, '每套配置包含 7 个默认成员的 Provider / Model / 思考强度，可以创建、命名、切换与删除多套配置。保存后，选中的配置用于下一次创建默认 teammate；显式传入 model 的调用仍然优先。留空（继承 Lead）表示跟随 Lead；思考强度留空表示使用模型默认。'),
+          h('p', { key: 'note', style: { margin: 0, color: 'var(--dsw-alias-label-secondary)', fontSize: '13px', lineHeight: '20px' } }, '每套配置包含 8 个默认成员的 Provider / Model / 思考强度，可以创建、命名、切换与删除多套配置。保存后，选中的配置用于下一次创建默认 teammate；显式传入 model 的调用仍然优先。留空（继承 Lead）表示跟随 Lead；思考强度留空表示使用模型默认。'),
           catalogNotice === null ? null : h('div', { key: 'catalog', style: { marginTop: '8px' } }, catalogNotice)
         ]),
         profileBar,

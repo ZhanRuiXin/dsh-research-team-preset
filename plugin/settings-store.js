@@ -11,7 +11,7 @@
  * profiles on the settings page changes the next teammate's route.
  */
 
-export const ROLE_NAMES = Object.freeze(['advisor', 'researcher', 'data', 'builder', 'runner', 'reviewer', 'writer'])
+export const ROLE_NAMES = Object.freeze(['advisor', 'researcher', 'data', 'designer', 'builder', 'runner', 'reviewer', 'writer'])
 
 const EMPTY = Object.freeze({ version: 2, activeProfileId: '', profiles: Object.freeze([]) })
 

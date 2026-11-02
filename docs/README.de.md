@@ -10,7 +10,7 @@
 
 ## Überblick
 
-Research Team Mode ist ein DSH-Agent-Preset, mit dem sich End-to-End-Forschung als Team statt in einem einzigen Chat betreiben lässt. Der Lead plant die Arbeit, führt beide Register (Board-Karten für Nutzer-Gates, Team-Tasks für interne Schritte), verteilt Arbeit, integriert Ergebnisse und kommuniziert mit der nutzenden Person. Sieben Standardrollen decken Beratung, Literatur und Evidenz, Datenbeschaffung, Code, Läufe, unabhängige Prüfung und das Schreiben des Papers ab.
+Research Team Mode ist ein DSH-Agent-Preset, mit dem sich End-to-End-Forschung als Team statt in einem einzigen Chat betreiben lässt. Der Lead plant die Arbeit, führt beide Register (Board-Karten für Nutzer-Gates, Team-Tasks für interne Schritte), verteilt Arbeit, integriert Ergebnisse und kommuniziert mit der nutzenden Person. Acht Standardrollen decken Beratung, Literatur und Evidenz, Datenbeschaffung, Versuchsdesign, Code, Läufe, unabhängige Prüfung und das Schreiben des Papers ab.
 
 Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt, nachvollziehbare Evidenz benötigt und von klaren Rollengrenzen profitiert. Er ist kein Modus für einmalige Fragen und Antworten: Der Lead erstellt nur die Rollen, die eine Aufgabe tatsächlich braucht.
 
@@ -18,7 +18,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 
 | | |
 | --- | --- |
-| **Standardrollen** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
+| **Standardrollen** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Gate-basiert: interne Schritte in `team_task_*`, Nutzer-Gates auf dem Board; erstellen, übernehmen, ausführen, berichten, prüfen, Abnahme durch die nutzende Person |
 | **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann eine Karte auf `done` setzen |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
@@ -99,6 +99,7 @@ Lead: summarize -> user acceptance (done)
 | `advisor` | Unabhängige Bewertung von Richtung, Framing, zentralen Behauptungen, Evidenzlage und Paper-Strategie; empfiehlt proceed / revise / stop. Nur beratend, kein Gate |
 | `researcher` | Literatursuche, Beschaffung, Close Reading, Evidenzextraktion und eine Evidenztabelle Behauptung → Quelle → Fundstelle. Durchsucht zuerst die gemeinsame Zotero-Bibliothek, importiert bei fehlender Arbeit das vollständige Paper in der offiziellen Version of Record samt PDF, dedupliziert nach DOI/Titel und teilt `zotero://`-Referenzen mit dem Team |
 | `data` | Beschaffung externer Datensätze und Modellgewichte, einschließlich Verfügbarkeit der Quelle und Lizenz-/Zugangsstatus, Download-Werkzeugen mit Wiederaufnahme und Umgang mit Rate-Limits, Integritätsprüfung gegen Herausgeber-Hashes, Entpacken, Manifest-Vertrag, einer kleinen validierten Stichprobe und des Disk-Ledgers. Schreibt keinen Trainingscode und ändert das Evaluationsprotokoll nicht |
+| `designer` | Verantwortet das Experiment-Design-Dokument: Fragen und Hypothesen, Protokoll und Kontrollen, Baselines, Ablationen, Metriken und statistischen Plan, Compute-Budget sowie die Kontrolle von Design-Änderungen, während Läufe laufen; schreibt keinen Produktionscode und führt keine Experimente aus |
 | `builder` | Code, Konfiguration, Datenpipelines, Tests und reproduzierbare Einstiegspunkte; keine langen Trainingsläufe |
 | `runner` | Startet und überwacht Training/Evaluation; zeichnet Run-IDs, Konfigurationen, Seeds, Metriken, Logs, Checkpoints und Artefaktpfade auf |
 | `reviewer` | Unabhängige Verifikation von Literaturnotizen, Code, Ergebnissen und Paper-Behauptungen/-Zitaten; PASS/FAIL mit blockierender Evidenz |
@@ -109,6 +110,12 @@ Der Lead verantwortet Zielklärung, Zerlegung, Board-Verwaltung, Zuweisung, Inte
 ### Gemeinsame Zotero-Bibliothek
 
 Der Researcher behandelt die Zotero-Bibliothek der nutzenden Person als die gemeinsame Literaturquelle des Teams. Er durchsucht vorhandene Sammlungen und Einträge vor dem offenen Web, nutzt angehängte PDFs und Passagen aus den Annotationen erneut und importiert eine fehlende Arbeit nur in ihrer offiziellen Version of Record, mit angehängtem PDF und einsortiert in eine Projekt-Sammlung. Importe deduplizieren nach DOI und Titel, lassen Tags und Sammlungen der nutzenden Person unberührt und halten die `zotero://`-Referenz des Eintrags in der Evidenztabelle und auf der Board-Karte fest, sodass jedes Teammitglied dasselbe Paper liest und der Reviewer dieselben Seiten stichprobenartig prüfen kann. Liegt der Volltext hinter einer Paywall oder existieren nur Metadaten, hält der Researcher den Link fest und markiert die Evidenz als reine Metadaten (metadata-only), statt einen Ersatz zu importieren.
+
+## Design-Verantwortung
+
+Der Lead verfasst das Experiment-Design nicht. Bei designlastiger Arbeit verantwortet der Designer ein Design-Dokument im Projekt-Workspace (`docs/design/<name>.md` oder am bestehenden Design-Ort des Projekts): Fragestellung und Hypothesen, Protokoll und Kontrollen, Baselines, Ablationen, Metriken und statistischer Plan, Compute-Budget sowie ein Änderungsprotokoll für Design-Änderungen, die während laufender Läufe vorgenommen werden.
+
+Der Builder setzt das Design um, der Runner führt es aus, und der Reviewer prüft am Proposal-Gate, ob das Design die Frage beantworten kann, und am Results-Gate, ob die Ausführung dazu passt. Der Advisor gibt am Proposal-Gate eine unabhängige wissenschaftliche Einschätzung ab. Der Lead bestätigt, dass das Design-Dokument vorliegt und die Zulieferungen von Researcher und Data vorhanden sind, und nimmt den Schritt dann an oder gibt ihn zurück. Bei implementierungsgetriebener Arbeit entwirft der Builder das Design und der Advisor prüft es einmal.
 
 ## Arbeitsablauf im Task Board
 
@@ -154,7 +161,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 Die Profilleiste oben auf der Seite:
 
 - **Wechseln** Sie das Profil (Dropdown `团队配置`), das das nächste Standard-Teammitglied verwendet.
-- **新建配置** fügt ein Profil mit sieben leeren Rollenzeilen hinzu.
+- **新建配置** fügt ein Profil mit acht leeren Rollenzeilen hinzu.
 - **配置名称** benennt das ausgewählte Profil um. Namen sind erforderlich, eindeutig und höchstens 60 Zeichen lang.
 - **删除配置** löscht das ausgewählte Profil nach einem zweiten bestätigenden Klick. Das letzte verbleibende Profil kann nicht gelöscht werden.
 
@@ -164,6 +171,19 @@ Jedes Profil hat eine Zeile pro Standardmitglied:
 - **Reasoning-Effort**: ein zweites Dropdown mit den für das ausgewählte Modell angegebenen Efforts sowie einer Option für den Modellstandard.
 
 Ein leeres Modell bedeutet „Route des Lead übernehmen“; ein leerer Effort bedeutet „Modellstandard verwenden“. `spawn_teammate_with_model` liest den rollenspezifischen Standard des ausgewählten Profils, wenn `model` fehlt; ein explizites `model` überschreibt ihn. Ein einfaches `spawn_teammate` übernimmt immer die Route des Lead.
+
+Empfohlene Fähigkeitsstufen, als Ausgangspunkt und nicht als Regel:
+
+| Rolle | Empfohlene Stufe | Begründung |
+| --- | --- | --- |
+| `designer` | Höchste | Ein Designfehler entwertet jeden Lauf |
+| `advisor` | Höchste, andere Modellfamilie als der Designer | Unabhängige Kritik braucht eine andere Sicht |
+| `builder` | Hoch | Codekorrektheit und langer Kontext |
+| `reviewer` | Hoch, andere Modellfamilie als Builder und Runner | Die Evidenzprüfung braucht eine eigene Perspektive |
+| `researcher` | Mittel bis hoch | Einschätzung von Baseline und SOTA |
+| `writer` | Mittel | Strukturierte Texte aus geprüfter Evidenz |
+| `data` | Mittel bis niedrig | Prozedurale Beschaffung mit Werkzeugen |
+| `runner` | Mittel bis niedrig | Werkzeugzuverlässigkeit statt tiefer Schlussfolgerung |
 
 Die gesamte Profilliste wird gemeinsam gespeichert, sodass ein Profilwechsel die in einem anderen Profil vorgenommenen Änderungen nicht verwirft. Die Seite validiert die Namen vor dem Speichern und zeigt den Fehlertext des Servers an, wenn ein Speichern abgelehnt wird.
 
@@ -185,6 +205,7 @@ $DSH_HOME/research-team-settings.json
       "name": "默认配置",
       "roles": {
         "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "designer": { "provider": "", "model": "", "reasoningEffort": "" },
         "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
       }
     },
@@ -217,7 +238,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Auf `false` setzen, um `spawn_teammate_with_model` und dessen Service-Wrapper zu entfernen |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Subagent-Provider des modeled Spawn-Tools; Standard `spawn` / `fork` |
 | Zeile `research-team-settings` | `cordis.patch.yml` | Host-Zeile auf oberster Ebene; Paketwurzelnamen beibehalten |
-| Team-Modellprofile | `$DSH_HOME/research-team-settings.json` | Benannte Profile; das aktive Profil liefert provider/model/reasoningEffort für die sieben Standardrollen |
+| Team-Modellprofile | `$DSH_HOME/research-team-settings.json` | Benannte Profile; das aktive Profil liefert provider/model/reasoningEffort für die acht Standardrollen |
 
 ## Repository-Struktur
 
@@ -325,7 +346,7 @@ Bestätigen Sie, dass das Bundle installiert und aktiviert ist, starten Sie DSH 
 - Abhängigkeiten auf Profilebene werden nicht automatisch installiert oder aktiviert. Dieses Repository dokumentiert sie, verwaltet sie aber nicht.
 - Team-Modellprofile liegen in einer eigenständigen JSON-Datei unter `$DSH_HOME`; sie sind nicht Teil des Standard-Konfigurationsexports bzw. -Backups von DSH. Kopieren Sie die Datei, wenn Sie den Rechner wechseln.
 - Das Modellmenü ist ein natives `<select>` mit Provider-Gruppen, keine durchsuchbare eigene Auswahlkomponente.
-- Der Modus startet beim Sitzungsbeginn nicht automatisch sieben Teammitglieder. Der Lead erstellt Rollen nach Bedarf der Aufgabe.
+- Der Modus startet beim Sitzungsbeginn nicht automatisch acht Teammitglieder. Der Lead erstellt Rollen nach Bedarf der Aufgabe.
 - Der Modus initialisiert niemals ein Repository innerhalb eines bestehenden Repositories und committet Worklog oder Repository-Gerüst nicht von selbst.
 - Mitglieder dürfen eine Subagent-Ebene nutzen; tiefere Delegation ist bewusst deaktiviert.
 

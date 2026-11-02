@@ -10,7 +10,7 @@
 
 ## Overview
 
-Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps both ledgers (board cards for user gates, team tasks for internal steps), dispatches work, integrates results, and talks to the user. Seven default specialists cover advisory review, literature and evidence, data acquisition, code, runs, independent review, and paper writing.
+Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps both ledgers (board cards for user gates, team tasks for internal steps), dispatches work, integrates results, and talks to the user. Eight default specialists cover advisory review, literature and evidence, data acquisition, experiment design, code, runs, independent review, and paper writing.
 
 The mode is built for research that spans days or weeks, needs traceable evidence, and benefits from clear role boundaries. It is not a one-shot Q&A mode: the Lead creates only the roles a task actually needs.
 
@@ -18,7 +18,7 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 
 | | |
 | --- | --- |
-| **Default roles** | 7: advisor, researcher, data, builder, runner, reviewer, writer |
+| **Default roles** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Gate-based: internal steps in `team_task_*`, user gates on the board; create, claim, execute, report, review, user acceptance |
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
@@ -99,6 +99,7 @@ Lead: summarize -> user acceptance (done)
 | `advisor` | Independent assessment of direction, framing, central claims, evidence sufficiency, and paper strategy; recommends proceed / revise / stop. Advisory only, not a gate |
 | `researcher` | Literature search, acquisition, close reading, evidence extraction, and a claim → source → location evidence table. Searches the shared Zotero library first, imports the formal full paper with its PDF when a needed work is missing, dedupes by DOI/title, and shares `zotero://` refs with the team |
 | `data` | External dataset and model-weight acquisition, including source availability and license/access status, download tooling with resume and rate-limit handling, integrity checks against publisher hashes, unpacking, the manifest contract, a small validated sample, and the disk ledger; does not write training code or change the evaluation protocol |
+| `designer` | Owns the experiment design document: questions and hypotheses, protocol and controls, baselines, ablations, metrics and statistical plan, compute budget, and design change control while runs are in flight; does not write production code or run experiments |
 | `builder` | Code, configuration, data pipelines, tests, and reproducible entry points; no long training runs |
 | `runner` | Start and monitor training/evaluation; record run ids, configs, seeds, metrics, logs, checkpoints, and artifact paths |
 | `reviewer` | Independent verification of literature notes, code, results, and paper claims/citations; PASS/FAIL with blocking evidence |
@@ -109,6 +110,12 @@ The Lead owns goal clarification, decomposition, board management, dispatch, int
 ### Shared Zotero library
 
 The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and on the board card, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
+
+## Design ownership
+
+The Lead does not author the experiment design. For design-heavy work the designer owns a design document in the project workspace (`docs/design/<name>.md` or the project's existing design location): the question and hypotheses, protocol and controls, baselines, ablations, metrics and statistical plan, compute budget, and a change log for design changes made while runs are in flight.
+
+The builder implements the design, the runner executes it, and the reviewer checks at the proposal gate that the design can answer the question and at the results gate that execution matched it. The advisor gives an independent scientific read at the proposal gate. The Lead confirms that the design document exists and that the researcher and data inputs are in place, then admits or returns the step. For implementation-led work the builder drafts the design and the advisor reviews it once.
 
 ## Task board workflow
 
@@ -154,7 +161,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 The profile bar at the top of the page:
 
 - **Switch** the profile (`团队配置` dropdown) that the next default teammate uses.
-- **新建配置** appends a profile with seven empty role rows.
+- **新建配置** appends a profile with eight empty role rows.
 - **配置名称** renames the selected profile. Names are required, unique, and at most 60 characters.
 - **删除配置** deletes the selected profile after a second confirming click. The last remaining profile cannot be deleted.
 
@@ -164,6 +171,19 @@ Each profile has one row per default member:
 - **Reasoning effort**: a second dropdown with the selected model's advertised efforts, plus a model-default option.
 
 An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. Plain `spawn_teammate` always inherits the Lead.
+
+Suggested capability tiers, as a starting point rather than a rule:
+
+| Role | Suggested tier | Why |
+| --- | --- | --- |
+| `designer` | Strongest | A design error invalidates every run |
+| `advisor` | Strongest, different family from designer | Independent critique needs a different view |
+| `builder` | High | Code correctness and long context |
+| `reviewer` | High, different family from builder and runner | Evidence audit needs its own lens |
+| `researcher` | Mid-high | Baseline and SOTA judgment |
+| `writer` | Mid | Organized writing from checked evidence |
+| `data` | Mid-low | Procedural acquisition with tools |
+| `runner` | Mid-low | Tool reliability over deep reasoning |
 
 The whole profile list is saved together, so switching profiles does not discard edits made in another one. The page validates names before saving and shows the server's error text when a save is rejected.
 
@@ -185,6 +205,7 @@ $DSH_HOME/research-team-settings.json
       "name": "默认配置",
       "roles": {
         "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "designer": { "provider": "", "model": "", "reasoningEffort": "" },
         "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
       }
     },
@@ -217,7 +238,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Set `false` to remove `spawn_teammate_with_model` and its service wrapper |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Subagent providers used by the modeled spawn tool; defaults `spawn` / `fork` |
 | `research-team-settings` row | `cordis.patch.yml` | Top-level host row; keep the package-root name |
-| Team model profiles | `$DSH_HOME/research-team-settings.json` | Named profiles; the active profile supplies provider/model/reasoningEffort for the seven default roles |
+| Team model profiles | `$DSH_HOME/research-team-settings.json` | Named profiles; the active profile supplies provider/model/reasoningEffort for the eight default roles |
 
 ## Repository layout
 
@@ -325,7 +346,7 @@ Open the working directory as a DSH project/workspace in the GUI or pass a known
 - Profile-level dependencies are not installed or enabled automatically. This repository documents them but does not manage them.
 - Team model profiles live in a standalone JSON file under `$DSH_HOME`; they are not part of DSH's standard config export/backup. Copy the file if you move machines.
 - The model menu is a native `<select>` with provider groups, not a searchable custom picker.
-- The mode does not auto-spawn seven teammates on session start. The Lead creates roles as the task requires.
+- The mode does not auto-spawn eight teammates on session start. The Lead creates roles as the task requires.
 - The mode never initializes a repository inside an existing repository, and it never commits the worklog or repository scaffold on its own.
 - Members may use one subagent layer; deeper delegation is intentionally disabled.
 

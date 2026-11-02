@@ -16,6 +16,7 @@ Unreleased preview.
 - Multiple named team model profiles: create, rename, switch, and delete profiles from the Plugins page, with seven role rows each, a provider-grouped model menu, and a separate reasoning-effort menu. The selected profile supplies the next teammate's route.
 - Profile settings persisted to `$DSH_HOME/research-team-settings.json` as `{ version: 2, activeProfileId, profiles }`, refreshed from disk on reads and teammate spawns. Legacy `{ roles: ... }` files migrate to a single `默认配置` profile.
 - Settings API: `GET/POST /api/dsh-research-team-settings` reads and writes the whole profile list; a legacy `{ roles: ... }` POST updates only the active profile.
+- Fixed `spawn_teammate_with_model` on current builds: Cordis wraps every Service instance in a traceable proxy whose method reads are re-wrapped on each access, so the old identity check reported "patch did not take effect" even after the wrapper was installed, and the tool stayed permanently unavailable. The patch now verifies the own property descriptor instead. The harness covers configured-role injection, explicit overrides, plain inheritance, and restore on dispose.
 - English system prompt and English README; full translations in 11 additional languages under `docs/`.
 - Fixed a settings loader bug from earlier builds: the file stores roles under `"roles"`, and the old loader passed the whole object to the role normalizer, producing all-empty settings after a restart.
 - MIT license.

@@ -66,32 +66,44 @@ function patchStartActivation(service) {
     return original.apply(this, arguments)
   }
 
+  const hadOwn = Object.prototype.hasOwnProperty.call(service, 'startActivation')
+
+  // Cordis wraps every Service instance in a traceable proxy (the Service
+  // constructor stamps a tracker symbol), and reading a function property
+  // returns a fresh shadow-method proxy every time. An identity check such as
+  // `service.startActivation === wrapped` therefore can never pass. Assign
+  // through the proxy (its `set` forwards onto the real instance) and verify
+  // the own data descriptor instead, which is stable.
+  const install = (holder) => {
+    try {
+      holder.startActivation = wrapped
+    } catch {
+      return false
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(holder, 'startActivation')
+    return descriptor !== undefined && descriptor.value === wrapped
+  }
+
   let target = service
-  let own = Object.prototype.hasOwnProperty.call(service, 'startActivation')
-  try {
-    service.startActivation = wrapped
-  } catch {}
-  if (service.startActivation !== wrapped) {
+  if (!install(service)) {
     const proto = Object.getPrototypeOf(service)
-    const protoOriginal = proto === null ? undefined : proto.startActivation
-    if (typeof protoOriginal !== 'function') {
+    const protoMethod = proto === null ? undefined : proto.startActivation
+    if (typeof protoMethod !== 'function') {
       throw new Error('subagents.startActivation is not writable')
     }
-    proto.startActivation = wrapped
+    if (!install(proto)) {
+      throw new Error('subagents.startActivation patch did not take effect (the service method may be shadowed or non-writable)')
+    }
     target = proto
-    own = false
-  }
-  if (target.startActivation !== wrapped || service.startActivation !== wrapped) {
-    throw new Error('subagents.startActivation patch did not take effect (the service method may be shadowed or non-writable)')
   }
 
   const restore = () => {
     if (patches.get(service) !== restore) return
     patches.delete(service)
     if (target === service) {
-      if (own) service.startActivation = original
+      if (hadOwn) service.startActivation = original
       else delete service.startActivation
-    } else if (target.startActivation === wrapped) {
+    } else if (Object.getOwnPropertyDescriptor(target, 'startActivation')?.value === wrapped) {
       target.startActivation = original
     }
   }

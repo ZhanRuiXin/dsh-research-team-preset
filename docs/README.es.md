@@ -97,7 +97,7 @@ Lead: summarize -> user acceptance (done)
 | Rol | Responsabilidad |
 | --- | --- |
 | `advisor` | Evaluación independiente de la dirección, el enfoque, las afirmaciones centrales, la suficiencia de la evidencia y la estrategia del artículo; recomienda continuar / revisar / detenerse. Solo asesoramiento, no una puerta |
-| `researcher` | Búsqueda de literatura, adquisición, lectura atenta, extracción de evidencia y una tabla de evidencia afirmación → fuente → ubicación |
+| `researcher` | Búsqueda de literatura, adquisición, lectura atenta, extracción de evidencia y una tabla de evidencia afirmación → fuente → ubicación. Primero busca en la biblioteca compartida de Zotero, importa el artículo completo en su versión formal, con su PDF, cuando falta una obra necesaria, deduplica por DOI y título y comparte las referencias `zotero://` con el equipo |
 | `data` | Adquisición de conjuntos de datos y pesos de modelos externos, con disponibilidad de la fuente y estado de licencia/acceso, herramientas de descarga con reanudación y manejo de límites de tasa, verificación de integridad contra hashes del editor, descompresión, contrato de manifiesto, muestra pequeña validada y registro de disco. No escribe código de entrenamiento ni modifica el protocolo de evaluación |
 | `builder` | Código, configuración, canalizaciones de datos, pruebas y puntos de entrada reproducibles; sin entrenamientos largos |
 | `runner` | Iniciar y monitorear entrenamiento/evaluación; registrar ids de ejecución, configuraciones, semillas, métricas, logs, checkpoints y rutas de artefactos |
@@ -105,6 +105,10 @@ Lead: summarize -> user acceptance (done)
 | `writer` | Borrador de artículo en LaTeX: prosa, secciones, tablas, pies de figura, citas y código de figuras; no ejecuta experimentos ni cambia código/modelos |
 
 El Lead se encarga de la aclaración del objetivo, la descomposición, la gestión del tablero, el despacho, la integración, los resúmenes, el ensamblaje final de los activos y la entrega. Los miembros pueden usar una capa de subagente para una subtarea acotada; no pueden crear compañeros de equipo. El Lead mantiene ligero su propio uso de herramientas, prefiere una breve actualización al usuario antes que otra llamada rutinaria y deja el trabajo profundo al miembro correspondiente.
+
+### Biblioteca compartida de Zotero
+
+El researcher considera la biblioteca de Zotero del usuario como la fuente de literatura compartida del equipo. Busca en las colecciones y los elementos existentes antes que en la web abierta, reutiliza los PDF adjuntos y los pasajes de anotación e importa un artículo ausente solo en su versión formal de registro, con el PDF adjunto y archivado en una colección del proyecto. Las importaciones deduplican por DOI y título, no tocan las etiquetas ni las colecciones del usuario y registran la referencia de elemento `zotero://` en la tabla de evidencia y en la tarjeta del tablero, de modo que todos los compañeros lean el mismo artículo y el reviewer pueda verificar por muestreo las mismas páginas. Cuando el texto completo está detrás de un muro de pago o solo existen metadatos, el researcher registra el enlace y marca la evidencia como solo metadatos en lugar de importar un sustituto.
 
 ## Flujo de trabajo del tablero de tareas
 

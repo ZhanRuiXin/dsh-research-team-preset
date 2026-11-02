@@ -110,18 +110,18 @@ Lead отвечает за уточнение цели, декомпозицию
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-Доска — единственный реестр задач. Не храните учёт результатов только в чате. `team_task_*` служит для временной координации, а не для результатов.
+Карточку на доске получают только шаги, ожидающие проверки или приёмки пользователя: контрольные точки результата, решения о границах работы, которые пользователь должен подтвердить, рискованные изменения и финальная передача. Внутренние шаги, самостоятельно одобренные подзадачи и передачи между участниками ведутся в `team_task_*` и не попадают на доску; на контрольной точке карточка хранит результат, его доказательства и вердикт проверки.
 
 ## Работа с Git
 

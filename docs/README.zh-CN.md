@@ -110,18 +110,18 @@ Lead 负责目标澄清、任务拆解、看板管理、分派、整合、总结
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-看板是唯一的任务账本。不要只在聊天中跟踪交付物。`team_task_*` 用于临时协作，不用于交付物。
+只有需要用户审查或验收的步骤才建立看板卡片，例如交付物节点、需要用户确认的范围决策、风险改动和最终交接。内部步骤、自行批准的子任务以及成员之间的交接用 `team_task_*` 跟踪，不进入看板；到达验收节点时，交付物、证据和评审结论都记录在卡片上。
 
 ## Git 工作流
 

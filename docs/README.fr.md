@@ -110,18 +110,18 @@ Le Lead est responsable de la clarification de l'objectif, de la décomposition,
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-Le tableau est le registre unique des tâches. Ne suivez pas les livrables uniquement dans le chat. `team_task_*` sert à la coordination transitoire, pas aux livrables.
+Seules les étapes qui attendent la revue ou la validation de l'utilisateur reçoivent une carte du tableau : jalons de livrable, décisions de périmètre à confirmer, changements risqués et remise finale. Les étapes internes, les sous-tâches auto-approuvées et les passations entre membres sont suivies dans `team_task_*` et restent hors du tableau ; à la porte, la carte garde le livrable, ses preuves et le verdict de revue.
 
 ## Flux Git
 

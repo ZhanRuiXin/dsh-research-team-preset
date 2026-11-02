@@ -110,18 +110,18 @@ Lead लक्ष्य-स्पष्टीकरण, कार्य-वि�
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-बोर्ड ही एकमात्र टास्क लेजर है। डिलीवरेबल की ट्रैकिंग केवल चैट में न रखें। `team_task_*` क्षणिक समन्वय के लिए है, डिलीवरेबल के लिए नहीं।
+केवल वे चरण जो उपयोगकर्ता की समीक्षा या स्वीकृति की प्रतीक्षा करते हैं, बोर्ड कार्ड पाते हैं: डिलीवरेबल चेकपॉइंट, उपयोगकर्ता द्वारा पुष्टि किए जाने वाले दायरे के निर्णय, जोखिम भरे बदलाव और अंतिम हैंडऑफ़। आंतरिक चरण, स्वयं-स्वीकृत उप-कार्य और सदस्यों के बीच हैंडऑफ़ `team_task_*` में ट्रैक होते हैं और बोर्ड से बाहर रहते हैं; गेट पर पहुँचने पर कार्ड डिलीवरेबल, उसके प्रमाण और समीक्षा निर्णय रखता है।
 
 ## Git वर्कफ़्लो
 

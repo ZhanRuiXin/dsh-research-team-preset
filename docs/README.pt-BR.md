@@ -110,18 +110,18 @@ O Lead é responsável por esclarecer o objetivo, decompor o trabalho, gerenciar
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-O quadro é o único registro de tarefas. Não mantenha o acompanhamento de entregáveis apenas no chat. `team_task_*` serve para coordenação transitória, não para entregáveis.
+Só etapas que aguardam revisão ou aceite do usuário recebem um cartão do quadro: marcos de entregável, decisões de escopo que o usuário precisa confirmar, mudanças de risco e a entrega final. Etapas internas, subtarefas autoaprovadas e passagens entre membros são acompanhadas em `team_task_*` e ficam fora do quadro; ao chegar ao gate, o cartão guarda o entregável, suas evidências e o veredito de revisão.
 
 ## Fluxo de trabalho com Git
 

@@ -110,18 +110,18 @@ El Lead se encarga de la aclaración del objetivo, la descomposición, la gesti�
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-El tablero es el único registro de tareas. No lleves el seguimiento de los entregables solo en el chat. `team_task_*` es para la coordinación transitoria, no para los entregables.
+Solo las etapas que esperan la revisión o aceptación del usuario reciben una tarjeta del tablero: hitos de entregable, decisiones de alcance que el usuario debe confirmar, cambios de riesgo y la entrega final. Las etapas internas, las subtareas autoaprobadas y los traspasos entre miembros se siguen en `team_task_*` y quedan fuera del tablero; al llegar a la puerta, la tarjeta conserva el entregable, sus pruebas y el veredicto de revisión.
 
 ## Flujo de trabajo con Git
 

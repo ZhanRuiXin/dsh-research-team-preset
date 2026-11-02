@@ -110,18 +110,18 @@ The Lead owns goal clarification, decomposition, board management, dispatch, int
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-The board is the single task ledger. Do not keep deliverable tracking only in chat. `team_task_*` is for transient coordination, not deliverables.
+Only steps waiting for the user's review or acceptance get a board card: deliverable checkpoints, scope decisions the user must confirm, risky changes, and the final handoff. Internal steps, self-approved subtasks, and member-to-member handoffs are tracked in `team_task_*` and stay off the board; when a gate is reached, the card keeps the deliverable, its evidence, and the review verdict.
 
 ## Git workflow
 

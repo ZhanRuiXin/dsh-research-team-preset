@@ -110,18 +110,18 @@ Lead は、目標の明確化、分解、ボード管理、割り当て、統合
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-ボードが唯一のタスク台帳です。成果物の追跡をチャットだけで行わないでください。`team_task_*` は一時的な調整用であり、成果物用ではありません。
+ユーザーの確認や受け入れが必要なステップだけがボードのカードになります。成果物のチェックポイント、ユーザーが承認すべきスコープ判断、リスクの高い変更、最終引き渡しが対象です。内部ステップ、自己承認したサブタスク、メンバー間の引き継ぎは `team_task_*` で追跡し、ボードには載せません。ゲートに達したら、成果物・証拠・レビュー判定はカードに残します。
 
 ## Git ワークフロー
 

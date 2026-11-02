@@ -51,7 +51,7 @@ __pycache__/
 `
 
 /** English counterpart of dsh-taskboard's protocol section (same rules). */
-const TASKBOARD_PROTOCOL_EN = `The dsh-taskboard plugin (DSH task board) is installed: tasks belong to projects (DSH workspaces) and are read and written with the taskboard_* tools; the human sees the same data live on the Web GUI board. Capabilities: list/get, create, update, move, comment_add/comments, delete (mark only), checklist, execution_report. Tasks carry urgency (urgent red / normal purple / relaxed blue), execution mode (claim / scheduled), and an optional pinned model.
+const TASKBOARD_PROTOCOL_EN = `The dsh-taskboard plugin (DSH task board) is installed: tasks belong to projects (DSH workspaces) and are read and written with the taskboard_* tools; the human sees the same data live on the Web GUI board. Capabilities: list/get, create, update, move, comment_add/comments, delete (mark only), checklist, execution_report. Tasks carry urgency (urgent red / normal purple / relaxed blue), execution mode (claim / scheduled), and an optional pinned model. Board cards mark steps that need the user's review or acceptance (deliverable checkpoints, scope decisions, risky changes, final handoff); internal assignments and member-to-member handoffs use team_task_* and stay off the board.
 Working discipline:
 1. Check the board before starting work: call taskboard_list (filtered to this project, status=todo) before starting, and claim a claimable task in the stated order.
 2. Read before acting: call taskboard_get and read every comment before touching a card. Comments are the latest requirements; if they ask you to wait or pause, stop and report without changing status.

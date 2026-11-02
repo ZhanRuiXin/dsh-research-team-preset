@@ -110,18 +110,18 @@ Der Lead verantwortet Zielklärung, Zerlegung, Board-Verwaltung, Zuweisung, Inte
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-Das Board ist das einzige Aufgabenregister. Behalten Sie die Nachverfolgung von Deliverables nicht nur im Chat. `team_task_*` dient der temporären Koordination, nicht der Verwaltung von Deliverables.
+Nur Schritte, die die Prüfung oder Abnahme durch die Nutzerin oder den Nutzer brauchen, bekommen eine Board-Karte: Deliverable-Checkpoints, Scope-Entscheidungen, die bestätigt werden müssen, riskante Änderungen und die finale Übergabe. Interne Schritte, selbst freigegebene Unteraufgaben und Übergaben zwischen Mitgliedern werden in `team_task_*` verfolgt und bleiben vom Board fern; am Gate hält die Karte das Deliverable, seine Belege und das Review-Urteil.
 
 ## Git-Workflow
 

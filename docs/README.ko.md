@@ -110,18 +110,18 @@ Lead는 목표 명확화, 분해, 보드 관리, 배정, 통합, 요약, 최종 
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create (checklist, presetId=research-team)
-       -> comment the owner -> send_message
-Member: taskboard_get (read comments) -> taskboard_move todo -> in_progress
-       -> work -> taskboard_checklist (with evidence) -> taskboard_execution_report
-       -> taskboard_comment_add -> taskboard_move -> in_review
-Reviewer: independent PASS/FAIL with evidence
+Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
+       -> team_task_create (owner, blocked_by, write scopes) -> send_message
+Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
+Internal steps and member handoffs stay off the board; only user gates get cards
+At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
+Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or before submission
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-보드는 유일한 작업 원장입니다. 산출물 추적을 채팅에만 두지 마십시오. `team_task_*`는 일시적인 협업을 위한 것이지 산출물을 위한 것이 아닙니다.
+사용자의 검토나 승인이 필요한 단계만 보드 카드가 됩니다. 산출물 체크포인트, 사용자가 확인해야 할 범위 결정, 위험한 변경, 최종 인계가 여기에 해당합니다. 내부 단계, 스스로 승인한 하위 작업, 구성원 간 인계는 `team_task_*`로 추적하고 보드에는 올리지 않습니다. 게이트에 도달하면 산출물, 근거, 검토 판정은 카드에 남깁니다.
 
 ## Git 워크플로
 

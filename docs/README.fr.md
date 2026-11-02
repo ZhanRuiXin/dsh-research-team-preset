@@ -121,7 +121,7 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-Seules les étapes qui attendent la revue ou la validation de l'utilisateur reçoivent une carte du tableau : jalons de livrable, décisions de périmètre à confirmer, changements risqués et remise finale. Les étapes internes, les sous-tâches auto-approuvées et les passations entre membres sont suivies dans `team_task_*` et restent hors du tableau ; à la porte, la carte garde le livrable, ses preuves et le verdict de revue. Les membres de l'équipe se coordonnent en interne en anglais ; les réponses destinées à l'utilisateur, les cartes et les livrables suivent la langue de l'utilisateur.
+Seules les étapes qui attendent la revue ou la validation de l'utilisateur reçoivent une carte du tableau : jalons de livrable, décisions de périmètre à confirmer, changements risqués et remise finale. Les étapes internes, les sous-tâches auto-approuvées et les passations entre membres sont suivies dans `team_task_*` et restent hors du tableau ; à la porte, la carte garde le livrable, ses preuves et le verdict de revue. Les membres de l'équipe se coordonnent en interne en anglais ; les réponses destinées à l'utilisateur, les cartes et les livrables suivent la langue de l'utilisateur. Lorsqu’une décision ou une information manquante revient à l’utilisateur, le Lead demande directement avec `ask_user_question` au lieu de laisser un état d’attente sur la carte. Si la question expire, le Lead demande un avis indépendant à l’advisor, le consigne, puis poursuit le travail.
 
 ## Flux Git
 

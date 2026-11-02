@@ -121,7 +121,7 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-Only steps waiting for the user's review or acceptance get a board card: deliverable checkpoints, scope decisions the user must confirm, risky changes, and the final handoff. Internal steps, self-approved subtasks, and member-to-member handoffs are tracked in `team_task_*` and stay off the board; when a gate is reached, the card keeps the deliverable, its evidence, and the review verdict. Team members coordinate internally in English; user-facing replies, cards, and deliverables follow the user's language.
+Only steps waiting for the user's review or acceptance get a board card: deliverable checkpoints, scope decisions the user must confirm, risky changes, and the final handoff. Internal steps, self-approved subtasks, and member-to-member handoffs are tracked in `team_task_*` and stay off the board; when a gate is reached, the card keeps the deliverable, its evidence, and the review verdict. Team members coordinate internally in English; user-facing replies, cards, and deliverables follow the user's language. When a decision or missing information belongs to the user, the Lead asks with `ask_user_question` instead of leaving a waiting state on the card; if the question times out, the Lead asks the advisor for an independent recommendation, records it, and keeps the work moving.
 
 ## Git workflow
 

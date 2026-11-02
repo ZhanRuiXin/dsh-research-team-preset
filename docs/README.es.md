@@ -121,7 +121,7 @@ Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 
-Solo las etapas que esperan la revisión o aceptación del usuario reciben una tarjeta del tablero: hitos de entregable, decisiones de alcance que el usuario debe confirmar, cambios de riesgo y la entrega final. Las etapas internas, las subtareas autoaprobadas y los traspasos entre miembros se siguen en `team_task_*` y quedan fuera del tablero; al llegar a la puerta, la tarjeta conserva el entregable, sus pruebas y el veredicto de revisión. Los miembros del equipo se coordinan internamente en inglés; las respuestas al usuario, las tarjetas y los entregables siguen el idioma del usuario.
+Solo las etapas que esperan la revisión o aceptación del usuario reciben una tarjeta del tablero: hitos de entregable, decisiones de alcance que el usuario debe confirmar, cambios de riesgo y la entrega final. Las etapas internas, las subtareas autoaprobadas y los traspasos entre miembros se siguen en `team_task_*` y quedan fuera del tablero; al llegar a la puerta, la tarjeta conserva el entregable, sus pruebas y el veredicto de revisión. Los miembros del equipo se coordinan internamente en inglés; las respuestas al usuario, las tarjetas y los entregables siguen el idioma del usuario. Cuando una decisión o información faltante corresponde al usuario, el Lead pregunta directamente con `ask_user_question` en lugar de dejar un estado de espera en la tarjeta. Si la pregunta agota el tiempo, el Lead pide una recomendación independiente al advisor, la registra y continúa el trabajo.
 
 ## Flujo de trabajo con Git
 

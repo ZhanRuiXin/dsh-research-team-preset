@@ -97,7 +97,7 @@ Lead: summarize -> user acceptance (done)
 | Role | Responsibility |
 | --- | --- |
 | `advisor` | Independent assessment of direction, framing, central claims, evidence sufficiency, and paper strategy; recommends proceed / revise / stop. Advisory only, not a gate |
-| `researcher` | Literature search, acquisition, close reading, evidence extraction, and a claim → source → location evidence table |
+| `researcher` | Literature search, acquisition, close reading, evidence extraction, and a claim → source → location evidence table. Searches the shared Zotero library first, imports the formal full paper with its PDF when a needed work is missing, dedupes by DOI/title, and shares `zotero://` refs with the team |
 | `data` | External dataset and model-weight acquisition, including source availability and license/access status, download tooling with resume and rate-limit handling, integrity checks against publisher hashes, unpacking, the manifest contract, a small validated sample, and the disk ledger; does not write training code or change the evaluation protocol |
 | `builder` | Code, configuration, data pipelines, tests, and reproducible entry points; no long training runs |
 | `runner` | Start and monitor training/evaluation; record run ids, configs, seeds, metrics, logs, checkpoints, and artifact paths |
@@ -105,6 +105,10 @@ Lead: summarize -> user acceptance (done)
 | `writer` | LaTeX paper draft: prose, sections, tables, captions, citations, and figure code; does not run experiments or change code/models |
 
 The Lead owns goal clarification, decomposition, board management, dispatch, integration, summaries, final asset assembly, and delivery. Members may use one subagent layer for a scoped subtask; they cannot create teammates. The Lead keeps its own tool use light, favors a short user-facing update over another routine call, and leaves deep work to the owning member.
+
+### Shared Zotero library
+
+The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and on the board card, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
 
 ## Task board workflow
 

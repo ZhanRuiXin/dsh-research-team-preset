@@ -215,7 +215,7 @@ export function apply(ctx, config = {}) {
         ctx.agentTeams.spawnTeammate(agent, {
           name: args.name,
           description: args.description,
-          prompt: args.prompt,
+          prompt: [{ type: 'text', text: args.prompt }],
           context,
           provider,
           signal

@@ -9,9 +9,9 @@ window.__ModuleLoader__.load({
     const ROUTE = '/api/dsh-research-team-settings'
     const ROLES = [
       { id: 'advisor', zh: '学术顾问' },
+      { id: 'designer', zh: '实验设计' },
       { id: 'researcher', zh: '资料员' },
       { id: 'data', zh: '数据获取' },
-      { id: 'designer', zh: '实验设计' },
       { id: 'builder', zh: '代码构建' },
       { id: 'runner', zh: '训练与运行' },
       { id: 'reviewer', zh: '资料/代码审查' },

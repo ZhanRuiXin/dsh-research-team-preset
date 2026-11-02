@@ -137,7 +137,9 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 恢复时 agent 先读 PLAN 和 INDEX，再只读目标卡的状态块和尾部，不整读文件也不整读目录。PLAN 控制在约一百行，单卡文件约两百行，完成的卡从索引里撤掉。三种文件的精简模板就在预设 persona 里，任何会话都能直接创建或更新，不需要读本仓库。
 
-## 按角色的模型设置
+## 团队模型配置
+
+设置页为默认团队成员保留多个具名模型配置，下一次 spawn 时使用选中的那一个。
 
 打开：
 
@@ -145,12 +147,21 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
 ```
 
-每个默认成员占一行：
+页面顶部的配置栏：
+
+- **切换**：选择下一次默认 teammate 使用的配置（`团队配置` 下拉框）。
+- **新建配置**：追加一个含七个空角色行的配置。
+- **配置名称**：重命名选中的配置。名称必填、唯一，且最多 60 个字符。
+- **删除配置**：二次确认点击后删除选中的配置。最后一个配置无法删除。
+
+每个配置中，每个默认成员各占一行：
 
 - **Model**：一个下拉框，包含所有 provider 的模型，provider 分组标题不可点击。选择一个模型会同时设置 provider 和 model。
 - **Reasoning effort**：第二个下拉框，包含所选模型声明的推理强度，外加一个「模型默认」选项。
 
-空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取该角色的默认值；显式传入的 `model` 会覆盖它。直接调用 `spawn_teammate` 始终继承 Lead。
+空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取选中配置中该角色的默认值；显式传入的 `model` 会覆盖它。直接调用 `spawn_teammate` 始终继承 Lead。
+
+整个配置列表会一起保存，因此切换配置不会丢弃在另一个配置中所做的修改。页面在保存前校验名称，保存被拒绝时显示服务端的错误文本。
 
 行名称很重要：`research-team-settings` 必须保持在**包根目录** `@local/dsh-research-team-preset`。DSH 的 client 模块扫描器只会为精确的包根行发现 `dsh.client`；子路径名称会启动 host 插件，但永远不会加载页面。
 
@@ -162,19 +173,36 @@ $DSH_HOME/research-team-settings.json
 
 ```json
 {
-  "roles": {
-    "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
-    "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
-  }
+  "version": 2,
+  "activeProfileId": "default",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "默认配置",
+      "roles": {
+        "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    },
+    {
+      "id": "p-example",
+      "name": "快速实验",
+      "roles": {
+        "advisor": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    }
+  ]
 }
 ```
 
+- `activeProfileId` 指定下一个 teammate 使用的配置。该值缺失或未知时，服务端回退到第一个配置。
+- 旧文件（`{ "roles": { ... } }` 或裸的角色映射）会在内存中迁移为单个名为 `默认配置` 的配置；文件会在下一次保存时改写为配置结构。旧的 `POST { "roles": ... }` 只更新活动配置，因此旧脚本不会丢掉其他配置。
 - JSON 文件是唯一事实来源。host 插件在启动时加载它；`getSettings()` 和 `modelForRole()` 会从中刷新，因此页面和下一个 teammate 都能看到最新值。
 - 文件缺失或暂时无法读取时，会保留最后一次有效的内存快照，而不是将其清空。
 - 设置文件**不在**本仓库中。请单独备份。它按 `DSH_HOME` 区分，而不是按 profile 区分。
-- 不存储任何凭据；只保存 provider/model/effort 字符串。
-- 保存设置无需重启 DSH 即可生效。首次安装设置行/client 页面，以及修改 preset/插件后，需要重启。
-- 0.1.0 版本修复了早期构建中的一个加载器 bug：文件把角色包在 `"roles"` 下，而旧加载器把整个对象传给角色规范化器，导致重启后设置全部为空。当前加载器会解包 `"roles"`，并兼容只包含角色映射的裸格式。
+- 不存储任何凭据；只保存配置名称和 provider/model/effort 字符串。
+- 保存设置无需重启 DSH 即可生效：设置存储会重新读取文件，下一次 spawn 会解析活动配置。修改本插件自身的代码仍需重启 DSH，因为 host 部分在 host 层注册 WebSocket/HTTP 路由和「插件」页插槽。
+- 0.1.0 版本修复了早期构建中的一个加载器 bug：文件把角色包在 `"roles"` 下，而旧加载器把整个对象传给角色规范化器，导致重启后设置全部为空。当前加载器会解包 `"roles"`，迁移旧文件，并兼容裸的角色映射。
 
 ## 配置参考
 
@@ -185,7 +213,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | 设为 `false` 可移除 `spawn_teammate_with_model` 及其服务包装 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn 工具使用的 subagent provider；默认 `spawn` / `fork` |
 | `research-team-settings` 行 | `cordis.patch.yml` | 顶层 host 行；保持包根名称 |
-| 按角色路由 | `$DSH_HOME/research-team-settings.json` | 七个默认角色的 provider/model/reasoningEffort |
+| 团队模型配置 | `$DSH_HOME/research-team-settings.json` | 具名配置；活动配置为七个默认角色提供 provider/model/reasoningEffort |
 
 ## 仓库结构
 
@@ -200,11 +228,11 @@ research-team-preset/
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared settings snapshot + disk refresh
+│   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
-│   └── index.js                  # Settings file + /api/dsh-research-team-settings
+│   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
-│   └── index.js                  # plugins.row.config form (model/effort dropdowns)
+│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -224,8 +252,8 @@ research-team-preset/
 - **Preset**：`cordis.patch.yml` 声明 persona、工具行、modeled-teammates 子模块和顶层设置行。
 - **任务看板提示**：`plugin/index.js` 在 preset 作用域注册英文协议段（`plugin:dsh-taskboard`），并提供 `research_project` 用于解析当前工作区。
 - **按角色路由**：`plugin/modeled-teammates.js` 通过 `AsyncLocalStorage` 包装 `subagents.startActivation`，只对 `spawn_teammate_with_model` 调用注入 `agentOptions`。官方 Agent Teams 包未被修改。
-- **设置**：`settings/index.js` 加载/保存 JSON 文件并提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 通过 `plugins.row.config` 注册「插件」页的行表单。
-- **刷新**：`plugin/settings-store.js` 持有内存快照，在读取和 spawn 时从磁盘刷新，读取失败时保留最后一次有效快照。
+- **设置**：`settings/index.js` 加载/保存配置 JSON 文件并提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 通过 `plugins.row.config` 注册「插件」页的配置编辑器。
+- **刷新**：`plugin/settings-store.js` 持有内存快照，在每次读取和 spawn 时解析活动配置，并在读取失败时保留最后一次有效快照。
 
 ## 验证清单
 
@@ -236,8 +264,12 @@ new session -> Research Team Mode
 list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
 taskboard_list                           # matches the GUI board
-Plugins -> bundle -> research-team-settings -> Configure   # page visible
-save a role model -> restart -> page still shows it
+Plugins -> bundle -> research-team-settings -> Configure   # 页面可见
+新建配置 -> 命名 -> 保存 -> 重新打开页面 -> 两个配置都会列出
+选择另一个配置 -> 保存 -> spawn_teammate_with_model 会使用它
+删除一个配置 -> 保存 -> 只剩剩余的那个配置
+旧 {roles} 文件 -> 重启 -> 显示为 默认配置
+保存某个角色的模型 -> 重启 -> 页面仍会显示
 ```
 
 无需 UI 也可以检查设置的持久化路径：
@@ -252,7 +284,8 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 0.1.0 版本修复了已知原因：旧加载器把整个 `{ roles: ... }` 对象传给角色规范化器，导致设置全部为空。请更新到 0.1.0 或更高版本，重启 DSH，并检查：
 
-- `$DSH_HOME/research-team-settings.json` 存在并且包含已保存的角色；
+- `$DSH_HOME/research-team-settings.json` 存在并且包含已保存的配置；
+- 旧的 `{ "roles": ... }` 文件会显示为单个 `默认配置` 配置，并在下一次保存时改写为配置结构；
 - `research-team-settings` 行的名称完全为 `@local/dsh-research-team-preset`；
 - 当前 host 运行的是本 checkout，而不是过期的已安装副本。
 
@@ -286,7 +319,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 - 按角色的模型路由是一个内部服务包装，不是官方的 Agent Teams 扩展。DSH 升级可能破坏它；回退方案见上文。
 - profile 级依赖不会被自动安装或启用。本仓库记录它们，但不负责管理。
-- 角色设置保存在 `$DSH_HOME` 下的独立 JSON 文件中；它们不属于 DSH 标准配置导出/备份的一部分。更换机器时请复制该文件。
+- 团队模型配置保存在 `$DSH_HOME` 下的独立 JSON 文件中；它们不属于 DSH 标准配置导出/备份的一部分。更换机器时请复制该文件。
 - 模型菜单是带 provider 分组的原生 `<select>`，不是可搜索的自定义选择器。
 - 该模式不会在会话启动时自动创建七名 teammate。Lead 按任务需要创建角色。
 - 该模式不会在已有仓库内部再初始化仓库，也不会自行提交工作日志或仓库脚手架。

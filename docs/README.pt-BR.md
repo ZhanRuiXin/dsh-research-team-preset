@@ -137,7 +137,9 @@ O trabalho que pode abranger várias sessões mantém um registro pequeno e limi
 
 Ao retomar, o agente lê primeiro PLAN e INDEX e depois apenas o bloco de estado e o final do cartão alvo, nunca o arquivo inteiro nem o diretório inteiro. PLAN fica abaixo de cerca de 100 linhas, os arquivos de cartão abaixo de cerca de 200, e os cartões concluídos são retirados do índice. Modelos compactos dos três arquivos ficam na persona do preset, então qualquer sessão pode criá-los ou atualizá-los sem ler este repositório.
 
-## Configurações de modelo por função
+## Perfis de modelo da equipe
+
+A página de configurações mantém vários perfis de modelo nomeados para os membros padrão da equipe e usa o selecionado no próximo spawn.
 
 Abra:
 
@@ -145,12 +147,21 @@ Abra:
 Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
 ```
 
-Cada membro padrão ocupa uma linha:
+A barra de perfis no topo da página:
+
+- **Alternar** o perfil (menu suspenso `团队配置`) que o próximo membro padrão da equipe usará.
+- **新建配置** acrescenta um perfil com sete linhas de função vazias.
+- **配置名称** renomeia o perfil selecionado. Os nomes são obrigatórios, exclusivos e têm no máximo 60 caracteres.
+- **删除配置** exclui o perfil selecionado após um segundo clique de confirmação. O último perfil restante não pode ser excluído.
+
+Cada perfil tem uma linha por membro padrão:
 
 - **Modelo**: um menu suspenso que contém os modelos de todos os provedores, com cabeçalhos de grupo de provedor não clicáveis. Selecionar um modelo define provedor e modelo ao mesmo tempo.
 - **Esforço de raciocínio**: um segundo menu suspenso com os esforços oferecidos pelo modelo selecionado, além de uma opção de padrão do modelo.
 
-Um modelo vazio significa “herdar a rota do Lead”; um esforço vazio significa “usar o padrão do modelo”. `spawn_teammate_with_model` lê o padrão por função quando `model` é omitido; um `model` explícito tem precedência. O `spawn_teammate` simples sempre herda do Lead.
+Um modelo vazio significa “herdar a rota do Lead”; um esforço vazio significa “usar o padrão do modelo”. `spawn_teammate_with_model` lê o padrão por função do perfil selecionado quando `model` é omitido; um `model` explícito tem precedência. O `spawn_teammate` simples sempre herda do Lead.
+
+A lista completa de perfis é salva em conjunto, então alternar entre perfis não descarta edições feitas em outro. A página valida os nomes antes de salvar e mostra o texto de erro do servidor quando um salvamento é rejeitado.
 
 O nome da linha importa: `research-team-settings` deve permanecer na **raiz do pacote** `@local/dsh-research-team-preset`. O scanner de módulos cliente do DSH só descobre `dsh.client` em linhas que são exatamente a raiz do pacote; um nome com subcaminho inicia o plugin host, mas nunca carrega a página.
 
@@ -162,19 +173,36 @@ $DSH_HOME/research-team-settings.json
 
 ```json
 {
-  "roles": {
-    "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
-    "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
-  }
+  "version": 2,
+  "activeProfileId": "default",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "默认配置",
+      "roles": {
+        "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    },
+    {
+      "id": "p-example",
+      "name": "快速实验",
+      "roles": {
+        "advisor": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    }
+  ]
 }
 ```
 
+- `activeProfileId` indica o perfil usado pelo próximo membro da equipe. O servidor recorre ao primeiro perfil quando ele está ausente ou é desconhecido.
+- Um arquivo legado (`{ "roles": { ... } }` ou um mapa de funções sem wrapper) é migrado em memória para um único perfil chamado `默认配置`; o arquivo é reescrito no formato de perfis no próximo salvamento. Um `POST { "roles": ... }` legado atualiza apenas o perfil ativo, então scripts antigos não podem remover os outros perfis.
 - O arquivo JSON é a fonte da verdade. O plugin host o carrega na inicialização; `getSettings()` e `modelForRole()` se atualizam a partir dele, de modo que a página e o próximo membro da equipe veem os valores mais recentes.
 - Um arquivo ausente ou temporariamente ilegível mantém o último snapshot em memória válido em vez de apagá-lo.
 - O arquivo de configurações **não** está neste repositório. Faça backup separadamente. Ele é por `DSH_HOME`, e não por perfil.
-- Nenhuma credencial é armazenada; apenas strings de provedor/modelo/esforço.
-- Salvar configurações tem efeito sem reiniciar o DSH. Reiniciar é necessário para a primeira instalação da linha de configurações/página cliente e para mudanças de preset/plugin.
-- A versão 0.1.0 corrige um bug de loader em builds anteriores: o arquivo agrupa as funções sob `"roles"`, e o loader antigo passava o objeto inteiro para o normalizador de funções, o que produzia configurações totalmente vazias após reiniciar. O loader atual desembrulha `"roles"` e também aceita um mapa de funções sem wrapper, por compatibilidade.
+- Nenhuma credencial é armazenada; apenas nomes de perfil e strings de provedor/modelo/esforço.
+- Salvar configurações tem efeito sem reiniciar o DSH: o armazenamento relê o arquivo e o próximo spawn resolve o perfil ativo. Alterar o código deste plugin ainda exige reiniciar o DSH, porque a metade host registra uma rota WebSocket/HTTP e um slot da página de Plugins no nível host.
+- A versão 0.1.0 corrige um bug de loader em builds anteriores: o arquivo agrupa as funções sob `"roles"`, e o loader antigo passava o objeto inteiro para o normalizador de funções, o que produzia configurações totalmente vazias após reiniciar. O loader atual desembrulha `"roles"`, migra arquivos antigos e também aceita um mapa de funções sem wrapper, por compatibilidade.
 
 ## Referência de configuração
 
@@ -185,7 +213,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Defina como `false` para remover `spawn_teammate_with_model` e seu wrapper de serviço |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Provedores de subagente usados pela ferramenta de spawn modelada; padrões `spawn` / `fork` |
 | Linha `research-team-settings` | `cordis.patch.yml` | Linha host de nível superior; mantenha o nome na raiz do pacote |
-| Rotas por função | `$DSH_HOME/research-team-settings.json` | Provedor/modelo/reasoningEffort para as sete funções padrão |
+| Perfis de modelo da equipe | `$DSH_HOME/research-team-settings.json` | Perfis nomeados; o perfil ativo fornece provider/model/reasoningEffort para as sete funções padrão |
 
 ## Estrutura do repositório
 
@@ -200,11 +228,11 @@ research-team-preset/
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared settings snapshot + disk refresh
+│   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
-│   └── index.js                  # Settings file + /api/dsh-research-team-settings
+│   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
-│   └── index.js                  # plugins.row.config form (model/effort dropdowns)
+│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -224,8 +252,8 @@ research-team-preset/
 - **Preset**: `cordis.patch.yml` declara a persona, as linhas de ferramentas, o submódulo modeled-teammates e a linha de configurações de nível superior.
 - **Prompt do quadro de tarefas**: `plugin/index.js` registra uma seção de protocolo em inglês (`plugin:dsh-taskboard`) no escopo do preset e fornece `research_project` para resolver o workspace atual.
 - **Roteamento por função**: `plugin/modeled-teammates.js` envolve `subagents.startActivation` com `AsyncLocalStorage` e injeta `agentOptions` apenas em uma chamada `spawn_teammate_with_model`. O pacote oficial do Agent Teams permanece intacto.
-- **Configurações**: `settings/index.js` carrega e salva o arquivo JSON e serve `GET/POST /api/dsh-research-team-settings`; `client/index.js` registra o formulário de linha da página de Plugins via `plugins.row.config`.
-- **Atualização**: `plugin/settings-store.js` mantém o snapshot em memória, atualiza a partir do disco em leituras e spawns e preserva o último snapshot válido se uma leitura falhar.
+- **Configurações**: `settings/index.js` carrega e salva o arquivo JSON de perfis e serve `GET/POST /api/dsh-research-team-settings`; `client/index.js` registra o editor de perfis da página de Plugins via `plugins.row.config`.
+- **Atualização**: `plugin/settings-store.js` mantém o snapshot em memória, resolve o perfil ativo em cada leitura e spawn e preserva o último snapshot válido se uma leitura falhar.
 
 ## Lista de verificação
 
@@ -237,7 +265,11 @@ list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
 taskboard_list                           # matches the GUI board
 Plugins -> bundle -> research-team-settings -> Configure   # page visible
-save a role model -> restart -> page still shows it
+新建配置 -> dê um nome -> salve -> reabra a página -> os dois perfis listados
+selecione outro perfil -> salve -> spawn_teammate_with_model o usa
+exclua um perfil -> salve -> só o perfil restante existe
+arquivo legado {roles} -> reinicie -> aparece como 默认配置
+salve o modelo de uma função -> reinicie -> a página ainda o mostra
 ```
 
 O caminho de persistência das configurações pode ser verificado sem a interface:
@@ -252,7 +284,8 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 A versão 0.1.0 corrige a causa conhecida: o loader antigo passava o objeto `{ roles: ... }` inteiro para o normalizador de funções e produzia configurações totalmente vazias. Atualize para 0.1.0 ou mais recente, reinicie o DSH e verifique se:
 
-- `$DSH_HOME/research-team-settings.json` existe e contém as funções salvas;
+- `$DSH_HOME/research-team-settings.json` existe e contém os perfis salvos;
+- arquivos antigos `{ "roles": ... }` são mostrados como um único perfil `默认配置` e são reescritos no formato de perfis no próximo salvamento;
 - a linha `research-team-settings` tem exatamente o nome `@local/dsh-research-team-preset`;
 - o host atual está executando este checkout, e não uma cópia instalada desatualizada.
 
@@ -286,7 +319,7 @@ Abra o diretório de trabalho como um projeto/workspace do DSH na GUI ou passe u
 
 - O roteamento de modelo por função é um wrapper de serviço interno, não uma extensão oficial do Agent Teams. Atualizações do DSH podem quebrá-lo; o fallback está documentado acima.
 - Dependências de nível de perfil não são instaladas nem ativadas automaticamente. Este repositório as documenta, mas não as gerencia.
-- As configurações de função ficam em um arquivo JSON autônomo em `$DSH_HOME`; elas não fazem parte da exportação/backup padrão de configuração do DSH. Copie o arquivo se você trocar de máquina.
+- Os perfis de modelo da equipe ficam em um arquivo JSON autônomo em `$DSH_HOME`; eles não fazem parte da exportação/backup padrão de configuração do DSH. Copie o arquivo se você trocar de máquina.
 - O menu de modelos é um `<select>` nativo com grupos de provedor, não um seletor personalizado com busca.
 - O modo não cria automaticamente sete membros da equipe ao iniciar a sessão. O Lead cria as funções conforme a tarefa exige.
 - O modo nunca inicializa um repositório dentro de um repositório existente e nunca faz commit por conta própria do worklog nem do andaime do repositório.

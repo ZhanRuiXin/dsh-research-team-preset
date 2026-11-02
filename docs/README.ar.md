@@ -137,7 +137,9 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 عند الاستئناف يقرأ الوكيل PLAN وINDEX أولًا، ثم كتلة حالة البطاقة المستهدفة وذيلها فقط، ولا يقرأ الملف كاملًا ولا الدليل كاملًا. يبقى PLAN ضمن نحو 100 سطر وملفات البطاقات ضمن نحو 200، وتُزال البطاقات المكتملة من الفهرس. القوالب المكثفة للملفات الثلاثة موجودة في persona الإعداد المسبق، فيمكن لأي جلسة إنشاؤها أو تحديثها دون قراءة هذا المستودع.
 
-## إعدادات النموذج لكل دور
+## ملفات تعريف نموذج الفريق
+
+تحتفظ صفحة الإعدادات بعدة ملفات تعريف نموذج مسمّاة لأعضاء الفريق الافتراضيين، وتستخدم الملف المحدد عند الإنشاء (spawn) التالي.
 
 افتح:
 
@@ -145,12 +147,21 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
 ```
 
-يشغل كل عضو افتراضي صفًا واحدًا:
+شريط ملفات التعريف أعلى الصفحة:
+
+- **التبديل** إلى ملف التعريف (القائمة المنسدلة `团队配置`) الذي يستخدمه العضو الافتراضي التالي.
+- **新建配置** يضيف ملف تعريف بسبعة صفوف أدوار فارغة.
+- **配置名称** يعيد تسمية ملف التعريف المحدد. الأسماء مطلوبة وفريدة وبحد أقصى 60 حرفًا.
+- **删除配置** يحذف ملف التعريف المحدد بعد نقرة تأكيد ثانية. ولا يمكن حذف آخر ملف تعريف متبقٍّ.
+
+لكل ملف تعريف صف واحد لكل عضو افتراضي:
 
 - **Model**: قائمة منسدلة واحدة تضم نماذج كل المزوّدين، مع عناوين مجموعات مزوّدين غير قابلة للنقر. اختيار نموذج يضبط provider وmodel معًا.
 - **Reasoning effort**: قائمة منسدلة ثانية تضم قوى الاستدلال المعلنة للنموذج المحدد، إضافةً إلى خيار القيمة الافتراضية للنموذج.
 
-النموذج الفارغ يعني «وراثة مسار الـ Lead»؛ وقوة الاستدلال الفارغة تعني «استخدام القيمة الافتراضية للنموذج». يقرأ `spawn_teammate_with_model` القيمة الافتراضية للدور عندما يُحذف `model`؛ ويَغلِب عليه `model` الصريح. أما `spawn_teammate` العادي فيرث الـ Lead دائمًا.
+النموذج الفارغ يعني «وراثة مسار الـ Lead»؛ وقوة الاستدلال الفارغة تعني «استخدام القيمة الافتراضية للنموذج». يقرأ `spawn_teammate_with_model` القيمة الافتراضية للدور من ملف التعريف المحدد عندما يُحذف `model`؛ ويَغلِب عليه `model` الصريح. أما `spawn_teammate` العادي فيرث الـ Lead دائمًا.
+
+تُحفظ قائمة ملفات التعريف كاملةً معًا، لذا لا يلغي التبديل بين ملفات التعريف التعديلات التي أُجريت في ملف آخر. وتتحقق الصفحة من الأسماء قبل الحفظ وتعرض نص خطأ الخادم عندما يُرفض الحفظ.
 
 اسم الصف مهم: يجب أن يبقى `research-team-settings` في **جذر الحزمة** `@local/dsh-research-team-preset`. فماسح وحدات العميل في DSH لا يكتشف `dsh.client` إلا في صفوف جذر الحزمة بالضبط؛ أما الاسم بمسار فرعي فيشغّل إضافة المضيف لكنه لا يحمّل الصفحة أبدًا.
 
@@ -162,19 +173,36 @@ $DSH_HOME/research-team-settings.json
 
 ```json
 {
-  "roles": {
-    "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
-    "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
-  }
+  "version": 2,
+  "activeProfileId": "default",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "默认配置",
+      "roles": {
+        "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    },
+    {
+      "id": "p-example",
+      "name": "快速实验",
+      "roles": {
+        "advisor": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    }
+  ]
 }
 ```
 
+- يسمّي `activeProfileId` ملف التعريف الذي يستخدمه الزميل التالي. ويرجع الخادم إلى ملف التعريف الأول عندما يكون غائبًا أو غير معروف.
+- يُنقل الملف القديم (`{ "roles": { ... } }` أو خريطة أدوار مجرّدة) في الذاكرة إلى ملف تعريف واحد باسم `默认配置`؛ ويُعاد كتابة الملف بشكل ملفات التعريف عند الحفظ التالي. ويحدّث `POST { "roles": ... }` القديم ملف التعريف النشط فقط، فلا تستطيع السكربتات الأقدم إسقاط ملفات التعريف الأخرى.
 - ملف JSON هو مصدر الحقيقة. تحمّله إضافة المضيف عند بدء التشغيل؛ ويُحدَّث `getSettings()` و`modelForRole()` منه، فترى الصفحة والزميل التالي أحدث القيم.
 - الملف الغائب أو غير القابل للقراءة مؤقتًا يُبقي آخر نسخة سليمة في الذاكرة بدل مسحها.
 - ملف الإعدادات **ليس** في هذا المستودع. احتفظ بنسخة احتياطية منه بشكل منفصل. وهو لكل `DSH_HOME`، لا لكل profile.
-- لا تُخزَّن أي بيانات اعتماد؛ بل سلاسل provider/model/effort فقط.
-- تُطبَّق عمليات حفظ الإعدادات دون إعادة تشغيل DSH. وتلزم إعادة التشغيل عند أول تثبيت لصف الإعدادات/صفحة العميل ولتغييرات الـ preset/الإضافات.
-- يصلح الإصدار 0.1.0 خللًا في المحمّل في البِنى الأقدم: فالملف يلفّ الأدوار تحت `"roles"`، وكان المحمّل القديم يمرّر الكائن كاملًا إلى مُطبِّع الأدوار، فتنتج إعدادات فارغة تمامًا بعد إعادة التشغيل. أما المحمّل الحالي فيفكّ `"roles"` ويدعم خريطة أدوار مجرّدة للتوافق.
+- لا تُخزَّن أي بيانات اعتماد؛ بل أسماء ملفات التعريف وسلاسل provider/model/effort فقط.
+- تُطبَّق عمليات حفظ الإعدادات دون إعادة تشغيل DSH: فيُعيد المخزن قراءة الملف، ويحدّد الإنشاء (spawn) التالي ملف التعريف النشط. أما تغيير شيفرة هذه الإضافة نفسها فيظل يحتاج إلى إعادة تشغيل DSH، لأن نصف المضيف يسجّل مسار WebSocket/HTTP وخانة صفحة Plugins على مستوى المضيف.
+- يصلح الإصدار 0.1.0 خللًا في المحمّل في البِنى الأقدم: فالملف يلفّ الأدوار تحت `"roles"`، وكان المحمّل القديم يمرّر الكائن كاملًا إلى مُطبِّع الأدوار، فتنتج إعدادات فارغة تمامًا بعد إعادة التشغيل. أما المحمّل الحالي فيفكّ `"roles"`، وينقل الملفات القديمة، ويدعم خريطة أدوار مجرّدة للتوافق.
 
 ## مرجع الإعدادات
 
@@ -185,7 +213,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | اضبطه على `false` لإزالة `spawn_teammate_with_model` وغلاف الخدمة الخاص به |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | مزوّدو subagent الذين تستخدمهم أداة الإنشاء النموذجية؛ القيم الافتراضية `spawn` / `fork` |
 | صف `research-team-settings` | `cordis.patch.yml` | صف مضيف من المستوى الأعلى؛ أبقِ اسم جذر الحزمة |
-| مسارات كل دور | `$DSH_HOME/research-team-settings.json` | Provider/model/reasoningEffort للأدوار الافتراضية السبعة |
+| ملفات تعريف نموذج الفريق | `$DSH_HOME/research-team-settings.json` | ملفات تعريف مسمّاة؛ يوفّر ملف التعريف النشط provider/model/reasoningEffort للأدوار الافتراضية السبعة |
 
 ## بنية المستودع
 
@@ -200,11 +228,11 @@ research-team-preset/
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared settings snapshot + disk refresh
+│   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
-│   └── index.js                  # Settings file + /api/dsh-research-team-settings
+│   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
-│   └── index.js                  # plugins.row.config form (model/effort dropdowns)
+│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -224,8 +252,8 @@ research-team-preset/
 - **Preset**: يعلن `cordis.patch.yml` الشخصية (persona) وصفوف الأدوات والوحدة الفرعية modeled-teammates وصف الإعدادات من المستوى الأعلى.
 - **موجّه لوحة المهام**: يسجّل `plugin/index.js` قسم بروتوكول إنكليزي (`plugin:dsh-taskboard`) في نطاق الـ preset، ويوفّر `research_project` لتحديد مساحة العمل الحالية.
 - **التوجيه لكل دور**: يغلّف `plugin/modeled-teammates.js` الدالة `subagents.startActivation` بـ `AsyncLocalStorage` ويحقن `agentOptions` عند نداء `spawn_teammate_with_model` فقط. وحزمة Agent Teams الرسمية لم تُمسّ.
-- **الإعدادات**: يحمّل `settings/index.js` ملف JSON ويحفظه ويقدّم `GET/POST /api/dsh-research-team-settings`؛ ويسجّل `client/index.js` نموذج صف صفحة Plugins عبر `plugins.row.config`.
-- **التحديث**: يحتفظ `plugin/settings-store.js` بالنسخة في الذاكرة، ويحدّثها من القرص عند القراءة والإنشاء (spawn)، ويُبقي آخر نسخة سليمة إذا فشلت القراءة.
+- **الإعدادات**: يحمّل `settings/index.js` ملف JSON لملفات التعريف ويحفظه ويقدّم `GET/POST /api/dsh-research-team-settings`؛ ويسجّل `client/index.js` محرّر ملفات التعريف في صفحة Plugins عبر `plugins.row.config`.
+- **التحديث**: يحتفظ `plugin/settings-store.js` بالنسخة في الذاكرة، ويحدّد ملف التعريف النشط عند كل قراءة وكل إنشاء (spawn)، ويُبقي آخر نسخة سليمة إذا فشلت القراءة.
 
 ## قائمة التحقق
 
@@ -237,7 +265,11 @@ list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
 taskboard_list                           # matches the GUI board
 Plugins -> bundle -> research-team-settings -> Configure   # page visible
-save a role model -> restart -> page still shows it
+新建配置 -> أعطه اسمًا -> احفظ -> أعد فتح الصفحة -> يظهر ملفا التعريف
+اختر ملف تعريف آخر -> احفظ -> يستخدمه spawn_teammate_with_model
+احذف ملف تعريف واحدًا -> احفظ -> لا يبقى إلا ملف التعريف المتبقي
+ملف قديم {roles} -> أعد التشغيل -> يظهر باسم 默认配置
+احفظ نموذج دور -> أعد التشغيل -> تظل الصفحة تعرضه
 ```
 
 يمكن التحقق من مسار حفظ الإعدادات دون الواجهة:
@@ -252,7 +284,8 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 يصلح الإصدار 0.1.0 السبب المعروف: كان المحمّل القديم يمرّر الكائن `{ roles: ... }` كاملًا إلى مُطبِّع الأدوار فينتج إعدادات فارغة تمامًا. حدّث إلى 0.1.0 أو أحدث، وأعد تشغيل DSH، ثم تحقق من:
 
-- وجود `$DSH_HOME/research-team-settings.json` واحتوائه على الأدوار المحفوظة؛
+- وجود `$DSH_HOME/research-team-settings.json` واحتوائه على ملفات التعريف المحفوظة؛
+- الملفات القديمة `{ "roles": ... }` تُعرض كملف تعريف واحد باسم `默认配置`، ويُعاد كتابتها بشكل ملفات التعريف عند الحفظ التالي؛
 - أن صف `research-team-settings` مسمّى بالضبط `@local/dsh-research-team-preset`؛
 - أن المضيف الحالي يشغّل نسخة الـ checkout هذه، لا نسخة مثبَّتة قديمة.
 
@@ -286,7 +319,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 - توجيه النموذج لكل دور هو غلاف خدمة داخلي، لا امتداد رسمي من Agent Teams. وقد تؤدي ترقيات DSH إلى تعطيله؛ والبديل موثّق أعلاه.
 - تبعيات مستوى الـ profile لا تُثبَّت ولا تُفعَّل تلقائيًا. هذا المستودع يوثّقها ولا يديرها.
-- تعيش إعدادات الأدوار في ملف JSON مستقل تحت `$DSH_HOME`؛ وهي ليست جزءًا من تصدير/نسخ إعدادات DSH القياسي. انسخ الملف إذا انتقلت إلى جهاز آخر.
+- تعيش ملفات تعريف نموذج الفريق في ملف JSON مستقل تحت `$DSH_HOME`؛ وهي ليست جزءًا من تصدير/نسخ إعدادات DSH القياسي. انسخ الملف إذا انتقلت إلى جهاز آخر.
 - قائمة النماذج هي عنصر `<select>` أصلي بمجموعات مزوّدين، وليست منتقيًا مخصصًا قابلًا للبحث.
 - لا ينشئ الوضع سبعة زملاء تلقائيًا عند بدء الجلسة. فالـ Lead يُنشئ الأدوار بحسب ما تحتاجه المهمة.
 - لا يهيّئ الوضع مستودعًا داخل مستودع قائم أبدًا، ولا يثبّت من تلقاء نفسه سجل العمل أو هيكل المستودع.

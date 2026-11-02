@@ -137,7 +137,9 @@ El trabajo que puede abarcar varias sesiones mantiene un registro pequeño y aco
 
 Al reanudar, el agente lee primero PLAN e INDEX y luego solo el bloque de estado y el final de la tarjeta objetivo, nunca el archivo entero ni el directorio entero. PLAN se mantiene por debajo de unas 100 líneas, los archivos de tarjeta por debajo de unas 200, y las tarjetas terminadas se retiran del índice. Las plantillas compactas de los tres archivos están en la persona del preset, así que cualquier sesión puede crearlas o actualizarlas sin leer este repositorio.
 
-## Ajustes de modelo por rol
+## Perfiles de modelo del equipo
+
+La página de ajustes mantiene varios perfiles de modelo con nombre para los miembros predeterminados del equipo y usa el seleccionado en el siguiente spawn.
 
 Abre:
 
@@ -145,12 +147,21 @@ Abre:
 Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
 ```
 
-Cada miembro predeterminado ocupa una fila:
+La barra de perfiles en la parte superior de la página:
+
+- **Cambiar** el perfil (desplegable `团队配置`) que usará el siguiente compañero de equipo predeterminado.
+- **新建配置** añade un perfil con siete filas de rol vacías.
+- **配置名称** cambia el nombre del perfil seleccionado. Los nombres son obligatorios, únicos y de 60 caracteres como máximo.
+- **删除配置** elimina el perfil seleccionado tras un segundo clic de confirmación. El último perfil restante no se puede eliminar.
+
+Cada perfil tiene una fila por miembro predeterminado:
 
 - **Modelo**: un desplegable que contiene los modelos de todos los proveedores, con encabezados de grupo de proveedores no clicables. Al seleccionar un modelo se establecen a la vez el proveedor y el modelo.
-- **Esfuerzo de razonamiento**: un segundo desplegable con los esfuerzos anunciados por el modelo seleccionado, más una opción de valor predeterminado del modelo.
+- **Esfuerzo de razonamiento**: un segundo desplegable con los esfuerzos anunciados del modelo seleccionado, más una opción de valor predeterminado del modelo.
 
-Un modelo vacío significa «heredar la ruta del Lead»; un esfuerzo vacío significa «usar el valor predeterminado del modelo». `spawn_teammate_with_model` lee el valor predeterminado por rol cuando se omite `model`; un `model` explícito lo anula. El `spawn_teammate` simple siempre hereda del Lead.
+Un modelo vacío significa «heredar la ruta del Lead»; un esfuerzo vacío significa «usar el valor predeterminado del modelo». `spawn_teammate_with_model` lee el valor predeterminado por rol del perfil seleccionado cuando se omite `model`; un `model` explícito lo anula. El `spawn_teammate` simple siempre hereda del Lead.
+
+La lista completa de perfiles se guarda en conjunto, así que cambiar de perfil no descarta las ediciones hechas en otro. La página valida los nombres antes de guardar y muestra el texto de error del servidor cuando se rechaza un guardado.
 
 El nombre de la fila importa: `research-team-settings` debe permanecer en la **raíz del paquete** `@local/dsh-research-team-preset`. El escáner de módulos de cliente de DSH solo descubre `dsh.client` en filas que son exactamente la raíz del paquete; un nombre con subruta inicia el plugin host pero nunca carga la página.
 
@@ -162,19 +173,36 @@ $DSH_HOME/research-team-settings.json
 
 ```json
 {
-  "roles": {
-    "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
-    "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
-  }
+  "version": 2,
+  "activeProfileId": "default",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "默认配置",
+      "roles": {
+        "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    },
+    {
+      "id": "p-example",
+      "name": "快速实验",
+      "roles": {
+        "advisor": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    }
+  ]
 }
 ```
 
+- `activeProfileId` indica el perfil que usará el siguiente compañero de equipo. El servidor recurre al primer perfil si falta o es desconocido.
+- Un archivo heredado (`{ "roles": { ... } }` o un mapa de roles sin envoltorio) se migra en memoria a un único perfil llamado `默认配置`; el archivo se reescribe con la forma de perfiles en el siguiente guardado. Un `POST { "roles": ... }` heredado actualiza solo el perfil activo, así que los scripts antiguos no pueden eliminar los demás perfiles.
 - El archivo JSON es la fuente de verdad. El plugin host lo carga al arrancar; `getSettings()` y `modelForRole()` se refrescan desde él, de modo que la página y el siguiente compañero de equipo ven los valores más recientes.
 - Un archivo ausente o temporalmente ilegible conserva la última instantánea buena en memoria en lugar de borrarla.
 - El archivo de ajustes **no** está en este repositorio. Haz una copia de seguridad por separado. Es por `DSH_HOME`, no por perfil.
-- No se almacenan credenciales; solo cadenas de proveedor/modelo/esfuerzo.
-- Al guardar los ajustes, se aplican sin reiniciar DSH. El reinicio es necesario para la primera instalación de la fila/página de ajustes y para los cambios de preset/plugin.
-- La versión 0.1.0 corrige un error del cargador de compilaciones anteriores: el archivo envuelve los roles bajo `"roles"`, y el cargador antiguo pasaba el objeto completo al normalizador de roles, produciendo ajustes totalmente vacíos tras reiniciar. El cargador actual desenvuelve `"roles"` y admite un mapa de roles sin envoltorio por compatibilidad.
+- No se almacenan credenciales; solo nombres de perfil y cadenas de proveedor/modelo/esfuerzo.
+- Al guardar los ajustes se aplican sin reiniciar DSH: el almacén vuelve a leer el archivo y el siguiente spawn resuelve el perfil activo. Cambiar el código de este plugin sí necesita un reinicio de DSH, porque la mitad host registra una ruta WebSocket/HTTP y una ranura de la página de Plugins a nivel host.
+- La versión 0.1.0 corrige un error del cargador de compilaciones anteriores: el archivo envuelve los roles bajo `"roles"`, y el cargador antiguo pasaba el objeto completo al normalizador de roles, produciendo ajustes totalmente vacíos tras reiniciar. El cargador actual desenvuelve `"roles"`, migra los archivos antiguos y admite un mapa de roles sin envoltorio por compatibilidad.
 
 ## Referencia de configuración
 
@@ -185,7 +213,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Establece `false` para eliminar `spawn_teammate_with_model` y su envoltorio de servicio |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Proveedores de subagente que usa la herramienta de spawn modelada; valores predeterminados `spawn` / `fork` |
 | Fila `research-team-settings` | `cordis.patch.yml` | Fila host de nivel superior; mantén el nombre en la raíz del paquete |
-| Rutas por rol | `$DSH_HOME/research-team-settings.json` | Proveedor/modelo/reasoningEffort para los siete roles predeterminados |
+| Perfiles de modelo del equipo | `$DSH_HOME/research-team-settings.json` | Perfiles con nombre; el perfil activo aporta provider/model/reasoningEffort para los siete roles predeterminados |
 
 ## Estructura del repositorio
 
@@ -200,11 +228,11 @@ research-team-preset/
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared settings snapshot + disk refresh
+│   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
-│   └── index.js                  # Settings file + /api/dsh-research-team-settings
+│   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
-│   └── index.js                  # plugins.row.config form (model/effort dropdowns)
+│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -224,8 +252,8 @@ research-team-preset/
 - **Preset**: `cordis.patch.yml` declara la persona, las filas de herramientas, el submódulo de compañeros modelados y la fila de ajustes de nivel superior.
 - **Prompt del tablero de tareas**: `plugin/index.js` registra una sección de protocolo en inglés (`plugin:dsh-taskboard`) en el ámbito del preset y proporciona `research_project` para resolver el espacio de trabajo actual.
 - **Enrutamiento por rol**: `plugin/modeled-teammates.js` envuelve `subagents.startActivation` con `AsyncLocalStorage` e inyecta `agentOptions` solo para una llamada a `spawn_teammate_with_model`. El paquete oficial Agent Teams no se modifica.
-- **Ajustes**: `settings/index.js` carga y guarda el archivo JSON y sirve `GET/POST /api/dsh-research-team-settings`; `client/index.js` registra el formulario de fila de la página de Plugins mediante `plugins.row.config`.
-- **Actualización**: `plugin/settings-store.js` mantiene la instantánea en memoria, se refresca desde el disco en las lecturas y en los spawns, y conserva la última instantánea buena si una lectura falla.
+- **Ajustes**: `settings/index.js` carga y guarda el archivo JSON de perfiles y sirve `GET/POST /api/dsh-research-team-settings`; `client/index.js` registra el editor de perfiles de la página de Plugins mediante `plugins.row.config`.
+- **Actualización**: `plugin/settings-store.js` mantiene la instantánea en memoria, resuelve el perfil activo en cada lectura y spawn, y conserva la última instantánea buena si una lectura falla.
 
 ## Lista de verificación
 
@@ -237,7 +265,11 @@ list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
 taskboard_list                           # matches the GUI board
 Plugins -> bundle -> research-team-settings -> Configure   # page visible
-save a role model -> restart -> page still shows it
+新建配置 -> ponle un nombre -> guarda -> vuelve a abrir la página -> ambos perfiles listados
+selecciona otro perfil -> guarda -> spawn_teammate_with_model lo usa
+elimina un perfil -> guarda -> solo queda el perfil restante
+archivo heredado {roles} -> reinicia -> aparece como 默认配置
+guarda el modelo de un rol -> reinicia -> la página sigue mostrándolo
 ```
 
 La ruta de persistencia de los ajustes se puede comprobar sin la interfaz:
@@ -252,7 +284,8 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 La versión 0.1.0 corrige la causa conocida: el cargador antiguo pasaba todo el objeto `{ roles: ... }` al normalizador de roles y producía ajustes totalmente vacíos. Actualiza a 0.1.0 o posterior, reinicia DSH y comprueba que:
 
-- `$DSH_HOME/research-team-settings.json` existe y contiene los roles guardados;
+- `$DSH_HOME/research-team-settings.json` existe y contiene los perfiles guardados;
+- los archivos antiguos `{ "roles": ... }` se muestran como un único perfil `默认配置` y se reescriben con la forma de perfiles en el siguiente guardado;
 - la fila `research-team-settings` se llama exactamente `@local/dsh-research-team-preset`;
 - el host actual ejecuta esta copia de trabajo, no una copia instalada obsoleta.
 
@@ -286,7 +319,7 @@ Abre el directorio de trabajo como proyecto/espacio de trabajo de DSH en la GUI 
 
 - El enrutamiento de modelos por rol es un envoltorio de servicio interno, no una extensión oficial de Agent Teams. Las actualizaciones de DSH pueden romperlo; el respaldo está documentado arriba.
 - Las dependencias a nivel de perfil no se instalan ni se habilitan automáticamente. Este repositorio las documenta pero no las gestiona.
-- Los ajustes de rol viven en un archivo JSON independiente bajo `$DSH_HOME`; no forman parte de la exportación/copia de seguridad estándar de la configuración de DSH. Copia el archivo si cambias de máquina.
+- Los perfiles de modelo del equipo viven en un archivo JSON independiente bajo `$DSH_HOME`; no forman parte de la exportación/copia de seguridad estándar de la configuración de DSH. Copia el archivo si cambias de máquina.
 - El menú de modelos es un `<select>` nativo con grupos de proveedores, no un selector personalizado con búsqueda.
 - El modo no genera automáticamente siete compañeros de equipo al iniciar la sesión. El Lead crea los roles según lo requiera la tarea.
 - El modo nunca inicializa un repositorio dentro de un repositorio existente, y nunca hace commit por su cuenta del worklog ni del andamiaje del repositorio.

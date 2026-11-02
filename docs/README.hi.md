@@ -137,7 +137,9 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 फिर से शुरू करते समय एजेंट पहले PLAN और INDEX पढ़ता है, फिर केवल लक्ष्य कार्ड का स्थिति ब्लॉक और अंत, पूरी फ़ाइल या पूरी डायरेक्टरी कभी नहीं। PLAN लगभग 100 पंक्तियों के भीतर, कार्ड फ़ाइलें लगभग 200 के भीतर रहती हैं, और पूर्ण कार्ड सूचकांक से हटा दिए जाते हैं। तीनों फ़ाइलों के संक्षिप्त टेम्पलेट प्रीसेट persona में हैं, इसलिए कोई भी सत्र इस रिपॉज़िटरी को पढ़े बिना उन्हें बना या अपडेट कर सकता है।
 
-## प्रति-भूमिका मॉडल सेटिंग्स
+## टीम मॉडल प्रोफ़ाइलें
+
+सेटिंग्स पृष्ठ डिफ़ॉल्ट टीम सदस्यों के लिए कई नामित मॉडल प्रोफ़ाइल रखता है और अगले spawn में उनमें से चयनित का उपयोग करता है।
 
 खोलें:
 
@@ -145,12 +147,21 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
 ```
 
-प्रत्येक डिफ़ॉल्ट सदस्य एक पंक्ति में होता है:
+पृष्ठ के शीर्ष पर प्रोफ़ाइल बार:
+
+- **स्विच** करें वह प्रोफ़ाइल (`团队配置` ड्रॉपडाउन) जिसे अगला डिफ़ॉल्ट teammate उपयोग करेगा।
+- **新建配置** सात खाली भूमिका पंक्तियों वाली एक प्रोफ़ाइल जोड़ता है।
+- **配置名称** चयनित प्रोफ़ाइल का नाम बदलता है। नाम आवश्यक, अद्वितीय और अधिकतम 60 वर्णों के होने चाहिए।
+- **删除配置** दूसरे पुष्टिकरण क्लिक के बाद चयनित प्रोफ़ाइल हटाता है। अंतिम बची हुई प्रोफ़ाइल हटाई नहीं जा सकती।
+
+प्रत्येक प्रोफ़ाइल में प्रत्येक डिफ़ॉल्ट सदस्य के लिए एक पंक्ति होती है:
 
 - **Model**: एक ड्रॉपडाउन जिसमें प्रत्येक provider के models होते हैं, साथ में क्लिक न किए जा सकने वाले provider समूह शीर्षक। मॉडल चुनने से provider और model दोनों सेट होते हैं।
 - **Reasoning effort**: दूसरा ड्रॉपडाउन जिसमें चयनित मॉडल के घोषित reasoning efforts होते हैं, साथ में एक model-default विकल्प।
 
-खाली model का अर्थ है "Lead का रूट इनहेरिट करें"; खाली effort का अर्थ है "मॉडल डिफ़ॉल्ट का उपयोग करें"। जब `model` छोड़ा जाता है तो `spawn_teammate_with_model` प्रति-भूमिका डिफ़ॉल्ट पढ़ता है; स्पष्ट `model` उसे ओवरराइड करता है। सादा `spawn_teammate` सदैव Lead को इनहेरिट करता है।
+खाली model का अर्थ है "Lead का रूट इनहेरिट करें"; खाली effort का अर्थ है "मॉडल डिफ़ॉल्ट का उपयोग करें"। जब `model` छोड़ा जाता है तो `spawn_teammate_with_model` चयनित प्रोफ़ाइल का प्रति-भूमिका डिफ़ॉल्ट पढ़ता है; स्पष्ट `model` उसे ओवरराइड करता है। सादा `spawn_teammate` सदैव Lead को इनहेरिट करता है।
+
+पूरी प्रोफ़ाइल सूची एक साथ सहेजी जाती है, इसलिए प्रोफ़ाइल बदलने से किसी दूसरी प्रोफ़ाइल में किए गए संपादन नष्ट नहीं होते। पृष्ठ सहेजने से पहले नामों की जाँच करता है और सहेजना अस्वीकार होने पर सर्वर का त्रुटि पाठ दिखाता है।
 
 पंक्ति का नाम मायने रखता है: `research-team-settings` को **package root** `@local/dsh-research-team-preset` पर ही रहना चाहिए। DSH का client-module स्कैनर केवल सटीक package-root पंक्तियों के लिए `dsh.client` खोजता है; कोई subpath नाम host plugin को शुरू करता है पर पृष्ठ कभी लोड नहीं करता।
 
@@ -162,19 +173,36 @@ $DSH_HOME/research-team-settings.json
 
 ```json
 {
-  "roles": {
-    "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
-    "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
-  }
+  "version": 2,
+  "activeProfileId": "default",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "默认配置",
+      "roles": {
+        "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    },
+    {
+      "id": "p-example",
+      "name": "快速实验",
+      "roles": {
+        "advisor": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    }
+  ]
 }
 ```
 
+- `activeProfileId` उस प्रोफ़ाइल का नाम देता है जिसे अगला teammate उपयोग करेगा। यदि वह अनुपस्थित या अज्ञात हो तो सर्वर पहली प्रोफ़ाइल पर लौट आता है।
+- लीगेसी फ़ाइल (`{ "roles": { ... } }` या सादा role map) को मेमोरी में `默认配置` नाम की एक प्रोफ़ाइल में माइग्रेट किया जाता है; अगली बार सहेजने पर फ़ाइल प्रोफ़ाइल स्वरूप में फिर से लिखी जाती है। लीगेसी `POST { "roles": ... }` केवल सक्रिय प्रोफ़ाइल को अपडेट करता है, इसलिए पुराने स्क्रिप्ट अन्य प्रोफ़ाइलों को हटा नहीं सकते।
 - JSON फ़ाइल ही सत्य का स्रोत है। host plugin इसे स्टार्टअप पर लोड करता है; `getSettings()` और `modelForRole()` इससे ताज़ा करते हैं, इसलिए पृष्ठ और अगला teammate नवीनतम मान देखते हैं।
 - अनुपस्थित या अस्थायी रूप से अपठनीय फ़ाइल अंतिम अच्छे इन-मेमोरी स्नैपशॉट को बनाए रखती है, उसे साफ़ नहीं करती।
 - सेटिंग्स फ़ाइल इस रिपॉज़िटरी में **नहीं** है। इसे अलग से बैकअप करें। यह प्रति `DSH_HOME` है, प्रति प्रोफ़ाइल नहीं।
-- कोई क्रेडेंशियल संग्रहीत नहीं होते; केवल provider/model/effort स्ट्रिंग।
-- सेटिंग्स सहेजना DSH पुनः प्रारंभ के बिना लागू होता है। पुनः प्रारंभ सेटिंग्स पंक्ति/client पृष्ठ के पहले इंस्टॉल और प्रीसेट/plugin परिवर्तनों के लिए आवश्यक है।
-- संस्करण 0.1.0 पहले के बिल्डों में एक loader बग ठीक करता है: फ़ाइल भूमिकाओं को `"roles"` के अंतर्गत लपेटती है, और पुराना loader पूरे ऑब्जेक्ट को role normalizer को देता था, जिससे पुनः प्रारंभ के बाद सभी सेटिंग्स खाली हो जाती थीं। वर्तमान loader `"roles"` को खोलता है और संगतता के लिए एक सादा role map भी समर्थित करता है।
+- कोई क्रेडेंशियल संग्रहीत नहीं होते; केवल प्रोफ़ाइल नाम और provider/model/effort स्ट्रिंग।
+- सेटिंग्स सहेजना DSH पुनः प्रारंभ के बिना लागू होता है: स्टोर फ़ाइल को फिर से पढ़ता है और अगला spawn सक्रिय प्रोफ़ाइल हल करता है। इस plugin का अपना कोड बदलने के लिए अभी भी DSH पुनः प्रारंभ चाहिए, क्योंकि host भाग host स्तर पर एक WebSocket/HTTP मार्ग और एक Plugins पृष्ठ स्लॉट पंजीकृत करता है।
+- संस्करण 0.1.0 पहले के बिल्डों में एक loader बग ठीक करता है: फ़ाइल भूमिकाओं को `"roles"` के अंतर्गत लपेटती है, और पुराना loader पूरे ऑब्जेक्ट को role normalizer को देता था, जिससे पुनः प्रारंभ के बाद सभी सेटिंग्स खाली हो जाती थीं। वर्तमान loader `"roles"` को खोलता है, पुरानी फ़ाइलों को माइग्रेट करता है, और संगतता के लिए एक सादा role map भी समर्थित करता है।
 
 ## कॉन्फ़िगरेशन संदर्भ
 
@@ -185,7 +213,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | `spawn_teammate_with_model` और उसके service wrapper को हटाने के लिए `false` सेट करें |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn टूल द्वारा उपयोग किए जाने वाले subagent प्रदाता; डिफ़ॉल्ट `spawn` / `fork` |
 | `research-team-settings` row | `cordis.patch.yml` | शीर्ष-स्तरीय host row; package-root नाम बनाए रखें |
-| प्रति-भूमिका रूट | `$DSH_HOME/research-team-settings.json` | सात डिफ़ॉल्ट भूमिकाओं के लिए provider/model/reasoningEffort |
+| टीम मॉडल प्रोफ़ाइलें | `$DSH_HOME/research-team-settings.json` | नामित प्रोफ़ाइल; सक्रिय प्रोफ़ाइल सात डिफ़ॉल्ट भूमिकाओं के लिए provider/model/reasoningEffort देती है |
 
 ## रिपॉज़िटरी लेआउट
 
@@ -200,11 +228,11 @@ research-team-preset/
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared settings snapshot + disk refresh
+│   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
-│   └── index.js                  # Settings file + /api/dsh-research-team-settings
+│   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
-│   └── index.js                  # plugins.row.config form (model/effort dropdowns)
+│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -224,8 +252,8 @@ research-team-preset/
 - **Preset**: `cordis.patch.yml` persona, tool rows, modeled-teammates submodule और शीर्ष-स्तरीय settings row घोषित करता है।
 - **Task-board prompt**: `plugin/index.js` प्रीसेट स्कोप पर एक अंग्रेज़ी प्रोटोकॉल अनुभाग (`plugin:dsh-taskboard`) पंजीकृत करता है और वर्तमान workspace हल करने के लिए `research_project` प्रदान करता है।
 - **Per-role routing**: `plugin/modeled-teammates.js` `subagents.startActivation` को `AsyncLocalStorage` के साथ लपेटता है और `agentOptions` केवल `spawn_teammate_with_model` कॉल के लिए इंजेक्ट करता है। आधिकारिक Agent Teams पैकेज अछूता रहता है।
-- **Settings**: `settings/index.js` JSON फ़ाइल लोड/सेव करता है और `GET/POST /api/dsh-research-team-settings` सर्व करता है; `client/index.js` `plugins.row.config` के माध्यम से Plugins-पृष्ठ का row फ़ॉर्म पंजीकृत करता है।
-- **Refresh**: `plugin/settings-store.js` इन-मेमोरी स्नैपशॉट रखता है, पढ़ने और spawn पर डिस्क से ताज़ा करता है, और यदि पढ़ना विफल हो तो अंतिम अच्छा स्नैपशॉट बनाए रखता है।
+- **Settings**: `settings/index.js` प्रोफ़ाइल JSON फ़ाइल लोड/सेव करता है और `GET/POST /api/dsh-research-team-settings` सर्व करता है; `client/index.js` `plugins.row.config` के माध्यम से Plugins-पृष्ठ का प्रोफ़ाइल एडिटर पंजीकृत करता है।
+- **Refresh**: `plugin/settings-store.js` इन-मेमोरी स्नैपशॉट रखता है, प्रत्येक पढ़ने और spawn पर सक्रिय प्रोफ़ाइल हल करता है, और यदि पढ़ना विफल हो तो अंतिम अच्छा स्नैपशॉट बनाए रखता है।
 
 ## सत्यापन चेकलिस्ट
 
@@ -237,7 +265,11 @@ list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
 taskboard_list                           # matches the GUI board
 Plugins -> bundle -> research-team-settings -> Configure   # page visible
-save a role model -> restart -> page still shows it
+新建配置 -> नाम दें -> सहेजें -> पृष्ठ फिर खोलें -> दोनों प्रोफ़ाइल सूचीबद्ध
+दूसरी प्रोफ़ाइल चुनें -> सहेजें -> spawn_teammate_with_model उसका उपयोग करता है
+एक प्रोफ़ाइल हटाएँ -> सहेजें -> केवल शेष प्रोफ़ाइल मौजूद रहती है
+लीगेसी {roles} फ़ाइल -> पुनः प्रारंभ करें -> 默认配置 के रूप में दिखती है
+किसी भूमिका का मॉडल सहेजें -> पुनः प्रारंभ करें -> पृष्ठ अब भी उसे दिखाता है
 ```
 
 सेटिंग्स पर्सिस्टेंस पथ UI के बिना जाँचा जा सकता है:
@@ -252,7 +284,8 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 संस्करण 0.1.0 एक ज्ञात कारण ठीक करता है: पुराना loader पूरे `{ roles: ... }` ऑब्जेक्ट को role normalizer को देता था और सभी सेटिंग्स खाली बना देता था। 0.1.0 या बाद के संस्करण में अपडेट करें, DSH पुनः प्रारंभ करें, और जाँचें कि:
 
-- `$DSH_HOME/research-team-settings.json` मौजूद है और सहेजी गई भूमिकाएँ रखता है;
+- `$DSH_HOME/research-team-settings.json` मौजूद है और सहेजी गई प्रोफ़ाइल रखता है;
+- पुरानी `{ "roles": ... }` फ़ाइलें एक ही `默认配置` प्रोफ़ाइल के रूप में दिखती हैं और अगली बार सहेजने पर प्रोफ़ाइल स्वरूप में फिर से लिखी जाती हैं;
 - `research-team-settings` पंक्ति का नाम ठीक `@local/dsh-research-team-preset` है;
 - वर्तमान host इस चेकआउट को चला रहा है, किसी पुरानी इंस्टॉल की गई प्रति को नहीं।
 
@@ -286,7 +319,7 @@ submodule एक आंतरिक subagent सेवा को लपेटत
 
 - प्रति-भूमिका मॉडल रूटिंग एक आंतरिक service wrapper है, आधिकारिक Agent Teams विस्तार नहीं। DSH अपग्रेड इसे तोड़ सकते हैं; fallback ऊपर प्रलेखित है।
 - प्रोफ़ाइल-स्तरीय निर्भरताएँ स्वतः इंस्टॉल या सक्षम नहीं होतीं। यह रिपॉज़िटरी उन्हें प्रलेखित करती है, परंतु प्रबंधित नहीं करती।
-- भूमिका सेटिंग्स `$DSH_HOME` के अंतर्गत एक स्वतंत्र JSON फ़ाइल में रहती हैं; वे DSH के मानक config export/backup का हिस्सा नहीं हैं। यदि आप मशीन बदलते हैं तो फ़ाइल कॉपी करें।
+- टीम मॉडल प्रोफ़ाइलें `$DSH_HOME` के अंतर्गत एक स्वतंत्र JSON फ़ाइल में रहती हैं; वे DSH के मानक config export/backup का हिस्सा नहीं हैं। यदि आप मशीन बदलते हैं तो फ़ाइल कॉपी करें।
 - मॉडल मेन्यू provider समूहों के साथ एक नेटिव `<select>` है, कोई खोजने योग्य कस्टम picker नहीं।
 - यह मोड सत्र शुरू होने पर स्वतः सात teammates नहीं बनाता। Lead आवश्यकता के अनुसार भूमिकाएँ बनाता है।
 - यह मोड कभी मौजूदा रिपॉज़िटरी के अंदर रिपॉज़िटरी आरंभ नहीं करता, और worklog या रिपॉज़िटरी scaffold को स्वयं कमिट नहीं करता।

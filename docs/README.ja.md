@@ -137,7 +137,9 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 再開時、エージェントはまず PLAN と INDEX を読み、次に対象カードの状態ブロックと末尾だけを読みます。ファイル全体やディレクトリ全体は読みません。PLAN は約 100 行、カードファイルは約 200 行に保ち、完了したカードは索引から外します。3 種類のファイルの簡潔なテンプレートはプリセットの persona にあり、どのセッションもこのリポジトリを読まずに作成・更新できます。
 
-## 役割ごとのモデル設定
+## チームモデルプロファイル
+
+設定ページは既定のチームメンバー用に複数の名前付きモデルプロファイルを保持し、次回の spawn には選択中のものを使用します。
 
 次の場所を開きます:
 
@@ -145,12 +147,21 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
 ```
 
-既定のメンバーはそれぞれ 1 行を占めます:
+ページ上部のプロファイルバー:
+
+- **切り替え**: 次回の既定チームメイトが使うプロファイル（`团队配置` ドロップダウン）を選択します。
+- **新建配置**: 7 つの空の役割行を持つプロファイルを追加します。
+- **配置名称**: 選択中のプロファイルの名前を変更します。名前は必須で一意、60 文字以内です。
+- **删除配置**: 2 回目の確認クリックで選択中のプロファイルを削除します。最後の 1 つは削除できません。
+
+各プロファイルは既定メンバーごとに 1 行を持ちます:
 
 - **モデル**: すべての provider のモデルを含む 1 つのドロップダウン。provider のグループヘッダーはクリックできません。モデルを選ぶと provider と model の両方が設定されます。
 - **推論強度**: 選択中のモデルが公開している強度に、モデルの既定値オプションを加えた 2 つ目のドロップダウン。
 
-モデルが空の場合は「Lead のルートを継承」、強度が空の場合は「モデルの既定値を使用」を意味します。`spawn_teammate_with_model` は `model` が省略されたときに役割ごとの既定値を読み、明示的な `model` はそれを上書きします。通常の `spawn_teammate` は常に Lead を継承します。
+モデルが空の場合は「Lead のルートを継承」、強度が空の場合は「モデルの既定値を使用」を意味します。`spawn_teammate_with_model` は `model` が省略されたときに選択中プロファイルの役割ごとの既定値を読み、明示的な `model` はそれを上書きします。通常の `spawn_teammate` は常に Lead を継承します。
+
+プロファイル一覧はまとめて保存されるため、プロファイルを切り替えても別のプロファイルでの編集は失われません。ページは保存前に名前を検証し、保存が拒否された場合はサーバーのエラーテキストを表示します。
 
 行の名前が重要です: `research-team-settings` は**パッケージルート** `@local/dsh-research-team-preset` に置く必要があります。DSH のクライアントモジュールスキャナーは、パッケージルートに完全一致する行についてのみ `dsh.client` を検出します。サブパスの名前ではホストプラグインは起動しますが、ページは決して読み込まれません。
 
@@ -162,19 +173,36 @@ $DSH_HOME/research-team-settings.json
 
 ```json
 {
-  "roles": {
-    "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
-    "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
-  }
+  "version": 2,
+  "activeProfileId": "default",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "默认配置",
+      "roles": {
+        "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    },
+    {
+      "id": "p-example",
+      "name": "快速实验",
+      "roles": {
+        "advisor": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    }
+  ]
 }
 ```
 
+- `activeProfileId` は次のチームメイトが使うプロファイルを指定します。値がない、または不明な場合は、サーバーが最初のプロファイルにフォールバックします。
+- 旧形式のファイル（`{ "roles": { ... } }` または素の役割マップ）はメモリ内で `默认配置` という単一のプロファイルに移行されます。ファイルは次回の保存時にプロファイル形式で書き換えられます。旧形式の `POST { "roles": ... }` はアクティブなプロファイルだけを更新するため、古いスクリプトが他のプロファイルを失わせることはありません。
 - JSON ファイルが信頼できる唯一の情報源です。ホストプラグインは起動時にこれを読み込み、`getSettings()` と `modelForRole()` はそこから更新されるため、ページと次のチームメイトは最新の値を参照します。
 - ファイルが存在しない、または一時的に読めない場合は、消去せずに最後に正常だったメモリ内スナップショットを保持します。
 - 設定ファイルはこのリポジトリには**ありません**。別途バックアップしてください。プロファイルごとではなく `DSH_HOME` ごとに存在します。
-- 資格情報は保存されません。保存されるのは provider/model/effort の文字列だけです。
-- 設定の保存は DSH の再起動なしで反映されます。再起動が必要なのは、設定行／クライアントページの初回インストール時と、プリセット／プラグインの変更時です。
-- バージョン 0.1.0 は以前のビルドにおけるローダーのバグを修正します。ファイルは役割を `"roles"` の下に包みますが、古いローダーはオブジェクト全体を役割ノーマライザーに渡していたため、再起動後にすべて空の設定が生成されていました。現在のローダーは `"roles"` を展開し、互換性のために素の役割マップもサポートします。
+- 資格情報は保存されません。保存されるのはプロファイル名と provider/model/effort の文字列だけです。
+- 設定の保存は DSH の再起動なしで反映されます。設定ストアはファイルを読み直し、次回の spawn がアクティブなプロファイルを解決します。このプラグイン自体のコードを変更した場合は DSH の再起動が必要です。ホスト側はホストレベルで WebSocket/HTTP ルートと Plugins ページのスロットを登録するためです。
+- バージョン 0.1.0 は以前のビルドにおけるローダーのバグを修正します。ファイルは役割を `"roles"` の下に包みますが、古いローダーはオブジェクト全体を役割ノーマライザーに渡していたため、再起動後にすべて空の設定が生成されていました。現在のローダーは `"roles"` を展開し、旧ファイルを移行し、互換性のために素の役割マップもサポートします。
 
 ## 設定リファレンス
 
@@ -185,7 +213,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | `false` にすると `spawn_teammate_with_model` とそのサービスラッパーを削除 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn ツールが使うサブエージェント provider。既定値は `spawn` / `fork` |
 | `research-team-settings` 行 | `cordis.patch.yml` | トップレベルのホスト行。パッケージルート名を保つ |
-| 役割ごとのルート | `$DSH_HOME/research-team-settings.json` | 7 つの既定役割の provider/model/reasoningEffort |
+| チームモデルプロファイル | `$DSH_HOME/research-team-settings.json` | 名前付きプロファイル。アクティブなプロファイルが 7 つの既定役割の provider/model/reasoningEffort を提供 |
 
 ## リポジトリ構成
 
@@ -200,11 +228,11 @@ research-team-preset/
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared settings snapshot + disk refresh
+│   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
-│   └── index.js                  # Settings file + /api/dsh-research-team-settings
+│   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
-│   └── index.js                  # plugins.row.config form (model/effort dropdowns)
+│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -224,8 +252,8 @@ research-team-preset/
 - **プリセット**: `cordis.patch.yml` がペルソナ、ツール行、modeled-teammates サブモジュール、トップレベルの設定行を宣言します。
 - **タスクボードのプロンプト**: `plugin/index.js` がプリセットスコープに英語のプロトコル節（`plugin:dsh-taskboard`）を登録し、現在のワークスペースを解決する `research_project` を提供します。
 - **役割ごとのルーティング**: `plugin/modeled-teammates.js` が `subagents.startActivation` を `AsyncLocalStorage` でラップし、`spawn_teammate_with_model` の呼び出しに限って `agentOptions` を注入します。公式の Agent Teams パッケージには手を加えません。
-- **設定**: `settings/index.js` が JSON ファイルを読み書きし、`GET/POST /api/dsh-research-team-settings` を提供します。`client/index.js` は `plugins.row.config` を通じて Plugins ページの行フォームを登録します。
-- **更新**: `plugin/settings-store.js` がメモリ内スナップショットを保持し、読み取り時と spawn 時にディスクから更新します。読み取りに失敗した場合は最後に正常だったスナップショットを保持します。
+- **設定**: `settings/index.js` がプロファイルの JSON ファイルを読み書きし、`GET/POST /api/dsh-research-team-settings` を提供します。`client/index.js` は `plugins.row.config` を通じて Plugins ページのプロファイルエディターを登録します。
+- **更新**: `plugin/settings-store.js` がメモリ内スナップショットを保持し、読み取りと spawn のたびにアクティブなプロファイルを解決します。読み取りに失敗した場合は最後に正常だったスナップショットを保持します。
 
 ## 検証チェックリスト
 
@@ -236,8 +264,12 @@ new session -> Research Team Mode
 list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
 taskboard_list                           # matches the GUI board
-Plugins -> bundle -> research-team-settings -> Configure   # page visible
-save a role model -> restart -> page still shows it
+Plugins -> bundle -> research-team-settings -> Configure   # ページが表示される
+新建配置 -> 名前を付ける -> 保存 -> ページを開き直す -> 両方のプロファイルが一覧に表示される
+別のプロファイルを選択 -> 保存 -> spawn_teammate_with_model がそれを使用する
+プロファイルを 1 つ削除 -> 保存 -> 残りのプロファイルだけが存在する
+旧 {roles} ファイル -> 再起動 -> 默认配置 として表示される
+役割のモデルを保存 -> 再起動 -> ページに引き続き表示される
 ```
 
 設定の永続化パスは UI なしでも確認できます:
@@ -252,7 +284,8 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 バージョン 0.1.0 は既知の原因を修正します。古いローダーは `{ roles: ... }` オブジェクト全体を役割ノーマライザーに渡し、すべて空の設定を生成していました。0.1.0 以降に更新して DSH を再起動し、次を確認してください:
 
-- `$DSH_HOME/research-team-settings.json` が存在し、保存した役割が含まれているか。
+- `$DSH_HOME/research-team-settings.json` が存在し、保存したプロファイルが含まれているか。
+- 古い `{ "roles": ... }` ファイルは単一の `默认配置` プロファイルとして表示され、次回の保存時にプロファイル形式へ書き換えられるか。
 - `research-team-settings` 行の名前が正確に `@local/dsh-research-team-preset` か。
 - 現在のホストがこのチェックアウトを実行しており、古いインストール済みコピーではないか。
 
@@ -286,7 +319,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 - 役割ごとのモデルルーティングは内部サービスラッパーであり、公式の Agent Teams 拡張ではありません。DSH のアップグレードで壊れる可能性があり、フォールバックは上記に記載しています。
 - プロファイルレベルの依存関係は自動ではインストールも有効化もされません。このリポジトリはそれらを文書化しますが、管理はしません。
-- 役割設定は `$DSH_HOME` 配下の独立した JSON ファイルにあり、DSH 標準の設定エクスポート／バックアップには含まれません。マシンを移行する場合はファイルをコピーしてください。
+- チームモデルプロファイルは `$DSH_HOME` 配下の独立した JSON ファイルにあり、DSH 標準の設定エクスポート／バックアップには含まれません。マシンを移行する場合はファイルをコピーしてください。
 - モデルメニューは provider グループ付きのネイティブ `<select>` であり、検索可能なカスタムピッカーではありません。
 - このモードはセッション開始時に 7 名のチームメイトを自動生成しません。Lead がタスクの必要に応じて役割を作成します。
 - このモードは既存リポジトリの中にリポジトリを初期化せず、ワークログやリポジトリの足場を自動でコミットすることもありません。

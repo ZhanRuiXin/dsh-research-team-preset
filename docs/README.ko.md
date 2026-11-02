@@ -137,7 +137,9 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 재개할 때 에이전트는 PLAN과 INDEX를 먼저 읽고, 그다음 대상 카드의 상태 블록과 끝부분만 읽습니다. 파일 전체나 디렉터리 전체는 읽지 않습니다. PLAN은 약 100줄, 카드 파일은 약 200줄로 유지하고 완료된 카드는 색인에서 뺍니다. 세 파일의 간결한 템플릿은 프리셋 persona에 있어 어떤 세션도 이 저장소를 읽지 않고 만들거나 갱신할 수 있습니다.
 
-## 역할별 모델 설정
+## 팀 모델 프로필
+
+설정 페이지는 기본 팀원을 위한 이름 있는 모델 프로필 여러 개를 유지하며, 다음 스폰에는 선택한 프로필을 사용합니다.
 
 여십시오:
 
@@ -145,12 +147,21 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
 ```
 
-각 기본 멤버는 한 행을 차지합니다:
+페이지 상단의 프로필 바에서 다음을 할 수 있습니다:
+
+- 다음 기본 팀원이 사용할 프로필(`团队配置` 드롭다운)을 **전환**합니다.
+- **新建配置**는 역할 행 일곱 개가 비어 있는 프로필을 추가합니다.
+- **配置名称**은 선택한 프로필의 이름을 바꿉니다. 이름은 필수이고 고유해야 하며 최대 60자입니다.
+- **删除配置**는 한 번 더 확인 클릭한 뒤 선택한 프로필을 삭제합니다. 마지막으로 남은 프로필은 삭제할 수 없습니다.
+
+각 프로필에는 기본 멤버마다 한 행이 있습니다:
 
 - **모델**: 모든 제공자의 모델을 담은 하나의 드롭다운이며, 클릭할 수 없는 제공자 그룹 헤더가 있습니다. 모델을 선택하면 provider와 model이 함께 설정됩니다.
-- **추론 강도**: 선택한 모델이 지원하는 추론 강도 목록과 모델 기본값 옵션이 있는 두 번째 드롭다운입니다.
+- **추론 강도**: 선택한 모델이 공개하는 추론 강도 목록과 모델 기본값 옵션이 있는 두 번째 드롭다운입니다.
 
-빈 모델은 "Lead의 라우트 상속"을, 빈 강도는 "모델 기본값 사용"을 의미합니다. `spawn_teammate_with_model`은 `model`을 생략하면 역할별 기본값을 읽으며, 명시적 `model`은 이를 덮어씁니다. 일반 `spawn_teammate`는 항상 Lead를 상속합니다.
+빈 모델은 "Lead의 라우트 상속"을, 빈 강도는 "모델 기본값 사용"을 의미합니다. `spawn_teammate_with_model`은 `model`을 생략하면 선택한 프로필의 역할별 기본값을 읽으며, 명시적 `model`은 이를 덮어씁니다. 일반 `spawn_teammate`는 항상 Lead를 상속합니다.
+
+프로필 목록 전체가 한꺼번에 저장되므로, 프로필을 전환해도 다른 프로필에서 편집한 내용이 버려지지 않습니다. 페이지는 저장 전에 이름을 검증하며, 저장이 거부되면 서버의 오류 텍스트를 표시합니다.
 
 행 이름이 중요합니다: `research-team-settings`는 **패키지 루트** `@local/dsh-research-team-preset`에 있어야 합니다. DSH의 클라이언트 모듈 스캐너는 정확히 패키지 루트인 행에 대해서만 `dsh.client`를 탐색합니다. 하위 경로 이름을 쓰면 호스트 플러그인은 시작되지만 페이지는 절대 로드되지 않습니다.
 
@@ -162,19 +173,36 @@ $DSH_HOME/research-team-settings.json
 
 ```json
 {
-  "roles": {
-    "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
-    "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
-  }
+  "version": 2,
+  "activeProfileId": "default",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "默认配置",
+      "roles": {
+        "advisor": { "provider": "example-provider", "model": "example-model", "reasoningEffort": "high" },
+        "researcher": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    },
+    {
+      "id": "p-example",
+      "name": "快速实验",
+      "roles": {
+        "advisor": { "provider": "", "model": "", "reasoningEffort": "" }
+      }
+    }
+  ]
 }
 ```
 
+- `activeProfileId`는 다음 팀원이 사용할 프로필을 지정합니다. 값이 없거나 알 수 없는 값이면 서버는 첫 번째 프로필로 대체합니다.
+- 레거시 파일(`{ "roles": { ... } }` 또는 래핑 없는 역할 맵)은 인메모리에서 `默认配置`라는 단일 프로필로 마이그레이션되며, 파일은 다음 저장 시 프로필 형태로 다시 기록됩니다. 레거시 `POST { "roles": ... }`는 활성 프로필만 갱신하므로 이전 스크립트가 다른 프로필을 없애지 못합니다.
 - JSON 파일이 기준 원본(source of truth)입니다. 호스트 플러그인은 시작 시 이 파일을 로드하며, `getSettings()`와 `modelForRole()`은 이 파일에서 값을 새로 고칩니다. 따라서 페이지와 다음 팀원은 최신 값을 봅니다.
 - 파일이 없거나 일시적으로 읽을 수 없을 때는 마지막으로 정상인 인메모리 스냅샷을 지우지 않고 유지합니다.
 - 설정 파일은 이 저장소에 **없습니다**. 별도로 백업하십시오. 프로필 단위가 아니라 `DSH_HOME` 단위입니다.
-- 자격 증명은 저장되지 않으며 provider/model/effort 문자열만 저장됩니다.
-- 설정 저장은 DSH 재시작 없이 적용됩니다. 설정 행/클라이언트 페이지의 최초 설치와 프리셋/플러그인 변경에는 재시작이 필요합니다.
-- 버전 0.1.0은 이전 빌드의 로더 버그를 수정합니다. 파일은 역할을 `"roles"` 키 아래에 감싸는데, 이전 로더는 객체 전체를 역할 정규화기(role normalizer)에 넘겨서 재시작 후 모든 설정이 비어 있었습니다. 현재 로더는 `"roles"`를 풀어내며, 호환성을 위해 래핑 없는 역할 맵도 지원합니다.
+- 자격 증명은 저장되지 않으며 프로필 이름과 provider/model/effort 문자열만 저장됩니다.
+- 설정 저장은 DSH 재시작 없이 적용됩니다. 저장소가 파일을 다시 읽고 다음 스폰에서 활성 프로필을 확인합니다. 이 플러그인의 코드 자체를 변경하려면 여전히 DSH 재시작이 필요합니다. 호스트 절반이 호스트 수준에서 WebSocket/HTTP 라우트와 Plugins 페이지 슬롯을 등록하기 때문입니다.
+- 버전 0.1.0은 이전 빌드의 로더 버그를 수정합니다. 파일은 역할을 `"roles"` 아래에 감싸는데, 이전 로더는 객체 전체를 역할 정규화기(role normalizer)에 넘겨서 재시작 후 모든 설정이 비어 있었습니다. 현재 로더는 `"roles"`를 풀어내고, 이전 파일을 마이그레이션하며, 호환성을 위해 래핑 없는 역할 맵도 지원합니다.
 
 ## 구성 참조
 
@@ -185,7 +213,7 @@ $DSH_HOME/research-team-settings.json
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | `false`로 설정하면 `spawn_teammate_with_model`과 해당 서비스 래퍼가 제거됩니다 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn 도구가 사용하는 하위 에이전트 제공자; 기본값 `spawn` / `fork` |
 | `research-team-settings` 행 | `cordis.patch.yml` | 최상위 호스트 행; 패키지 루트 이름을 유지하십시오 |
-| 역할별 라우트 | `$DSH_HOME/research-team-settings.json` | 일곱 기본 역할의 provider/model/reasoningEffort |
+| 팀 모델 프로필 | `$DSH_HOME/research-team-settings.json` | 이름 있는 프로필; 활성 프로필이 일곱 기본 역할의 provider/model/reasoningEffort를 제공합니다 |
 
 ## 저장소 구조
 
@@ -200,11 +228,11 @@ research-team-preset/
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared settings snapshot + disk refresh
+│   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
-│   └── index.js                  # Settings file + /api/dsh-research-team-settings
+│   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
-│   └── index.js                  # plugins.row.config form (model/effort dropdowns)
+│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -224,8 +252,8 @@ research-team-preset/
 - **프리셋**: `cordis.patch.yml`이 페르소나, 도구 행, modeled-teammates 하위 모듈, 최상위 설정 행을 선언합니다.
 - **작업 보드 프롬프트**: `plugin/index.js`가 프리셋 범위에 영어 프로토콜 섹션(`plugin:dsh-taskboard`)을 등록하고 현재 워크스페이스를 확인하는 `research_project`를 제공합니다.
 - **역할별 라우팅**: `plugin/modeled-teammates.js`가 `AsyncLocalStorage`로 `subagents.startActivation`을 감싸고 `spawn_teammate_with_model` 호출에만 `agentOptions`를 주입합니다. 공식 Agent Teams 패키지는 수정되지 않습니다.
-- **설정**: `settings/index.js`가 JSON 파일을 로드/저장하고 `GET/POST /api/dsh-research-team-settings`를 제공합니다. `client/index.js`는 `plugins.row.config`를 통해 Plugins 페이지 행 폼을 등록합니다.
-- **새로 고침**: `plugin/settings-store.js`가 인메모리 스냅샷을 보관하고, 읽기와 spawn 시 디스크에서 새로 고치며, 읽기에 실패하면 마지막 정상 스냅샷을 유지합니다.
+- **설정**: `settings/index.js`가 프로필 JSON 파일을 로드/저장하고 `GET/POST /api/dsh-research-team-settings`를 제공합니다. `client/index.js`는 `plugins.row.config`를 통해 Plugins 페이지의 프로필 편집기를 등록합니다.
+- **새로 고침**: `plugin/settings-store.js`가 인메모리 스냅샷을 보관하고, 읽기와 spawn 시마다 활성 프로필을 확인하며, 읽기에 실패하면 마지막 정상 스냅샷을 유지합니다.
 
 ## 검증 체크리스트
 
@@ -237,6 +265,10 @@ list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
 taskboard_list                           # matches the GUI board
 Plugins -> bundle -> research-team-settings -> Configure   # page visible
+新建配置 -> name it -> save -> reopen the page -> both profiles listed
+select another profile -> save -> spawn_teammate_with_model uses it
+delete one profile -> save -> only the remaining profile exists
+legacy {roles} file -> restart -> shown as 默认配置
 save a role model -> restart -> page still shows it
 ```
 
@@ -252,7 +284,8 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 버전 0.1.0은 알려진 원인을 수정했습니다. 이전 로더는 `{ roles: ... }` 객체 전체를 역할 정규화기에 넘겨서 모든 설정이 비어 있었습니다. 0.1.0 이상으로 업데이트하고 DSH를 재시작한 뒤 다음을 확인하십시오:
 
-- `$DSH_HOME/research-team-settings.json`이 존재하고 저장된 역할을 포함하는지;
+- `$DSH_HOME/research-team-settings.json`이 존재하고 저장된 프로필을 포함하는지;
+- 이전 `{ "roles": ... }` 파일은 단일 `默认配置` 프로필로 표시되며, 다음 저장 시 프로필 형태로 다시 기록되는지;
 - `research-team-settings` 행의 이름이 정확히 `@local/dsh-research-team-preset`인지;
 - 현재 호스트가 오래된 설치본이 아니라 이 체크아웃을 실행 중인지.
 
@@ -286,7 +319,7 @@ GUI에서 작업 디렉터리를 DSH 프로젝트/워크스페이스로 열거�
 
 - 역할별 모델 라우팅은 공식 Agent Teams 확장이 아니라 내부 서비스 래퍼입니다. DSH 업그레이드로 깨질 수 있으며, 대체 방법은 위에 문서화되어 있습니다.
 - 프로필 수준 의존성은 자동으로 설치되거나 활성화되지 않습니다. 이 저장소는 이를 문서화할 뿐 관리하지 않습니다.
-- 역할 설정은 `$DSH_HOME` 아래의 독립 JSON 파일에 있으며, DSH의 표준 구성 내보내기/백업에 포함되지 않습니다. 다른 머신으로 옮길 때는 이 파일을 복사하십시오.
+- 팀 모델 프로필은 `$DSH_HOME` 아래의 독립 JSON 파일에 있으며, DSH의 표준 구성 내보내기/백업에 포함되지 않습니다. 다른 머신으로 옮길 때는 이 파일을 복사하십시오.
 - 모델 메뉴는 제공자 그룹이 있는 네이티브 `<select>`이며, 검색 가능한 사용자 정의 선택기가 아닙니다.
 - 이 모드는 세션 시작 시 일곱 팀원을 자동으로 생성하지 않습니다. Lead가 작업에 필요한 만큼 역할을 만듭니다.
 - 이 모드는 기존 저장소 안에 저장소를 초기화하지 않으며, 워크로그나 저장소 스캐폴드를 자동으로 커밋하지도 않습니다.

@@ -251,7 +251,7 @@ research-team-preset/
 
 - **Preset**：`cordis.patch.yml` 宣告 persona、工具列、modeled-teammates 子模組與頂層設定列。
 - **任務看板提示詞**：`plugin/index.js` 在 preset 範圍註冊英文協定區段（`plugin:dsh-taskboard`），並提供 `research_project` 以解析目前工作區。
-- **各角色路由**：`plugin/modeled-teammates.js` 以 `AsyncLocalStorage` 包裝 `subagents.startActivation`，僅在 `spawn_teammate_with_model` 呼叫時注入 `agentOptions`。官方 Agent Teams 套件未被改動。
+- **各角色路由**：`plugin/modeled-teammates.js` 以 `AsyncLocalStorage` 包裝 `subagents.startActivation`，僅在 `spawn_teammate_with_model` 呼叫時注入 `agentOptions`。官方 Agent Teams 套件未被改動。 Cordis 對服務回傳可追蹤代理，因此包裝器改為檢查自身屬性描述符，而不比較方法身分。
 - **設定**：`settings/index.js` 載入／儲存配置 JSON 檔並提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 透過 `plugins.row.config` 註冊 Plugins 頁面的配置編輯器。
 - **重新整理**：`plugin/settings-store.js` 持有記憶體快照，在每次讀取與 spawn 時解析作用中的配置，並在讀取失敗時保留上一次良好的快照。
 

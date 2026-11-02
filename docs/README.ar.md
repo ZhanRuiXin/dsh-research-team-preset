@@ -251,7 +251,7 @@ research-team-preset/
 
 - **Preset**: يعلن `cordis.patch.yml` الشخصية (persona) وصفوف الأدوات والوحدة الفرعية modeled-teammates وصف الإعدادات من المستوى الأعلى.
 - **موجّه لوحة المهام**: يسجّل `plugin/index.js` قسم بروتوكول إنكليزي (`plugin:dsh-taskboard`) في نطاق الـ preset، ويوفّر `research_project` لتحديد مساحة العمل الحالية.
-- **التوجيه لكل دور**: يغلّف `plugin/modeled-teammates.js` الدالة `subagents.startActivation` بـ `AsyncLocalStorage` ويحقن `agentOptions` عند نداء `spawn_teammate_with_model` فقط. وحزمة Agent Teams الرسمية لم تُمسّ.
+- **التوجيه لكل دور**: يغلّف `plugin/modeled-teammates.js` الدالة `subagents.startActivation` بـ `AsyncLocalStorage` ويحقن `agentOptions` عند نداء `spawn_teammate_with_model` فقط. وحزمة Agent Teams الرسمية لم تُمسّ. يعرض Cordis الخدمات كوسيط قابل للتتبع، لذا يتحقق الغلاف من واصف الخاصية الخاص به بدلاً من هوية الدالة.
 - **الإعدادات**: يحمّل `settings/index.js` ملف JSON لملفات التعريف ويحفظه ويقدّم `GET/POST /api/dsh-research-team-settings`؛ ويسجّل `client/index.js` محرّر ملفات التعريف في صفحة Plugins عبر `plugins.row.config`.
 - **التحديث**: يحتفظ `plugin/settings-store.js` بالنسخة في الذاكرة، ويحدّد ملف التعريف النشط عند كل قراءة وكل إنشاء (spawn)، ويُبقي آخر نسخة سليمة إذا فشلت القراءة.
 

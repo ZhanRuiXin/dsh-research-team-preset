@@ -251,7 +251,7 @@ research-team-preset/
 
 - **프리셋**: `cordis.patch.yml`이 페르소나, 도구 행, modeled-teammates 하위 모듈, 최상위 설정 행을 선언합니다.
 - **작업 보드 프롬프트**: `plugin/index.js`가 프리셋 범위에 영어 프로토콜 섹션(`plugin:dsh-taskboard`)을 등록하고 현재 워크스페이스를 확인하는 `research_project`를 제공합니다.
-- **역할별 라우팅**: `plugin/modeled-teammates.js`가 `AsyncLocalStorage`로 `subagents.startActivation`을 감싸고 `spawn_teammate_with_model` 호출에만 `agentOptions`를 주입합니다. 공식 Agent Teams 패키지는 수정되지 않습니다.
+- **역할별 라우팅**: `plugin/modeled-teammates.js`가 `AsyncLocalStorage`로 `subagents.startActivation`을 감싸고 `spawn_teammate_with_model` 호출에만 `agentOptions`를 주입합니다. 공식 Agent Teams 패키지는 수정되지 않습니다. Cordis는 서비스를 추적 가능한 프록시로 반환하므로, 래퍼는 메서드 동일성 대신 자체 속성 설명자를 검증합니다.
 - **설정**: `settings/index.js`가 프로필 JSON 파일을 로드/저장하고 `GET/POST /api/dsh-research-team-settings`를 제공합니다. `client/index.js`는 `plugins.row.config`를 통해 Plugins 페이지의 프로필 편집기를 등록합니다.
 - **새로 고침**: `plugin/settings-store.js`가 인메모리 스냅샷을 보관하고, 읽기와 spawn 시마다 활성 프로필을 확인하며, 읽기에 실패하면 마지막 정상 스냅샷을 유지합니다.
 

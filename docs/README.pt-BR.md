@@ -251,7 +251,7 @@ research-team-preset/
 
 - **Preset**: `cordis.patch.yml` declara a persona, as linhas de ferramentas, o submódulo modeled-teammates e a linha de configurações de nível superior.
 - **Prompt do quadro de tarefas**: `plugin/index.js` registra uma seção de protocolo em inglês (`plugin:dsh-taskboard`) no escopo do preset e fornece `research_project` para resolver o workspace atual.
-- **Roteamento por função**: `plugin/modeled-teammates.js` envolve `subagents.startActivation` com `AsyncLocalStorage` e injeta `agentOptions` apenas em uma chamada `spawn_teammate_with_model`. O pacote oficial do Agent Teams permanece intacto.
+- **Roteamento por função**: `plugin/modeled-teammates.js` envolve `subagents.startActivation` com `AsyncLocalStorage` e injeta `agentOptions` apenas em uma chamada `spawn_teammate_with_model`. O pacote oficial do Agent Teams permanece intacto. O Cordis expõe serviços como um proxy rastreável, então o wrapper verifica seu próprio descritor de propriedade em vez da identidade do método.
 - **Configurações**: `settings/index.js` carrega e salva o arquivo JSON de perfis e serve `GET/POST /api/dsh-research-team-settings`; `client/index.js` registra o editor de perfis da página de Plugins via `plugins.row.config`.
 - **Atualização**: `plugin/settings-store.js` mantém o snapshot em memória, resolve o perfil ativo em cada leitura e spawn e preserva o último snapshot válido se uma leitura falhar.
 

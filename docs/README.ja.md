@@ -251,7 +251,7 @@ research-team-preset/
 
 - **プリセット**: `cordis.patch.yml` がペルソナ、ツール行、modeled-teammates サブモジュール、トップレベルの設定行を宣言します。
 - **タスクボードのプロンプト**: `plugin/index.js` がプリセットスコープに英語のプロトコル節（`plugin:dsh-taskboard`）を登録し、現在のワークスペースを解決する `research_project` を提供します。
-- **役割ごとのルーティング**: `plugin/modeled-teammates.js` が `subagents.startActivation` を `AsyncLocalStorage` でラップし、`spawn_teammate_with_model` の呼び出しに限って `agentOptions` を注入します。公式の Agent Teams パッケージには手を加えません。
+- **役割ごとのルーティング**: `plugin/modeled-teammates.js` が `subagents.startActivation` を `AsyncLocalStorage` でラップし、`spawn_teammate_with_model` の呼び出しに限って `agentOptions` を注入します。公式の Agent Teams パッケージには手を加えません。 Cordis はサービスをトレース可能なプロキシとして返すため、ラッパーはメソッドの同一性ではなく自身のプロパティ記述子を検証します。
 - **設定**: `settings/index.js` がプロファイルの JSON ファイルを読み書きし、`GET/POST /api/dsh-research-team-settings` を提供します。`client/index.js` は `plugins.row.config` を通じて Plugins ページのプロファイルエディターを登録します。
 - **更新**: `plugin/settings-store.js` がメモリ内スナップショットを保持し、読み取りと spawn のたびにアクティブなプロファイルを解決します。読み取りに失敗した場合は最後に正常だったスナップショットを保持します。
 

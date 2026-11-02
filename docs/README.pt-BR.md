@@ -104,7 +104,7 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | Verificação independente de notas de literatura, código, resultados e afirmações/citações do artigo; PASS/FAIL com evidências bloqueantes |
 | `writer` | Rascunho do artigo em LaTeX: texto, seções, tabelas, legendas, citações e código de figuras; não executa experimentos nem altera código/modelos |
 
-O Lead é responsável por esclarecer o objetivo, decompor o trabalho, gerenciar o quadro, distribuir tarefas, integrar resultados, produzir resumos, montar os artefatos finais e fazer a entrega. Os membros podem usar uma camada de subagente para uma subtarefa delimitada; eles não podem criar outros membros.
+O Lead é responsável por esclarecer o objetivo, decompor o trabalho, gerenciar o quadro, distribuir tarefas, integrar resultados, produzir resumos, montar os artefatos finais e fazer a entrega. Os membros podem usar uma camada de subagente para uma subtarefa delimitada; eles não podem criar outros membros. O Lead mantém leve o próprio uso de ferramentas, prefere uma breve atualização ao usuário a outra chamada rotineira e deixa o trabalho profundo para o membro responsável.
 
 ## Fluxo do quadro de tarefas
 

@@ -104,7 +104,7 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | Verificación independiente de las notas de literatura, el código, los resultados y las afirmaciones/citas del artículo; PASS/FAIL con evidencia bloqueante |
 | `writer` | Borrador de artículo en LaTeX: prosa, secciones, tablas, pies de figura, citas y código de figuras; no ejecuta experimentos ni cambia código/modelos |
 
-El Lead se encarga de la aclaración del objetivo, la descomposición, la gestión del tablero, el despacho, la integración, los resúmenes, el ensamblaje final de los activos y la entrega. Los miembros pueden usar una capa de subagente para una subtarea acotada; no pueden crear compañeros de equipo.
+El Lead se encarga de la aclaración del objetivo, la descomposición, la gestión del tablero, el despacho, la integración, los resúmenes, el ensamblaje final de los activos y la entrega. Los miembros pueden usar una capa de subagente para una subtarea acotada; no pueden crear compañeros de equipo. El Lead mantiene ligero su propio uso de herramientas, prefiere una breve actualización al usuario antes que otra llamada rutinaria y deja el trabajo profundo al miembro correspondiente.
 
 ## Flujo de trabajo del tablero de tareas
 

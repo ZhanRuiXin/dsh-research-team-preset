@@ -104,7 +104,7 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | Vérification indépendante des notes de littérature, du code, des résultats et des affirmations/citations de l'article ; PASS/FAIL avec preuves bloquantes |
 | `writer` | Brouillon d'article LaTeX : prose, sections, tableaux, légendes, citations et code de figures ; ne lance pas d'expériences et ne modifie ni le code ni les modèles |
 
-Le Lead est responsable de la clarification de l'objectif, de la décomposition, de la gestion du tableau, de la répartition, de l'intégration, des synthèses, de l'assemblage final des livrables et de la livraison. Les membres peuvent utiliser une couche de sous-agent pour une sous-tâche délimitée ; ils ne peuvent pas créer d'équipiers.
+Le Lead est responsable de la clarification de l'objectif, de la décomposition, de la gestion du tableau, de la répartition, de l'intégration, des synthèses, de l'assemblage final des livrables et de la livraison. Les membres peuvent utiliser une couche de sous-agent pour une sous-tâche délimitée ; ils ne peuvent pas créer d'équipiers. Le Lead garde son propre usage des outils léger, préfère une courte mise à jour à l'utilisateur plutôt qu'un nouvel appel routinier, et laisse le travail d'approfondissement au membre concerné.
 
 ## Flux du tableau des tâches
 

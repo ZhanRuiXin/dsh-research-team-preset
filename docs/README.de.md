@@ -104,7 +104,7 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | Unabhängige Verifikation von Literaturnotizen, Code, Ergebnissen und Paper-Behauptungen/-Zitaten; PASS/FAIL mit blockierender Evidenz |
 | `writer` | LaTeX-Paper-Entwurf: Prosa, Abschnitte, Tabellen, Bildunterschriften, Zitate und Abbildungscode; führt keine Experimente aus und ändert weder Code noch Modelle |
 
-Der Lead verantwortet Zielklärung, Zerlegung, Board-Verwaltung, Zuweisung, Integration, Zusammenfassungen, die Zusammenstellung der finalen Artefakte und die Auslieferung. Mitglieder dürfen für eine abgegrenzte Teilaufgabe eine Subagent-Ebene nutzen; sie können keine Teammitglieder erstellen.
+Der Lead verantwortet Zielklärung, Zerlegung, Board-Verwaltung, Zuweisung, Integration, Zusammenfassungen, die Zusammenstellung der finalen Artefakte und die Auslieferung. Mitglieder dürfen für eine abgegrenzte Teilaufgabe eine Subagent-Ebene nutzen; sie können keine Teammitglieder erstellen. Der Lead hält seinen eigenen Werkzeugeinsatz schlank, bevorzugt eine kurze Statusmeldung an den Nutzer gegenüber einem weiteren Routinearuf und überlässt die eigentliche Tiefenarbeit dem zuständigen Mitglied.
 
 ## Arbeitsablauf im Task Board
 

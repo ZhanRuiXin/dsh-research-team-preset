@@ -104,7 +104,7 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | Independent verification of literature notes, code, results, and paper claims/citations; PASS/FAIL with blocking evidence |
 | `writer` | LaTeX paper draft: prose, sections, tables, captions, citations, and figure code; does not run experiments or change code/models |
 
-The Lead owns goal clarification, decomposition, board management, dispatch, integration, summaries, final asset assembly, and delivery. Members may use one subagent layer for a scoped subtask; they cannot create teammates.
+The Lead owns goal clarification, decomposition, board management, dispatch, integration, summaries, final asset assembly, and delivery. Members may use one subagent layer for a scoped subtask; they cannot create teammates. The Lead keeps its own tool use light, favors a short user-facing update over another routine call, and leaves deep work to the owning member.
 
 ## Task board workflow
 

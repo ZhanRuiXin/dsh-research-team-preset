@@ -12,13 +12,19 @@
  * calling Lead's spawn, so other team/subagent activations pass through
  * unchanged. The official agent-team package is not modified.
  *
+ * Route lookup reads the settings file itself (`plugin/settings-file.js`) and
+ * only falls back to the in-process store the host settings plugin fills. The
+ * store alone used to be the single source, so any boot where it was still
+ * empty made every teammate silently inherit the Lead route.
+ *
  * This is an internal-service wrapper and deliberately opt-in
  * (`config.enabled === true`). If a DSH upgrade changes the activation shape,
  * the tool reports a clear error and the rest of the preset keeps working.
  */
 
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { modelForRole } from './settings-store.js'
+import { ROLE_NAMES, matchRoleName, modelForRole } from './settings-store.js'
+import { readRouteTable } from './settings-file.js'
 
 export const name = 'research-modeled-teammates'
 
@@ -131,20 +137,97 @@ function readModel(args) {
   return out
 }
 
+/** Drop the bookkeeping `role` field before a route becomes spawn options. */
+function spawnOptions(route) {
+  const options = { provider: route.provider, model: route.model }
+  if (route.reasoningEffort !== undefined) options.reasoningEffort = route.reasoningEffort
+  return options
+}
+
+/**
+ * Resolve the configured route for a teammate name: the in-process store
+ * first (it is current after a settings-page save), then the settings file
+ * itself. A name that matches no standard role, or a role with no configured
+ * provider/model, yields no route plus a diagnostic that the spawn result
+ * carries, so an inheritance is never silent.
+ */
+function resolveConfiguredRoute(name) {
+  const role = matchRoleName(name)
+  if (role === undefined) {
+    return {
+      role: undefined,
+      diagnostics: [
+        `"${name}" is not one of the standard roles (${ROLE_NAMES.join(', ')}), so it inherits the Lead route.`
+      ]
+    }
+  }
+  const fromStore = modelForRole(role)
+  if (fromStore !== undefined) {
+    return { role, route: spawnOptions(fromStore), source: 'store' }
+  }
+  const table = readRouteTable()
+  const route = table.routes[role]
+  if (route !== undefined) {
+    return { role, route: spawnOptions(route), source: 'file' }
+  }
+  const profile = table.profile === undefined ? 'the active profile' : `profile "${table.profile}"`
+  const reason = table.error === undefined
+    ? `no route configured for role "${role}" in ${profile}`
+    : table.error
+  return {
+    role,
+    diagnostics: [
+      `${reason}; the teammate inherits the Lead route. Configure the role in Plugins → Research Team settings, or pass model.`
+    ]
+  }
+}
+
+function describeRequested(requested) {
+  if (requested === undefined) return 'requested=inherit (Lead route)'
+  const effort = requested.reasoningEffort === undefined ? '' : ` effort=${requested.reasoningEffort}`
+  return `requested=${requested.provider}/${requested.model}${effort}`
+}
+
 function render(value) {
   const member = value === null || value === undefined ? undefined : value.member
-  const requested = value === null || value === undefined ? undefined : value.requestedModel
   if (member === null || member === undefined || typeof member !== 'object') {
     return [{ type: 'text', text: 'Teammate creation returned no roster row.' }]
   }
   const head = [`Created teammate "${String(member.name)}"`]
   if (member.status !== undefined) head.push(`status=${String(member.status)}`)
   if (member.model !== undefined) head.push(`model=${String(member.model)}`)
-  const requestedLine = requested === undefined
-    ? 'requested=inherit (Lead route)'
-    : `requested=${requested.provider}/${requested.model}${requested.reasoningEffort === undefined ? '' : ` effort=${requested.reasoningEffort}`}`
-  const warning = value.warning === undefined ? '' : `\nWARNING: ${String(value.warning)}`
-  return [{ type: 'text', text: `${head.join(' ')}\n${requestedLine}${warning}` }]
+  const parts = [head.join(' '), describeRequested(value.requestedModel)]
+  if (typeof value.role === 'string') parts.push(`role=${value.role}`)
+  if (typeof value.routeSource === 'string' && value.routeSource !== 'explicit') {
+    parts.push(`route-source=${value.routeSource}`)
+  }
+  if (value.warning !== undefined) parts.push(`WARNING: ${String(value.warning)}`)
+  if (Array.isArray(value.diagnostics) && value.diagnostics.length > 0) {
+    for (const note of value.diagnostics) parts.push(`note: ${String(note)}`)
+  }
+  return [{ type: 'text', text: parts.join('\n') }]
+}
+
+function renderRoutes(value) {
+  const lines = []
+  if (value === null || typeof value !== 'object') {
+    return [{ type: 'text', text: 'No Research Team model routes are configured.' }]
+  }
+  const profile = value.profile === undefined ? 'unknown profile' : `profile "${String(value.profile)}"`
+  lines.push(`Research Team model routes (${profile})`)
+  if (value.file !== undefined) lines.push(`settings file: ${String(value.file)}`)
+  const routes = value.routes !== null && typeof value.routes === 'object' ? value.routes : {}
+  for (const role of ROLE_NAMES) {
+    const route = routes[role]
+    if (route === undefined) {
+      lines.push(`${role}: inherit (Lead route)`)
+      continue
+    }
+    const effort = route.reasoningEffort === undefined ? '' : ` effort=${String(route.reasoningEffort)}`
+    lines.push(`${role}: ${String(route.provider)}/${String(route.model)}${effort}`)
+  }
+  if (typeof value.error === 'string') lines.push(`note: ${value.error}`)
+  return [{ type: 'text', text: lines.join('\n') }]
 }
 
 export function apply(ctx, config = {}) {
@@ -166,14 +249,52 @@ export function apply(ctx, config = {}) {
     ctx.logger?.warn?.(`research-modeled-teammates: ${patchError}`)
   }
 
+  // Make the boot-time state visible in the log: a session opened before the
+  // settings page was ever saved used to inherit every role silently.
+  try {
+    const table = readRouteTable()
+    const configured = Object.keys(table.routes)
+    const profile = table.profile === undefined ? 'no profile' : `profile "${table.profile}"`
+    ctx.logger?.info?.(
+      `research-modeled-teammates: ${configured.length}/${ROLE_NAMES.length} role routes resolved (${profile})` +
+      (configured.length > 0 ? `: ${configured.join(', ')}` : '') +
+      (table.error === undefined ? '' : `; ${table.error}`)
+    )
+  } catch (error) {
+    ctx.logger?.warn?.(`research-modeled-teammates: route self-check failed: ${messageFrom(error)}`)
+  }
+
+  const disposeRoutesTool = ctx.tools.register({
+    name: 'research_team_routes',
+    description:
+      'Read the per-role default provider/model configured for the Research Team in the Plugins page. Read-only. Call it before spawning teammates when you need to know which route a role will get, instead of guessing provider or model names.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render(_args, value) {
+        return renderRoutes(value)
+      }
+    },
+    async execute() {
+      const table = readRouteTable()
+      return {
+        profile: table.profile,
+        activeProfileId: table.activeProfileId,
+        file: table.file,
+        routes: table.routes,
+        ...(table.error === undefined ? {} : { error: table.error })
+      }
+    }
+  })
+
   const disposeTool = ctx.tools.register({
     name: 'spawn_teammate_with_model',
     description:
-      'Create one named, durable teammate. Lead-only. Omit model to use the default route configured for this role in the Plugins page; pass model {provider, model, reasoningEffort} to override. Without a default or override, the teammate inherits the Lead route.',
+      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics.',
     parameters: {
       type: 'object',
       properties: {
-        name: { type: 'string', description: 'Unique lower-kebab-case teammate name.' },
+        name: { type: 'string', description: 'Unique lower-kebab-case teammate name; include the role, e.g. "advisor" or "ELHA-R advisor".' },
         description: { type: 'string', description: 'Short description of the delegated responsibility.' },
         prompt: { type: 'string', description: 'Complete initial task for the teammate.' },
         context: { type: 'string', enum: ['fresh', 'fork'], description: 'Start mode; defaults to fresh.' },
@@ -193,7 +314,7 @@ export function apply(ctx, config = {}) {
       additionalProperties: false
     },
     output: {
-      schema: {},
+      schema: { type: 'object', additionalProperties: true },
       render(_args, value) {
         return render(value)
       }
@@ -208,7 +329,10 @@ export function apply(ctx, config = {}) {
       }
       const context = args.context === 'fork' ? 'fork' : 'fresh'
       const explicit = args.model === undefined ? undefined : readModel(args)
-      const requestedModel = explicit === undefined ? modelForRole(args.name) : explicit
+      const resolved = explicit === undefined
+        ? resolveConfiguredRoute(args.name)
+        : { role: matchRoleName(args.name), route: explicit, source: 'explicit' }
+      const requestedModel = resolved.route
       const provider = context === 'fork' ? forkProvider : freshProvider
       const signal = exec.signal === undefined ? new AbortController().signal : exec.signal
       const spawn = () =>
@@ -230,6 +354,9 @@ export function apply(ctx, config = {}) {
       return {
         member,
         ...(requestedModel === undefined ? {} : { requestedModel }),
+        ...(resolved.role === undefined ? {} : { role: resolved.role }),
+        ...(resolved.source === undefined ? {} : { routeSource: resolved.source }),
+        ...(resolved.diagnostics === undefined ? {} : { diagnostics: resolved.diagnostics }),
         ...(warning === undefined ? {} : { warning })
       }
     }
@@ -237,6 +364,7 @@ export function apply(ctx, config = {}) {
 
   return () => {
     disposeTool()
+    disposeRoutesTool()
     disposePatch()
   }
 }

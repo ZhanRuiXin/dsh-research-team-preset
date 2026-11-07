@@ -62,23 +62,47 @@ export function activeProfile(settings) {
 }
 
 /**
+ * Match a teammate name to one of the standard roles.
+ *
+ * An exact match used to be required, so a Lead that named a member after the
+ * role plus a qualifier ("ELHA-R advisor", "advisor-hi", "senior_reviewer")
+ * silently got no route and the member inherited the Lead route. Match the role
+ * as a whole word instead; the first role word in the name wins.
+ */
+export function matchRoleName(name) {
+  const raw = typeof name === 'string' ? name.trim().toLowerCase() : ''
+  if (raw === '') return undefined
+  if (ROLE_NAMES.includes(raw)) return raw
+  const tokens = raw.split(/[^a-z]+/).filter((token) => token !== '')
+  for (const token of tokens) {
+    if (ROLE_NAMES.includes(token)) return token
+  }
+  return undefined
+}
+
+/**
  * Resolve the configured route for one default role in the active profile.
- * An empty provider or model means "inherit the Lead's route".
+ * An empty provider or model means "inherit the Lead's route". The returned
+ * object carries the matched `role` so callers can report which role a
+ * descriptive teammate name resolved to; strip it before using the object as
+ * spawn-time agent options.
  */
 export function modelForRole(name) {
   refreshSettings()
+  const role = matchRoleName(name)
+  if (role === undefined) return undefined
   const profile = activeProfile(current)
   if (profile === undefined) return undefined
   const roles = profile.roles
   if (roles === null || typeof roles !== 'object') return undefined
-  const role = roles[name]
-  if (role === null || typeof role !== 'object') return undefined
-  const provider = typeof role.provider === 'string' ? role.provider.trim() : ''
-  const model = typeof role.model === 'string' ? role.model.trim() : ''
+  const value = roles[role]
+  if (value === null || typeof value !== 'object') return undefined
+  const provider = typeof value.provider === 'string' ? value.provider.trim() : ''
+  const model = typeof value.model === 'string' ? value.model.trim() : ''
   if (provider === '' || model === '') return undefined
-  const out = { provider, model }
-  if (typeof role.reasoningEffort === 'string' && role.reasoningEffort.trim() !== '') {
-    out.reasoningEffort = role.reasoningEffort.trim()
+  const out = { role, provider, model }
+  if (typeof value.reasoningEffort === 'string' && value.reasoningEffort.trim() !== '') {
+    out.reasoningEffort = value.reasoningEffort.trim()
   }
   return out
 }

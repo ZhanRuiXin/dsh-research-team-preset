@@ -172,6 +172,8 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 
 空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取选中配置中该角色的默认值；显式传入的 `model` 会覆盖它。直接调用 `spawn_teammate` 始终继承 Lead。
 
+路由在 spawn 时解析，先直接读 `$DSH_HOME/research-team-settings.json`，读不到才退回进程内的快照，因此即使会话是在「插件」页首次保存之前打开的，也能取到已配置的路由。队友名字里出现完整角色词（`advisor`、`ELHA-R advisor`、`advisor-hi`）就会匹配到该角色；名字里没有标准角色时该队友继承 Lead 路由，工具结果会带一条 `diagnostics` 说明匹配到哪个角色、为什么没有配置。Lead 可以调用 `research_team_routes` 查看当前配置表，不必猜 provider 和 model 名称。
+
 建议的能力层级，仅作为起点而非规则：
 
 | 角色 | 建议层级 | 理由 |
@@ -252,12 +254,15 @@ research-team-preset/
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
-│   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
+│   ├── modeled-teammates.js      # spawn_teammate_with_model, research_team_routes + activation wrapper
+│   ├── settings-file.js          # Direct settings-file route reader (no host-store dependency)
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
 │   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
 │   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
+├── test/
+│   └── modeled-teammates.test.js # Route resolution, inheritance diagnostics, tool wiring
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -276,7 +281,7 @@ research-team-preset/
 
 - **Preset**：`cordis.patch.yml` 声明 persona、工具行、modeled-teammates 子模块和顶层设置行。
 - **任务看板提示**：`plugin/index.js` 在 preset 作用域注册英文协议段（`plugin:dsh-taskboard`），并提供 `research_project` 用于解析当前工作区。
-- **按角色路由**：`plugin/modeled-teammates.js` 通过 `AsyncLocalStorage` 包装 `subagents.startActivation`，只对 `spawn_teammate_with_model` 调用注入 `agentOptions`。官方 Agent Teams 包未被修改。 Cordis 对服务返回可追踪代理，因此包装器校验自身属性描述符，而不比较方法身份。
+- **按角色路由**：`plugin/modeled-teammates.js` 通过 `AsyncLocalStorage` 包装 `subagents.startActivation`，只对 `spawn_teammate_with_model` 调用注入 `agentOptions`。路由由 `plugin/settings-file.js` 在 spawn 时直接读配置 JSON 解析，读不到才退回进程内快照，因此 preset 子模块不再依赖顶层设置行先填好快照。官方 Agent Teams 包未被修改。 Cordis 对服务返回可追踪代理，因此包装器校验自身属性描述符，而不比较方法身份。
 - **设置**：`settings/index.js` 加载/保存配置 JSON 文件并提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 通过 `plugins.row.config` 注册「插件」页的配置编辑器。
 - **刷新**：`plugin/settings-store.js` 持有内存快照，在每次读取和 spawn 时解析活动配置，并在读取失败时保留最后一次有效快照。
 
@@ -313,6 +318,12 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - 旧的 `{ "roles": ... }` 文件会显示为单个 `默认配置` 配置，并在下一次保存时改写为配置结构；
 - `research-team-settings` 行的名称完全为 `@local/dsh-research-team-preset`；
 - 当前 host 运行的是本 checkout，而不是过期的已安装副本。
+
+### 每个队友都跑在 Lead 的模型上
+
+先看 spawn 结果里第一行上方的文字。应用了配置或显式路由时会打印 `requested=<provider>/<model> effort=<effort>`；没有匹配到路由时会打印 `requested=inherit (Lead route)` 并附一条 `note:`。`note:` 里点名某个角色，说明活动配置里该角色没有填 provider/model；提示名字不是标准角色，说明队友名字里没有出现角色词。
+
+另外两种原因与配置文件无关。一是 Lead 调用了普通的 `spawn_teammate`，它永远继承 Lead；persona 已要求 Lead 使用 modeled 工具并且不要传 `model`，也不要因为不确定名字就退回。二是保存设置时所处的 `DSH_HOME` 与运行中的 host 读取的不是同一个，可以对比 `research_team_routes` 打印的 `settings file:` 与 `echo $DSH_HOME`。
 
 ### 设置页没有出现在「插件」中
 

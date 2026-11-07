@@ -172,6 +172,8 @@ Each profile has one row per default member:
 
 An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. Plain `spawn_teammate` always inherits the Lead.
 
+Route lookup happens at spawn time and reads `$DSH_HOME/research-team-settings.json` directly before falling back to the in-process store, so a session opened before the Plugins page was ever saved still resolves the configured routes. A teammate name resolves to a role when it contains the role as a whole word (`advisor`, `ELHA-R advisor`, `advisor-hi`); a name with no standard role inherits the Lead route, and the tool result carries a `diagnostics` note saying which role was matched and why nothing was configured. The Lead can call `research_team_routes` to read the configured table instead of guessing provider and model names.
+
 Suggested capability tiers, as a starting point rather than a rule:
 
 | Role | Suggested tier | Why |
@@ -252,12 +254,15 @@ research-team-preset/
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
 │   ├── index.js                  # research_project + English task-board prompt section
-│   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
+│   ├── modeled-teammates.js      # spawn_teammate_with_model, research_team_routes + activation wrapper
+│   ├── settings-file.js          # Direct settings-file route reader (no host-store dependency)
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/
 │   └── index.js                  # Profile file + /api/dsh-research-team-settings
 ├── client/
 │   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
+├── test/
+│   └── modeled-teammates.test.js # Route resolution, inheritance diagnostics, tool wiring
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md
@@ -276,7 +281,7 @@ research-team-preset/
 
 - **Preset**: `cordis.patch.yml` declares the persona, tool rows, the modeled-teammates submodule, and the top-level settings row.
 - **Task-board prompt**: `plugin/index.js` registers an English protocol section (`plugin:dsh-taskboard`) at the preset scope and provides `research_project` to resolve the current workspace.
-- **Per-role routing**: `plugin/modeled-teammates.js` wraps `subagents.startActivation` with `AsyncLocalStorage` and injects `agentOptions` only for a `spawn_teammate_with_model` call. The official Agent Teams package is untouched. Cordis returns a traceable proxy for services, so the wrapper verifies its own property descriptor instead of method identity.
+- **Per-role routing**: `plugin/modeled-teammates.js` wraps `subagents.startActivation` with `AsyncLocalStorage` and injects `agentOptions` only for a `spawn_teammate_with_model` call. It resolves the route from `plugin/settings-file.js` (the settings JSON, read at spawn time) and falls back to the in-process store, so a preset submodule never depends on the top-level settings row having filled that store first. The official Agent Teams package is untouched. Cordis returns a traceable proxy for services, so the wrapper verifies its own property descriptor instead of method identity.
 - **Settings**: `settings/index.js` loads/saves the profile JSON file and serves `GET/POST /api/dsh-research-team-settings`; `client/index.js` registers the Plugins-page profile editor through `plugins.row.config`.
 - **Refresh**: `plugin/settings-store.js` holds the in-memory snapshot, resolves the active profile on every read and spawn, and keeps the last good snapshot if a read fails.
 
@@ -295,6 +300,7 @@ select another profile -> save -> spawn_teammate_with_model uses it
 delete one profile -> save -> only the remaining profile exists
 legacy {roles} file -> restart -> shown as 默认配置
 save a role model -> restart -> page still shows it
+node --test test/modeled-teammates.test.js   # route resolution and inheritance diagnostics
 ```
 
 The settings persistence path can be checked without the UI:
@@ -313,6 +319,15 @@ Version 0.1.0 fixes the known cause: the old loader passed the whole `{ roles: .
 - old `{ "roles": ... }` files are shown as a single `默认配置` profile and are rewritten in the profile shape on the next save;
 - the `research-team-settings` row is named exactly `@local/dsh-research-team-preset`;
 - the current host is running this checkout, not a stale installed copy.
+
+### Every teammate runs on the Lead's model
+
+Check the spawn result printed above the member's first message. It reads `requested=<provider>/<model> effort=<effort>` when a configured or explicit route was applied, and `requested=inherit (Lead route)` with a `note:` line when no route matched. A `note:` naming the role means that role has no provider/model in the active profile; a note saying the name is not a standard role means the teammate name did not contain a role word.
+
+Two other causes are not about the settings file:
+
+- the Lead called plain `spawn_teammate` instead of `spawn_teammate_with_model`, which always inherits the Lead. The persona tells the Lead to pass no `model` to the modeled tool and never to fall back because it is unsure about names;
+- the settings row was saved under a different `DSH_HOME` than the running host reads. Compare the `settings file:` line printed by `research_team_routes` with `echo $DSH_HOME`.
 
 ### The settings page does not appear in Plugins
 

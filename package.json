@@ -23,5 +23,8 @@
       ],
       "platform": "web"
     }
+  },
+  "scripts": {
+    "test": "node --test test/modeled-teammates.test.js"
   }
 }

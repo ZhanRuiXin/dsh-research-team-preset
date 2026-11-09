@@ -1,10 +1,10 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is not publicly released yet; its version stays 0.1.0.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is distributed from this repository; the current release is 0.1.0.
 
-## 0.1.0 — 2026-10-31
+## 0.1.0 — 2026-11-10
 
-Unreleased preview.
+First public release.
 
 - Eight standard roles: advisor, designer, researcher, data, builder, runner, reviewer, writer.
 - `designer` owns the experiment design document (questions and hypotheses, protocol and controls, baselines, ablations, metrics and statistical plan, compute budget, design change log); the builder implements it, the runner executes it, the reviewer checks adherence, and the advisor reviews the design at the proposal gate; the Lead gates the step but does not author the design.

@@ -69,7 +69,7 @@ This repository is a local DSH bundle. From a checkout:
 2. **Install this bundle** with the Plugins page/plugin manager's install action, using a local link:
 
    ```text
-   link:/absolute/path/to/research-team-preset
+   link:/absolute/path/to/dsh-research-team-preset
    ```
 
    A local folder path also works. Keep the link if you plan to update from this checkout; reinstall after replacing the folder.
@@ -283,7 +283,7 @@ $DSH_HOME/research-team-settings.json
 ## Repository layout
 
 ```text
-research-team-preset/
+dsh-research-team-preset/
 ├── README.md                     # This file (canonical, English)
 ├── CHANGELOG.md
 ├── LICENSE

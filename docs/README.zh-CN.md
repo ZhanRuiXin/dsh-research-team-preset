@@ -68,7 +68,7 @@ Research Team Mode 是一个 **profile 级 DSH bundle**。该 bundle 不会安�
 2. **安装本 bundle**：使用「插件」页/插件管理器的安装操作，通过本地链接安装：
 
    ```text
-   link:/absolute/path/to/research-team-preset
+   link:/absolute/path/to/dsh-research-team-preset
    ```
 
    本地文件夹路径同样可用。如果你打算从该 checkout 更新，请保留该 link；替换文件夹后需要重新安装。
@@ -282,7 +282,7 @@ $DSH_HOME/research-team-settings.json
 ## 仓库结构
 
 ```text
-research-team-preset/
+dsh-research-team-preset/
 ├── README.md                     # This file (canonical, English)
 ├── CHANGELOG.md
 ├── LICENSE

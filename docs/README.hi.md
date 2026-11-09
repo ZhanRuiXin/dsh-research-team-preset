@@ -68,7 +68,7 @@ Research Team Mode एक **प्रोफ़ाइल-स्तरीय DSH �
 2. Plugins पृष्ठ/plugin manager की install क्रिया से, स्थानीय लिंक का उपयोग करते हुए **इस बंडल को इंस्टॉल करें**:
 
    ```text
-   link:/absolute/path/to/research-team-preset
+   link:/absolute/path/to/dsh-research-team-preset
    ```
 
    स्थानीय फ़ोल्डर पथ भी काम करता है। यदि आप इस चेकआउट से अपडेट करना चाहते हैं तो लिंक रखें; फ़ोल्डर बदलने के बाद पुनः इंस्टॉल करें।
@@ -280,7 +280,7 @@ $DSH_HOME/research-team-settings.json
 ## रिपॉज़िटरी लेआउट
 
 ```text
-research-team-preset/
+dsh-research-team-preset/
 ├── README.md                     # This file (canonical, English)
 ├── CHANGELOG.md
 ├── LICENSE

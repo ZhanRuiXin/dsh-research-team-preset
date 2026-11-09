@@ -68,7 +68,7 @@
 2. **ثبّت هذا الـ bundle** عبر إجراء التثبيت في صفحة Plugins/مدير الإضافات، باستخدام رابط محلي:
 
    ```text
-   link:/absolute/path/to/research-team-preset
+   link:/absolute/path/to/dsh-research-team-preset
    ```
 
    كما يعمل مسار مجلد محلي أيضًا. أبقِ الرابط إذا كنت تخطّط للتحديث من نسخة الـ checkout هذه؛ وأعد التثبيت بعد استبدال المجلد.
@@ -280,7 +280,7 @@ $DSH_HOME/research-team-settings.json
 ## بنية المستودع
 
 ```text
-research-team-preset/
+dsh-research-team-preset/
 ├── README.md                     # This file (canonical, English)
 ├── CHANGELOG.md
 ├── LICENSE

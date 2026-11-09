@@ -68,7 +68,7 @@ Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 �
 2. Plugins 페이지/플러그인 관리자의 설치 기능에서 로컬 링크를 사용해 **이 번들을 설치**합니다:
 
    ```text
-   link:/absolute/path/to/research-team-preset
+   link:/absolute/path/to/dsh-research-team-preset
    ```
 
    로컬 폴더 경로도 사용할 수 있습니다. 이 체크아웃에서 업데이트할 계획이라면 링크를 유지하십시오. 폴더를 교체한 뒤에는 다시 설치해야 합니다.
@@ -280,7 +280,7 @@ $DSH_HOME/research-team-settings.json
 ## 저장소 구조
 
 ```text
-research-team-preset/
+dsh-research-team-preset/
 ├── README.md                     # This file (canonical, English)
 ├── CHANGELOG.md
 ├── LICENSE

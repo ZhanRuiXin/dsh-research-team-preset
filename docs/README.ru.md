@@ -68,7 +68,7 @@ Research Team Mode — это **bundle DSH уровня профиля**. Bundle
 2. **Установите этот bundle** действием установки на странице Plugins или в менеджере плагинов, используя локальную ссылку:
 
    ```text
-   link:/absolute/path/to/research-team-preset
+   link:/absolute/path/to/dsh-research-team-preset
    ```
 
    Локальный путь к папке тоже подходит. Сохраняйте ссылку, если планируете обновляться из этого checkout; переустановите после замены папки.
@@ -280,7 +280,7 @@ $DSH_HOME/research-team-settings.json
 ## Структура репозитория
 
 ```text
-research-team-preset/
+dsh-research-team-preset/
 ├── README.md                     # This file (canonical, English)
 ├── CHANGELOG.md
 ├── LICENSE

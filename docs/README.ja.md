@@ -68,7 +68,7 @@ Research Team Mode は**プロファイルレベルの DSH バンドル**です�
 2. Plugins ページ／プラグインマネージャーのインストール操作で、ローカルリンクを指定して**このバンドルをインストール**します:
 
    ```text
-   link:/absolute/path/to/research-team-preset
+   link:/absolute/path/to/dsh-research-team-preset
    ```
 
    ローカルのフォルダパスでも構いません。このチェックアウトから更新する予定がある場合はリンクを保持してください。フォルダを置き換えた後は再インストールしてください。
@@ -280,7 +280,7 @@ $DSH_HOME/research-team-settings.json
 ## リポジトリ構成
 
 ```text
-research-team-preset/
+dsh-research-team-preset/
 ├── README.md                     # This file (canonical, English)
 ├── CHANGELOG.md
 ├── LICENSE

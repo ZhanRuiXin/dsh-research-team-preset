@@ -35,6 +35,14 @@ Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semai
 
 **Pas pour :** les questions factuelles rapides, les modifications d'un seul fichier ou les tâches où une réponse en un seul échange suffit. Le mode demande au Lead de répondre directement aux questions simples et de mobiliser l'équipe uniquement pour une recherche substantielle.
 
+## Comment le Lead vous parle
+
+Les réponses du Lead relèvent de la communication scientifique, pas d'un fil d'état : d'abord l'affirmation ou le résultat avec les preuves qui le soutiennent (run id, jeu de données, métrique avec incertitude et taille d'échantillon, source), puis ce qui reste incertain, puis ce que vous devez décider. Chaque énoncé est étiqueté fait observé, inférence, hypothèse ou question ouverte, et la méthode est expliquée assez loin pour que vous puissiez suivre et continuer à apprendre.
+
+La mécanique interne reste interne. Les passations entre agents, les nouvelles tentatives, les erreurs d'outils, la tenue du tableau et ce que l'équipe a appris en travaillant ne sont pas transmis, sauf s'ils changent la lecture d'un résultat ou bloquent une décision. Les rapports des membres sont traduits en affirmation, preuve et limites plutôt que collés.
+
+La répartition est explicite : vous fixez la direction scientifique et jugez les preuves, l'équipe porte la charge de la recherche, de l'implémentation, de l'expérimentation et de la vérification.
+
 ## Prérequis
 
 Research Team Mode est un **bundle DSH au niveau du profil**. Le bundle n'installe ni n'active les bundles de profil qu'il utilise ; l'installeur de paquets de DSH gère les dépendances npm, pas les bundles de fonctionnalités. Activez d'abord les dépendances dans le même profil.
@@ -96,7 +104,7 @@ Lead: summarize -> user acceptance (done)
 
 | Rôle | Responsabilité |
 | --- | --- |
-| `advisor` | Évaluation indépendante de la direction, du cadrage, des affirmations centrales, de la suffisance des preuves et de la stratégie de l'article ; recommande de poursuivre / réviser / arrêter. Consultatif uniquement, pas un verrou |
+| `advisor` | Évaluation indépendante de la direction, du cadrage, des affirmations centrales, de la suffisance des preuves et de la stratégie de l'article. Constructif par défaut : ce qui tient, les quelques problèmes qui menacent le résultat, la plus petite réparation ou une alternative concrète pour chacun, puis proceed / revise / stop. Uniquement un avis, pas une porte |
 | `researcher` | Recherche bibliographique, acquisition, lecture attentive, extraction de preuves et tableau de preuves affirmation → source → emplacement. Interroge d'abord la bibliothèque Zotero partagée, importe l'article complet en version de référence (version of record) avec son PDF lorsqu'un travail manque, dédoublonne par DOI/titre et partage les références `zotero://` avec l'équipe |
 | `data` | Acquisition de jeux de données et de poids de modèles externes, avec disponibilité de la source et statut de licence/accès, outillage de téléchargement gérant reprise et limites de débit, vérification d'intégrité par rapport aux hachages de l'éditeur, décompression, contrat de manifeste, petit échantillon validé et registre disque. Ne rédige pas de code d'entraînement et ne modifie pas le protocole d'évaluation |
 | `designer` | Possède le document de conception de l'expérience : questions et hypothèses, protocole et contrôles, baselines, ablations, métriques et plan statistique, budget de calcul, et contrôle des changements de conception pendant que des exécutions sont en cours ; ne rédige pas de code de production et ne lance pas d'expériences |
@@ -110,6 +118,10 @@ Le Lead est responsable de la clarification de l'objectif, de la décomposition,
 ### Bibliothèque Zotero partagée
 
 Le researcher considère la bibliothèque Zotero de l'utilisateur comme la source bibliographique partagée de l'équipe. Il interroge d'abord les collections et les entrées existantes avant le web ouvert, réutilise les PDF joints et les passages annotés, et n'importe un article manquant que dans sa version de référence (version of record), avec le PDF joint et classé dans une collection de projet. Les imports dédoublonnent par DOI et titre, laissent les étiquettes (tags) et les collections de l'utilisateur intactes, et consignent la référence de l'entrée `zotero://` dans le tableau de preuves et sur la carte du tableau, afin que chaque équipier lise le même article et que le reviewer puisse vérifier les mêmes pages. Lorsque le texte intégral est derrière un paywall ou qu'il n'existe que des métadonnées, le researcher consigne le lien et marque cet élément de preuve comme de simples métadonnées (metadata-only) au lieu d'importer un substitut.
+
+### Revue consultative
+
+L'advisor est un co-penseur scientifique, pas un gardien. Il nomme d'abord ce qui tient dans le plan et pourquoi, puis au plus trois problèmes classés selon la menace qu'ils font peser sur le résultat, chacun rattaché à une étape, une affirmation ou un chiffre précis. Chaque problème arrive avec la plus petite réparation qui rendrait le plan acceptable, ou une alternative concrète avec son compromis ; un refus sec n'est pas une revue. Il distingue « cela ne peut pas répondre à la question » de « cela fonctionne mais c'est plus faible ou plus coûteux », énonce la condition sous laquelle le plan devient acceptable et termine par proceed, revise avec les changements requis, ou stop avec la direction à prendre à la place. Il juge selon la norme à laquelle le projet s'est réellement engagé et la nomme, au lieu de supposer la plus exigeante : un plan solide pour son objectif déclaré n'est pas un échec parce qu'une affirmation plus forte demanderait plus de preuves, et un objectif erroné est remonté à part comme décision de périmètre pour vous. Quand la preuve nécessaire pour juger manque, il nomme le test ou la source le moins coûteux qui trancherait. Un plan solide reçoit un soutien clair plutôt que des objections fabriquées, et un stop porte toujours une direction de remplacement. Cela reste un avis : le Lead décide et le reviewer reste la porte indépendante PASS/FAIL.
 
 ## Responsabilité de la conception
 
@@ -313,6 +325,16 @@ La version 0.1.0 corrige la cause connue : l'ancien chargeur passait tout l'obje
 - les anciens fichiers `{ "roles": ... }` s'affichent comme un profil unique `默认配置` et sont réécrits sous la forme de profil au prochain enregistrement ;
 - la ligne `research-team-settings` est nommée exactement `@local/dsh-research-team-preset` ;
 - l'hôte actuel exécute cette copie de travail, et non une copie installée obsolète.
+
+### Chaque coéquipier tourne sur le modèle du Lead
+
+Regardez la sortie de spawn imprimée au-dessus du premier message du membre. Elle affiche `requested=<provider>/<model> effort=<effort>` lorsqu'une route configurée ou explicite a été appliquée, et `requested=inherit (Lead route)` avec une ligne `note:` lorsqu'aucune route ne correspond. Un `note:` qui nomme un rôle signifie que ce rôle n'a pas de provider/model dans le profil actif ; une note indiquant que le nom n'est pas un rôle standard signifie que le nom du coéquipier ne contenait aucun mot de rôle.
+
+Deux autres causes ne concernent pas le fichier de réglages :
+
+- le Lead a appelé le `spawn_teammate` simple au lieu de `spawn_teammate_with_model`, qui hérite toujours du Lead. La persona demande au Lead de ne passer aucun `model` à l'outil modeled et de ne jamais revenir en arrière par doute sur les noms ;
+
+- la ligne de réglages a été enregistrée sous un `DSH_HOME` différent de celui que lit l'hôte en cours. Comparez la ligne `settings file:` imprimée par `research_team_routes` avec `echo $DSH_HOME`.
 
 ### La page de réglages n'apparaît pas dans Plugins
 

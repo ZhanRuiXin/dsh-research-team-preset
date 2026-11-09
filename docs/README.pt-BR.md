@@ -35,6 +35,14 @@ O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rast
 
 **Não indicado para:** perguntas factuais rápidas, edições em um único arquivo ou tarefas em que uma resposta única já basta. O modo orienta o Lead a responder perguntas simples diretamente e a mobilizar a equipe apenas para pesquisa substancial.
 
+## Como o Lead fala com você
+
+As respostas do Lead são comunicação científica, não um feed de status: primeiro a afirmação ou o resultado, com a evidência por trás (run id, conjunto de dados, métrica com incerteza e tamanho da amostra, fonte), depois o que permanece incerto e, por fim, o que você precisa decidir. Cada afirmação é rotulada como fato observado, inferência, hipótese ou questão aberta, e o método é explicado até o ponto de você conseguir acompanhar e continuar aprendendo.
+
+A mecânica interna fica interna. Handoffs entre agentes, retentativas, erros de ferramentas, escrituração do quadro e o que a equipe aprendeu trabalhando não são repassados, a menos que mudem a leitura de um resultado ou bloqueiem uma decisão. Relatórios dos membros são traduzidos em afirmação, evidência e limites, não colados.
+
+A divisão de trabalho é explícita: você define a direção científica e julga a evidência, e a equipe carrega a carga de busca, implementação, experimentação e verificação.
+
 ## Requisitos
 
 O Research Team Mode é um **bundle DSH de nível de perfil**. O bundle não instala nem ativa os bundles de perfil que utiliza; o instalador de pacotes do DSH lida com dependências npm, e não com bundles de recursos. Ative as dependências no mesmo perfil primeiro.
@@ -96,7 +104,7 @@ Lead: summarize -> user acceptance (done)
 
 | Função | Responsabilidade |
 | --- | --- |
-| `advisor` | Avaliação independente da direção, do enquadramento, das afirmações centrais, da suficiência das evidências e da estratégia do artigo; recomenda prosseguir / revisar / parar. Apenas consultivo, não é um ponto de bloqueio |
+| `advisor` | Avaliação independente da direção, do enquadramento, das afirmações centrais, da suficiência das evidências e da estratégia do paper. Construtivo por padrão: o que se sustenta, os poucos problemas que ameaçam o resultado, o menor reparo ou uma alternativa concreta para cada um, e então proceed / revise / stop. Apenas aconselhamento, não é um gate |
 | `researcher` | Busca, obtenção e leitura detalhada de literatura, extração de evidências e uma tabela de evidências afirmação → fonte → localização. Primeiro busca na biblioteca compartilhada do Zotero, importa o artigo completo em sua versão formal com o PDF anexado quando falta uma obra necessária, remove duplicatas por DOI e título e compartilha as referências `zotero://` com a equipe |
 | `data` | Obtenção de conjuntos de dados e pesos de modelos externos, incluindo disponibilidade da fonte e status de licença/acesso, ferramentas de download com retomada e tratamento de limites de taxa, verificação de integridade contra hashes do publicador, descompactação, contrato de manifesto, amostra pequena validada e registro de disco. Não escreve código de treinamento nem altera o protocolo de avaliação |
 | `designer` | É responsável pelo documento de design do experimento: perguntas e hipóteses, protocolo e controles, linhas de base, ablações, métricas e plano estatístico, orçamento de computação e controle de mudanças de design enquanto as execuções estão em andamento; não escreve código de produção nem executa experimentos |
@@ -110,6 +118,10 @@ O Lead é responsável por esclarecer o objetivo, decompor o trabalho, gerenciar
 ### Biblioteca compartilhada do Zotero
 
 O researcher considera a biblioteca Zotero do usuário como a fonte de literatura compartilhada da equipe. Busca nas coleções e nos itens existentes antes da web aberta, reutiliza os PDFs anexados e os trechos de anotação e importa um artigo ausente apenas em sua versão formal de registro, com o PDF anexado e arquivado em uma coleção do projeto. As importações removem duplicatas por DOI e título, não mexem nas etiquetas nem nas coleções do usuário e registram a referência de item `zotero://` na tabela de evidências e no cartão do quadro, para que cada colega leia o mesmo artigo e o reviewer possa conferir por amostragem as mesmas páginas. Quando o texto completo está atrás de um paywall ou só existem metadados, o researcher registra o link e marca a evidência como somente metadados, em vez de importar um substituto.
+
+### Revisão consultiva
+
+O advisor é um co-pensador científico, não um guardião. Primeiro nomeia o que se sustenta no plano e por quê, depois no máximo três problemas ordenados pelo quanto ameaçam o resultado, cada um ligado a um passo, uma afirmação ou um número específicos. Cada problema vem com o menor reparo que tornaria o plano aceitável, ou uma alternativa concreta com seu trade-off; uma rejeição seca não é uma revisão. Ele separa “isto não consegue responder à pergunta” de “isto funciona, mas é mais fraco ou mais caro”, declara a condição sob a qual o plano passa a ser aceitável e termina com proceed, revise com as mudanças necessárias ou stop com a direção a seguir em vez dela. Julga pelo padrão ao qual o projeto realmente se comprometeu e o nomeia, em vez de supor o mais exigente: um plano sólido para o objetivo declarado não é um fracasso porque uma afirmação mais forte exigiria mais evidência, e um alvo errado é levado à parte como decisão de escopo para você. Quando falta a evidência necessária para julgar, nomeia o teste ou a fonte mais barata que resolveria a questão. Um plano sólido recebe endosso claro em vez de objeções fabricadas, e um stop sempre traz uma direção substituta. Continua sendo aconselhamento: o Lead decide e o reviewer permanece o gate independente PASS/FAIL.
 
 ## Propriedade do design
 
@@ -313,6 +325,16 @@ A versão 0.1.0 corrige a causa conhecida: o loader antigo passava o objeto `{ r
 - arquivos antigos `{ "roles": ... }` são mostrados como um único perfil `默认配置` e são reescritos no formato de perfis no próximo salvamento;
 - a linha `research-team-settings` tem exatamente o nome `@local/dsh-research-team-preset`;
 - o host atual está executando este checkout, e não uma cópia instalada desatualizada.
+
+### Cada colega roda no modelo do Lead
+
+Veja a saída do spawn impressa acima da primeira mensagem do membro. Ela mostra `requested=<provider>/<model> effort=<effort>` quando uma rota configurada ou explícita foi aplicada, e `requested=inherit (Lead route)` com uma linha `note:` quando nenhuma rota correspondeu. Uma `note:` que nomeia um papel significa que esse papel não tem provider/model no perfil ativo; uma nota dizendo que o nome não é um papel padrão significa que o nome do colega não continha nenhuma palavra de papel.
+
+Outras duas causas não têm a ver com o arquivo de configurações:
+
+- o Lead chamou o `spawn_teammate` simples em vez do `spawn_teammate_with_model`, que sempre herda do Lead. A persona diz ao Lead para não passar `model` à ferramenta modeled e nunca recuar por incerteza sobre nomes;
+
+- a linha de configurações foi salva sob um `DSH_HOME` diferente do que o host em execução lê. Compare a linha `settings file:` impressa por `research_team_routes` com `echo $DSH_HOME`.
 
 ### A página de configurações não aparece em Plugins
 

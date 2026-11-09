@@ -127,7 +127,7 @@ Member: team_task_update (claim) -> work -> team_task_update (complete) + send_m
 Internal steps and member handoffs stay off the board; only user gates get cards
 At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
 Reviewer: independent PASS/FAIL with evidence on gated cards
-Advisor: optional independent recommendation at key decisions or before submission
+Advisor: optional independent recommendation at key decisions or final review
 Lead:  summarize -> report card ids/status/evidence/risks to the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```

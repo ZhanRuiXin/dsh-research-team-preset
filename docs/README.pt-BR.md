@@ -131,6 +131,14 @@ O Lead não redige o design do experimento. No trabalho com forte ênfase em des
 
 O builder implementa o design, o runner o executa e o reviewer verifica, no gate de proposta, se o design consegue responder à pergunta e, no gate de resultados, se a execução correspondeu a ele. O advisor dá uma leitura científica independente no gate de proposta. O Lead confirma que o documento de design existe e que as entradas do researcher e de data estão prontas, e então admite ou devolve a etapa. No trabalho liderado pela implementação, o builder redige o design e o advisor o revisa uma vez.
 
+## Escopo de escrita
+
+Cada papel escreve apenas dentro do seu próprio escopo. Advisor e reviewer não escrevem nada; researcher possui `literature/`, `notes/` e `docs/evidence`; data possui `data/`, `manifests/`, scripts de download em `scripts/` e `reports/`; designer possui `docs/design/`; builder possui `src/`, `configs/` e `tests/`; runner possui `runs/`, `logs/` e `checkpoints/`; writer possui `paper/` e `figures/`; o Lead não tem restrição. Ler, buscar e comentar cartões continua aberto a todos.
+
+O escopo é um contrato, não uma preferência: uma mudança que pertence a outro papel é reportada ao seu dono em vez de ser escrita pelo membro errado. Advisor e reviewer iniciam em somente leitura, então uma revisão relata o que precisa mudar em vez de mudar; um companheiro que realmente precise escrever fora do seu escopo recebe uma exceção explícita do Lead, registrada no cartão antes do trabalho começar.
+
+Antes de um cartão ir para in_review, o dono ou o Lead executa `research_scope_check` com o papel e os caminhos alterados ou os commits base e head. Uma violação é corrigida movendo a mudança para o papel responsável ou registrando a exceção aprovada pelo Lead, nunca ampliando o escopo no meio do cartão. Um projeto pode restringir ou ampliar um escopo em `AGENTS.md` ou no cartão; para essa etapa o cartão prevalece, para que uma sessão posterior leia a mesma regra.
+
 ## Admissão de experimentos
 
 O poder de computação é gasto em uma decisão, não em atividade. Nenhuma execução além de um teste de fumaça trivial começa antes de sua regra de decisão ser escrita, e a regra precisa poder responder "parar". Antes do lançamento, registra-se no documento de design ou no worklog: a pergunta que a execução resolve, a hipótese, o resultado esperado e o tamanho de efeito que contaria como apoio, o resultado que a refutaria, o critério de parada, a linha de base a superar, o piloto mais barato capaz de resolver e o orçamento de computação. Uma execução sem esse registro não é admitida.
@@ -281,7 +289,7 @@ research-team-preset/
 ├── package.json                  # DSH bundle manifest and exports
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
-│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/

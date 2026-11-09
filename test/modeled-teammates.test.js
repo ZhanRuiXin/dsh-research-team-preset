@@ -45,16 +45,45 @@ function v2File(routes = ROUTES) {
   return { version: 2, activeProfileId: 'p-test', profiles: [{ id: 'p-test', name: 'GPT + Deepseek', roles: routes }] }
 }
 
-/** Fake Cordis context that records tool definitions and spawn activations. */
-function fakeContext() {
+/** Fake Cordis context that records tool definitions, spawn activations, sandbox events, and guards. */
+function fakeContext({ defaultMode = 'workspace-write' } = {}) {
   const tools = {}
   const activations = []
+  const events = []
+  const guards = []
+  const sessions = new Map()
+  const sessionFor = (id) => {
+    if (!sessions.has(id)) {
+      sessions.set(id, {
+        id,
+        append(type, data) {
+          events.push({ id, type, data })
+        }
+      })
+    }
+    return sessions.get(id)
+  }
   const ctx = {
     logger: { info() {}, warn() {} },
     tools: {
       register(definition) {
         tools[definition.name] = definition
         return () => { delete tools[definition.name] }
+      },
+      guard(guard) {
+        guards.push(guard)
+        return () => {}
+      }
+    },
+    agents: {
+      get(id) {
+        return { session: sessionFor(id) }
+      }
+    },
+    sandboxPolicy: {
+      defaultMode,
+      overrideOf() {
+        return undefined
       }
     },
     subagents: {
@@ -73,6 +102,7 @@ function fakeContext() {
         })
         const spec = activations[activations.length - 1]
         return {
+          id: 'child-1',
           name: request.name,
           status: 'running',
           provider: request.provider,
@@ -84,7 +114,7 @@ function fakeContext() {
     }
   }
   apply(ctx, { enabled: true, freshProvider: 'spawn', forkProvider: 'fork' })
-  return { ctx, tools, activations }
+  return { ctx, tools, activations, events, guards }
 }
 
 const agent = { id: 'lead-agent' }
@@ -218,4 +248,51 @@ test('research_team_routes reports the configured table', async () => {
   assert.equal(value.error, undefined)
   const rendered = tools.research_team_routes.output.render({}, value)
   assert.match(rendered[0].text, /advisor: openai-codex\/gpt-6-astra effort=high/)
+})
+
+test('the advisor spawns read-only and records the sandbox mode on the child session', async () => {
+  writeSettingsFile(v2File())
+  const { tools, events, guards } = fakeContext()
+  const result = await tools.spawn_teammate_with_model.execute(
+    { name: 'advisor', description: 'Senior advisor', prompt: 'Review the design.' },
+    { agent }
+  )
+
+  assert.equal(result.sessionId, 'child-1')
+  assert.equal(result.permission.mode, 'read-only')
+  assert.equal(result.permission.applied, true)
+  assert.deepEqual(events, [{ id: 'child-1', type: 'sandbox/mode', data: { mode: 'read-only' } }])
+
+  assert.equal(guards.length, 1)
+  const guard = guards[0]
+  assert.match(guard({ agent: { session: { id: 'child-1' } }, name: 'write' }), /read-only/)
+  assert.match(guard({ agent: { session: { id: 'child-1' } }, name: 'bash' }), /read-only/)
+  assert.equal(guard({ agent: { session: { id: 'child-1' } }, name: 'read_file' }), undefined)
+  assert.equal(guard({ agent: { session: { id: 'child-2' } }, name: 'write' }), undefined)
+})
+
+test('an explicit permission overrides the role default', async () => {
+  writeSettingsFile(v2File())
+  const { tools, events, guards } = fakeContext({ defaultMode: 'read-only' })
+  const result = await tools.spawn_teammate_with_model.execute(
+    { name: 'advisor', description: 'Probe', prompt: 'Edit the fixture.', permission: 'workspace-write' },
+    { agent }
+  )
+
+  assert.equal(result.permission.mode, 'workspace-write')
+  assert.deepEqual(events, [{ id: 'child-1', type: 'sandbox/mode', data: { mode: 'workspace-write' } }])
+  assert.equal(guards[0]({ agent: { session: { id: 'child-1' } }, name: 'write' }), undefined)
+})
+
+test('a role at the deployment default needs no sandbox event', async () => {
+  writeSettingsFile(v2File())
+  const { tools, events } = fakeContext()
+  const result = await tools.spawn_teammate_with_model.execute(
+    { name: 'builder', description: 'Implement', prompt: 'Build it.' },
+    { agent }
+  )
+
+  assert.equal(result.permission.mode, 'workspace-write')
+  assert.equal(result.permission.already, true)
+  assert.deepEqual(events, [])
 })

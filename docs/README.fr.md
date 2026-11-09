@@ -131,6 +131,14 @@ Le Lead ne rédige pas la conception de l'expérience. Pour les travaux à forte
 
 Le builder met en œuvre la conception, le runner l'exécute, et le reviewer vérifie à la porte de proposition que la conception permet de répondre à la question, puis à la porte des résultats que l'exécution y correspond. L'advisor donne une lecture scientifique indépendante à la porte de proposition. Le Lead confirme que le document de conception existe et que les apports du researcher et du data sont en place, puis admet ou renvoie l'étape. Pour les travaux menés par l'implémentation, le builder rédige la conception et l'advisor la relit une fois.
 
+## Périmètre d’écriture
+
+Chaque rôle n’écrit que dans son propre périmètre. Advisor et reviewer n’écrivent rien ; researcher possède `literature/`, `notes/` et `docs/evidence` ; data possède `data/`, `manifests/`, les scripts de téléchargement sous `scripts/` et `reports/` ; designer possède `docs/design/` ; builder possède `src/`, `configs/` et `tests/` ; runner possède `runs/`, `logs/` et `checkpoints/` ; writer possède `paper/` et `figures/` ; le Lead n’est pas restreint. Lire, chercher et commenter les cartes reste ouvert à tous.
+
+Le périmètre est un contrat, pas une préférence : une modification qui appartient à un autre rôle est signalée à son propriétaire plutôt qu’écrite par le mauvais membre. Advisor et reviewer démarrent en lecture seule, donc une revue signale ce qui doit changer au lieu de le changer ; un coéquipier qui a réellement besoin d’écrire hors de son périmètre reçoit une exception explicite du Lead, consignée sur la carte avant le début du travail.
+
+Avant qu’une carte passe à in_review, le propriétaire ou le Lead lance `research_scope_check` avec le rôle et soit les chemins modifiés, soit les commits de base et de tête. Une violation se corrige en déplaçant la modification vers son rôle ou en consignant l’exception approuvée par le Lead, jamais en élargissant le périmètre en cours de carte. Un projet peut restreindre ou étendre un périmètre dans `AGENTS.md` ou sur la carte ; pour cette étape la carte fait foi, afin qu’une session ultérieure lise la même règle.
+
 ## Admission des expériences
 
 Le calcul se dépense pour une décision, pas pour de l'activité. Aucune exécution au-delà d'un test de fumée trivial ne démarre avant que sa règle de décision ne soit écrite, et la règle doit pouvoir répondre « arrêter ». Avant le lancement, on consigne dans le document de conception ou le worklog : la question que l'exécution tranche, l'hypothèse, le résultat attendu et la taille d'effet qui compterait comme preuve, le résultat qui la réfuterait, le critère d'arrêt, la référence à battre, le pilote le moins coûteux susceptible de trancher et le budget de calcul. Une exécution sans cette trace n'est pas admise.
@@ -281,7 +289,7 @@ research-team-preset/
 ├── package.json                  # DSH bundle manifest and exports
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
-│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/

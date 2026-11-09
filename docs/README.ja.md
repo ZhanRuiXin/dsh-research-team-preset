@@ -131,6 +131,14 @@ Lead は実験設計を書きません。設計が中心となる作業では、
 
 builder がその設計を実装し、runner がそれを実行し、reviewer は提案ゲートでその設計が問いに答えられるかを、結果ゲートで実行が設計と一致したかを確認します。advisor は提案ゲートで独立した科学的見解を示します。Lead は設計ドキュメントが存在し、researcher と data の入力が揃っていることを確認してから、そのステップを承認または差し戻します。実装主導の作業では、builder が設計を起草し、advisor が一度レビューします。
 
+## 書き込み範囲
+
+各ロールは自分の書き込み範囲の中だけに書く。advisor と reviewer は何も書かない。researcher は `literature/`、`notes/`、`docs/evidence` を、data は `data/`、`manifests/`、`scripts/` 配下のダウンロードスクリプトと `reports/` を、designer は `docs/design/` を、builder は `src/`、`configs/`、`tests/` を、runner は `runs/`、`logs/`、`checkpoints/` を、writer は `paper/`、`figures/` を持つ。Lead は制限なし。読み取り、検索、カードへのコメントは全員に開かれている。
+
+範囲は嗜好ではなく契約である。他ロールに属する変更は、誤ったメンバーが書くのではなく、その所有者に報告する。advisor と reviewer は読み取り専用で起動するため、レビューは何を変えるべきかを報告し、自分では変えない。範囲外への書き込みが本当に必要なチームメイトは、作業開始前に Lead の明示的な例外を得て、カードに記録する。
+
+カードを in_review に移す前に、所有者または Lead がロールと変更パス（または base と head のコミット）を指定して `research_scope_check` を実行する。違反は、変更を所有ロールへ移すか、Lead が承認した例外を記録することで解消し、カード進行中に範囲を広げない。プロジェクトは `AGENTS.md` やカードで範囲を狭めたり広げたりでき、そのステップではカードが優先され、後のセッションも同じ規則を読む。
+
 ## 実験の着手条件
 
 計算資源は意思決定のために使い、作業量のために使わない。簡単なスモークテストを超える実行は、判定ルールを書き残すまで開始しない。ルールは「中止」を返せなければならない。着手前に、その実行が決着させる問い、仮説、支持と見なす効果量を含む期待結果、それを反証する結果、中止基準、上回るべきベースライン、決着させられる最小のパイロット、計算予算を設計文書かワークログに記録する。この記録のない実行は着手できない。
@@ -281,7 +289,7 @@ research-team-preset/
 ├── package.json                  # DSH bundle manifest and exports
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
-│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/

@@ -132,6 +132,14 @@ The Lead does not author the experiment design. For design-heavy work the design
 
 The builder implements the design, the runner executes it, and the reviewer checks at the proposal gate that the design can answer the question and at the results gate that execution matched it. The advisor gives an independent scientific read at the proposal gate. The Lead confirms that the design document exists and that the researcher and data inputs are in place, then admits or returns the step. For implementation-led work the builder drafts the design and the advisor reviews it once.
 
+## Write envelope
+
+Each role writes only inside its own envelope. The advisor and the reviewer write nothing; the researcher owns `literature/`, `notes/`, and `docs/evidence`; data owns `data/`, `manifests/`, download scripts under `scripts/`, and `reports/`; the designer owns `docs/design/`; the builder owns `src/`, `configs/`, and `tests/`; the runner owns `runs/`, `logs/`, and `checkpoints/`; the writer owns `paper/` and `figures/`; the Lead is unrestricted. Reading, searching, and card comments stay open to everyone.
+
+The envelope is a contract rather than a preference: a change that belongs to another role is reported to that owner instead of written by the wrong member. The advisor and the reviewer are spawned read-only, so a review reports what must change instead of changing it; any teammate that genuinely needs to write outside its envelope gets an explicit exception from the Lead, recorded on the card before the work starts.
+
+Before a card moves to in_review, the owning member or the Lead runs `research_scope_check` with the role and either the changed paths or the base and head commits. A violation is fixed by moving the change to its owning role, or by recording the exception the Lead approved; never by widening the envelope mid-card. A project can narrow or extend an envelope in `AGENTS.md` or on the card, and the card wins for that step so a later session reads the same rule.
+
 ## Experiment admission
 
 Compute is spent on a decision, not on activity. Before a run beyond a trivial smoke test, the design document or worklog records the question the run settles, the hypothesis, the expected outcome and the effect size that would count as support, the result that would refute it, the kill criterion, the baseline it must beat, the cheapest pilot, and the budget. A run without that record is not admitted, and the rule must be able to come back "stop".
@@ -284,7 +292,7 @@ research-team-preset/
 ├── package.json                  # DSH bundle manifest and exports
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
-│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model, research_team_routes + activation wrapper
 │   ├── settings-file.js          # Direct settings-file route reader (no host-store dependency)
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
@@ -293,7 +301,9 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 ├── test/
-│   └── modeled-teammates.test.js # Route resolution, inheritance diagnostics, tool wiring
+│   ├── modeled-teammates.test.js # Route resolution, permissions, inheritance diagnostics, tool wiring
+│   ├── scope-check.test.js       # Role write envelopes and the handoff check
+│   └── workspace-init.test.js    # Project-root worklog scaffold
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md

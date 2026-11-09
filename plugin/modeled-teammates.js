@@ -28,10 +28,99 @@ import { readRouteTable } from './settings-file.js'
 
 export const name = 'research-modeled-teammates'
 
-export const inject = ['tools', 'subagents', 'agentTeams']
+export const inject = ['tools', 'subagents', 'agentTeams', 'agents']
 
 const modeledSpawn = new AsyncLocalStorage()
 const patches = new WeakMap()
+
+/** Roles whose teammate session runs read-only unless the Lead asks otherwise. */
+const READ_ONLY_ROLES = new Set(['advisor', 'reviewer'])
+
+/** Tools that can change project files; consulted only when the sandbox override is missing. */
+const FILE_WRITE_TOOLS = new Set([
+  'write', 'edit', 'ops_write_file', 'ops_edit_file', 'ops_replace', 'ops_copy', 'ops_move', 'ops_remove',
+  'bash', 'ops_bash', 'pwsh', 'terminal_send', 'research_workspace_init'
+])
+
+/** Resolve the permission a spawn should enforce. */
+function permissionFor(role, requested) {
+  if (requested === 'read-only' || requested === 'workspace-write') return requested
+  return role !== undefined && READ_ONLY_ROLES.has(role) ? 'read-only' : 'workspace-write'
+}
+
+function defaultModeOf(ctx) {
+  try {
+    const mode = ctx.sandboxPolicy?.defaultMode
+    return typeof mode === 'string' ? mode : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function overrideModeOf(ctx, session) {
+  try {
+    const mode = ctx.sandboxPolicy?.overrideOf?.(session)
+    return typeof mode === 'string' ? mode : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Record a sandbox mode on one child session. The session log is the store —
+ * `sandbox/mode` is the documented write path — so the mode survives a restart
+ * and applies to every confined call the child makes afterwards. The child may
+ * still be provisioning when the spawn returns, so resolve it with a bounded
+ * poll instead of assuming it is already registered.
+ */
+async function applySandboxMode(ctx, sessionId, mode, signal) {
+  if (typeof sessionId !== 'string' || sessionId === '') {
+    return { applied: false, mode, reason: 'the spawn result carried no child session id' }
+  }
+  let get
+  try {
+    get = ctx.agents?.get
+  } catch {
+    get = undefined
+  }
+  if (typeof get !== 'function') return { applied: false, mode, reason: 'the agents service is unavailable' }
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    if (signal !== undefined && signal.aborted === true) return { applied: false, mode, reason: 'the spawn was aborted' }
+    let child
+    try {
+      child = get.call(ctx.agents, sessionId)
+    } catch {
+      child = undefined
+    }
+    const session = child === null || child === undefined ? undefined : child.session
+    if (session !== undefined && typeof session.append === 'function') {
+      try {
+        if (overrideModeOf(ctx, session) === mode) return { applied: true, mode, already: true }
+        session.append('sandbox/mode', { mode })
+        return { applied: true, mode }
+      } catch (error) {
+        return { applied: false, mode, reason: messageFrom(error) }
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+  return { applied: false, mode, reason: `child session ${sessionId} was not resolvable in time` }
+}
+
+/**
+ * Apply the requested permission to a freshly spawned child. The deployment
+ * default needs no event; any other mode is recorded on the child's session.
+ * When that record cannot be written for a read-only teammate, the tools guard
+ * still refuses its file-writing tools, so the envelope holds either way.
+ */
+async function applyPermission(ctx, sessionId, mode, signal, readOnlySessions) {
+  if (mode === 'read-only' && typeof sessionId === 'string') readOnlySessions.add(sessionId)
+  const resolved = defaultModeOf(ctx)
+  if (resolved !== undefined && resolved === mode) return { mode, applied: true, already: true }
+  const result = await applySandboxMode(ctx, sessionId, mode, signal)
+  if (mode === 'read-only' && result.applied === false) return { ...result, enforcedBy: 'tool-guard' }
+  return result
+}
 
 function messageFrom(error) {
   return error instanceof Error ? error.message : String(error)
@@ -264,6 +353,22 @@ export function apply(ctx, config = {}) {
     ctx.logger?.warn?.(`research-modeled-teammates: route self-check failed: ${messageFrom(error)}`)
   }
 
+  // Belt to the sandbox-mode braces: if a read-only session's `sandbox/mode`
+  // event could not be written (or a host build ignores it), refuse the file
+  // writing tools for that session instead of leaving the envelope advisory.
+  const readOnlySessions = new Set()
+  const disposeGuard = typeof ctx.tools.guard === 'function'
+    ? ctx.tools.guard((execution) => {
+        const session = execution === null || execution === undefined || execution.agent === undefined
+          ? undefined
+          : execution.agent.session
+        if (session === undefined || typeof session.id !== 'string' || !readOnlySessions.has(session.id)) return undefined
+        if (typeof execution.name !== 'string' || !FILE_WRITE_TOOLS.has(execution.name)) return undefined
+        if (overrideModeOf(ctx, session) === 'read-only') return undefined
+        return `this teammate is read-only: "${execution.name}" cannot modify files. Report what needs to change instead of retrying with another write tool.`
+      })
+    : () => {}
+
   const disposeRoutesTool = ctx.tools.register({
     name: 'research_team_routes',
     description:
@@ -290,7 +395,7 @@ export function apply(ctx, config = {}) {
   const disposeTool = ctx.tools.register({
     name: 'spawn_teammate_with_model',
     description:
-      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics.',
+      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics. The advisor and reviewer roles spawn read-only; pass permission to override.',
     parameters: {
       type: 'object',
       properties: {
@@ -308,6 +413,11 @@ export function apply(ctx, config = {}) {
           },
           required: ['provider', 'model'],
           additionalProperties: false
+        },
+        permission: {
+          type: 'string',
+          enum: ['read-only', 'workspace-write'],
+          description: 'Sandbox permission for the teammate session. Defaults to read-only for the advisor and reviewer roles and workspace-write for every other role; pass a value only to override that default.'
         }
       },
       required: ['name', 'description', 'prompt'],
@@ -347,12 +457,18 @@ export function apply(ctx, config = {}) {
       const member = requestedModel === undefined
         ? await spawn()
         : await modeledSpawn.run({ caller: agent, agentOptions: requestedModel }, spawn)
+      const view = member !== null && typeof member === 'object' && member.member !== undefined ? member.member : member
+      const sessionId = view !== null && typeof view === 'object' && typeof view.id === 'string' ? view.id : undefined
+      const permission = permissionFor(resolved.role, args.permission)
+      const permissionResult = await applyPermission(ctx, sessionId, permission, signal, readOnlySessions)
       let warning
       if (requestedModel !== undefined && typeof member?.model === 'string' && member.model !== requestedModel.model) {
         warning = `requested model ${requestedModel.model} but roster reports ${member.model}; the activation patch may be incompatible with this DSH build.`
       }
       return {
         member,
+        ...(sessionId === undefined ? {} : { sessionId }),
+        permission: permissionResult,
         ...(requestedModel === undefined ? {} : { requestedModel }),
         ...(resolved.role === undefined ? {} : { role: resolved.role }),
         ...(resolved.source === undefined ? {} : { routeSource: resolved.source }),
@@ -363,6 +479,8 @@ export function apply(ctx, config = {}) {
   })
 
   return () => {
+    disposeGuard()
+    readOnlySessions.clear()
     disposeTool()
     disposeRoutesTool()
     disposePatch()

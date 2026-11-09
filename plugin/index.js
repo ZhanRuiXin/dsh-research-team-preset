@@ -15,6 +15,9 @@
  *    one. The agent decides when to call it; it writes at the registered
  *    project root so every session on the project shares one worklog, never
  *    creates a nested repository, and never commits.
+ * 4. `research_scope_check` — compare a role's changed files (explicit paths or
+ *    a `git diff`) with that role's default write envelope, so an out-of-scope
+ *    handoff fails before the card reaches review.
  */
 
 import { execFile } from 'node:child_process'
@@ -148,6 +151,75 @@ export async function initWorkspace(cwd, objective = '') {
   }
 }
 
+/**
+ * Default write envelope per standard role. `null` means unrestricted (the
+ * Lead). A project may narrow or extend an envelope in AGENTS.md or on the
+ * card; this table is the default the check falls back to.
+ */
+export const WRITE_ENVELOPES = Object.freeze({
+  advisor: Object.freeze([]),
+  researcher: Object.freeze(['literature/', 'notes/', 'docs/evidence']),
+  data: Object.freeze(['data/', 'manifests/', 'scripts/', 'reports/']),
+  designer: Object.freeze(['docs/design/']),
+  builder: Object.freeze(['src/', 'configs/', 'tests/']),
+  runner: Object.freeze(['runs/', 'logs/', 'checkpoints/']),
+  reviewer: Object.freeze([]),
+  writer: Object.freeze(['paper/', 'figures/']),
+  lead: null
+})
+
+function normalizeRepoPath(file) {
+  return String(file).replace(/\\/g, '/').replace(/^\.\//, '')
+}
+
+/**
+ * Compare changed files with one role's write envelope.
+ *
+ * @param {string} role - standard role name.
+ * @param {string[]} files - repository-relative changed paths.
+ * @param {Record<string, readonly string[] | null>} [envelopes] - envelope table.
+ * @returns {object} `{ role, allowed, violations, ok, envelope }`.
+ */
+export function checkScope(role, files, envelopes = WRITE_ENVELOPES) {
+  if (!Object.prototype.hasOwnProperty.call(envelopes, role)) {
+    return { error: `unknown role "${role}"; expected one of ${Object.keys(envelopes).join(', ')}` }
+  }
+  const envelope = envelopes[role]
+  const allowed = []
+  const violations = []
+  for (const file of Array.isArray(files) ? files : []) {
+    const normalized = normalizeRepoPath(file)
+    if (normalized === '') continue
+    const inside = envelope === null || envelope.some((root) => {
+      const prefix = root.endsWith('/') ? root : `${root}/`
+      return normalized === root || normalized.startsWith(prefix)
+    })
+    if (inside) allowed.push(normalized)
+    else violations.push(normalized)
+  }
+  return { role, allowed, violations, ok: violations.length === 0, envelope }
+}
+
+function renderScope(value) {
+  if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
+    return [{ type: 'text', text: value.error }]
+  }
+  const role = String(value?.role ?? '(unknown)')
+  const total = (Array.isArray(value?.allowed) ? value.allowed.length : 0) +
+    (Array.isArray(value?.violations) ? value.violations.length : 0)
+  const lines = []
+  lines.push(`Scope check for ${role}: ${value?.ok === true ? 'PASS' : 'FAIL'} (${total} changed file${total === 1 ? '' : 's'})`)
+  const envelope = value?.envelope
+  lines.push(envelope === null
+    ? 'Envelope: unrestricted'
+    : `Envelope: ${Array.isArray(envelope) && envelope.length > 0 ? envelope.join(', ') : '(none — read-only)'}`)
+  for (const file of Array.isArray(value?.violations) ? value.violations : []) {
+    lines.push(`- outside envelope: ${file} — move it to its owning role, or record an approved exception on the card before the handoff`)
+  }
+  if (value?.ok === true) lines.push('Every changed file is inside the envelope.')
+  return [{ type: 'text', text: lines.join(NL) }]
+}
+
 function renderInit(value) {
   if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
     return [{ type: 'text', text: value.error }]
@@ -255,7 +327,69 @@ export function apply(ctx) {
     }
   })
 
+  const disposeScope = ctx.tools.register({
+    name: 'research_scope_check',
+    description:
+      'Check the files a teammate changed against that role\'s write envelope before a card handoff. Pass paths, or a base commit (with an optional head) to read `git diff --name-only base..head`. Returns PASS or FAIL with every file outside the envelope; a violation is fixed by moving the change to its owning role, or by recording an approved exception on the card. The envelope is a default table; a project may narrow or extend it in AGENTS.md or on the card.',
+    parameters: {
+      type: 'object',
+      properties: {
+        role: {
+          type: 'string',
+          description: 'Role whose envelope to check: advisor, researcher, data, designer, builder, runner, reviewer, writer, or lead.'
+        },
+        paths: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Repository-relative changed files. Omit to use base/head with git diff.'
+        },
+        base: {
+          type: 'string',
+          description: 'Base commit or ref for `git diff --name-only base..head`.'
+        },
+        head: {
+          type: 'string',
+          description: 'Head commit for the diff; defaults to HEAD.'
+        }
+      },
+      required: ['role'],
+      additionalProperties: false
+    },
+    output: {
+      schema: {},
+      render(_args, value) {
+        return renderScope(value)
+      }
+    },
+    async execute(args, exec) {
+      const role = typeof args.role === 'string' ? args.role : ''
+      const cwd = exec?.agent?.session?.header?.cwd
+      if (typeof cwd !== 'string' || cwd.length === 0) {
+        return { error: 'Cannot determine the session working directory; no files were checked.' }
+      }
+      let files
+      if (Array.isArray(args.paths)) {
+        files = args.paths
+      } else if (typeof args.base === 'string' && args.base.length > 0) {
+        const head = typeof args.head === 'string' && args.head.length > 0 ? args.head : 'HEAD'
+        try {
+          const result = await runGit(cwd, ['diff', '--name-only', `${args.base}..${head}`])
+          files = String(result.stdout ?? '')
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0)
+        } catch (error) {
+          return { error: `Cannot read the git diff: ${oneLine(error instanceof Error ? error.message : error)}` }
+        }
+      } else {
+        return { error: 'Pass paths, or base (with an optional head) to read a git diff.' }
+      }
+      return { cwd, ...checkScope(role, files) }
+    }
+  })
+
   return () => {
+    disposeScope()
     disposeInit()
     disposeTool()
     disposeSection()

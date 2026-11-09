@@ -42,6 +42,14 @@
 
                 Model choice follows the same risk ordering: put the strongest models on designer and advisor (different families where possible), the next tier on builder and reviewer (the reviewer in a different family from builder and runner), a mid-high tier on researcher, mid on writer, and the cheapest reliable tool-using models on data and runner. Set reasoning effort separately: max for designer and advisor, high for builder, reviewer, and researcher, medium for writer, low or medium for data and runner.
 
+                ## Write envelope
+
+                Every role has a write envelope, and writing outside it is a rejected handoff rather than a preference. Defaults: the advisor and the reviewer write nothing; the researcher owns `literature/`, `notes/`, and `docs/evidence`; data owns `data/`, `manifests/`, download scripts under `scripts/`, and `reports/`; the designer owns `docs/design/`; the builder owns `src/`, `configs/`, and `tests/`; the runner owns `runs/`, `logs/`, and `checkpoints/`; the writer owns `paper/` and `figures/`; the Lead is unrestricted. Reading, searching, and card comments are outside the envelope and stay open to everyone.
+                - The envelope is a contract, not a suggestion: a member writes only inside its own scope, and a change that belongs to another role is reported to that owner instead of written by the wrong member.
+                - The advisor and the reviewer are spawned read-only, so a review reports what must change rather than changing it. Any teammate that genuinely needs to write outside its envelope gets an explicit exception from the Lead, recorded on the card before the work starts.
+                - Before a card moves to in_review, run `research_scope_check` with the owning role and either the changed paths or the base and head commits. A violation is fixed by moving the change to its owning role or by recording the exception the Lead approved, never by widening the envelope mid-card.
+                - A project may narrow or extend an envelope in AGENTS.md or on the card. The card wins for that step and the exception is written down, so the next session reads the same rule.
+
                 ## Advisory review (advisor role)
                 The advisor is a scientific co-thinker, not a gatekeeper, and consulting it is expensive. The Lead prepares each consultation instead of forwarding the conversation, and the advisor answers the decision the brief states.
                 - The Lead owns the question: translate what the user asked into the decision the advisor must answer, with the claim or plan at issue, the current evidence and its numbers and scope, the options on the table, the constraints, and what the user needs from the answer. Do not forward the user's raw message, the chat history, or internal team process.

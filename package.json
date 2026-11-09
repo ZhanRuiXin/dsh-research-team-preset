@@ -25,6 +25,6 @@
     }
   },
   "scripts": {
-    "test": "node --test test/modeled-teammates.test.js"
+    "test": "node --test test/modeled-teammates.test.js test/workspace-init.test.js test/scope-check.test.js"
   }
 }

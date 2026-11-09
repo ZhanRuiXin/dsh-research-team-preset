@@ -131,6 +131,14 @@ Lead 不撰写实验设计。对于以设计为主的工作，designer 在项目
 
 builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检查该设计能否回答所提出的问题，并在结果关卡检查执行是否与设计一致。advisor 在提案关卡给出独立的科学判断。Lead 确认设计文档存在，且 researcher 和 data 的输入已就位，然后接纳或退回该步骤。对于以实现为主的工作，由 builder 起草设计，advisor 审阅一次。
 
+## 写入范围
+
+每个角色只在自己的写入范围内写文件：advisor 和 reviewer 不写任何文件；researcher 拥有 `literature/`、`notes/` 和 `docs/evidence`；data 拥有 `data/`、`manifests/`、`scripts/` 下的下载脚本和 `reports/`；designer 拥有 `docs/design/`；builder 拥有 `src/`、`configs/` 和 `tests/`；runner 拥有 `runs/`、`logs/` 和 `checkpoints/`；writer 拥有 `paper/` 和 `figures/`；Lead 不受限制。读取、检索和卡片评论对所有人开放。
+
+写入范围是契约而不是偏好：属于其他角色的改动要报告给该所有者，而不是由错误的成员直接写。advisor 和 reviewer 以只读方式启动，所以评审只报告需要改什么，而不去改；确实需要越界写入的队友，必须在开工前拿到 Lead 的明确豁免，并记录在卡片上。
+
+卡片进入 in_review 之前，由所有者或 Lead 用角色名加上改动路径（或 base 与 head 提交）运行 `research_scope_check`。越界要么把改动交给所属角色，要么记录 Lead 批准的豁免，绝不在卡片进行中放宽范围。项目可以在 `AGENTS.md` 或卡片上收窄或扩展某个范围，该步骤以卡片为准，后续会话读到同一条规则。
+
 ## 实验准入
 
 算力花在决策上，而不是花在忙碌上。超出简单冒烟测试的任何运行，在写下决策规则之前都不开始，而且规则必须能够给出"停止"这个结果。启动前把预检记录在设计文档或工作日志里：这次运行要结算的问题、假设、预期结果以及算作支持所需的效应量、能推翻它的结果、停止条件、必须超过的基线、能结算它的最小试点，以及算力预算。没有这份记录的运行不予准入。
@@ -283,7 +291,7 @@ research-team-preset/
 ├── package.json                  # DSH bundle manifest and exports
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
-│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model, research_team_routes + activation wrapper
 │   ├── settings-file.js          # Direct settings-file route reader (no host-store dependency)
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
@@ -292,7 +300,9 @@ research-team-preset/
 ├── client/
 │   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
 ├── test/
-│   └── modeled-teammates.test.js # Route resolution, inheritance diagnostics, tool wiring
+│   ├── modeled-teammates.test.js # Route resolution, permissions, inheritance diagnostics, tool wiring
+│   ├── scope-check.test.js       # Role write envelopes and the handoff check
+│   └── workspace-init.test.js    # Project-root worklog scaffold
 └── docs/
     ├── README.zh-CN.md
     ├── README.zh-TW.md

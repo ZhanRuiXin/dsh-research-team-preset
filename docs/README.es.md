@@ -131,6 +131,14 @@ El Lead no redacta el diseño del experimento. En el trabajo con un diseño inte
 
 El builder implementa el diseño, el runner lo ejecuta y el reviewer comprueba en la puerta de propuesta que el diseño puede responder a la pregunta y, en la puerta de resultados, que la ejecución coincidió con él. El advisor ofrece una lectura científica independiente en la puerta de propuesta. El Lead confirma que el documento de diseño existe y que las entradas del researcher y de data están listas, y luego admite o devuelve el paso. En el trabajo liderado por la implementación, el builder redacta el diseño y el advisor lo revisa una vez.
 
+## Ámbito de escritura
+
+Cada rol escribe solo dentro de su propio ámbito. Advisor y reviewer no escriben nada; researcher posee `literature/`, `notes/` y `docs/evidence`; data posee `data/`, `manifests/`, scripts de descarga bajo `scripts/` y `reports/`; designer posee `docs/design/`; builder posee `src/`, `configs/` y `tests/`; runner posee `runs/`, `logs/` y `checkpoints/`; writer posee `paper/` y `figures/`; el Lead no tiene restricciones. Leer, buscar y comentar tarjetas sigue abierto a todos.
+
+El ámbito es un contrato, no una preferencia: un cambio que pertenece a otro rol se reporta a su dueño en lugar de escribirlo el miembro equivocado. Advisor y reviewer se lanzan en solo lectura, así que una revisión reporta qué debe cambiar en vez de cambiarlo; un compañero que de verdad necesite escribir fuera de su ámbito recibe una excepción explícita del Lead, registrada en la tarjeta antes de empezar.
+
+Antes de que una tarjeta pase a in_review, el dueño o el Lead ejecuta `research_scope_check` con el rol y las rutas cambiadas o los commits base y head. Una violación se corrige moviendo el cambio a su rol o registrando la excepción aprobada por el Lead, nunca ensanchando el ámbito a mitad de la tarjeta. Un proyecto puede estrechar o ampliar un ámbito en `AGENTS.md` o en la tarjeta; para ese paso manda la tarjeta, de modo que una sesión posterior lea la misma regla.
+
 ## Admisión de experimentos
 
 El cómputo se gasta en una decisión, no en actividad. Ninguna ejecución más allá de una prueba de humo trivial empieza hasta que su regla de decisión esté escrita, y la regla debe poder devolver "parar". Antes de lanzar se registra en el documento de diseño o en el worklog: la pregunta que resuelve la ejecución, la hipótesis, el resultado esperado y el tamaño del efecto que contaría como apoyo, el resultado que lo refutaría, el criterio de parada, la línea base que debe superar, el piloto más barato que podría resolverlo y el presupuesto de cómputo. Una ejecución sin este registro no se admite.
@@ -281,7 +289,7 @@ research-team-preset/
 ├── package.json                  # DSH bundle manifest and exports
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
-│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/

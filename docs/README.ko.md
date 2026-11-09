@@ -131,6 +131,14 @@ Lead는 실험 설계를 직접 작성하지 않습니다. 설계 비중이 큰 
 
 builder는 설계를 구현하고 runner는 이를 실행하며, reviewer는 제안 게이트에서 설계가 질문에 답할 수 있는지, 결과 게이트에서 실행이 설계와 일치했는지 확인합니다. advisor는 제안 게이트에서 독립적인 과학적 검토 의견을 제시합니다. Lead는 설계 문서가 존재하고 researcher와 data의 입력이 마련되었는지 확인한 뒤 해당 단계를 승인하거나 반려합니다. 구현 주도 작업에서는 builder가 설계 초안을 작성하고 advisor가 이를 한 번 검토합니다.
 
+## 쓰기 범위
+
+각 역할은 자기 쓰기 범위 안에서만 쓴다. advisor와 reviewer는 아무것도 쓰지 않는다. researcher는 `literature/`, `notes/`, `docs/evidence`를, data는 `data/`, `manifests/`, `scripts/` 아래 다운로드 스크립트와 `reports/`를, designer는 `docs/design/`을, builder는 `src/`, `configs/`, `tests/`를, runner는 `runs/`, `logs/`, `checkpoints/`를, writer는 `paper/`, `figures/`를 소유한다. Lead는 제한이 없다. 읽기, 검색, 카드 댓글은 모두에게 열려 있다.
+
+범위는 선호가 아니라 계약이다. 다른 역할에 속한 변경은 잘못된 구성원이 쓰는 대신 그 소유자에게 보고한다. advisor와 reviewer는 읽기 전용으로 시작하므로 리뷰는 무엇을 바꿔야 하는지 보고할 뿐 직접 바꾸지 않는다. 범위 밖 쓰기가 정말 필요한 팀원은 작업 시작 전에 Lead의 명시적 예외를 받아 카드에 기록한다.
+
+카드를 in_review로 옮기기 전에 소유자나 Lead가 역할과 변경 경로(또는 base와 head 커밋)를 지정해 `research_scope_check`를 실행한다. 위반은 변경을 소유 역할로 옮기거나 Lead가 승인한 예외를 기록해 해결하며, 카드 진행 중에 범위를 넓히지 않는다. 프로젝트는 `AGENTS.md`나 카드에서 범위를 좁히거나 넓힐 수 있고, 그 단계에서는 카드가 우선하며 이후 세션도 같은 규칙을 읽는다.
+
 ## 실험 착수 조건
 
 계산 자원은 결정을 위해 쓰고, 활동량을 위해 쓰지 않는다. 단순한 스모크 테스트를 넘는 실행은 판정 규칙을 적기 전에는 시작하지 않으며, 그 규칙은 "중단"을 돌려줄 수 있어야 한다. 착수 전에 이 실행이 결판낼 질문, 가설, 지지로 볼 효과 크기를 포함한 기대 결과, 그것을 반박할 결과, 중단 기준, 넘어야 할 베이스라인, 결판낼 수 있는 최소 파일럿, 계산 예산을 설계 문서나 워크로그에 기록한다. 이 기록이 없는 실행은 승인되지 않는다.
@@ -281,7 +289,7 @@ research-team-preset/
 ├── package.json                  # DSH bundle manifest and exports
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
-│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/

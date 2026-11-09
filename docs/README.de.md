@@ -131,6 +131,14 @@ Der Lead verfasst das Experiment-Design nicht. Bei designlastiger Arbeit verantw
 
 Der Builder setzt das Design um, der Runner führt es aus, und der Reviewer prüft am Proposal-Gate, ob das Design die Frage beantworten kann, und am Results-Gate, ob die Ausführung dazu passt. Der Advisor gibt am Proposal-Gate eine unabhängige wissenschaftliche Einschätzung ab. Der Lead bestätigt, dass das Design-Dokument vorliegt und die Zulieferungen von Researcher und Data vorhanden sind, und nimmt den Schritt dann an oder gibt ihn zurück. Bei implementierungsgetriebener Arbeit entwirft der Builder das Design und der Advisor prüft es einmal.
 
+## Schreibbereich
+
+Jede Rolle schreibt nur innerhalb ihres eigenen Bereichs. Advisor und Reviewer schreiben nichts; Researcher besitzt `literature/`, `notes/` und `docs/evidence`; Data besitzt `data/`, `manifests/`, Download-Skripte unter `scripts/` und `reports/`; Designer besitzt `docs/design/`; Builder besitzt `src/`, `configs/` und `tests/`; Runner besitzt `runs/`, `logs/` und `checkpoints/`; Writer besitzt `paper/` und `figures/`; der Lead ist unbeschränkt. Lesen, Suchen und Kartenkommentare bleiben allen offen.
+
+Der Bereich ist ein Vertrag, keine Vorliebe: Eine Änderung, die einer anderen Rolle gehört, wird an deren Owner gemeldet statt vom falschen Mitglied geschrieben. Advisor und Reviewer werden schreibgeschützt gestartet, sodass ein Review meldet, was sich ändern muss, statt es selbst zu ändern; ein Teammate, das wirklich außerhalb seines Bereichs schreiben muss, erhält vor Arbeitsbeginn eine ausdrückliche Ausnahme vom Lead, die auf der Karte festgehalten wird.
+
+Bevor eine Karte nach in_review wandert, führt der Owner oder der Lead `research_scope_check` mit der Rolle und entweder den geänderten Pfaden oder den Base- und Head-Commits aus. Ein Verstoß wird behoben, indem die Änderung an die zuständige Rolle wandert oder die vom Lead genehmigte Ausnahme festgehalten wird — nie durch Aufweichen des Bereichs mitten in der Karte. Ein Projekt kann einen Bereich in `AGENTS.md` oder auf der Karte enger oder weiter fassen; für diesen Schritt gilt die Karte, damit eine spätere Sitzung dieselbe Regel liest.
+
 ## Zulassung von Experimenten
 
 Rechenzeit wird für eine Entscheidung ausgegeben, nicht für Betriebsamkeit. Kein Lauf über einen trivialen Smoke-Test hinaus beginnt, bevor seine Entscheidungsregel schriftlich vorliegt, und die Regel muss „stopp" zurückgeben können. Vor dem Start wird im Designdokument oder Worklog festgehalten: die Frage, die der Lauf entscheidet, die Hypothese, das erwartete Ergebnis samt Effektstärke, die als Beleg gilt, das Ergebnis, das es widerlegen würde, das Abbruchkriterium, die zu schlagende Baseline, der günstigste Pilot, der es entscheiden könnte, und das Rechenbudget. Ein Lauf ohne diesen Eintrag wird nicht zugelassen.
@@ -281,7 +289,7 @@ research-team-preset/
 ├── package.json                  # DSH bundle manifest and exports
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
-│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/

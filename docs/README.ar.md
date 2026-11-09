@@ -131,6 +131,14 @@ Lead: summarize -> user acceptance (done)
 
 ينفّذ builder التصميم، ويشغّله runner، ويتحقق reviewer عند بوابة المقترح من أن التصميم قادر على الإجابة عن السؤال، وعند بوابة النتائج من أن التنفيذ طابقه. ويقدّم advisor قراءة علمية مستقلة عند بوابة المقترح. ويؤكد الـ Lead وجود مستند التصميم وأن مدخلات researcher وdata جاهزة، ثم يقبل الخطوة أو يعيدها. وفي الأعمال التي تقودها التنفيذ، يصوغ builder التصميم ويراجعه advisor مرة واحدة.
 
+## نطاق الكتابة
+
+يكتب كل دور داخل نطاقه فقط. لا يكتب advisor وreviewer شيئًا؛ يملك researcher المسارات `literature/` و`notes/` و`docs/evidence`؛ ويملك data المسارات `data/` و`manifests/` وسكربتات التنزيل ضمن `scripts/` و`reports/`؛ ويملك designer المسار `docs/design/`؛ ويملك builder المسارات `src/` و`configs/` و`tests/`؛ ويملك runner المسارات `runs/` و`logs/` و`checkpoints/`؛ ويملك writer المسارين `paper/` و`figures/`؛ ولا قيود على Lead. تبقى القراءة والبحث والتعليق على البطاقات متاحة للجميع.
+
+النطاق عقد لا تفضيل: التغيير الذي يخص دورًا آخر يُبلَّغ لمالكه بدل أن يكتبه العضو الخطأ. يبدأ advisor وreviewer للقراءة فقط، لذا تبلغ المراجعة بما يجب تغييره بدل تغييره بنفسها؛ وأي زميل يحتاج فعلًا إلى الكتابة خارج نطاقه يحصل على استثناء صريح من Lead يُسجَّل على البطاقة قبل بدء العمل.
+
+قبل انتقال البطاقة إلى in_review، يشغّل المالك أو Lead أداة `research_scope_check` بالدور ومع المسارات المتغيرة أو كوميتَي base وhead. يُصلَح الانتهاك بنقل التغيير إلى دوره أو بتسجيل الاستثناء الذي وافق عليه Lead، لا بتوسيع النطاق في منتصف البطاقة. يمكن للمشروع تضييق النطاق أو توسيعه في `AGENTS.md` أو على البطاقة، وللبطاقة الأولوية في تلك الخطوة كي يقرأ الجلسة اللاحقة القاعدة نفسها.
+
 ## قبول التجارب
 
 تُنفق موارد الحوسبة على قرار، لا على نشاط. لا يبدأ أي تشغيل يتجاوز اختبار دخان بسيط قبل كتابة قاعدة القرار الخاصة به، ويجب أن تكون القاعدة قادرة على إرجاع «توقف». قبل الإطلاق يُسجَّل في مستند التصميم أو سجل العمل: السؤال الذي يحسمه التشغيل، والفرضية، والنتيجة المتوقعة وحجم الأثر الذي يُعد دعمًا، والنتيجة التي ستدحضها، ومعيار التوقف، وخط الأساس الذي يجب تجاوزه، وأصغر تجربة أولية قادرة على حسمه، وميزانية الحوسبة. لا يُقبل تشغيل بلا هذا السجل.
@@ -281,7 +289,7 @@ research-team-preset/
 ├── package.json                  # DSH bundle manifest and exports
 ├── cordis.patch.yml              # Preset + top-level settings row
 ├── plugin/
-│   ├── index.js                  # research_project + English task-board prompt section
+│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
 │   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
 │   └── settings-store.js         # Shared profile snapshot + disk refresh
 ├── settings/

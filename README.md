@@ -96,7 +96,7 @@ Lead: summarize -> user acceptance (done)
 
 | Role | Responsibility |
 | --- | --- |
-| `advisor` | Independent assessment of direction, framing, central claims, evidence sufficiency, and paper strategy; recommends proceed / revise / stop. Advisory only, not a gate |
+| `advisor` | Independent assessment of direction, framing, central claims, evidence sufficiency, and paper strategy. Constructive by default: what holds, the few issues that threaten the result, the smallest repair or a concrete alternative for each, then proceed / revise / stop. Advisory only, not a gate |
 | `researcher` | Literature search, acquisition, close reading, evidence extraction, and a claim → source → location evidence table. Searches the shared Zotero library first, imports the formal full paper with its PDF when a needed work is missing, dedupes by DOI/title, and shares `zotero://` refs with the team |
 | `data` | External dataset and model-weight acquisition, including source availability and license/access status, download tooling with resume and rate-limit handling, integrity checks against publisher hashes, unpacking, the manifest contract, a small validated sample, and the disk ledger; does not write training code or change the evaluation protocol |
 | `designer` | Owns the experiment design document: questions and hypotheses, protocol and controls, baselines, ablations, metrics and statistical plan, compute budget, and design change control while runs are in flight; does not write production code or run experiments |
@@ -110,6 +110,10 @@ The Lead owns goal clarification, decomposition, board management, dispatch, int
 ### Shared Zotero library
 
 The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and on the board card, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
+
+### Advisory review
+
+The advisor is a scientific co-thinker, not a gatekeeper. It first names what holds in the plan and why, then at most three issues ordered by how much they threaten the result, each tied to a specific step, claim, or number. Every issue ships with the smallest repair that would make the plan acceptable, or one concrete alternative with its trade-off; a bare rejection is not a review. It separates "this cannot answer the question" from "this works but is weaker or costlier", states the condition under which the plan becomes acceptable, and ends with proceed, revise with the required changes, or stop with the direction to take instead. When the evidence needed to judge is missing it names the cheapest test or source that would settle it. A sound plan gets a plain endorsement rather than manufactured objections, and a stop always carries a replacement direction. It remains advice: the Lead decides and the reviewer stays the independent PASS/FAIL gate.
 
 ## Design ownership
 

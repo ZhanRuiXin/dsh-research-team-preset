@@ -428,3 +428,5 @@ MIT. См. [LICENSE](../LICENSE).
 ## Благодарности
 
 Построено на [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) и [Cordis](https://github.com/cordiverse/cordis). Интеграция с доской задач использует плагин [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard); инструменты команды берутся из официального профильного bundle Agent Teams. Спасибо авторам плагинов и всем, кто тестирует режим на реальных исследовательских проектах.
+
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

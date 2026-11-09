@@ -428,3 +428,5 @@ MIT। [LICENSE](../LICENSE) देखें।
 ## आभार
 
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) और [Cordis](https://github.com/cordiverse/cordis) पर आधारित। टास्क-बोर्ड एकीकरण [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) plugin का उपयोग करता है; टीम टूल आधिकारिक Agent Teams प्रोफ़ाइल बंडल से आते हैं। plugin लेखकों और उन सभी का धन्यवाद जो वास्तविक शोध प्रोजेक्टों पर इस मोड का परीक्षण करते हैं।
+
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

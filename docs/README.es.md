@@ -428,3 +428,5 @@ MIT. Consulta [LICENSE](../LICENSE).
 ## Agradecimientos
 
 Construido sobre [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) y [Cordis](https://github.com/cordiverse/cordis). La integración con el tablero de tareas usa el plugin [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard); las herramientas de equipo provienen del bundle oficial del perfil Agent Teams. Gracias a los autores de los plugins y a todas las personas que prueban el modo en proyectos de investigación reales.
+
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

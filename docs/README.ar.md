@@ -428,3 +428,5 @@ MIT. راجع [LICENSE](../LICENSE).
 ## شكر وتقدير
 
 بُني على [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) و[Cordis](https://github.com/cordiverse/cordis). يستخدم تكامل لوحة المهام إضافة [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)؛ وأدوات الفريق تأتي من bundle الـ profile الرسمي Agent Teams. شكرًا لمؤلفي الإضافات ولكل من يختبر الوضع في مشاريع بحثية حقيقية.
+
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

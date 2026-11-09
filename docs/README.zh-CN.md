@@ -431,3 +431,5 @@ MIT。参见 [LICENSE](../LICENSE)。
 ## 致谢
 
 构建于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 和 [Cordis](https://github.com/cordiverse/cordis) 之上。任务看板集成使用 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 插件；团队工具来自官方 Agent Teams profile bundle。感谢插件作者，以及所有在真实研究项目中测试该模式的人。
+
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

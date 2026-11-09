@@ -428,3 +428,5 @@ MIT。[LICENSE](../LICENSE) を参照してください。
 ## 謝辞
 
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) と [Cordis](https://github.com/cordiverse/cordis) の上に構築されています。タスクボード連携は [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) プラグインを使用し、チームツールは公式の Agent Teams プロファイルバンドルから提供されます。プラグインの作者と、実際の研究プロジェクトでこのモードを試してくれるすべての人に感謝します。
+
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

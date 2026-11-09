@@ -24,6 +24,7 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
 | **Worklog** | `worklog/PLAN.md` + `INDEX.md` + one bounded file per gated card; resume reads PLAN and INDEX first |
+| **Continuity** | One worklog per project at its root; a resumed session reads PLAN, INDEX, then the current card's state block; the board and git carry state across sessions |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
 
 ## Who it is for
@@ -139,6 +140,14 @@ The team pilots first: the smallest configuration that can still fail the hypoth
 
 The Lead admits the run, the runner refuses to launch without the pre-flight record, and the reviewer checks at the results gate that execution matched the pre-registered rule and that a stop decision was honored rather than overridden.
 
+## Session continuity
+
+A session is a conversation, not the project: the worklog, the board, and git carry the work, while the chat, the team, and background jobs do not survive the session. Before the first substantive action in a project that already has `worklog/PLAN.md`, the agent reads PLAN and INDEX, then the current card's state block, before planning or spending compute.
+
+The worklog lives at the project root returned by `research_project`, not in a session subdirectory, so every session on the project shares one PLAN and one INDEX. PLAN, INDEX, card files, the board, git, and memory are durable; `team_task_*` entries, teammate conversations, and background jobs live only in the session. Anything a later session must know is written into PLAN or the card file before the session ends.
+
+A run or long job that outlives the turn leaves its job or terminal handle, host, start time, expected completion, and decision rule in the card file or PLAN. On resume the agent checks liveness first, and an orphaned run is reconciled and put to the user as adopt, restart, or stop rather than silently run twice. A card held by a session that no longer exists is reported to the user for reopening, never taken over.
+
 ## Task board workflow
 
 ```text
@@ -166,9 +175,9 @@ A branch is merged only after the card is accepted, then deleted. Generated arti
 
 ## Worklog
 
-Work that may span sessions keeps a small, bounded record next to the code. `worklog/PLAN.md` holds the objective, current milestone, active cards, blockers, and dated decisions; `worklog/INDEX.md` holds one line per active card. Each card gets `worklog/<task-id>.md` with a current-state block at the top and short append-only entries below.
+Work that may span sessions keeps a small, bounded record next to the code, at the project root. `worklog/PLAN.md` holds the objective, current milestone, active cards, blockers, and dated decisions; `worklog/INDEX.md` holds one line per active card. Each card gets `worklog/<task-id>.md` with a current-state block at the top and short append-only entries below.
 
-On resume the agent reads PLAN and INDEX first, then only the target card's state block and tail, never the whole file or the whole directory. PLAN stays under about 100 lines and card files under about 200, with finished cards trimmed from the index. Compact templates for all three files live in the preset persona, so every session can create or update them without reading this repository.
+On resume the agent reads PLAN and INDEX first, then only the target card's state block and tail, never the whole file or the whole directory; `session_search` is a fallback when the session history is available, not the record. PLAN stays under about 100 lines and card files under about 200, with finished cards trimmed from the index. Compact templates for all three files live in the preset persona, so every session can create or update them without reading this repository.
 
 ## Team model profiles
 

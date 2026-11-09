@@ -139,6 +139,14 @@ Primero el piloto: la configuración más pequeña que todavía pueda refutar la
 
 El Lead admite la ejecución, el runner se niega a lanzarla sin el registro previo y el reviewer comprueba en la puerta de resultados que la ejecución coincidió con la regla preregistrada y que una decisión de parada se respetó en lugar de anularse.
 
+## Continuidad entre sesiones
+
+Una sesión es una conversación, no el proyecto: el worklog, el tablero y git llevan el trabajo, mientras que el chat, el equipo y los trabajos en segundo plano no sobreviven a la sesión. En un proyecto que ya tiene `worklog/PLAN.md`, antes de la primera acción sustantiva el agente lee PLAN e INDEX y después el bloque de estado de la tarjeta actual, antes de planificar o gastar cómputo.
+
+El worklog vive en la raíz del proyecto que devuelve `research_project`, no en un subdirectorio de la sesión, de modo que todas las sesiones del proyecto comparten un PLAN y un INDEX. PLAN, INDEX, los archivos de tarjeta, el tablero, git y la memoria son duraderos; las entradas `team_task_*`, las conversaciones con compañeros y los trabajos en segundo plano solo existen en la sesión. Lo que una sesión posterior deba saber se escribe en PLAN o en el archivo de tarjeta antes de terminar.
+
+Una ejecución o trabajo largo que sobrevive al turno deja su identificador de trabajo o terminal, host, hora de inicio, finalización esperada y la regla de decisión que sirve en el archivo de tarjeta o en PLAN. Al reanudar se comprueba primero que siga vivo; una ejecución huérfana se concilia y se plantea al usuario como adoptar, reiniciar o detener, en lugar de ejecutarla dos veces en silencio. Una tarjeta retenida por una sesión que ya no existe se reporta al usuario para reabrirla y nunca se asume.
+
 ## Flujo de trabajo del tablero de tareas
 
 ```text

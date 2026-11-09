@@ -12,8 +12,9 @@
  * 3. `research_workspace_init` — idempotent durable-tracking bootstrap for a
  *    workspace: create `worklog/PLAN.md` and `worklog/INDEX.md` when missing,
  *    and initialize a git repository when the workspace is not already inside
- *    one. The agent decides when to call it; it never creates a nested
- *    repository and never commits.
+ *    one. The agent decides when to call it; it writes at the registered
+ *    project root so every session on the project shares one worklog, never
+ *    creates a nested repository, and never commits.
  */
 
 import { execFile } from 'node:child_process'
@@ -213,7 +214,7 @@ export function apply(ctx) {
   const disposeInit = ctx.tools.register({
     name: 'research_workspace_init',
     description:
-      'Bootstrap durable work tracking in the session workspace when the agent judges that substantive work is starting: create worklog/PLAN.md and worklog/INDEX.md when missing, and initialize a git repository when the workspace is not already inside one. Idempotent, never nested, never commits. Simple questions and one-off reads do not need it.',
+      'Bootstrap durable work tracking in the session workspace when the agent judges that substantive work is starting: create worklog/PLAN.md and worklog/INDEX.md when missing, and initialize a git repository when the workspace is not already inside one. Writes at the registered project root so every session on the project shares one worklog; the session directory is used when the directory is not a registered project. Idempotent, never nested, never commits. Simple questions and one-off reads do not need it.',
     parameters: {
       type: 'object',
       properties: {
@@ -235,8 +236,19 @@ export function apply(ctx) {
       if (typeof cwd !== 'string' || cwd.length === 0) {
         return { error: 'Cannot determine the session working directory; the workspace was not initialized.' }
       }
+      // One worklog per project: resolve the registered project root so a
+      // session opened in a subdirectory does not create a second worklog.
+      let target = cwd
       try {
-        return await initWorkspace(cwd, typeof args.objective === 'string' ? args.objective : '')
+        const workspace = await ctx.workspaceRegistry.resolveByPath(cwd)
+        if (workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0) {
+          target = workspace.path
+        }
+      } catch {
+        target = cwd
+      }
+      try {
+        return await initWorkspace(target, typeof args.objective === 'string' ? args.objective : '')
       } catch (error) {
         return { error: `Workspace init failed: ${oneLine(error instanceof Error ? error.message : error)}` }
       }

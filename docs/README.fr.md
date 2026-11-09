@@ -139,6 +139,14 @@ Le pilote d'abord : la plus petite configuration qui peut encore réfuter l'hypo
 
 Le Lead admet l'exécution, le runner refuse de la lancer sans la trace préalable et le reviewer vérifie à la porte des résultats que l'exécution a respecté la règle préenregistrée et qu'une décision d'arrêt a été honorée plutôt que contournée.
 
+## Continuité entre sessions
+
+Une session est une conversation, pas le projet : le worklog, le tableau et git portent le travail, tandis que le chat, l’équipe et les tâches d’arrière-plan ne survivent pas à la session. Dans un projet qui a déjà `worklog/PLAN.md`, avant la première action substantielle, l’agent lit PLAN et INDEX, puis le bloc d’état de la carte courante, avant de planifier ou de dépenser du calcul.
+
+Le worklog vit à la racine du projet renvoyée par `research_project`, et non dans un sous-répertoire de session, afin que toutes les sessions du projet partagent un seul PLAN et un seul INDEX. PLAN, INDEX, les fichiers de carte, le tableau, git et la mémoire sont durables ; les entrées `team_task_*`, les conversations d’équipe et les tâches d’arrière-plan n’existent que dans la session. Tout ce qu’une session ultérieure doit savoir est écrit dans PLAN ou dans le fichier de carte avant la fin de la session.
+
+Une exécution ou une tâche longue qui dépasse le tour laisse son identifiant de tâche ou de terminal, l’hôte, l’heure de début, la fin attendue et la règle de décision qu’elle sert dans le fichier de carte ou PLAN. À la reprise, l’agent vérifie d’abord qu’elle est toujours vivante ; une exécution orpheline est réconciliée et soumise à l’utilisateur comme adopter, redémarrer ou arrêter, plutôt que relancée en silence. Une carte détenue par une session disparue est signalée à l’utilisateur pour réouverture, jamais reprise.
+
 ## Flux du tableau des tâches
 
 ```text

@@ -139,6 +139,14 @@ Zuerst der Pilot: die kleinste Konfiguration, die die Hypothese noch widerlegen 
 
 Der Lead lässt den Lauf zu, der Runner verweigert den Start ohne den Pre-Flight-Eintrag, und der Reviewer prüft am Ergebnisse-Gate, ob die Ausführung der vorab festgelegten Regel entsprach und ob eine Stoppentscheidung beachtet statt überstimmt wurde.
 
+## Sitzungsübergreifende Kontinuität
+
+Eine Sitzung ist ein Gespräch, nicht das Projekt: Arbeit tragen Worklog, Board und git, während Chat, Team und Hintergrundjobs die Sitzung nicht überleben. In einem Projekt mit vorhandenem `worklog/PLAN.md` liest der Agent vor der ersten substanziellen Aktion PLAN und INDEX und dann den Statusblock der aktuellen Karte, bevor er plant oder Rechenzeit ausgibt.
+
+Das Worklog liegt im Projektstamm, den `research_project` zurückgibt, nicht in einem Unterverzeichnis der Sitzung, sodass alle Sitzungen des Projekts ein PLAN und ein INDEX teilen. PLAN, INDEX, Kartendateien, Board, git und Gedächtnis sind dauerhaft; `team_task_*`-Einträge, Teammate-Gespräche und Hintergrundjobs existieren nur in der Sitzung. Was eine spätere Sitzung wissen muss, wird vor Sitzungsende in PLAN oder Kartendatei geschrieben.
+
+Ein Lauf oder Langzeitjob, der den Turn überlebt, hinterlässt Job- oder Terminal-Handle, Host, Startzeit, erwartetes Ende und die Entscheidungsregel, der er dient, in der Kartendatei oder im PLAN. Beim Wiederaufnehmen wird zuerst die Lebendigkeit geprüft; ein verwaister Lauf wird abgeglichen und dem Nutzer als übernehmen, neu starten oder stoppen vorgelegt, statt still zweimal zu laufen. Eine Karte, die eine nicht mehr existierende Sitzung hält, wird dem Nutzer zum Wiederöffnen gemeldet und nie übernommen.
+
 ## Arbeitsablauf im Task Board
 
 ```text

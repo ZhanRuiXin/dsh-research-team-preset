@@ -139,6 +139,14 @@ Primeiro o piloto: a menor configuração que ainda possa refutar a hipótese (u
 
 O Lead admite a execução, o runner se recusa a iniciá-la sem o registro prévio e o reviewer verifica no portão de resultados se a execução correspondeu à regra pré-registrada e se uma decisão de parada foi respeitada em vez de anulada.
 
+## Continuidade entre sessões
+
+Uma sessão é uma conversa, não o projeto: o worklog, o quadro e o git carregam o trabalho, enquanto o chat, o time e os jobs em segundo plano não sobrevivem à sessão. Num projeto que já tem `worklog/PLAN.md`, antes da primeira ação substancial o agente lê PLAN e INDEX e então o bloco de estado do cartão atual, antes de planejar ou gastar computação.
+
+O worklog fica na raiz do projeto retornada por `research_project`, não num subdiretório da sessão, para que todas as sessões do projeto compartilhem um PLAN e um INDEX. PLAN, INDEX, os arquivos de cartão, o quadro, o git e a memória são duráveis; entradas `team_task_*`, conversas com colegas e jobs em segundo plano existem apenas na sessão. O que uma sessão posterior precisa saber é escrito em PLAN ou no arquivo do cartão antes do fim da sessão.
+
+Uma execução ou job longo que sobrevive ao turno deixa seu identificador de job ou terminal, host, hora de início, conclusão esperada e a regra de decisão que serve no arquivo do cartão ou no PLAN. Ao retomar, o agente verifica a vitalidade primeiro; uma execução órfã é reconciliada e apresentada ao usuário como adotar, reiniciar ou parar, em vez de rodar duas vezes em silêncio. Um cartão mantido por uma sessão que não existe mais é reportado ao usuário para reabertura, nunca assumido.
+
 ## Fluxo do quadro de tarefas
 
 ```text

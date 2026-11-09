@@ -135,7 +135,7 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 每個角色只在自己的寫入範圍內寫檔案：advisor 和 reviewer 不寫任何檔案；researcher 擁有 `literature/`、`notes/` 和 `docs/evidence`；data 擁有 `data/`、`manifests/`、`scripts/` 下的下載腳本和 `reports/`；designer 擁有 `docs/design/`；builder 擁有 `src/`、`configs/` 和 `tests/`；runner 擁有 `runs/`、`logs/` 和 `checkpoints/`；writer 擁有 `paper/` 和 `figures/`；Lead 不受限制。讀取、檢索和卡片評論對所有人開放。
 
-寫入範圍是契約而不是偏好：屬於其他角色的變更要回報給該擁有者，而不是由錯誤的成員直接寫。advisor 和 reviewer 以唯讀方式啟動，所以評審只回報需要改什麼，而不去改；確實需要越界寫入的隊友，必須在開工前拿到 Lead 的明確豁免，並記錄在卡片上。
+寫入範圍是契約而不是偏好：屬於其他角色的變更要回報給該擁有者，而不是由錯誤的成員直接寫。advisor 和 reviewer 以唯讀方式啟動，所以評審只回報需要改什麼，而不去改；確實需要越界寫入的隊友，必須在開工前拿到 Lead 的明確豁免，並記錄在卡片上。 其他所有角色繼承 Lead 的 sandbox 權限，因此除非角色要求，隊友永遠不會比 Lead 受到更強限制。
 
 卡片進入 in_review 之前，由擁有者或 Lead 用角色名加上變更路徑（或 base 與 head 提交）執行 `research_scope_check`。越界要嘛把變更交給所屬角色，要嘛記錄 Lead 批准的豁免，絕不在卡片進行中放寬範圍。專案可以在 `AGENTS.md` 或卡片上收窄或擴展某個範圍，該步驟以卡片為準，後續工作階段讀到同一條規則。
 

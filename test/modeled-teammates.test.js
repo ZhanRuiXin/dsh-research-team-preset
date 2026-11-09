@@ -46,7 +46,7 @@ function v2File(routes = ROUTES) {
 }
 
 /** Fake Cordis context that records tool definitions, spawn activations, sandbox events, and guards. */
-function fakeContext({ defaultMode = 'workspace-write' } = {}) {
+function fakeContext({ defaultMode = 'workspace-write', leadMode } = {}) {
   const tools = {}
   const activations = []
   const events = []
@@ -82,6 +82,9 @@ function fakeContext({ defaultMode = 'workspace-write' } = {}) {
     },
     sandboxPolicy: {
       defaultMode,
+      resolve({ session } = {}) {
+        return { mode: leadMode ?? defaultMode, ...(session === undefined ? {} : { sessionId: session.id }) }
+      },
       overrideOf() {
         return undefined
       }
@@ -295,4 +298,28 @@ test('a role at the deployment default needs no sandbox event', async () => {
   assert.equal(result.permission.mode, 'workspace-write')
   assert.equal(result.permission.already, true)
   assert.deepEqual(events, [])
+})
+
+test("a non-read-only role inherits the Lead's sandbox mode", async () => {
+  writeSettingsFile(v2File())
+  const { tools, events } = fakeContext({ defaultMode: 'workspace-write', leadMode: 'danger-full-access' })
+  const result = await tools.spawn_teammate_with_model.execute(
+    { name: 'builder', description: 'Implement', prompt: 'Build it.' },
+    { agent }
+  )
+
+  assert.equal(result.permission.mode, 'danger-full-access')
+  assert.deepEqual(events, [{ id: 'child-1', type: 'sandbox/mode', data: { mode: 'danger-full-access' } }])
+})
+
+test('the advisor stays read-only even when the Lead has broader access', async () => {
+  writeSettingsFile(v2File())
+  const { tools, events } = fakeContext({ defaultMode: 'workspace-write', leadMode: 'danger-full-access' })
+  const result = await tools.spawn_teammate_with_model.execute(
+    { name: 'advisor', description: 'Senior advisor', prompt: 'Review the design.' },
+    { agent }
+  )
+
+  assert.equal(result.permission.mode, 'read-only')
+  assert.deepEqual(events, [{ id: 'child-1', type: 'sandbox/mode', data: { mode: 'read-only' } }])
 })

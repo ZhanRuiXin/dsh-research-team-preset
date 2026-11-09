@@ -135,7 +135,7 @@ builder는 설계를 구현하고 runner는 이를 실행하며, reviewer는 제
 
 각 역할은 자기 쓰기 범위 안에서만 쓴다. advisor와 reviewer는 아무것도 쓰지 않는다. researcher는 `literature/`, `notes/`, `docs/evidence`를, data는 `data/`, `manifests/`, `scripts/` 아래 다운로드 스크립트와 `reports/`를, designer는 `docs/design/`을, builder는 `src/`, `configs/`, `tests/`를, runner는 `runs/`, `logs/`, `checkpoints/`를, writer는 `paper/`, `figures/`를 소유한다. Lead는 제한이 없다. 읽기, 검색, 카드 댓글은 모두에게 열려 있다.
 
-범위는 선호가 아니라 계약이다. 다른 역할에 속한 변경은 잘못된 구성원이 쓰는 대신 그 소유자에게 보고한다. advisor와 reviewer는 읽기 전용으로 시작하므로 리뷰는 무엇을 바꿔야 하는지 보고할 뿐 직접 바꾸지 않는다. 범위 밖 쓰기가 정말 필요한 팀원은 작업 시작 전에 Lead의 명시적 예외를 받아 카드에 기록한다.
+범위는 선호가 아니라 계약이다. 다른 역할에 속한 변경은 잘못된 구성원이 쓰는 대신 그 소유자에게 보고한다. advisor와 reviewer는 읽기 전용으로 시작하므로 리뷰는 무엇을 바꿔야 하는지 보고할 뿐 직접 바꾸지 않는다. 범위 밖 쓰기가 정말 필요한 팀원은 작업 시작 전에 Lead의 명시적 예외를 받아 카드에 기록한다. 다른 모든 역할은 Lead의 sandbox 권한을 상속하므로, 역할이 요구하지 않는 한 팀원이 Lead보다 더 제한되지 않는다.
 
 카드를 in_review로 옮기기 전에 소유자나 Lead가 역할과 변경 경로(또는 base와 head 커밋)를 지정해 `research_scope_check`를 실행한다. 위반은 변경을 소유 역할로 옮기거나 Lead가 승인한 예외를 기록해 해결하며, 카드 진행 중에 범위를 넓히지 않는다. 프로젝트는 `AGENTS.md`나 카드에서 범위를 좁히거나 넓힐 수 있고, 그 단계에서는 카드가 우선하며 이후 세션도 같은 규칙을 읽는다.
 

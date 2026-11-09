@@ -42,10 +42,33 @@ const FILE_WRITE_TOOLS = new Set([
   'bash', 'ops_bash', 'pwsh', 'terminal_send', 'research_workspace_init'
 ])
 
+/** Every sandbox mode the host accepts. */
+function isMode(value) {
+  return value === 'read-only' || value === 'workspace-write' || value === 'danger-full-access'
+}
+
 /** Resolve the permission a spawn should enforce. */
-function permissionFor(role, requested) {
-  if (requested === 'read-only' || requested === 'workspace-write') return requested
-  return role !== undefined && READ_ONLY_ROLES.has(role) ? 'read-only' : 'workspace-write'
+function permissionFor(role, requested, inherited) {
+  if (isMode(requested)) return requested
+  if (role !== undefined && READ_ONLY_ROLES.has(role)) return 'read-only'
+  return isMode(inherited) ? inherited : 'workspace-write'
+}
+
+/**
+ * The Lead's effective sandbox mode. A teammate that is not one of the
+ * read-only roles inherits this, so a Lead running with full access is not
+ * silently represented by a teammate that can only write the workspace.
+ */
+function leadModeOf(ctx, agent) {
+  try {
+    const session = agent === null || agent === undefined ? undefined : agent.session
+    const resolved = ctx.sandboxPolicy?.resolve?.({ session })
+    if (isMode(resolved)) return resolved
+    const mode = resolved !== null && typeof resolved === 'object' ? resolved.mode : undefined
+    return isMode(mode) ? mode : undefined
+  } catch {
+    return undefined
+  }
 }
 
 function defaultModeOf(ctx) {
@@ -395,7 +418,7 @@ export function apply(ctx, config = {}) {
   const disposeTool = ctx.tools.register({
     name: 'spawn_teammate_with_model',
     description:
-      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics. The advisor and reviewer roles spawn read-only; pass permission to override.',
+      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics. The advisor and reviewer roles spawn read-only; every other role inherits the Lead sandbox mode. Pass permission to override.',
     parameters: {
       type: 'object',
       properties: {
@@ -416,8 +439,8 @@ export function apply(ctx, config = {}) {
         },
         permission: {
           type: 'string',
-          enum: ['read-only', 'workspace-write'],
-          description: 'Sandbox permission for the teammate session. Defaults to read-only for the advisor and reviewer roles and workspace-write for every other role; pass a value only to override that default.'
+          enum: ['read-only', 'workspace-write', 'danger-full-access'],
+          description: "Sandbox permission for the teammate session. Defaults to read-only for the advisor and reviewer roles and to the Lead's current sandbox mode for every other role; pass a value only to override that default."
         }
       },
       required: ['name', 'description', 'prompt'],
@@ -459,7 +482,8 @@ export function apply(ctx, config = {}) {
         : await modeledSpawn.run({ caller: agent, agentOptions: requestedModel }, spawn)
       const view = member !== null && typeof member === 'object' && member.member !== undefined ? member.member : member
       const sessionId = view !== null && typeof view === 'object' && typeof view.id === 'string' ? view.id : undefined
-      const permission = permissionFor(resolved.role, args.permission)
+      const inherited = leadModeOf(ctx, agent)
+      const permission = permissionFor(resolved.role, args.permission, inherited)
       const permissionResult = await applyPermission(ctx, sessionId, permission, signal, readOnlySessions)
       let warning
       if (requestedModel !== undefined && typeof member?.model === 'string' && member.model !== requestedModel.model) {

@@ -102,6 +102,15 @@
                 - Citations: prefer the Zotero library and verifiable DOIs/arXiv ids. The researcher maintains the evidence table (claim -> source -> location); the reviewer spot-checks citations and page numbers.
                 - Assets: the Lead assembles and delivers the final summaries, reports, and files from teammate outputs; the writer owns the paper draft. Check consistency before delivery (numbers match sources; figures match the text). Use present for file deliverables.
 
+                ## Experiment admission
+                Compute is spent on a decision, not on activity. No run beyond a trivial smoke test starts until its decision rule is written down, and the rule must be able to come back "stop".
+                - Record the pre-flight before launching: the question the run settles, the hypothesis, the expected outcome and the effect size that would count as support, the result that would refute it, the kill criterion, the baseline it must beat, the cheapest pilot that could settle it, and the compute budget. A run without this record is not admitted.
+                - Pilot first: run the smallest configuration that can still fail the hypothesis (one seed, one split, a subset, a shorter horizon), read it against the pre-registered threshold, and decide explicitly whether to scale. Do not go from an idea to the full seed set in one step.
+                - The kill criterion is binding. If the pilot misses it, stop the line, record the negative result, and report it. Do not add seeds or variants to average away a miss, and do not continue "to be sure". A stopped line is a result, not a failure.
+                - Change one variable at a time and state the confound before running. A parameter sweep without a predicted ordering is blind running, not an experiment; log any protocol change made mid-run with its reason.
+                - Bound the run: stop and report when the budget is exhausted, when the same failure repeats twice, or when the metric stops moving. Retrying a failed configuration without a new hypothesis is not progress.
+                - The Lead admits a run only when the record exists, the runner refuses to launch without it, and the reviewer checks at the results gate that execution matched the pre-registered rule and that a stop decision was honored rather than overridden.
+
                 ## Paper writing (writer role)
                 The writer owns the LaTeX paper and uses content-research-writer for drafting or rewriting, paper-review for self-review, thesis-figure-skill and tikz-figure-code for figures, and journal-abbrev for journal names. Follow the project's own template and writing rules; these defaults apply:
                 - Preserve the existing LaTeX layout: keep environments, item counts, template, page parameters, and section structure; replace text content only unless the user explicitly asks for a structural change.

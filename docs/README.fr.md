@@ -129,6 +129,14 @@ Le Lead ne rédige pas la conception de l'expérience. Pour les travaux à forte
 
 Le builder met en œuvre la conception, le runner l'exécute, et le reviewer vérifie à la porte de proposition que la conception permet de répondre à la question, puis à la porte des résultats que l'exécution y correspond. L'advisor donne une lecture scientifique indépendante à la porte de proposition. Le Lead confirme que le document de conception existe et que les apports du researcher et du data sont en place, puis admet ou renvoie l'étape. Pour les travaux menés par l'implémentation, le builder rédige la conception et l'advisor la relit une fois.
 
+## Admission des expériences
+
+Le calcul se dépense pour une décision, pas pour de l'activité. Aucune exécution au-delà d'un test de fumée trivial ne démarre avant que sa règle de décision ne soit écrite, et la règle doit pouvoir répondre « arrêter ». Avant le lancement, on consigne dans le document de conception ou le worklog : la question que l'exécution tranche, l'hypothèse, le résultat attendu et la taille d'effet qui compterait comme preuve, le résultat qui la réfuterait, le critère d'arrêt, la référence à battre, le pilote le moins coûteux susceptible de trancher et le budget de calcul. Une exécution sans cette trace n'est pas admise.
+
+Le pilote d'abord : la plus petite configuration qui peut encore réfuter l'hypothèse (une graine, un split, un sous-ensemble, un horizon plus court), lue contre le seuil préenregistré, puis une décision explicite de passer à l'échelle. Si le pilote manque le seuil, la ligne s'arrête, le résultat négatif est consigné et signalé, et l'on n'ajoute ni graines ni variantes pour diluer l'écart. Une seule variable change à la fois, le facteur de confusion est annoncé avant l'exécution, et tout changement de protocole en cours d'exécution est consigné avec sa raison. L'exécution est aussi bornée par le budget, par la répétition deux fois de la même panne et par une métrique qui ne bouge plus.
+
+Le Lead admet l'exécution, le runner refuse de la lancer sans la trace préalable et le reviewer vérifie à la porte des résultats que l'exécution a respecté la règle préenregistrée et qu'une décision d'arrêt a été honorée plutôt que contournée.
+
 ## Flux du tableau des tâches
 
 ```text

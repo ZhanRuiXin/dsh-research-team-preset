@@ -129,6 +129,14 @@ O Lead não redige o design do experimento. No trabalho com forte ênfase em des
 
 O builder implementa o design, o runner o executa e o reviewer verifica, no gate de proposta, se o design consegue responder à pergunta e, no gate de resultados, se a execução correspondeu a ele. O advisor dá uma leitura científica independente no gate de proposta. O Lead confirma que o documento de design existe e que as entradas do researcher e de data estão prontas, e então admite ou devolve a etapa. No trabalho liderado pela implementação, o builder redige o design e o advisor o revisa uma vez.
 
+## Admissão de experimentos
+
+O poder de computação é gasto em uma decisão, não em atividade. Nenhuma execução além de um teste de fumaça trivial começa antes de sua regra de decisão ser escrita, e a regra precisa poder responder "parar". Antes do lançamento, registra-se no documento de design ou no worklog: a pergunta que a execução resolve, a hipótese, o resultado esperado e o tamanho de efeito que contaria como apoio, o resultado que a refutaria, o critério de parada, a linha de base a superar, o piloto mais barato capaz de resolver e o orçamento de computação. Uma execução sem esse registro não é admitida.
+
+Primeiro o piloto: a menor configuração que ainda possa refutar a hipótese (um seed, um split, um subconjunto, um horizonte mais curto), lida contra o limite pré-registrado, e só então uma decisão explícita de escalar. Se o piloto não atingir o limite, a linha para, o resultado negativo é registrado e reportado, e não se acrescentam seeds nem variantes para diluir a diferença. Muda-se uma variável por vez, o confundidor é declarado antes da execução e qualquer mudança de protocolo no meio da execução é registrada com o motivo. A execução também é limitada pelo orçamento, pela repetição da mesma falha duas vezes e por uma métrica que parou de se mover.
+
+O Lead admite a execução, o runner se recusa a iniciá-la sem o registro prévio e o reviewer verifica no portão de resultados se a execução correspondeu à regra pré-registrada e se uma decisão de parada foi respeitada em vez de anulada.
+
 ## Fluxo do quadro de tarefas
 
 ```text

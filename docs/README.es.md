@@ -129,6 +129,14 @@ El Lead no redacta el diseño del experimento. En el trabajo con un diseño inte
 
 El builder implementa el diseño, el runner lo ejecuta y el reviewer comprueba en la puerta de propuesta que el diseño puede responder a la pregunta y, en la puerta de resultados, que la ejecución coincidió con él. El advisor ofrece una lectura científica independiente en la puerta de propuesta. El Lead confirma que el documento de diseño existe y que las entradas del researcher y de data están listas, y luego admite o devuelve el paso. En el trabajo liderado por la implementación, el builder redacta el diseño y el advisor lo revisa una vez.
 
+## Admisión de experimentos
+
+El cómputo se gasta en una decisión, no en actividad. Ninguna ejecución más allá de una prueba de humo trivial empieza hasta que su regla de decisión esté escrita, y la regla debe poder devolver "parar". Antes de lanzar se registra en el documento de diseño o en el worklog: la pregunta que resuelve la ejecución, la hipótesis, el resultado esperado y el tamaño del efecto que contaría como apoyo, el resultado que lo refutaría, el criterio de parada, la línea base que debe superar, el piloto más barato que podría resolverlo y el presupuesto de cómputo. Una ejecución sin este registro no se admite.
+
+Primero el piloto: la configuración más pequeña que todavía pueda refutar la hipótesis (una semilla, un split, un subconjunto, un horizonte más corto), leída contra el umbral preregistrado, y solo después una decisión explícita de escalar. Si el piloto no alcanza el umbral, la línea se detiene, el resultado negativo se registra y se informa, y no se añaden semillas ni variantes para diluir la diferencia. Se cambia una variable a la vez, la confusión se declara antes de ejecutar y cualquier cambio de protocolo a mitad de la ejecución se registra con su motivo. La ejecución también está acotada por el presupuesto, por el mismo fallo repetido dos veces y por una métrica que ha dejado de moverse.
+
+El Lead admite la ejecución, el runner se niega a lanzarla sin el registro previo y el reviewer comprueba en la puerta de resultados que la ejecución coincidió con la regla preregistrada y que una decisión de parada se respetó en lugar de anularse.
+
 ## Flujo de trabajo del tablero de tareas
 
 ```text

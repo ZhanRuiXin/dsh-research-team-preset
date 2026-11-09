@@ -129,6 +129,14 @@ The Lead does not author the experiment design. For design-heavy work the design
 
 The builder implements the design, the runner executes it, and the reviewer checks at the proposal gate that the design can answer the question and at the results gate that execution matched it. The advisor gives an independent scientific read at the proposal gate. The Lead confirms that the design document exists and that the researcher and data inputs are in place, then admits or returns the step. For implementation-led work the builder drafts the design and the advisor reviews it once.
 
+## Experiment admission
+
+Compute is spent on a decision, not on activity. Before a run beyond a trivial smoke test, the design document or worklog records the question the run settles, the hypothesis, the expected outcome and the effect size that would count as support, the result that would refute it, the kill criterion, the baseline it must beat, the cheapest pilot, and the budget. A run without that record is not admitted, and the rule must be able to come back "stop".
+
+The team pilots first: the smallest configuration that can still fail the hypothesis, judged against the pre-registered threshold, and only then an explicit decision to scale. If the pilot misses the threshold, the line stops, the negative result is recorded and reported, and no extra seeds or variants are added to average away the miss. One variable changes at a time, a mid-run protocol change is logged with its reason, and a run is also bounded by budget, by the same failure repeating twice, and by a metric that has stopped moving.
+
+The Lead admits the run, the runner refuses to launch without the pre-flight record, and the reviewer checks at the results gate that execution matched the pre-registered rule and that a stop decision was honored rather than overridden.
+
 ## Task board workflow
 
 ```text

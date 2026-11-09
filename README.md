@@ -52,10 +52,8 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*`, and the Team services |
-| Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Provides `taskboard_*` and the Web GUI board |
+| Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Provides `taskboard_*` and the board |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
-| Git Bash (optional, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | Adds a `bash` tool for agents that need it |
-| Web GUI | DSH Web/Desktop | Required for the settings form and the task board |
 
 If a dependency is missing, the mode can still load partially, but the team tools, the board, or the settings page will be unavailable. The plugin manager does not prompt for these bundles and does not link them automatically.
 
@@ -66,7 +64,6 @@ This repository is a local DSH bundle. From a checkout:
 1. **Enable the prerequisites** in the target profile:
    - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
    - Task board: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-   - Optionally [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) on Windows.
 2. **Install this bundle** with the Plugins page/plugin manager's install action, using a local link:
 
    ```text

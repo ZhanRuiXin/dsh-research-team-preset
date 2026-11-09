@@ -51,10 +51,8 @@ O Research Team Mode é um **bundle DSH de nível de perfil**. O bundle não ins
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Desenvolvido com base em `0.2.1-rc.5`; outras versões podem funcionar, mas não são garantidas |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Fornece `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` e os serviços de Team |
-| Quadro de tarefas | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Fornece `taskboard_*` e o quadro na Web GUI |
+| Quadro de tarefas | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Fornece `taskboard_*` e o quadro |
 | Runtime PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) e [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Parte da base do DSH; habilita `run_code` |
-| Git Bash (opcional, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | Adiciona uma ferramenta `bash` para agentes que precisam dela |
-| Web GUI | DSH Web/Desktop | Necessária para o formulário de configurações e o quadro de tarefas |
 
 Se faltar uma dependência, o modo ainda pode carregar parcialmente, mas as ferramentas de equipe, o quadro ou a página de configurações ficarão indisponíveis. O gerenciador de plugins não solicita esses bundles nem os vincula automaticamente.
 
@@ -65,7 +63,6 @@ Este repositório é um bundle DSH local. A partir de um checkout:
 1. **Ative os pré-requisitos** no perfil de destino:
    - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
    - Quadro de tarefas: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-   - Opcionalmente, [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) no Windows.
 2. **Instale este bundle** com a ação de instalação da página de Plugins ou do gerenciador de plugins, usando um link local:
 
    ```text

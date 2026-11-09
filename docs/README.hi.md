@@ -51,10 +51,8 @@ Research Team Mode एक **प्रोफ़ाइल-स्तरीय DSH �
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` के विरुद्ध विकसित; अन्य रिलीज़ काम कर सकते हैं, परंतु गारंटी नहीं है |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` और Team सेवाएँ प्रदान करता है |
-| Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` और Web GUI बोर्ड प्रदान करता है |
+| Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` और बोर्ड प्रदान करता है |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) और [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH बेस का हिस्सा; `run_code` सक्षम करता है |
-| Git Bash (वैकल्पिक, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | उन एजेंटों के लिए `bash` टूल जोड़ता है जिन्हें इसकी आवश्यकता होती है |
-| Web GUI | DSH Web/Desktop | सेटिंग्स फ़ॉर्म और टास्क बोर्ड के लिए आवश्यक |
 
 यदि कोई निर्भरता अनुपस्थित है, तो मोड फिर भी आंशिक रूप से लोड हो सकता है, लेकिन टीम टूल, बोर्ड या सेटिंग्स पृष्ठ उपलब्ध नहीं होंगे। प्लगइन मैनेजर इन बंडलों के लिए संकेत नहीं देता और उन्हें स्वतः लिंक नहीं करता।
 
@@ -65,7 +63,6 @@ Research Team Mode एक **प्रोफ़ाइल-स्तरीय DSH �
 1. लक्ष्य प्रोफ़ाइल में **पूर्वापेक्षाएँ सक्षम करें**:
    - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
    - Task board: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-   - Windows पर वैकल्पिक रूप से [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell)।
 2. Plugins पृष्ठ/plugin manager की install क्रिया से, स्थानीय लिंक का उपयोग करते हुए **इस बंडल को इंस्टॉल करें**:
 
    ```text

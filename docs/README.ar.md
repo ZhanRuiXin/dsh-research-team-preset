@@ -51,10 +51,8 @@
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | طُوِّر على `0.2.1-rc.5`؛ قد تعمل إصدارات أخرى، لكن ذلك غير مضمون |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | يوفّر `spawn_teammate` و`send_message` و`wait_agent` و`interrupt_agent` و`team_task_*` وخدمات Team |
-| لوحة المهام | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | يوفّر `taskboard_*` ولوحة Web GUI |
+| لوحة المهام | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | يوفّر `taskboard_*` ولوحة المهام |
 | بيئة PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) و[`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | جزء من أساس DSH؛ يتيح `run_code` |
-| Git Bash (اختياري، Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | يضيف أداة `bash` للوكلاء الذين يحتاجون إليها |
-| Web GUI | DSH Web/Desktop | مطلوب لنموذج الإعدادات ولوحة المهام |
 
 إذا غابت إحدى التبعيات، يظل الوضع قادرًا على التحميل جزئيًا، لكن أدوات الفريق أو اللوحة أو صفحة الإعدادات ستكون غير متاحة. ولا يطلب مدير الإضافات هذه الـ bundles ولا يربطها تلقائيًا.
 
@@ -65,7 +63,6 @@
 1. **فعّل المتطلبات المسبقة** في الـ profile المستهدف:
    - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
    - لوحة المهام: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-   - اختياريًا [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) على Windows.
 2. **ثبّت هذا الـ bundle** عبر إجراء التثبيت في صفحة Plugins/مدير الإضافات، باستخدام رابط محلي:
 
    ```text

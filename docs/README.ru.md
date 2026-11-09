@@ -51,10 +51,8 @@ Research Team Mode — это **bundle DSH уровня профиля**. Bundle
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Разработано для `0.2.1-rc.5`; другие версии могут работать, но не гарантируются |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Предоставляет `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` и сервисы Team |
-| Доска задач | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Предоставляет `taskboard_*` и доску в Web GUI |
+| Доска задач | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Предоставляет `taskboard_*` и доску |
 | Среда PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) и [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Входит в базовый DSH; включает `run_code` |
-| Git Bash (опционально, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | Добавляет инструмент `bash` для агентов, которым он нужен |
-| Web GUI | DSH Web/Desktop | Требуется для формы настроек и доски задач |
 
 Если зависимости не хватает, режим всё равно может загрузиться частично, но инструменты команды, доска или страница настроек будут недоступны. Менеджер плагинов не запрашивает эти bundle и не связывает их автоматически.
 
@@ -65,7 +63,6 @@ Research Team Mode — это **bundle DSH уровня профиля**. Bundle
 1. **Включите предварительные условия** в целевом профиле:
    - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
    - Доска задач: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-   - Опционально [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) в Windows.
 2. **Установите этот bundle** действием установки на странице Plugins или в менеджере плагинов, используя локальную ссылку:
 
    ```text

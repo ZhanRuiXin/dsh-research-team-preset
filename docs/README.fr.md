@@ -51,10 +51,8 @@ Research Team Mode est un **bundle DSH au niveau du profil**. Le bundle n'instal
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Développé contre `0.2.1-rc.5` ; d'autres versions peuvent fonctionner mais ne sont pas garanties |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Fournit `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` et les services Team |
-| Tableau des tâches | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Fournit `taskboard_*` et le tableau de l'interface web |
+| Tableau des tâches | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Fournit `taskboard_*` et le tableau |
 | Runtime PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) et [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Fait partie de la base DSH ; active `run_code` |
-| Git Bash (facultatif, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | Ajoute un outil `bash` pour les agents qui en ont besoin |
-| Interface web | DSH Web/Desktop | Nécessaire pour le formulaire de réglages et le tableau des tâches |
 
 Si une dépendance manque, le mode peut tout de même se charger partiellement, mais les outils d'équipe, le tableau ou la page de réglages seront indisponibles. Le gestionnaire de plugins ne propose pas ces bundles et ne les lie pas automatiquement.
 
@@ -65,7 +63,6 @@ Ce dépôt est un bundle DSH local. Depuis une copie de travail :
 1. **Activez les prérequis** dans le profil cible :
    - Agent Teams : [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
    - Tableau des tâches : [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-   - Éventuellement [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) sous Windows.
 2. **Installez ce bundle** avec l'action d'installation de la page Plugins / du gestionnaire de plugins, en utilisant un lien local :
 
    ```text

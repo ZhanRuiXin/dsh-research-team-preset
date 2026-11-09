@@ -51,10 +51,8 @@ Research Team Mode 是一個 **profile 層級的 DSH bundle**。此 bundle 不�
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 以 `0.2.1-rc.5` 為開發基準；其他版本可能可用但不保證 |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*` 與 Team 服務 |
-| 任務看板 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | 提供 `taskboard_*` 與 Web GUI 看板 |
+| 任務看板 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | 提供 `taskboard_*` 與看板 |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 與 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | 屬於 DSH 基礎的一部分；啟用 `run_code` |
-| Git Bash（選用，Windows） | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 為需要的 agent 新增 `bash` 工具 |
-| Web GUI | DSH Web/Desktop | 設定表單與任務看板所必需 |
 
 若缺少相依項目，此模式仍可部分載入，但團隊工具、看板或設定頁面將無法使用。外掛管理員不會提示這些 bundle，也不會自動連結它們。
 
@@ -65,7 +63,6 @@ Research Team Mode 是一個 **profile 層級的 DSH bundle**。此 bundle 不�
 1. **在目標 profile 中啟用先決條件**：
    - Agent Teams：[`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
    - 任務看板：[`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-   - Windows 上可選用 [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell)。
 2. **安裝此 bundle**，使用 Plugins 頁面／外掛管理員的安裝動作，並使用本機連結：
 
    ```text

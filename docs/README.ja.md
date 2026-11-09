@@ -51,10 +51,8 @@ Research Team Mode は**プロファイルレベルの DSH バンドル**です�
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` を基準に開発。他のリリースでも動作する可能性はありますが保証はありません |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*`、および Team サービスを提供 |
-| タスクボード | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` と Web GUI のボードを提供 |
+| タスクボード | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` とボードを提供 |
 | PTC ランタイム | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) と [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH ベースの一部。`run_code` を有効化 |
-| Git Bash（任意、Windows） | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 必要とするエージェントに `bash` ツールを追加 |
-| Web GUI | DSH Web/Desktop | 設定フォームとタスクボードに必要 |
 
 依存関係が欠けていてもモードは部分的に読み込まれますが、チームツール、ボード、設定ページのいずれかが利用できなくなります。プラグインマネージャーはこれらのバンドルを促したり、自動でリンクしたりすることはありません。
 
@@ -65,7 +63,6 @@ Research Team Mode は**プロファイルレベルの DSH バンドル**です�
 1. 対象のプロファイルで**前提条件を有効化**します:
    - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
    - タスクボード: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-   - Windows では任意で [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell)。
 2. Plugins ページ／プラグインマネージャーのインストール操作で、ローカルリンクを指定して**このバンドルをインストール**します:
 
    ```text

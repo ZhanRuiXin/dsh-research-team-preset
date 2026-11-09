@@ -51,10 +51,8 @@ Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 �
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` 기준으로 개발되었습니다. 다른 릴리스에서도 동작할 수 있지만 보장되지는 않습니다 |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*`와 Team 서비스를 제공합니다 |
-| 작업 보드 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*`와 Web GUI 보드를 제공합니다 |
+| 작업 보드 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*`와 보드를 제공합니다 |
 | PTC 런타임 | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 및 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH 기본 구성의 일부이며 `run_code`를 활성화합니다 |
-| Git Bash(선택 사항, Windows) | [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell) | 필요한 에이전트에 `bash` 도구를 추가합니다 |
-| Web GUI | DSH Web/Desktop | 설정 폼과 작업 보드에 필요합니다 |
 
 의존성이 없으면 모드는 부분적으로 로드될 수 있지만, 팀 도구, 보드 또는 설정 페이지를 사용할 수 없습니다. 플러그인 관리자는 이러한 번들을 제안하지 않으며 자동으로 연결하지도 않습니다.
 
@@ -65,7 +63,6 @@ Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 �
 1. 대상 프로필에서 **사전 요구 사항을 활성화**합니다:
    - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
    - 작업 보드: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-   - Windows에서는 선택적으로 [`dsh-gitbash-shell`](https://github.com/KannaKuron/dsh-gitbash-shell).
 2. Plugins 페이지/플러그인 관리자의 설치 기능에서 로컬 링크를 사용해 **이 번들을 설치**합니다:
 
    ```text

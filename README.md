@@ -35,6 +35,14 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 
 **Not for:** quick factual questions, single-file edits, or tasks where a one-shot answer is enough. The mode tells the Lead to answer simple questions directly and mobilize the team only for substantive research.
 
+## How the Lead talks to you
+
+The Lead's replies are scientific communication, not a status feed: the claim or result first, with the evidence behind it (run id, dataset, metric with uncertainty and sample size, source), then what is uncertain, then what the user has to decide. Each statement is labelled observed fact, inference, hypothesis, or open question, and the method is explained far enough that the user can follow and keep learning.
+
+Internal mechanics stay internal. Agent handoffs, retries, tool errors, board bookkeeping, and what the team learned while working are not forwarded unless they change how a result should be read or block a decision. Member reports are translated into a claim, its evidence, and its limits rather than pasted.
+
+The division of labor is explicit: the user sets the scientific direction and judges the evidence, and the team carries the search, implementation, experiment, and verification load.
+
 ## Requirements
 
 Research Team Mode is a **profile-level DSH bundle**. The bundle does not install or enable the profile bundles it uses; DSH's package installer handles npm dependencies, not feature bundles. Enable the dependencies in the same profile first.
@@ -132,7 +140,7 @@ Internal steps and member handoffs stay off the board; only user gates get cards
 At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
 Reviewer: independent PASS/FAIL with evidence on gated cards
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  summarize -> report card ids/status/evidence/risks to the user
+Lead:  scientific summary (claim, evidence, uncertainty) -> card ids/status only when a gate needs the user
 User:  accept in the GUI -> done (agents can never move a card to done)
 ```
 

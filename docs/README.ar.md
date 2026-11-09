@@ -1,5 +1,7 @@
 # Research Team Mode
 
+[![powered by dsh](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness) [![DSH 0.2.x](https://img.shields.io/badge/DSH-0.2.x-4D6BFE?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness) [![license MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](../LICENSE)
+
 **إعداد وكيل في DSH يحوّل جلسة واحدة إلى فريق بحث صغير ومنسّق.**
 
 **الإصدار 0.1.0** · **آخر تحديث 2026-10-31**
@@ -428,5 +430,3 @@ MIT. راجع [LICENSE](../LICENSE).
 ## شكر وتقدير
 
 بُني على [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) و[Cordis](https://github.com/cordiverse/cordis). يستخدم تكامل لوحة المهام إضافة [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)؛ وأدوات الفريق تأتي من bundle الـ profile الرسمي Agent Teams. شكرًا لمؤلفي الإضافات ولكل من يختبر الوضع في مشاريع بحثية حقيقية.
-
-[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

@@ -1,5 +1,7 @@
 # Research Team Mode
 
+[![powered by dsh](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness) [![DSH 0.2.x](https://img.shields.io/badge/DSH-0.2.x-4D6BFE?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness) [![license MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](../LICENSE)
+
 **1 つのセッションを、小規模で連携の取れた研究チームに変える DSH エージェントプリセット。**
 
 **バージョン 0.1.0** · **更新 2026-10-31**
@@ -428,5 +430,3 @@ MIT。[LICENSE](../LICENSE) を参照してください。
 ## 謝辞
 
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) と [Cordis](https://github.com/cordiverse/cordis) の上に構築されています。タスクボード連携は [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) プラグインを使用し、チームツールは公式の Agent Teams プロファイルバンドルから提供されます。プラグインの作者と、実際の研究プロジェクトでこのモードを試してくれるすべての人に感謝します。
-
-[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

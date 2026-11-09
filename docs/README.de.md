@@ -1,5 +1,7 @@
 # Research Team Mode
 
+[![powered by dsh](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness) [![DSH 0.2.x](https://img.shields.io/badge/DSH-0.2.x-4D6BFE?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness) [![license MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](../LICENSE)
+
 **Ein DSH-Agent-Preset, das eine Sitzung in ein kleines, koordiniertes Forschungsteam verwandelt.**
 
 **Version 0.1.0** · **Aktualisiert 2026-10-31**
@@ -428,5 +430,3 @@ MIT. Siehe [LICENSE](../LICENSE).
 ## Danksagungen
 
 Basiert auf [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) und [Cordis](https://github.com/cordiverse/cordis). Die Task-Board-Integration verwendet das Plugin [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard); die Team-Tools stammen aus dem offiziellen Agent-Teams-Profil-Bundle. Danke an die Plugin-Autoren und alle, die den Modus an echten Forschungsprojekten testen.
-
-[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

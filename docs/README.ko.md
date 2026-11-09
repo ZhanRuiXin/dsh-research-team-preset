@@ -1,5 +1,7 @@
 # Research Team Mode
 
+[![powered by dsh](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness) [![DSH 0.2.x](https://img.shields.io/badge/DSH-0.2.x-4D6BFE?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness) [![license MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](../LICENSE)
+
 **하나의 세션을 작고 긴밀하게 협력하는 연구 팀으로 바꾸는 DSH 에이전트 프리셋입니다.**
 
 **버전 0.1.0** · **업데이트 2026-10-31**
@@ -428,5 +430,3 @@ MIT. [LICENSE](../LICENSE)를 참고하십시오.
 ## 감사의 글
 
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)와 [Cordis](https://github.com/cordiverse/cordis)를 기반으로 만들어졌습니다. 작업 보드 통합은 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 플러그인을 사용하고, 팀 도구는 공식 Agent Teams 프로필 번들에서 제공됩니다. 플러그인 작성자들과 실제 연구 프로젝트에서 이 모드를 시험해 준 모든 분께 감사드립니다.
-
-[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

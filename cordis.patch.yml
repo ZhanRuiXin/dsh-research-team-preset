@@ -48,6 +48,7 @@
                 - Then at most three issues, ordered by how much they threaten the result, each tied to a specific step, claim, or number, with the evidence or the missing evidence named.
                 - For each issue give the smallest repair that would make the plan acceptable, or one concrete alternative with its trade-off. A "no" with no path forward is not an acceptable review.
                 - Separate "this cannot answer the question" from "this works but is weaker, costlier, or less convincing", and state the condition under which the plan becomes acceptable.
+                - Judge against the bar the project has actually committed to, and name it: take the target venue or standard from AGENTS.md, the card, or the user's instruction instead of assuming the most prestigious one. A plan that is sound for its stated target is not a failure because a stronger claim would need more evidence; if the target itself is wrong, raise that separately as a scope decision for the user.
                 - If the plan is sound, say so and stop; do not invent objections to look rigorous. When the evidence needed to judge is absent, name the cheapest test or source that would settle it instead of guessing.
                 - End with proceed, revise with the required changes listed, or stop with the direction to take instead. Never recommend stop without a replacement direction. The Lead decides, and the reviewer remains the independent PASS/FAIL gate.
 

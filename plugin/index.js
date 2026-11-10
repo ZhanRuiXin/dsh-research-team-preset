@@ -27,7 +27,7 @@ import { promisify } from 'node:util'
 
 export const name = 'research-project'
 
-export const inject = ['tools', 'workspaceRegistry', 'systemPrompt']
+export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents']
 
 const execFileAsync = promisify(execFile)
 
@@ -160,7 +160,7 @@ export const WRITE_ENVELOPES = Object.freeze({
   advisor: Object.freeze([]),
   researcher: Object.freeze(['literature/', 'notes/', 'docs/evidence']),
   data: Object.freeze(['data/', 'manifests/', 'scripts/', 'reports/']),
-  designer: Object.freeze(['docs/design/']),
+  designer: Object.freeze(['docs/design/', '.research/architecture/']),
   builder: Object.freeze(['src/', 'configs/', 'tests/']),
   runner: Object.freeze(['runs/', 'logs/', 'checkpoints/']),
   reviewer: Object.freeze([]),
@@ -218,6 +218,313 @@ function renderScope(value) {
   }
   if (value?.ok === true) lines.push('Every changed file is inside the envelope.')
   return [{ type: 'text', text: lines.join(NL) }]
+}
+
+/* ------------------------------------------------------------------ */
+/* Team panel: worklog summary, runs, designs and architecture cards.  */
+/* ------------------------------------------------------------------ */
+
+const ARCH_RELATIVE = '.research/architecture'
+const ARCH_MAX_NODES = 200
+const ARCH_MAX_BODY = 256 * 1024
+const NODE_KINDS = ['input', 'module', 'output', 'data', 'loss', 'note']
+const CARD_KINDS = ['method', 'model', 'experiment', 'pipeline']
+
+function finiteOr(value, fallback) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : fallback
+}
+
+function clampNumber(value, low, high, fallback) {
+  return Math.round(Math.min(high, Math.max(low, finiteOr(value, fallback))))
+}
+
+function shortText(value, max) {
+  return typeof value === 'string' ? value.trim().slice(0, max) : ''
+}
+
+export function sanitizeCardId(value) {
+  const id = typeof value === 'string' ? value.trim().toLowerCase() : ''
+  return /^[a-z0-9][a-z0-9_-]{0,63}$/.test(id) ? id : undefined
+}
+
+export function architectureDir(root) {
+  return path.join(root, ARCH_RELATIVE)
+}
+
+export function normalizeArchitectureCard(input, previous) {
+  if (input === null || typeof input !== 'object') return { error: 'card must be an object' }
+  const id = sanitizeCardId(input.id ?? previous?.id)
+  if (id === undefined) return { error: 'id must match [a-z0-9][a-z0-9_-]{0,63}' }
+  const seen = new Set()
+  const nodes = []
+  for (const raw of Array.isArray(input.nodes) ? input.nodes.slice(0, ARCH_MAX_NODES) : []) {
+    if (raw === null || typeof raw !== 'object') continue
+    const nodeId = sanitizeCardId(raw.id)
+    if (nodeId === undefined || seen.has(nodeId)) return { error: `invalid or duplicate node id: ${String(raw.id)}` }
+    seen.add(nodeId)
+    nodes.push({
+      id: nodeId,
+      label: shortText(raw.label, 80) || nodeId,
+      kind: NODE_KINDS.includes(raw.kind) ? raw.kind : 'module',
+      x: clampNumber(raw.x, 0, 4000, 40),
+      y: clampNumber(raw.y, 0, 4000, 40),
+      w: clampNumber(raw.w, 60, 600, 160),
+      h: clampNumber(raw.h, 30, 240, 56)
+    })
+  }
+  if (nodes.length === 0) return { error: 'card needs at least one node' }
+  const edges = []
+  for (const raw of Array.isArray(input.edges) ? input.edges : []) {
+    if (raw === null || typeof raw !== 'object' || !seen.has(raw.from) || !seen.has(raw.to)) continue
+    if (raw.from === raw.to) continue
+    edges.push({ from: String(raw.from), to: String(raw.to), label: shortText(raw.label, 60) })
+  }
+  const notes = []
+  const rawNotes = Array.isArray(input.notes) ? input.notes : Array.isArray(previous?.notes) ? previous.notes : []
+  for (const raw of rawNotes) {
+    const body = shortText(raw?.text, 800)
+    if (body === '') continue
+    notes.push({
+      id: sanitizeCardId(raw?.id) ?? `n${notes.length + 1}`,
+      text: body,
+      targets: Array.isArray(raw?.targets) ? raw.targets.filter((target) => seen.has(target)).slice(0, 20) : [],
+      createdAt: typeof raw?.createdAt === 'string' ? raw.createdAt : new Date().toISOString()
+    })
+  }
+  return {
+    id,
+    title: shortText(input.title ?? previous?.title, 80) || id,
+    kind: CARD_KINDS.includes(input.kind) ? input.kind : previous?.kind ?? 'method',
+    version: (previous?.version ?? 0) + 1,
+    updatedAt: new Date().toISOString(),
+    canvas: {
+      width: clampNumber(input.canvas?.width, 320, 4000, 1200),
+      height: clampNumber(input.canvas?.height, 240, 4000, 800)
+    },
+    nodes,
+    edges,
+    notes
+  }
+}
+
+export function readArchitectureCard(root, id) {
+  const cardId = sanitizeCardId(id)
+  if (cardId === undefined) return undefined
+  try {
+    return JSON.parse(fs.readFileSync(path.join(architectureDir(root), `${cardId}.json`), 'utf8'))
+  } catch {
+    return undefined
+  }
+}
+
+export function listArchitectureCards(root) {
+  const dir = architectureDir(root)
+  let names = []
+  try {
+    names = fs.readdirSync(dir).filter((name) => name.endsWith('.json')).sort()
+  } catch {
+    return []
+  }
+  const cards = []
+  for (const name of names.slice(0, 60)) {
+    const id = name.slice(0, -5)
+    if (sanitizeCardId(id) === undefined) continue
+    const card = readArchitectureCard(root, id)
+    if (card !== undefined) cards.push(card)
+  }
+  return cards
+}
+
+export function saveArchitectureCard(root, input, expectedVersion) {
+  const id = sanitizeCardId(input?.id)
+  if (id === undefined) return { error: 'id must match [a-z0-9][a-z0-9_-]{0,63}' }
+  const previous = readArchitectureCard(root, id)
+  if (expectedVersion !== undefined && expectedVersion !== null) {
+    const current = previous?.version ?? 0
+    if (current !== Number(expectedVersion)) {
+      return { error: `version conflict: card "${id}" is at v${current}, reload before saving` }
+    }
+  }
+  const next = normalizeArchitectureCard({ ...input, id }, previous)
+  if (next.error !== undefined) return next
+  const dir = architectureDir(root)
+  fs.mkdirSync(dir, { recursive: true })
+  const file = path.join(dir, `${id}.json`)
+  const temp = `${file}.${process.pid}.tmp`
+  fs.writeFileSync(temp, `${JSON.stringify(next, null, 2)}\n`, 'utf8')
+  fs.renameSync(temp, file)
+  return next
+}
+
+function readTextFile(file) {
+  try {
+    return fs.readFileSync(file, 'utf8')
+  } catch {
+    return ''
+  }
+}
+
+function planSummary(text) {
+  const pick = (key) => {
+    const match = text.match(new RegExp(`^\\s*-?\\s*${key}\\s*:\\s*(.*)$`, 'm'))
+    return match === null ? '' : match[1].trim()
+  }
+  return {
+    objective: pick('objective'),
+    milestone: pick('milestone'),
+    active: pick('active'),
+    blocked: pick('blocked'),
+    next: pick('next')
+  }
+}
+
+function indexRows(text) {
+  const rows = []
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim()
+    if (!trimmed.startsWith('|')) continue
+    const cells = trimmed.split('|').map((cell) => cell.trim())
+    if (cells.length < 5) continue
+    if (cells.every((cell) => cell === '' || /^-{2,}$/.test(cell))) continue
+    if (cells[1] === 'id' || cells[1] === 'ID') continue
+    rows.push({
+      id: cells[1],
+      title: cells[2],
+      owner: cells[3],
+      status: cells[4] ?? '',
+      updated: cells[5] ?? '',
+      next: cells[6] ?? ''
+    })
+  }
+  return rows.filter((row) => row.id !== '').slice(0, 40)
+}
+
+export function buildPanelState(root) {
+  const plan = planSummary(readTextFile(path.join(root, 'worklog', 'PLAN.md')))
+  const cards = indexRows(readTextFile(path.join(root, 'worklog', 'INDEX.md')))
+  const designs = []
+  try {
+    const dir = path.join(root, 'docs', 'design')
+    for (const name of fs.readdirSync(dir).filter((entry) => entry.endsWith('.md')).sort()) {
+      const file = path.join(dir, name)
+      const question = readTextFile(file).match(/##+\s*Question\s*\n+([^\n]+)/i)
+      designs.push({
+        name,
+        updated: fs.statSync(file).mtime.toISOString(),
+        question: question === null ? '' : question[1].trim().slice(0, 160)
+      })
+    }
+  } catch {}
+  const runs = []
+  try {
+    const dir = path.join(root, 'runs')
+    for (const name of fs.readdirSync(dir).sort()) {
+      const manifest = readTextFile(path.join(dir, name, 'manifest.json'))
+      let parsed = {}
+      if (manifest !== '') {
+        try {
+          parsed = JSON.parse(manifest)
+        } catch {}
+      }
+      runs.push({
+        name,
+        status: typeof parsed.status === 'string' ? parsed.status : '',
+        seeds: typeof parsed.seeds === 'string' ? parsed.seeds : '',
+        budget: typeof parsed.budget === 'string' ? parsed.budget : ''
+      })
+    }
+  } catch {}
+  return {
+    root,
+    worklog: plan,
+    cards,
+    runs: runs.slice(0, 12),
+    designs: designs.slice(0, 12),
+    architectures: listArchitectureCards(root)
+  }
+}
+
+function jsonResponse(res, status, value) {
+  res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
+  res.end(JSON.stringify(value))
+}
+
+function trustedRequest(req) {
+  const origin = req.headers === undefined ? undefined : req.headers.origin
+  if (typeof origin !== 'string' || origin === '') return true
+  try {
+    const parsed = new URL(origin)
+    const host = req.headers === undefined ? undefined : req.headers.host
+    if (typeof host === 'string' && parsed.host === host) return true
+    return ['127.0.0.1', 'localhost', '::1', '[::1]'].includes(parsed.hostname)
+  } catch {
+    return false
+  }
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let size = 0
+    const chunks = []
+    req.on('data', (chunk) => {
+      size += chunk.length
+      if (size > ARCH_MAX_BODY) {
+        reject(new Error('body is too large'))
+        req.destroy()
+        return
+      }
+      chunks.push(Buffer.from(chunk))
+    })
+    req.on('end', () => {
+      try {
+        resolve(chunks.length === 0 ? {} : JSON.parse(Buffer.concat(chunks).toString('utf8')))
+      } catch (error) {
+        reject(error)
+      }
+    })
+    req.on('error', reject)
+  })
+}
+
+async function sessionProjectRoot(ctx, sessionId) {
+  if (typeof sessionId !== 'string' || sessionId === '') return undefined
+  try {
+    const agent = await Promise.resolve(ctx.agents?.get?.(sessionId))
+    const cwd = agent?.session?.header?.cwd
+    if (typeof cwd !== 'string' || cwd === '') return undefined
+    const workspace = await ctx.workspaceRegistry.resolveByPath(cwd)
+    if (workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0) return workspace.path
+    return cwd
+  } catch {
+    return undefined
+  }
+}
+
+function renderArchitecture(value, args) {
+  if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
+    return [{ type: 'text', text: value.error }]
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) return [{ type: 'text', text: 'No architecture cards yet.' }]
+    return [{
+      type: 'text',
+      text: value.map((card) => `${card.id} v${card.version}  ${card.title} (${card.nodes.length} nodes, ${card.notes.length} notes)`).join(NL)
+    }]
+  }
+  if (value.removed === true) {
+    return [{ type: 'text', text: `Removed architecture card "${value.id}".` }]
+  }
+  if (args.op === 'get') {
+    return [{ type: 'text', text: JSON.stringify(value, null, 2) }]
+  }
+  if (Array.isArray(value.nodes)) {
+    return [{
+      type: 'text',
+      text: `${value.id} v${value.version}: ${value.title} (${value.nodes.length} nodes, ${value.edges.length} edges, ${value.notes.length} notes)`
+    }]
+  }
+  return [{ type: 'text', text: JSON.stringify(value, null, 2) }]
 }
 
 function renderInit(value) {
@@ -388,7 +695,141 @@ export function apply(ctx) {
     }
   })
 
+  const panelRoute = '/api/dsh-research-team-panel'
+  const panelHandler = async (req, res) => {
+    try {
+      if (!trustedRequest(req)) {
+        jsonResponse(res, 403, { ok: false, error: 'panel requests must come from the local GUI' })
+        return
+      }
+      const url = new URL(req.url ?? '/', 'http://localhost')
+      const sessionId = req.method === 'GET' ? url.searchParams.get('session') : undefined
+      if (req.method === 'GET') {
+        const root = await sessionProjectRoot(ctx, sessionId)
+        if (root === undefined) {
+          jsonResponse(res, 404, { ok: false, error: 'cannot resolve the project for this session' })
+          return
+        }
+        jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
+        return
+      }
+      if (req.method !== 'POST') {
+        jsonResponse(res, 405, { ok: false, error: 'method not allowed' })
+        return
+      }
+      const body = await readBody(req)
+      const root = await sessionProjectRoot(ctx, typeof body?.sessionId === 'string' ? body.sessionId : undefined)
+      if (root === undefined) {
+        jsonResponse(res, 404, { ok: false, error: 'cannot resolve the project for this session' })
+        return
+      }
+      const card = readArchitectureCard(root, body?.id)
+      if (body?.op === 'annotate') {
+        if (card === undefined) {
+          jsonResponse(res, 404, { ok: false, error: 'card not found' })
+          return
+        }
+        const text = shortText(body.text, 800)
+        if (text === '') {
+          jsonResponse(res, 400, { ok: false, error: 'note text is empty' })
+          return
+        }
+        const targets = Array.isArray(body.targets) ? body.targets : []
+        const next = saveArchitectureCard(root, { ...card, notes: [...(card.notes ?? []), { text, targets }] }, card.version)
+        if (next.error !== undefined) {
+          jsonResponse(res, 409, { ok: false, error: next.error })
+          return
+        }
+        jsonResponse(res, 200, { ok: true, card: next })
+        return
+      }
+      if (body?.op === 'patch') {
+        if (card === undefined) {
+          jsonResponse(res, 404, { ok: false, error: 'card not found' })
+          return
+        }
+        const moves = new Map((Array.isArray(body.moves) ? body.moves : []).map((move) => [String(move?.id), move]))
+        const nodes = (card.nodes ?? []).map((node) => {
+          const move = moves.get(node.id)
+          if (move === undefined) return node
+          return { ...node, x: clampNumber(move.x, 0, 4000, node.x), y: clampNumber(move.y, 0, 4000, node.y) }
+        })
+        const next = saveArchitectureCard(root, { ...card, nodes }, body.version)
+        if (next.error !== undefined) {
+          jsonResponse(res, 409, { ok: false, error: next.error })
+          return
+        }
+        jsonResponse(res, 200, { ok: true, card: next })
+        return
+      }
+      jsonResponse(res, 400, { ok: false, error: 'unknown operation' })
+    } catch (error) {
+      jsonResponse(res, 400, { ok: false, error: error instanceof Error ? error.message : String(error) })
+    }
+  }
+  let disposePanel = () => {}
+  try {
+    disposePanel = ctx.webServer.register({ kind: 'exact', path: panelRoute, handler: panelHandler })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (!message.includes(`webserver: duplicate exact route "${panelRoute}"`)) throw error
+  }
+
+  const disposeArchitecture = ctx.tools.register({
+    name: 'research_architecture',
+    description:
+      'Read or update the architecture cards shown in the Research sidebar: the method, model, experiment and pipeline diagrams of this project, stored as JSON under .research/architecture/<id>.json. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete. A card is a node/edge graph with absolute coordinates; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it.',
+    parameters: {
+      type: 'object',
+      properties: {
+        op: { type: 'string', enum: ['list', 'get', 'save', 'remove'] },
+        id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
+        card: {
+          type: 'object',
+          description: 'Full card for op=save: id, title, kind (method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y,w,h}], edges [{from,to,label}], notes.'
+        },
+        expectedVersion: { type: 'number', description: 'For op=save on an existing card, the version you read; a mismatch is rejected.' }
+      },
+      required: ['op'],
+      additionalProperties: false
+    },
+    output: {
+      schema: {},
+      render(args, value) {
+        return renderArchitecture(value, args)
+      }
+    },
+    async execute(args, exec) {
+      const cwd = exec?.agent?.session?.header?.cwd
+      if (typeof cwd !== 'string' || cwd.length === 0) {
+        return { error: 'Cannot determine the session working directory; no card was read or written.' }
+      }
+      const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
+      const root = workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0 ? workspace.path : cwd
+      const op = typeof args.op === 'string' ? args.op : ''
+      if (op === 'list') return listArchitectureCards(root)
+      if (op === 'get') {
+        const card = readArchitectureCard(root, args.id)
+        return card === undefined ? { error: `No architecture card "${String(args.id)}".` } : card
+      }
+      if (op === 'remove') {
+        const id = sanitizeCardId(args.id)
+        if (id === undefined) return { error: 'id must match [a-z0-9][a-z0-9_-]{0,63}' }
+        const file = path.join(architectureDir(root), `${id}.json`)
+        if (!fs.existsSync(file)) return { error: `No architecture card "${id}".` }
+        fs.unlinkSync(file)
+        return { id, removed: true }
+      }
+      if (op === 'save') {
+        return saveArchitectureCard(root, args.card, args.expectedVersion)
+      }
+      return { error: `Unknown op "${op}"; expected list, get, save or remove.` }
+    }
+  })
+
   return () => {
+    disposeArchitecture()
+    disposePanel()
     disposeScope()
     disposeInit()
     disposeTool()

@@ -172,6 +172,12 @@ El worklog vive en la raíz del proyecto que devuelve `research_project`, no en 
 
 Una ejecución o trabajo largo que sobrevive al turno deja su identificador de trabajo o terminal, host, hora de inicio, finalización esperada y la regla de decisión que sirve en el archivo de tarjeta o en PLAN. Al reanudar se comprueba primero que siga vivo; una ejecución huérfana se concilia y se plantea al usuario como adoptar, reiniciar o detener, en lugar de ejecutarla dos veces en silencio. Una tarjeta retenida por una sesión que ya no existe se reporta al usuario para reabrirla y nunca se asume.
 
+## Barra lateral de investigación
+
+El preset añade una pestaña Investigación a la barra lateral derecha. Responde qué está haciendo el equipo, dónde está bloqueado y cuál es el siguiente paso: el objetivo y el hito de `worklog/PLAN.md`, las tarjetas activas de `worklog/INDEX.md`, las ejecuciones recientes, los documentos de diseño y las tarjetas de arquitectura.
+
+Las tarjetas de arquitectura son diagramas de nodos y aristas guardados como JSON en `.research/architecture/`, un archivo por tarjeta. El agente las lee y actualiza con la herramienta `research_architecture`, de modo que el diagrama siga al diseño en lugar de derivar en una diapositiva. La tarjeta se representa en SVG dentro del panel; al arrastrar un recuadro sobre los nodos se seleccionan, y la nota que escribes se guarda en la tarjeta como anotación que el agente lee antes de responder. La pestaña se registra mediante `dsh-better-sidebar` cuando ese plugin está instalado y, si no, en la barra lateral derecha nativa.
+
 ## Flujo de trabajo del tablero de tareas
 
 ```text

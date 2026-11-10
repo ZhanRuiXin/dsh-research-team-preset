@@ -172,6 +172,12 @@ O worklog fica na raiz do projeto retornada por `research_project`, não num sub
 
 Uma execução ou job longo que sobrevive ao turno deixa seu identificador de job ou terminal, host, hora de início, conclusão esperada e a regra de decisão que serve no arquivo do cartão ou no PLAN. Ao retomar, o agente verifica a vitalidade primeiro; uma execução órfã é reconciliada e apresentada ao usuário como adotar, reiniciar ou parar, em vez de rodar duas vezes em silêncio. Um cartão mantido por uma sessão que não existe mais é reportado ao usuário para reabertura, nunca assumido.
 
+## Barra lateral de pesquisa
+
+O preset adiciona uma aba Pesquisa à barra lateral direita. Ela responde o que a equipe está fazendo agora, onde está bloqueada e qual é o próximo passo: o objetivo e o marco do `worklog/PLAN.md`, os cartões ativos do `worklog/INDEX.md`, as execuções recentes, os documentos de design e os cartões de arquitetura.
+
+Os cartões de arquitetura são diagramas de nós e arestas armazenados como JSON em `.research/architecture/`, um arquivo por cartão. O agente os lê e atualiza com a ferramenta `research_architecture`, para que o diagrama acompanhe o design em vez de ficar desatualizado num slide. Um cartão é renderizado em SVG dentro do painel; arrastar uma caixa sobre os nós os seleciona, e a nota que você escreve é salva no cartão como anotação que o agente lê antes de responder. A aba se registra via `dsh-better-sidebar` quando esse plugin está instalado e, caso contrário, na barra lateral direita nativa.
+
 ## Fluxo do quadro de tarefas
 
 ```text

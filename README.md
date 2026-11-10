@@ -173,6 +173,12 @@ The worklog lives at the project root returned by `research_project`, not in a s
 
 A run or long job that outlives the turn leaves its job or terminal handle, host, start time, expected completion, and decision rule in the card file or PLAN. On resume the agent checks liveness first, and an orphaned run is reconciled and put to the user as adopt, restart, or stop rather than silently run twice. A card held by a session that no longer exists is reported to the user for reopening, never taken over.
 
+## Research sidebar
+
+The preset adds a Research tab to the right sidebar. It answers what the team is doing now, what is blocked, and what the next step is: the objective and milestone from `worklog/PLAN.md`, the active cards from `worklog/INDEX.md`, recent runs, the design documents, and the architecture cards.
+
+Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the note you write is stored on the card as an annotation the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
+
 ## Task board workflow
 
 ```text

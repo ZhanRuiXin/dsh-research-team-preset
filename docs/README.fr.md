@@ -172,6 +172,12 @@ Le worklog vit à la racine du projet renvoyée par `research_project`, et non d
 
 Une exécution ou une tâche longue qui dépasse le tour laisse son identifiant de tâche ou de terminal, l’hôte, l’heure de début, la fin attendue et la règle de décision qu’elle sert dans le fichier de carte ou PLAN. À la reprise, l’agent vérifie d’abord qu’elle est toujours vivante ; une exécution orpheline est réconciliée et soumise à l’utilisateur comme adopter, redémarrer ou arrêter, plutôt que relancée en silence. Une carte détenue par une session disparue est signalée à l’utilisateur pour réouverture, jamais reprise.
 
+## Barre latérale de recherche
+
+Le preset ajoute un onglet Recherche à la barre latérale droite. Il répond à ce que fait l'équipe, à ce qui bloque et à la prochaine étape : l'objectif et le jalon de `worklog/PLAN.md`, les cartes actives de `worklog/INDEX.md`, les exécutions récentes, les documents de conception et les cartes d'architecture.
+
+Les cartes d'architecture sont des diagrammes nœuds-liens stockés en JSON sous `.research/architecture/`, un fichier par carte. L'agent les lit et les met à jour avec l'outil `research_architecture`, afin que le diagramme suive la conception au lieu de dériver dans une diapositive. Une carte est rendue en SVG dans le panneau ; un cadre de sélection sur les nœuds les sélectionne, et la note que vous écrivez est enregistrée sur la carte comme annotation que l'agent lit avant de répondre. L'onglet s'enregistre via `dsh-better-sidebar` lorsque ce plugin est installé, sinon via la barre latérale droite native.
+
 ## Flux du tableau des tâches
 
 ```text

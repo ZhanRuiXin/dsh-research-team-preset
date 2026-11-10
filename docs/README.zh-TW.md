@@ -289,38 +289,6 @@ $DSH_HOME/research-team-settings.json
 | `research-team-settings` 列 | `cordis.patch.yml` | 頂層主機列；請保留套件根目錄名稱 |
 | 團隊模型配置 | `$DSH_HOME/research-team-settings.json` | 具名配置；作用中的配置為八個預設角色提供 provider/model/reasoningEffort |
 
-## 儲存庫結構
-
-```text
-dsh-research-team-preset/
-├── README.md                     # This file (canonical, English)
-├── CHANGELOG.md
-├── LICENSE
-├── .gitignore
-├── package.json                  # DSH bundle manifest and exports
-├── cordis.patch.yml              # Preset + top-level settings row
-├── plugin/
-│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
-│   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared profile snapshot + disk refresh
-├── settings/
-│   └── index.js                  # Profile file + /api/dsh-research-team-settings
-├── client/
-│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
-└── docs/
-    ├── README.zh-CN.md
-    ├── README.zh-TW.md
-    ├── README.ja.md
-    ├── README.ko.md
-    ├── README.de.md
-    ├── README.fr.md
-    ├── README.es.md
-    ├── README.pt-BR.md
-    ├── README.ru.md
-    ├── README.ar.md
-    └── README.hi.md
-```
-
 ## 運作原理
 
 - **Preset**：`cordis.patch.yml` 宣告 persona、工具列、modeled-teammates 子模組與頂層設定列。
@@ -328,29 +296,6 @@ dsh-research-team-preset/
 - **各角色路由**：`plugin/modeled-teammates.js` 以 `AsyncLocalStorage` 包裝 `subagents.startActivation`，僅在 `spawn_teammate_with_model` 呼叫時注入 `agentOptions`。官方 Agent Teams 套件未被改動。 Cordis 對服務回傳可追蹤代理，因此包裝器改為檢查自身屬性描述符，而不比較方法身分。
 - **設定**：`settings/index.js` 載入／儲存配置 JSON 檔並提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 透過 `plugins.row.config` 註冊 Plugins 頁面的配置編輯器。
 - **重新整理**：`plugin/settings-store.js` 持有記憶體快照，在每次讀取與 spawn 時解析作用中的配置，並在讀取失敗時保留上一次良好的快照。
-
-## 驗證清單
-
-```text
-plugin_manager list_plugins              # bundle active
-Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-research-team
-new session -> Research Team Mode
-list_agents                              # roles can be created
-research_project                         # returns the current workspaceId
-taskboard_list                           # matches the GUI board
-Plugins -> bundle -> research-team-settings -> Configure   # 頁面可見
-新建配置 -> 命名 -> 儲存 -> 重新開啟頁面 -> 兩個配置都會列出
-選擇另一個配置 -> 儲存 -> spawn_teammate_with_model 會使用它
-刪除一個配置 -> 儲存 -> 只剩剩餘的那個配置
-舊 {roles} 檔案 -> 重新啟動 -> 顯示為 默认配置
-儲存某個角色的模型 -> 重新啟動 -> 頁面仍會顯示
-```
-
-設定持久化路徑可在不使用 UI 的情況下檢查：
-
-```text
-GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
-```
 
 ## 疑難排解
 
@@ -405,32 +350,6 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - 此模式不會在既有儲存庫內部再初始化儲存庫，也不會自行提交工作日誌或儲存庫腳手架。
 - 成員可使用一層 subagent；更深的委派會被刻意停用。
 
-## 開發
-
-此儲存庫是本機的 DSH bundle，主機程式碼沒有建置步驟。用戶端頁面是 `client/index.js` 中預先建置的 `window.__ModuleLoader__.load` 模組。
-
-典型循環：
-
-1. 在 DSH profile 中將 checkout 安裝為 `link:` 相依項目。
-2. 編輯主機／用戶端檔案。
-3. 重新啟動 DSH（preset 與用戶端模組會在啟動時載入；HMR 可能處理部分主機變更）。
-4. 檢查設定路由與 Plugins 頁面。
-
-實用檢查：
-
-```bash
-node --check settings/index.js
-node --check plugin/index.js
-node --check plugin/modeled-teammates.js
-node --check client/index.js
-```
-
-目前尚無自動化測試套件。設定路由、模型目錄、任務看板流程與重新啟動後的持久化是最有價值的手動檢查。
-
-## 版本
-
-語意化版本。目前版本是 **0.1.0**；參見 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文件帶有相同版本。
-
 ## 授權
 
 MIT。參見 [LICENSE](../LICENSE)。
@@ -438,3 +357,5 @@ MIT。參見 [LICENSE](../LICENSE)。
 ## 致謝
 
 建構於 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 與 [Cordis](https://github.com/cordiverse/cordis) 之上。任務看板整合使用 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 外掛；團隊工具來自官方 Agent Teams profile bundle。感謝外掛作者，以及所有在真實研究專案上測試此模式的人。
+
+貢獻與內部開發說明見 [DEVELOPMENT.md](../DEVELOPMENT.md)。

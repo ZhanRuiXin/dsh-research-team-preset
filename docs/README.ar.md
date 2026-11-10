@@ -289,38 +289,6 @@ $DSH_HOME/research-team-settings.json
 | صف `research-team-settings` | `cordis.patch.yml` | صف مضيف من المستوى الأعلى؛ أبقِ اسم جذر الحزمة |
 | ملفات تعريف نموذج الفريق | `$DSH_HOME/research-team-settings.json` | ملفات تعريف مسمّاة؛ يوفّر ملف التعريف النشط provider/model/reasoningEffort للأدوار الافتراضية الثمانية |
 
-## بنية المستودع
-
-```text
-dsh-research-team-preset/
-├── README.md                     # This file (canonical, English)
-├── CHANGELOG.md
-├── LICENSE
-├── .gitignore
-├── package.json                  # DSH bundle manifest and exports
-├── cordis.patch.yml              # Preset + top-level settings row
-├── plugin/
-│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
-│   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared profile snapshot + disk refresh
-├── settings/
-│   └── index.js                  # Profile file + /api/dsh-research-team-settings
-├── client/
-│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
-└── docs/
-    ├── README.zh-CN.md
-    ├── README.zh-TW.md
-    ├── README.ja.md
-    ├── README.ko.md
-    ├── README.de.md
-    ├── README.fr.md
-    ├── README.es.md
-    ├── README.pt-BR.md
-    ├── README.ru.md
-    ├── README.ar.md
-    └── README.hi.md
-```
-
 ## كيف يعمل
 
 - **Preset**: يعلن `cordis.patch.yml` الشخصية (persona) وصفوف الأدوات والوحدة الفرعية modeled-teammates وصف الإعدادات من المستوى الأعلى.
@@ -328,29 +296,6 @@ dsh-research-team-preset/
 - **التوجيه لكل دور**: يغلّف `plugin/modeled-teammates.js` الدالة `subagents.startActivation` بـ `AsyncLocalStorage` ويحقن `agentOptions` عند نداء `spawn_teammate_with_model` فقط. وحزمة Agent Teams الرسمية لم تُمسّ. يعرض Cordis الخدمات كوسيط قابل للتتبع، لذا يتحقق الغلاف من واصف الخاصية الخاص به بدلاً من هوية الدالة.
 - **الإعدادات**: يحمّل `settings/index.js` ملف JSON لملفات التعريف ويحفظه ويقدّم `GET/POST /api/dsh-research-team-settings`؛ ويسجّل `client/index.js` محرّر ملفات التعريف في صفحة Plugins عبر `plugins.row.config`.
 - **التحديث**: يحتفظ `plugin/settings-store.js` بالنسخة في الذاكرة، ويحدّد ملف التعريف النشط عند كل قراءة وكل إنشاء (spawn)، ويُبقي آخر نسخة سليمة إذا فشلت القراءة.
-
-## قائمة التحقق
-
-```text
-plugin_manager list_plugins              # bundle active
-Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-research-team
-new session -> Research Team Mode
-list_agents                              # roles can be created
-research_project                         # returns the current workspaceId
-taskboard_list                           # matches the GUI board
-Plugins -> bundle -> research-team-settings -> Configure   # page visible
-新建配置 -> أعطه اسمًا -> احفظ -> أعد فتح الصفحة -> يظهر ملفا التعريف
-اختر ملف تعريف آخر -> احفظ -> يستخدمه spawn_teammate_with_model
-احذف ملف تعريف واحدًا -> احفظ -> لا يبقى إلا ملف التعريف المتبقي
-ملف قديم {roles} -> أعد التشغيل -> يظهر باسم 默认配置
-احفظ نموذج دور -> أعد التشغيل -> تظل الصفحة تعرضه
-```
-
-يمكن التحقق من مسار حفظ الإعدادات دون الواجهة:
-
-```text
-GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
-```
 
 ## استكشاف الأخطاء وإصلاحها
 
@@ -409,32 +354,6 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - لا يهيّئ الوضع مستودعًا داخل مستودع قائم أبدًا، ولا يثبّت من تلقاء نفسه سجل العمل أو هيكل المستودع.
 - يجوز للأعضاء استخدام طبقة subagent واحدة؛ أما التفويض الأعمق فمعطَّل عن قصد.
 
-## التطوير
-
-هذا المستودع bundle محلي في DSH دون خطوة بناء لشيفرة المضيف. وصفحة العميل وحدة `window.__ModuleLoader__.load` مبنية مسبقًا في `client/index.js`.
-
-دورة العمل النموذجية:
-
-1. ثبّت نسخة الـ checkout كتبعية `link:` في profile من DSH.
-2. عدّل ملفات المضيف/العميل.
-3. أعد تشغيل DSH (تُحمَّل وحدات الـ preset والعميل عند بدء التشغيل؛ وقد يتولى HMR بعض تغييرات المضيف).
-4. افحص مسار الإعدادات وصفحة Plugins.
-
-فحوص مفيدة:
-
-```bash
-node --check settings/index.js
-node --check plugin/index.js
-node --check plugin/modeled-teammates.js
-node --check client/index.js
-```
-
-لا توجد مجموعة اختبارات آلية بعد. ومسار الإعدادات وكتالوج النماذج وسير عمل لوحة المهام والاستمرارية بعد إعادة التشغيل هي الفحوص اليدوية الأعلى قيمة.
-
-## إدارة الإصدارات
-
-ترقيم دلالي للإصدارات (semantic versioning). الإصدار الحالي هو **0.1.0**؛ راجع [CHANGELOG.md](../CHANGELOG.md). وتحمل الوثائق تحت `docs/` الإصدار نفسه.
-
 ## الترخيص
 
 MIT. راجع [LICENSE](../LICENSE).
@@ -442,3 +361,5 @@ MIT. راجع [LICENSE](../LICENSE).
 ## شكر وتقدير
 
 بُني على [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) و[Cordis](https://github.com/cordiverse/cordis). يستخدم تكامل لوحة المهام إضافة [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)؛ وأدوات الفريق تأتي من bundle الـ profile الرسمي Agent Teams. شكرًا لمؤلفي الإضافات ولكل من يختبر الوضع في مشاريع بحثية حقيقية.
+
+ملاحظات المساهمة والتطوير الداخلي في [DEVELOPMENT.md](../DEVELOPMENT.md).

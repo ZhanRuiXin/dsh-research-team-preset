@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Architecture cards centre the boxes that share a column, so a vertical flow reads as one centred column instead of a left-aligned staircase.
+
 - Architecture node boxes size themselves from their labels: one line if it fits, two if it must wrap, so a card no longer leaves an empty half or clips a word.
 
 - Architecture labels wrap on the measured text width instead of a character count, so a mixed Latin/CJK label no longer leaves one stray character on the second line.

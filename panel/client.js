@@ -136,6 +136,41 @@ window.__ModuleLoader__.load({
     const NODE_LINE_H = 15
     const NODE_MIN_H = 42
 
+    /* Boxes that share a column are centred on one axis, so a vertical flow reads
+       as a column instead of a left-aligned staircase. */
+    function alignColumns(nodes) {
+      const list = nodes.map((node) => ({ ...node }))
+      if (list.length < 2) return list
+      const parent = list.map((_, index) => index)
+      const find = (index) => (parent[index] === index ? index : (parent[index] = find(parent[index])))
+      for (let i = 0; i < list.length; i += 1) {
+        for (let j = i + 1; j < list.length; j += 1) {
+          const a = list[i]
+          const b = list[j]
+          const overlap = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)
+          if (overlap > Math.min(a.w, b.w) * 0.4) {
+            const ra = find(i)
+            const rb = find(j)
+            if (ra !== rb) parent[ra] = rb
+          }
+        }
+      }
+      const groups = new Map()
+      for (let index = 0; index < list.length; index += 1) {
+        const root = find(index)
+        if (!groups.has(root)) groups.set(root, [])
+        groups.get(root).push(index)
+      }
+      for (const indices of groups.values()) {
+        if (indices.length < 2) continue
+        let sum = 0
+        for (const index of indices) sum += list[index].x + list[index].w / 2
+        const axis = sum / indices.length
+        for (const index of indices) list[index].x = axis - list[index].w / 2
+      }
+      return list
+    }
+
     /* Width and height follow the label: one line if it fits, two if it must wrap. */
     function sizeNode(node, fontFamily) {
       const label = String(node.label ?? '')
@@ -360,7 +395,7 @@ window.__ModuleLoader__.load({
       }, [])
       const nodes = Array.isArray(card.nodes) ? card.nodes : []
       const fontFamily = fontFamilyOf(svgRef.current)
-      const sized = nodes.map((node) => sizeNode(node, fontFamily))
+      const sized = alignColumns(nodes.map((node) => sizeNode(node, fontFamily)))
       const auto = fitBox(sized, aspect)
       const box = view || auto
       const zoom = Math.round((auto.w / box.w) * 100)

@@ -12,6 +12,8 @@ node --check settings/index.js
 node --check plugin/index.js
 node --check plugin/modeled-teammates.js
 node --check client/index.js
+node --check panel/index.js
+node --check panel/client.js
 node --test test/modeled-teammates.test.js test/scope-check.test.js test/workspace-init.test.js test/settings-route.test.js test/architecture.test.js
 ```
 

@@ -40,6 +40,8 @@ This repository is a local DSH bundle with no build step for the host code. The 
 
 ```bash
 node --check settings/index.js
+node --check panel/index.js
+node --check panel/client.js
 node --check plugin/index.js
 node --check plugin/modeled-teammates.js
 node --check client/index.js

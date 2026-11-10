@@ -58,7 +58,7 @@ test('normalizeArchitectureCard clamps geometry and drops dangling edges', () =>
   assert.equal(card.id, 'method')
   assert.equal(card.version, 1)
   assert.equal(card.canvas.width, 4000)
-  assert.equal(card.canvas.height, 240)
+  assert.equal(card.canvas.height, 200)
   assert.equal(card.nodes[0].x, 0)
   assert.equal(card.nodes[0].w, 60)
   assert.equal(card.nodes[0].h, 240)

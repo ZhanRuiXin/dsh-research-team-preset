@@ -46,11 +46,24 @@ window.__ModuleLoader__.load({
     }
 
     function wrapLabel(label, perLine) {
-      const text = String(label ?? '')
+      const text = String(label ?? '').replace(/\s+/g, ' ').trim()
       if (text.length <= perLine) return [text]
       const first = text.slice(0, perLine)
       const rest = text.slice(perLine, perLine * 2 - 1)
       return [first, text.length > perLine * 2 - 1 ? `${rest}…` : rest]
+    }
+
+    /* Rough advance width: a CJK glyph is about one em, Latin about half. */
+    function labelCharsPerLine(width, fontSize) {
+      const usable = Math.max(40, width - 22)
+      let leftover = usable
+      let count = 0
+      for (const char of 'XWML方法架构数据') {
+        leftover -= /[\u3400-\u9fff]/.test(char) ? fontSize : fontSize * 0.55
+        count += 1
+      }
+      const average = (usable - leftover) / count
+      return Math.max(5, Math.floor(usable / average))
     }
 
     function statusTone(status) {
@@ -117,7 +130,7 @@ window.__ModuleLoader__.load({
 .rtp-seg button.on{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-weight:500;box-shadow:var(--dsw-shadow-lv1)}
 .rtp-seg .v{color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);font-size:12.5px;margin-left:4px}
 .rtp-canvas{position:relative;margin-top:8px;border:.5px solid var(--dsw-alias-border-l2);border-radius:10px;overflow:hidden;background:var(--dsw-alias-bg-layer-1)}
-.rtp-canvas svg{display:block;width:100%;height:360px;touch-action:none;cursor:crosshair}
+.rtp-canvas svg{display:block;width:100%;height:320px;touch-action:none;cursor:crosshair}
 .rtp-canvas,.rtp-canvas *{user-select:none;-webkit-user-select:none}
 .rtp-canvas.rtp-panning svg{cursor:grabbing}
 .rtp-tools{position:absolute;top:8px;right:8px;display:flex;gap:2px;padding:2px;border-radius:7px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 82%,transparent);border:.5px solid var(--dsw-alias-border-l2);backdrop-filter:blur(6px)}
@@ -243,13 +256,13 @@ window.__ModuleLoader__.load({
       const panRef = React.useRef(null)
 
       const wrapRef = React.useRef(null)
-      const [aspect, setAspect] = React.useState(360 / 380)
+      const [aspect, setAspect] = React.useState(520 / 300)
       React.useEffect(() => {
         const el = wrapRef.current
         if (el === null || typeof ResizeObserver === 'undefined') return undefined
         const observer = new ResizeObserver((entries) => {
           const rect = entries[0].contentRect
-          if (rect.width > 80) setAspect(rect.width / 380)
+          if (rect.width > 80) setAspect(rect.width / 300)
         })
         observer.observe(el)
         return () => observer.disconnect()
@@ -302,6 +315,8 @@ window.__ModuleLoader__.load({
           return
         }
         if (event.button !== 0) return
+        const target = event.target
+        if (target !== null && typeof target.closest === 'function' && target.closest('[data-node]') !== null) return
         const start = point(event)
         setPointerId(event.pointerId)
         setMarquee({ x0: start.x, y0: start.y, x1: start.x, y1: start.y })
@@ -375,22 +390,31 @@ window.__ModuleLoader__.load({
         })
       })
 
-      const nodeElements = nodes.map((node) => {
+      const nodeElements = nodes.map((node, index) => {
         const isSelected = selected.indexOf(node.id) >= 0
         const w = Number(node.w) || 160
         const hgt = Number(node.h) || 56
         const x = Number(node.x) || 0
         const y = Number(node.y) || 0
-        const lines = wrapLabel(node.label, Math.max(6, Math.floor((w - 24) / 13)))
+        const fontSize = hgt >= 64 ? 15 : hgt >= 48 ? 14 : 12.5
+        const lines = wrapLabel(node.label, labelCharsPerLine(w, fontSize))
+        const clipId = `rtp-clip-${String(card.id).replace(/[^a-zA-Z0-9_-]/g, '')}-${index}`
         const accent = KIND_ACCENTS[node.kind] || KIND_ACCENTS.module
         return h('g', {
           key: node.id,
+          'data-node': node.id,
           onClick: (event) => {
             event.stopPropagation()
             props.onToggle(node.id)
           },
+          onPointerDown: (event) => event.stopPropagation(),
           style: { cursor: 'pointer' }
         }, [
+          h('defs', { key: 'clipdef' }, [
+            h('clipPath', { key: 'cp', id: clipId }, [
+              h('rect', { x: x + 2, y: y + 2, width: Math.max(0, w - 4), height: Math.max(0, hgt - 4), rx: 7 })
+            ])
+          ]),
           h('rect', {
             key: 'hit',
             x, y, width: w, height: hgt, rx: 9,
@@ -399,25 +423,27 @@ window.__ModuleLoader__.load({
             strokeWidth: isSelected ? 1.5 : 1
           }),
           h('rect', { key: 'accent', x: x + 0.5, y: y + 8, width: 3, height: hgt - 16, rx: 1.5, fill: accent, opacity: 0.9 }),
-          h('text', {
-            key: 'l1',
-            x: x + 14,
-            y: y + (lines.length > 1 ? 25 : 30),
-            fill: 'var(--dsw-alias-label-primary)',
-            fontSize: 14.5,
-            fontWeight: 500,
-            fontFamily: 'inherit'
-          }, lines[0]),
-          lines.length > 1
-            ? h('text', {
-                key: 'l2',
-                x: x + 14,
-                y: y + 40,
-                fill: 'var(--dsw-alias-label-secondary)',
-                fontSize: 13.5,
-                fontFamily: 'inherit'
-              }, lines[1])
-            : null,
+          h('g', { key: 'text', clipPath: `url(#${clipId})` }, [
+            h('text', {
+              key: 'l1',
+              x: x + 13,
+              y: y + (lines.length > 1 ? hgt / 2 - 4 : hgt / 2 + 5),
+              fill: 'var(--dsw-alias-label-primary)',
+              fontSize,
+              fontWeight: 500,
+              fontFamily: 'inherit'
+            }, lines[0]),
+            lines.length > 1
+              ? h('text', {
+                  key: 'l2',
+                  x: x + 13,
+                  y: y + hgt / 2 + 13,
+                  fill: 'var(--dsw-alias-label-secondary)',
+                  fontSize,
+                  fontFamily: 'inherit'
+                }, lines[1])
+              : null
+          ]),
           h('title', { key: 'tip' }, `${KIND_LABELS[node.kind] || node.kind || '模块'} · ${node.id}`)
         ])
       })
@@ -450,7 +476,18 @@ window.__ModuleLoader__.load({
               orient: 'auto'
             }, [h('path', { key: 'p', d: 'M0,0 L7,3.5 L0,7 z', fill: 'var(--dsw-alias-border-l3)' })])
           ]),
-          h('rect', { key: 'bg', x: box.x, y: box.y, width: box.w, height: box.h, fill: `url(#${gridId})` }),
+          h('rect', {
+            key: 'bg',
+            x: box.x,
+            y: box.y,
+            width: box.w,
+            height: box.h,
+            fill: `url(#${gridId})`,
+            onClick: (event) => {
+              event.stopPropagation()
+              props.onClear()
+            }
+          }),
           ...edgeElements,
           ...nodeElements,
           marquee === null ? null : h('rect', {
@@ -608,10 +645,11 @@ window.__ModuleLoader__.load({
                 card,
                 selected: selectedNodes,
                 onToggle: toggleNode,
-                onMarquee: (ids) => setSelectedNodes((current) => Array.from(new Set([...current, ...ids])))
+                onMarquee: (ids) => setSelectedNodes((current) => Array.from(new Set([...current, ...ids]))),
+                onClear: () => setSelectedNodes([])
               }),
               h('div', { key: 'annot', className: 'rtp-annot' }, [
-                h('span', { key: 'l' }, selectedNodes.length === 0 ? '拖动框选节点即可提问' : '已选'),
+                h('span', { key: 'l' }, selectedNodes.length === 0 ? '点击或框选节点即可提问，点空白处清空' : '已选'),
                 ...selectedNodes.slice(0, 4).map((id) => h('span', { key: id, className: 'rtp-pill' }, id)),
                 selectedNodes.length > 4 ? h('span', { key: 'more', className: 'rtp-pill' }, `+${selectedNodes.length - 4}`) : null
               ]),
@@ -739,29 +777,6 @@ window.__ModuleLoader__.load({
         if (value.scope && typeof value.scope.sessionId === 'string') return value.scope.sessionId
         return ''
       }
-
-      const PanelIcon = (props) => {
-        const size = props !== null && props !== undefined && typeof props.size === 'number' ? props.size : 18
-        return h('svg', { width: size, height: size, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true' }, [
-          h('rect', { key: 'a', x: 1.6, y: 2.4, width: 4.6, height: 3.1, rx: 1, stroke: 'currentColor', strokeWidth: 1.1 }),
-          h('rect', { key: 'b', x: 9.8, y: 2.4, width: 4.6, height: 3.1, rx: 1, stroke: 'currentColor', strokeWidth: 1.1 }),
-          h('rect', { key: 'c', x: 5.7, y: 10.4, width: 4.6, height: 3.1, rx: 1, stroke: 'currentColor', strokeWidth: 1.1 }),
-          h('path', { key: 'l1', d: 'M6.2 3.95h3.6', stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round' }),
-          h('path', { key: 'l2', d: 'M8 3.95v6.45', stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round' })
-        ])
-      }
-
-      ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
-        name: 'sidebar.panellist',
-        id: 'research-team',
-        order: 40,
-        label: () => '研究'
-      }, PanelIcon))
-
-      ctx.slots.inject('main', () => ctx.slots.register({
-        name: 'main',
-        key: 'research-team'
-      }, (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })))
 
       const betterSidebar = typeof ctx.get === 'function' ? ctx.get('betterSidebar') : undefined
       if (betterSidebar !== undefined && betterSidebar !== null && typeof betterSidebar.registerTab === 'function') {

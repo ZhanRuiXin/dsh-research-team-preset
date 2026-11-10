@@ -8,6 +8,7 @@ First public release.
 
 - Published on npm as `dsh-research-team-preset`; the README installs from npm, from a pinned git tag, or through the DSH plugins page (Settings → Plugins → Add).
 - Task board, Zotero, and Mnemon are documented as optional integrations: the preset runs without them and links to them only when they are installed.
+- The README is now a public overview: contributor material (repository layout, verification checklist, development loop, versioning) moved to `DEVELOPMENT.md`, and all eleven translated READMEs follow the same structure.
 
 - Eight standard roles: advisor, designer, researcher, data, builder, runner, reviewer, writer.
 - `designer` owns the experiment design document (questions and hypotheses, protocol and controls, baselines, ablations, metrics and statistical plan, compute budget, design change log); the builder implements it, the runner executes it, the reviewer checks adherence, and the advisor reviews the design at the proposal gate; the Lead gates the step but does not author the design.

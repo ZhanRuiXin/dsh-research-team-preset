@@ -289,38 +289,6 @@ $DSH_HOME/research-team-settings.json
 | `research-team-settings` 行 | `cordis.patch.yml` | トップレベルのホスト行。パッケージルート名を保つ |
 | チームモデルプロファイル | `$DSH_HOME/research-team-settings.json` | 名前付きプロファイル。アクティブなプロファイルが 8 つの既定役割の provider/model/reasoningEffort を提供 |
 
-## リポジトリ構成
-
-```text
-dsh-research-team-preset/
-├── README.md                     # This file (canonical, English)
-├── CHANGELOG.md
-├── LICENSE
-├── .gitignore
-├── package.json                  # DSH bundle manifest and exports
-├── cordis.patch.yml              # Preset + top-level settings row
-├── plugin/
-│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
-│   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared profile snapshot + disk refresh
-├── settings/
-│   └── index.js                  # Profile file + /api/dsh-research-team-settings
-├── client/
-│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
-└── docs/
-    ├── README.zh-CN.md
-    ├── README.zh-TW.md
-    ├── README.ja.md
-    ├── README.ko.md
-    ├── README.de.md
-    ├── README.fr.md
-    ├── README.es.md
-    ├── README.pt-BR.md
-    ├── README.ru.md
-    ├── README.ar.md
-    └── README.hi.md
-```
-
 ## 仕組み
 
 - **プリセット**: `cordis.patch.yml` がペルソナ、ツール行、modeled-teammates サブモジュール、トップレベルの設定行を宣言します。
@@ -328,29 +296,6 @@ dsh-research-team-preset/
 - **役割ごとのルーティング**: `plugin/modeled-teammates.js` が `subagents.startActivation` を `AsyncLocalStorage` でラップし、`spawn_teammate_with_model` の呼び出しに限って `agentOptions` を注入します。公式の Agent Teams パッケージには手を加えません。 Cordis はサービスをトレース可能なプロキシとして返すため、ラッパーはメソッドの同一性ではなく自身のプロパティ記述子を検証します。
 - **設定**: `settings/index.js` がプロファイルの JSON ファイルを読み書きし、`GET/POST /api/dsh-research-team-settings` を提供します。`client/index.js` は `plugins.row.config` を通じて Plugins ページのプロファイルエディターを登録します。
 - **更新**: `plugin/settings-store.js` がメモリ内スナップショットを保持し、読み取りと spawn のたびにアクティブなプロファイルを解決します。読み取りに失敗した場合は最後に正常だったスナップショットを保持します。
-
-## 検証チェックリスト
-
-```text
-plugin_manager list_plugins              # bundle active
-Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-research-team
-new session -> Research Team Mode
-list_agents                              # roles can be created
-research_project                         # returns the current workspaceId
-taskboard_list                           # matches the GUI board
-Plugins -> bundle -> research-team-settings -> Configure   # ページが表示される
-新建配置 -> 名前を付ける -> 保存 -> ページを開き直す -> 両方のプロファイルが一覧に表示される
-別のプロファイルを選択 -> 保存 -> spawn_teammate_with_model がそれを使用する
-プロファイルを 1 つ削除 -> 保存 -> 残りのプロファイルだけが存在する
-旧 {roles} ファイル -> 再起動 -> 默认配置 として表示される
-役割のモデルを保存 -> 再起動 -> ページに引き続き表示される
-```
-
-設定の永続化パスは UI なしでも確認できます:
-
-```text
-GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
-```
 
 ## トラブルシューティング
 
@@ -409,32 +354,6 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - このモードは既存リポジトリの中にリポジトリを初期化せず、ワークログやリポジトリの足場を自動でコミットすることもありません。
 - メンバーはサブエージェントを 1 層まで使えます。より深い委任は意図的に無効化されています。
 
-## 開発
-
-このリポジトリはローカルの DSH バンドルで、ホストコードのビルド手順はありません。クライアントページは `client/index.js` 内のビルド済み `window.__ModuleLoader__.load` モジュールです。
-
-典型的な開発ループ:
-
-1. チェックアウトを DSH プロファイルの `link:` 依存関係としてインストールします。
-2. ホスト／クライアントのファイルを編集します。
-3. DSH を再起動します（プリセットとクライアントモジュールは起動時に読み込まれます。HMR が一部のホスト側変更を処理できる場合があります）。
-4. 設定ルートと Plugins ページを確認します。
-
-有用なチェック:
-
-```bash
-node --check settings/index.js
-node --check plugin/index.js
-node --check plugin/modeled-teammates.js
-node --check client/index.js
-```
-
-自動テストスイートはまだありません。設定ルート、モデルカタログ、タスクボードのフロー、再起動後の永続化が、最も価値のある手動チェック項目です。
-
-## バージョニング
-
-セマンティックバージョニングを採用しています。現在のリリースは **0.1.0** です。[CHANGELOG.md](../CHANGELOG.md) を参照してください。`docs/` 配下のドキュメントも同じバージョンを持ちます。
-
 ## ライセンス
 
 MIT。[LICENSE](../LICENSE) を参照してください。
@@ -442,3 +361,5 @@ MIT。[LICENSE](../LICENSE) を参照してください。
 ## 謝辞
 
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) と [Cordis](https://github.com/cordiverse/cordis) の上に構築されています。タスクボード連携は [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) プラグインを使用し、チームツールは公式の Agent Teams プロファイルバンドルから提供されます。プラグインの作者と、実際の研究プロジェクトでこのモードを試してくれるすべての人に感謝します。
+
+コントリビューションと内部開発のメモは [DEVELOPMENT.md](../DEVELOPMENT.md) にあります。

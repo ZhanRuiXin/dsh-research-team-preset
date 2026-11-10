@@ -16,8 +16,8 @@ node --test test/modeled-teammates.test.js test/scope-check.test.js test/workspa
 ```
 
 - Parse `cordis.patch.yml` with the `yaml` package (strip `!!js` tags first) and confirm the persona prefix contains every required section.
-- Keep the 12 READMEs structurally in sync: 26 `## ` and 13 `### ` headings in each.
+- Keep the 12 READMEs structurally in sync: 22 `## ` and 13 `### ` headings in each.
 - `npm pack --dry-run` ships only the files whitelist (no `test/`, no `tmp/`).
 - Grep the shipped docs and persona for banned wording: `venue`, `submission`, `publishable`, `CCF`, `camera-ready`, `prestigious`.
 
-This repository is a local DSH bundle with no build step; see `README.md` for the development loop.
+This repository is a local DSH bundle with no build step; see `DEVELOPMENT.md` for the development loop and the check list.

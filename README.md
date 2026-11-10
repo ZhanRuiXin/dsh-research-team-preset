@@ -292,43 +292,6 @@ $DSH_HOME/research-team-settings.json
 | `research-team-settings` row | `cordis.patch.yml` | Top-level host row; keep the package-root name |
 | Team model profiles | `$DSH_HOME/research-team-settings.json` | Named profiles; the active profile supplies provider/model/reasoningEffort for the eight default roles |
 
-## Repository layout
-
-```text
-dsh-research-team-preset/
-├── README.md                     # This file (canonical, English)
-├── CHANGELOG.md
-├── LICENSE
-├── .gitignore
-├── package.json                  # DSH bundle manifest and exports
-├── cordis.patch.yml              # Preset + top-level settings row
-├── plugin/
-│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
-│   ├── modeled-teammates.js      # spawn_teammate_with_model, research_team_routes + activation wrapper
-│   ├── settings-file.js          # Direct settings-file route reader (no host-store dependency)
-│   └── settings-store.js         # Shared profile snapshot + disk refresh
-├── settings/
-│   └── index.js                  # Profile file + /api/dsh-research-team-settings
-├── client/
-│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
-├── test/
-│   ├── modeled-teammates.test.js # Route resolution, permissions, inheritance diagnostics, tool wiring
-│   ├── scope-check.test.js       # Role write envelopes and the handoff check
-│   └── workspace-init.test.js    # Project-root worklog scaffold
-└── docs/
-    ├── README.zh-CN.md
-    ├── README.zh-TW.md
-    ├── README.ja.md
-    ├── README.ko.md
-    ├── README.de.md
-    ├── README.fr.md
-    ├── README.es.md
-    ├── README.pt-BR.md
-    ├── README.ru.md
-    ├── README.ar.md
-    └── README.hi.md
-```
-
 ## How it works
 
 - **Preset**: `cordis.patch.yml` declares the persona, tool rows, the modeled-teammates submodule, and the top-level settings row.
@@ -336,30 +299,6 @@ dsh-research-team-preset/
 - **Per-role routing**: `plugin/modeled-teammates.js` wraps `subagents.startActivation` with `AsyncLocalStorage` and injects `agentOptions` only for a `spawn_teammate_with_model` call. It resolves the route from `plugin/settings-file.js` (the settings JSON, read at spawn time) and falls back to the in-process store, so a preset submodule never depends on the top-level settings row having filled that store first. The official Agent Teams package is untouched. Cordis returns a traceable proxy for services, so the wrapper verifies its own property descriptor instead of method identity.
 - **Settings**: `settings/index.js` loads/saves the profile JSON file and serves `GET/POST /api/dsh-research-team-settings`; `client/index.js` registers the Plugins-page profile editor through `plugins.row.config`.
 - **Refresh**: `plugin/settings-store.js` holds the in-memory snapshot, resolves the active profile on every read and spawn, and keeps the last good snapshot if a read fails.
-
-## Verification checklist
-
-```text
-plugin_manager list_plugins              # bundle active
-Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-research-team
-new session -> Research Team Mode
-list_agents                              # roles can be created
-research_project                         # returns the current workspaceId
-taskboard_list                           # matches the GUI board
-Plugins -> bundle -> research-team-settings -> Configure   # page visible
-新建配置 -> name it -> save -> reopen the page -> both profiles listed
-select another profile -> save -> spawn_teammate_with_model uses it
-delete one profile -> save -> only the remaining profile exists
-legacy {roles} file -> restart -> shown as 默认配置
-save a role model -> restart -> page still shows it
-node --test test/modeled-teammates.test.js   # route resolution and inheritance diagnostics
-```
-
-The settings persistence path can be checked without the UI:
-
-```text
-GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
-```
 
 ## Troubleshooting
 
@@ -417,32 +356,6 @@ Open the working directory as a DSH project/workspace in the GUI or pass a known
 - The mode never initializes a repository inside an existing repository, and it never commits the worklog or repository scaffold on its own.
 - Members may use one subagent layer; deeper delegation is intentionally disabled.
 
-## Development
-
-This repository is a local DSH bundle with no build step for the host code. The client page is a prebuilt `window.__ModuleLoader__.load` module in `client/index.js`.
-
-Typical loop:
-
-1. Install the checkout as a `link:` dependency in a DSH profile.
-2. Edit the host/client files.
-3. Restart DSH (preset and client modules load at startup; HMR may handle some host changes).
-4. Inspect the settings route and the Plugins page.
-
-Useful checks:
-
-```bash
-node --check settings/index.js
-node --check plugin/index.js
-node --check plugin/modeled-teammates.js
-node --check client/index.js
-```
-
-There is no automated test suite yet. The settings route, model catalog, task-board flow, and restart persistence are the highest-value manual checks.
-
-## Versioning
-
-Semantic versioning. The current release is **0.1.0**; see [CHANGELOG.md](CHANGELOG.md). The docs under `docs/` carry the same version.
-
 ## License
 
 MIT. See [LICENSE](LICENSE).
@@ -450,3 +363,5 @@ MIT. See [LICENSE](LICENSE).
 ## Acknowledgements
 
 Built on [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) and [Cordis](https://github.com/cordiverse/cordis). The task-board integration uses the [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) plugin; team tools come from the official Agent Teams profile bundle. Thanks to the plugin authors and everyone who tests the mode on real research projects.
+
+Contributing and internal development notes live in [DEVELOPMENT.md](DEVELOPMENT.md).

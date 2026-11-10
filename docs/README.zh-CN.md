@@ -291,43 +291,6 @@ $DSH_HOME/research-team-settings.json
 | `research-team-settings` 行 | `cordis.patch.yml` | 顶层 host 行；保持包根名称 |
 | 团队模型配置 | `$DSH_HOME/research-team-settings.json` | 具名配置；活动配置为八个默认角色提供 provider/model/reasoningEffort |
 
-## 仓库结构
-
-```text
-dsh-research-team-preset/
-├── README.md                     # This file (canonical, English)
-├── CHANGELOG.md
-├── LICENSE
-├── .gitignore
-├── package.json                  # DSH bundle manifest and exports
-├── cordis.patch.yml              # Preset + top-level settings row
-├── plugin/
-│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
-│   ├── modeled-teammates.js      # spawn_teammate_with_model, research_team_routes + activation wrapper
-│   ├── settings-file.js          # Direct settings-file route reader (no host-store dependency)
-│   └── settings-store.js         # Shared profile snapshot + disk refresh
-├── settings/
-│   └── index.js                  # Profile file + /api/dsh-research-team-settings
-├── client/
-│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
-├── test/
-│   ├── modeled-teammates.test.js # Route resolution, permissions, inheritance diagnostics, tool wiring
-│   ├── scope-check.test.js       # Role write envelopes and the handoff check
-│   └── workspace-init.test.js    # Project-root worklog scaffold
-└── docs/
-    ├── README.zh-CN.md
-    ├── README.zh-TW.md
-    ├── README.ja.md
-    ├── README.ko.md
-    ├── README.de.md
-    ├── README.fr.md
-    ├── README.es.md
-    ├── README.pt-BR.md
-    ├── README.ru.md
-    ├── README.ar.md
-    └── README.hi.md
-```
-
 ## 工作原理
 
 - **Preset**：`cordis.patch.yml` 声明 persona、工具行、modeled-teammates 子模块和顶层设置行。
@@ -335,29 +298,6 @@ dsh-research-team-preset/
 - **按角色路由**：`plugin/modeled-teammates.js` 通过 `AsyncLocalStorage` 包装 `subagents.startActivation`，只对 `spawn_teammate_with_model` 调用注入 `agentOptions`。路由由 `plugin/settings-file.js` 在 spawn 时直接读配置 JSON 解析，读不到才退回进程内快照，因此 preset 子模块不再依赖顶层设置行先填好快照。官方 Agent Teams 包未被修改。 Cordis 对服务返回可追踪代理，因此包装器校验自身属性描述符，而不比较方法身份。
 - **设置**：`settings/index.js` 加载/保存配置 JSON 文件并提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 通过 `plugins.row.config` 注册「插件」页的配置编辑器。
 - **刷新**：`plugin/settings-store.js` 持有内存快照，在每次读取和 spawn 时解析活动配置，并在读取失败时保留最后一次有效快照。
-
-## 验证清单
-
-```text
-plugin_manager list_plugins              # bundle active
-Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-research-team
-new session -> Research Team Mode
-list_agents                              # roles can be created
-research_project                         # returns the current workspaceId
-taskboard_list                           # matches the GUI board
-Plugins -> bundle -> research-team-settings -> Configure   # 页面可见
-新建配置 -> 命名 -> 保存 -> 重新打开页面 -> 两个配置都会列出
-选择另一个配置 -> 保存 -> spawn_teammate_with_model 会使用它
-删除一个配置 -> 保存 -> 只剩剩余的那个配置
-旧 {roles} 文件 -> 重启 -> 显示为 默认配置
-保存某个角色的模型 -> 重启 -> 页面仍会显示
-```
-
-无需 UI 也可以检查设置的持久化路径：
-
-```text
-GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
-```
 
 ## 故障排查
 
@@ -412,32 +352,6 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 - 该模式不会在已有仓库内部再初始化仓库，也不会自行提交工作日志或仓库脚手架。
 - 成员可以使用一层 subagent；更深层的委派被有意禁用。
 
-## 开发
-
-本仓库是一个本地 DSH bundle，host 代码没有构建步骤。client 页面是 `client/index.js` 中的预构建 `window.__ModuleLoader__.load` 模块。
-
-典型循环：
-
-1. 将 checkout 作为 `link:` 依赖安装到 DSH profile 中。
-2. 编辑 host/client 文件。
-3. 重启 DSH（preset 和 client 模块在启动时加载；HMR 可能处理部分 host 变更）。
-4. 检查设置路由和「插件」页。
-
-有用的检查：
-
-```bash
-node --check settings/index.js
-node --check plugin/index.js
-node --check plugin/modeled-teammates.js
-node --check client/index.js
-```
-
-目前还没有自动化测试套件。设置路由、模型目录、任务看板流程和重启后的持久化是最有价值的人工检查项。
-
-## 版本管理
-
-采用语义化版本。当前版本为 **0.1.0**；参见 [CHANGELOG.md](../CHANGELOG.md)。`docs/` 下的文档使用相同版本。
-
 ## 许可证
 
 MIT。参见 [LICENSE](../LICENSE)。
@@ -445,3 +359,5 @@ MIT。参见 [LICENSE](../LICENSE)。
 ## 致谢
 
 构建于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 和 [Cordis](https://github.com/cordiverse/cordis) 之上。任务看板集成使用 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 插件；团队工具来自官方 Agent Teams profile bundle。感谢插件作者，以及所有在真实研究项目中测试该模式的人。
+
+贡献与内部开发说明见 [DEVELOPMENT.md](../DEVELOPMENT.md)。

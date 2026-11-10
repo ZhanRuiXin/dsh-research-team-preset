@@ -289,38 +289,6 @@ $DSH_HOME/research-team-settings.json
 | `research-team-settings` row | `cordis.patch.yml` | शीर्ष-स्तरीय host row; package-root नाम बनाए रखें |
 | टीम मॉडल प्रोफ़ाइलें | `$DSH_HOME/research-team-settings.json` | नामित प्रोफ़ाइल; सक्रिय प्रोफ़ाइल आठ डिफ़ॉल्ट भूमिकाओं के लिए provider/model/reasoningEffort देती है |
 
-## रिपॉज़िटरी लेआउट
-
-```text
-dsh-research-team-preset/
-├── README.md                     # This file (canonical, English)
-├── CHANGELOG.md
-├── LICENSE
-├── .gitignore
-├── package.json                  # DSH bundle manifest and exports
-├── cordis.patch.yml              # Preset + top-level settings row
-├── plugin/
-│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
-│   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared profile snapshot + disk refresh
-├── settings/
-│   └── index.js                  # Profile file + /api/dsh-research-team-settings
-├── client/
-│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
-└── docs/
-    ├── README.zh-CN.md
-    ├── README.zh-TW.md
-    ├── README.ja.md
-    ├── README.ko.md
-    ├── README.de.md
-    ├── README.fr.md
-    ├── README.es.md
-    ├── README.pt-BR.md
-    ├── README.ru.md
-    ├── README.ar.md
-    └── README.hi.md
-```
-
 ## यह कैसे काम करता है
 
 - **Preset**: `cordis.patch.yml` persona, tool rows, modeled-teammates submodule और शीर्ष-स्तरीय settings row घोषित करता है।
@@ -328,29 +296,6 @@ dsh-research-team-preset/
 - **Per-role routing**: `plugin/modeled-teammates.js` `subagents.startActivation` को `AsyncLocalStorage` के साथ लपेटता है और `agentOptions` केवल `spawn_teammate_with_model` कॉल के लिए इंजेक्ट करता है। आधिकारिक Agent Teams पैकेज अछूता रहता है। Cordis सेवाओं को ट्रेस करने योग्य प्रॉक्सी के रूप में देता है, इसलिए रैपर विधि की पहचान के बजाय अपने स्वयं के प्रॉपर्टी डिस्क्रिप्टर की जाँच करता है।
 - **Settings**: `settings/index.js` प्रोफ़ाइल JSON फ़ाइल लोड/सेव करता है और `GET/POST /api/dsh-research-team-settings` सर्व करता है; `client/index.js` `plugins.row.config` के माध्यम से Plugins-पृष्ठ का प्रोफ़ाइल एडिटर पंजीकृत करता है।
 - **Refresh**: `plugin/settings-store.js` इन-मेमोरी स्नैपशॉट रखता है, प्रत्येक पढ़ने और spawn पर सक्रिय प्रोफ़ाइल हल करता है, और यदि पढ़ना विफल हो तो अंतिम अच्छा स्नैपशॉट बनाए रखता है।
-
-## सत्यापन चेकलिस्ट
-
-```text
-plugin_manager list_plugins              # bundle active
-Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-research-team
-new session -> Research Team Mode
-list_agents                              # roles can be created
-research_project                         # returns the current workspaceId
-taskboard_list                           # matches the GUI board
-Plugins -> bundle -> research-team-settings -> Configure   # page visible
-新建配置 -> नाम दें -> सहेजें -> पृष्ठ फिर खोलें -> दोनों प्रोफ़ाइल सूचीबद्ध
-दूसरी प्रोफ़ाइल चुनें -> सहेजें -> spawn_teammate_with_model उसका उपयोग करता है
-एक प्रोफ़ाइल हटाएँ -> सहेजें -> केवल शेष प्रोफ़ाइल मौजूद रहती है
-लीगेसी {roles} फ़ाइल -> पुनः प्रारंभ करें -> 默认配置 के रूप में दिखती है
-किसी भूमिका का मॉडल सहेजें -> पुनः प्रारंभ करें -> पृष्ठ अब भी उसे दिखाता है
-```
-
-सेटिंग्स पर्सिस्टेंस पथ UI के बिना जाँचा जा सकता है:
-
-```text
-GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
-```
 
 ## समस्या निवारण
 
@@ -409,32 +354,6 @@ submodule एक आंतरिक subagent सेवा को लपेटत
 - यह मोड कभी मौजूदा रिपॉज़िटरी के अंदर रिपॉज़िटरी आरंभ नहीं करता, और worklog या रिपॉज़िटरी scaffold को स्वयं कमिट नहीं करता।
 - सदस्य एक subagent परत का उपयोग कर सकते हैं; गहरा प्रत्यायोजन जानबूझकर अक्षम है।
 
-## विकास
-
-यह रिपॉज़िटरी एक स्थानीय DSH बंडल है जिसमें host कोड के लिए कोई build चरण नहीं है। क्लाइंट पृष्ठ `client/index.js` में एक पहले से बना `window.__ModuleLoader__.load` मॉड्यूल है।
-
-विशिष्ट चक्र:
-
-1. चेकआउट को DSH प्रोफ़ाइल में `link:` निर्भरता के रूप में इंस्टॉल करें।
-2. host/client फ़ाइलें संपादित करें।
-3. DSH पुनः प्रारंभ करें (प्रीसेट और क्लाइंट मॉड्यूल स्टार्टअप पर लोड होते हैं; HMR कुछ host परिवर्तन संभाल सकता है)।
-4. सेटिंग्स रूट और Plugins पृष्ठ का निरीक्षण करें।
-
-उपयोगी जाँचें:
-
-```bash
-node --check settings/index.js
-node --check plugin/index.js
-node --check plugin/modeled-teammates.js
-node --check client/index.js
-```
-
-अभी कोई स्वचालित टेस्ट सूट नहीं है। सेटिंग्स रूट, मॉडल कैटलॉग, टास्क-बोर्ड प्रवाह और पुनः प्रारंभ पर्सिस्टेंस सबसे मूल्यवान मैनुअल जाँचें हैं।
-
-## संस्करणन
-
-सिमेंटिक संस्करणन। वर्तमान रिलीज़ **0.1.0** है; [CHANGELOG.md](../CHANGELOG.md) देखें। `docs/` के अंतर्गत दस्तावेज़ समान संस्करण रखते हैं।
-
 ## लाइसेंस
 
 MIT। [LICENSE](../LICENSE) देखें।
@@ -442,3 +361,5 @@ MIT। [LICENSE](../LICENSE) देखें।
 ## आभार
 
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) और [Cordis](https://github.com/cordiverse/cordis) पर आधारित। टास्क-बोर्ड एकीकरण [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) plugin का उपयोग करता है; टीम टूल आधिकारिक Agent Teams प्रोफ़ाइल बंडल से आते हैं। plugin लेखकों और उन सभी का धन्यवाद जो वास्तविक शोध प्रोजेक्टों पर इस मोड का परीक्षण करते हैं।
+
+योगदान और आंतरिक विकास नोट्स [DEVELOPMENT.md](../DEVELOPMENT.md) में हैं।

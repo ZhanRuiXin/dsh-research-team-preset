@@ -289,38 +289,6 @@ $DSH_HOME/research-team-settings.json
 | Ligne `research-team-settings` | `cordis.patch.yml` | Ligne hôte de premier niveau ; conservez le nom à la racine du paquet |
 | Profils de modèle d'équipe | `$DSH_HOME/research-team-settings.json` | Profils nommés ; le profil actif fournit provider/model/reasoningEffort pour les huit rôles par défaut |
 
-## Arborescence du dépôt
-
-```text
-dsh-research-team-preset/
-├── README.md                     # This file (canonical, English)
-├── CHANGELOG.md
-├── LICENSE
-├── .gitignore
-├── package.json                  # DSH bundle manifest and exports
-├── cordis.patch.yml              # Preset + top-level settings row
-├── plugin/
-│   ├── index.js                  # research_project, research_workspace_init, research_scope_check + task-board section
-│   ├── modeled-teammates.js      # spawn_teammate_with_model + activation wrapper
-│   └── settings-store.js         # Shared profile snapshot + disk refresh
-├── settings/
-│   └── index.js                  # Profile file + /api/dsh-research-team-settings
-├── client/
-│   └── index.js                  # plugins.row.config profile editor (model/effort dropdowns)
-└── docs/
-    ├── README.zh-CN.md
-    ├── README.zh-TW.md
-    ├── README.ja.md
-    ├── README.ko.md
-    ├── README.de.md
-    ├── README.fr.md
-    ├── README.es.md
-    ├── README.pt-BR.md
-    ├── README.ru.md
-    ├── README.ar.md
-    └── README.hi.md
-```
-
 ## Fonctionnement
 
 - **Preset** : `cordis.patch.yml` déclare la persona, les lignes d'outils, le sous-module modeled-teammates et la ligne de réglages de premier niveau.
@@ -328,29 +296,6 @@ dsh-research-team-preset/
 - **Routage par rôle** : `plugin/modeled-teammates.js` enveloppe `subagents.startActivation` avec `AsyncLocalStorage` et injecte `agentOptions` uniquement pour un appel `spawn_teammate_with_model`. Le paquet officiel Agent Teams n'est pas modifié. Cordis expose les services via un proxy traçable ; le wrapper vérifie donc son propre descripteur de propriété plutôt que l'identité de la méthode.
 - **Réglages** : `settings/index.js` charge et enregistre le fichier JSON des profils et sert `GET/POST /api/dsh-research-team-settings` ; `client/index.js` enregistre l'éditeur de profils de la page Plugins via `plugins.row.config`.
 - **Rafraîchissement** : `plugin/settings-store.js` détient l'instantané en mémoire, résout le profil actif à chaque lecture et à chaque spawn, et conserve le dernier instantané valide si une lecture échoue.
-
-## Liste de vérification
-
-```text
-plugin_manager list_plugins              # bundle active
-Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-research-team
-new session -> Research Team Mode
-list_agents                              # roles can be created
-research_project                         # returns the current workspaceId
-taskboard_list                           # matches the GUI board
-Plugins -> bundle -> research-team-settings -> Configure   # page visible
-新建配置 -> name it -> save -> reopen the page -> both profiles listed
-select another profile -> save -> spawn_teammate_with_model uses it
-delete one profile -> save -> only the remaining profile exists
-legacy {roles} file -> restart -> shown as 默认配置
-save a role model -> restart -> page still shows it
-```
-
-Le chemin de persistance des réglages peut être vérifié sans l'interface :
-
-```text
-GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
-```
 
 ## Dépannage
 
@@ -409,32 +354,6 @@ Ouvrez le répertoire de travail comme projet/espace de travail DSH dans l'inter
 - Le mode n'initialise jamais de dépôt à l'intérieur d'un dépôt existant et ne commit jamais de lui-même le worklog ni l'échafaudage du dépôt.
 - Les membres peuvent utiliser une couche de sous-agent ; la délégation plus profonde est volontairement désactivée.
 
-## Développement
-
-Ce dépôt est un bundle DSH local sans étape de build pour le code hôte. La page client est un module `window.__ModuleLoader__.load` précompilé dans `client/index.js`.
-
-Boucle typique :
-
-1. Installez la copie de travail comme dépendance `link:` dans un profil DSH.
-2. Modifiez les fichiers hôte/client.
-3. Redémarrez DSH (les modules de preset et client se chargent au démarrage ; HMR peut gérer certains changements hôte).
-4. Inspectez la route de réglages et la page Plugins.
-
-Vérifications utiles :
-
-```bash
-node --check settings/index.js
-node --check plugin/index.js
-node --check plugin/modeled-teammates.js
-node --check client/index.js
-```
-
-Il n'y a pas encore de suite de tests automatisés. La route de réglages, le catalogue de modèles, le flux du tableau des tâches et la persistance après redémarrage sont les vérifications manuelles les plus utiles.
-
-## Versionnage
-
-Versionnage sémantique. La version actuelle est **0.1.0** ; voir [CHANGELOG.md](../CHANGELOG.md). Les documents sous `docs/` portent la même version.
-
 ## Licence
 
 MIT. Voir [LICENSE](../LICENSE).
@@ -442,3 +361,5 @@ MIT. Voir [LICENSE](../LICENSE).
 ## Remerciements
 
 Construit sur [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) et [Cordis](https://github.com/cordiverse/cordis). L'intégration du tableau des tâches utilise le plugin [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) ; les outils d'équipe proviennent du bundle de profil officiel Agent Teams. Merci aux auteurs des plugins et à toutes les personnes qui testent ce mode sur de vrais projets de recherche.
+
+Les notes de contribution et de développement interne se trouvent dans [DEVELOPMENT.md](../DEVELOPMENT.md).

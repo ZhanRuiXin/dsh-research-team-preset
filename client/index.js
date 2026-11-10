@@ -1227,6 +1227,29 @@ window.__ModuleLoader__.load({
         return ''
       }
 
+      const PanelIcon = (props) => {
+        const size = props !== null && props !== undefined && typeof props.size === 'number' ? props.size : 18
+        return h('svg', { width: size, height: size, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true' }, [
+          h('rect', { key: 'a', x: 1.6, y: 2.4, width: 4.6, height: 3.1, rx: 1, stroke: 'currentColor', strokeWidth: 1.1 }),
+          h('rect', { key: 'b', x: 9.8, y: 2.4, width: 4.6, height: 3.1, rx: 1, stroke: 'currentColor', strokeWidth: 1.1 }),
+          h('rect', { key: 'c', x: 5.7, y: 10.4, width: 4.6, height: 3.1, rx: 1, stroke: 'currentColor', strokeWidth: 1.1 }),
+          h('path', { key: 'l1', d: 'M6.2 3.95h3.6', stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round' }),
+          h('path', { key: 'l2', d: 'M8 3.95v6.45', stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round' })
+        ])
+      }
+
+      ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
+        name: 'sidebar.panellist',
+        id: 'research-team',
+        order: 40,
+        label: () => '研究'
+      }, PanelIcon))
+
+      ctx.slots.inject('main', () => ctx.slots.register({
+        name: 'main',
+        key: 'research-team'
+      }, (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })))
+
       const betterSidebar = typeof ctx.get === 'function' ? ctx.get('betterSidebar') : undefined
       if (betterSidebar !== undefined && betterSidebar !== null && typeof betterSidebar.registerTab === 'function') {
         ctx.effect(() => betterSidebar.registerTab({
@@ -1237,7 +1260,6 @@ window.__ModuleLoader__.load({
           single: true,
           component: (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })
         }))
-        return
       }
 
       ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register({

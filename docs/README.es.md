@@ -4,7 +4,7 @@
 
 **Un preset de agente de DSH que convierte una sesión en un pequeño equipo de investigación coordinado.**
 
-**Versión 0.1.0** · **Actualizado 2026-10-31**
+**Versión 0.1.1** · **Actualizado 2026-11-10**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <strong>Español</strong> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -71,20 +71,20 @@ Este preset se distribuye como bundle DSH y se publica en npm como `dsh-research
 
 1. **Activa los bundles requeridos** en el perfil de destino: Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). Las integraciones opcionales de arriba pueden añadirse ahora o más tarde.
 2. Abre **Ajustes → Plugins** y haz clic en **Añadir**.
-3. Pega el origen de instalación: `dsh-research-team-preset@0.1.0` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
+3. Pega el origen de instalación: `dsh-research-team-preset@0.1.1` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
 4. **Reinicia DSH.** Las filas del preset y la mitad cliente del bundle se cargan al iniciar.
 5. **Comprueba que el bundle está habilitado** en el mismo perfil, luego **abre una sesión nueva** y elige **Research Team Mode** en el selector de modo.
 
 ### Instalar desde la línea de comandos
 
 ```text
-dsh plugin add dsh-research-team-preset@0.1.0
+dsh plugin add dsh-research-team-preset@0.1.1
 ```
 
 Para fijar el código fuente en lugar del registro:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
 Para sesiones de ejecución del tablero de tareas, crea tarjetas con `presetId=research-team` para que la ejecución use la misma persona y herramientas.

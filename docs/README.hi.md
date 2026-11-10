@@ -4,7 +4,7 @@
 
 **एक DSH एजेंट प्रीसेट जो एक सत्र को एक छोटी, समन्वित शोध टीम में बदलता है।**
 
-**संस्करण 0.1.0** · **अद्यतन 2026-10-31**
+**संस्करण 0.1.1** · **अद्यतन 2026-11-10**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <strong>हिन्दी</strong></p>
 
@@ -71,20 +71,20 @@ Research Team Mode एक **प्रोफ़ाइल-स्तरीय DSH �
 
 1. **आवश्यक बंडल सक्षम करें**: लक्ष्य प्रोफ़ाइल में Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)। ऊपर दिए वैकल्पिक एकीकरण अभी या बाद में जोड़े जा सकते हैं।
 2. **सेटिंग्स → प्लगइन** खोलें और **जोड़ें** पर क्लिक करें।
-3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.1.0`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
+3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.1.1`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
 4. **DSH को पुनः आरंभ करें।** प्रीसेट पंक्तियाँ और बंडल का क्लाइंट भाग स्टार्टअप पर लोड होते हैं।
 5. **उसी प्रोफ़ाइल में बंडल सक्षम होने की पुष्टि करें**, फिर **नया सत्र खोलें** और मोड चयनकर्ता में **Research Team Mode** चुनें।
 
 ### कमांड लाइन से इंस्टॉल करें
 
 ```text
-dsh plugin add dsh-research-team-preset@0.1.0
+dsh plugin add dsh-research-team-preset@0.1.1
 ```
 
 रजिस्ट्री के बजाय स्रोत पिन करने के लिए:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
 टास्क बोर्ड निष्पादन सत्रों के लिए `presetId=research-team` वाले कार्ड बनाएँ ताकि निष्पादन वही persona और टूल्स उपयोग करे।

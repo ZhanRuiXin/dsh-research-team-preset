@@ -1,6 +1,6 @@
 {
   "name": "dsh-research-team-preset",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "type": "module",
   "description": "A DSH agent preset that turns one session into a small, coordinated research team; 科研团队模式，覆盖文献、数据、设计、实现、实验、复核与论文产出的端到端科研协作。",

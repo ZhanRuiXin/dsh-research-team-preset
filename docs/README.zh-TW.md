@@ -4,7 +4,7 @@
 
 **一個把單一工作階段變成小型、協同研究團隊的 DSH agent preset。**
 
-**版本 0.1.0** · **更新 2026-10-31**
+**版本 0.1.1** · **更新 2026-11-10**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <strong>繁體中文</strong> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -71,20 +71,20 @@ Research Team Mode 是一個 **profile 層級的 DSH bundle**。此 bundle 不�
 
 1. **啟用必需的 bundle**：在目標 profile 中啟用 Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)。上面的可選聯動外掛可以現在安裝，也可以之後再加。
 2. 開啟 **設定 → 外掛**，點擊 **新增**。
-3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.1.0`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.1.1`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重新啟動 DSH。** preset 列與 bundle 的用戶端部分在啟動時載入。
 5. **確認 bundle 在同一個 profile 中已啟用**，然後**開啟新工作階段**，在模式選擇器中選擇 **Research Team Mode**。
 
 ### 從命令列安裝
 
 ```text
-dsh plugin add dsh-research-team-preset@0.1.0
+dsh plugin add dsh-research-team-preset@0.1.1
 ```
 
 若要固定原始碼而不是從 registry 安裝：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
 任務看板的執行工作階段請建立帶 `presetId=research-team` 的卡片，讓執行沿用同一套 persona 與工具。

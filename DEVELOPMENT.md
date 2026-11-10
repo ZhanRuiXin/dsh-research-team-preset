@@ -66,4 +66,4 @@ research_scope_check                     # envelope check on a card handoff
 
 ## Versioning
 
-Semantic versioning. The current release is **0.1.0**; see [CHANGELOG.md](CHANGELOG.md). Releases are tagged from `main` as `vX.Y.Z` and published to npm as `dsh-research-team-preset`.
+Semantic versioning. The current release is **0.1.1**; see [CHANGELOG.md](CHANGELOG.md). Releases are tagged from `main` as `vX.Y.Z` and published to npm as `dsh-research-team-preset`.

@@ -4,7 +4,7 @@
 
 **하나의 세션을 작고 긴밀하게 협력하는 연구 팀으로 바꾸는 DSH 에이전트 프리셋입니다.**
 
-**버전 0.1.0** · **업데이트 2026-10-31**
+**버전 0.1.1** · **업데이트 2026-11-10**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <strong>한국어</strong> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -71,20 +71,20 @@ Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 �
 
 1. **필수 번들을 활성화**합니다: 대상 프로필에서 Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). 위의 선택적 연동 플러그인은 지금 또는 나중에 추가할 수 있습니다.
 2. **설정 → 플러그인**을 열고 **추가**를 클릭합니다.
-3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.1.0`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
+3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.1.1`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
 4. **DSH를 재시작합니다.** 프리셋 행과 번들의 클라이언트 부분은 시작 시 로드됩니다.
 5. **같은 프로필에서 번들이 활성화되어 있는지 확인**한 뒤, **새 세션을 열고** 모드 선택기에서 **Research Team Mode**를 선택합니다.
 
 ### 명령줄에서 설치
 
 ```text
-dsh plugin add dsh-research-team-preset@0.1.0
+dsh plugin add dsh-research-team-preset@0.1.1
 ```
 
 레지스트리 대신 소스를 고정하려면:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
 태스크 보드 실행 세션은 `presetId=research-team`이 붙은 카드를 생성해 같은 persona와 도구로 실행합니다.

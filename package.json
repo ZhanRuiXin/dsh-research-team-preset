@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "description": "科研团队模式，面向端到端科研项目，覆盖文献调研、数据获取、方案与主张的顾问评估、实现、实验、复核与论文产出，适合多人分工、证据可追溯、成果统一验收的研究工作。",
+  "description": "A DSH agent preset that turns one session into a small, coordinated research team; 科研团队模式，覆盖文献、数据、设计、实现、实验、复核与论文产出的端到端科研协作。",
   "exports": {
     ".": "./settings/index.js",
     "./tool": "./plugin/index.js",
@@ -26,5 +26,41 @@
   },
   "scripts": {
     "test": "node --test test/modeled-teammates.test.js test/workspace-init.test.js test/scope-check.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZhanRuiXin/dsh-research-team-preset.git"
+  },
+  "homepage": "https://github.com/ZhanRuiXin/dsh-research-team-preset#readme",
+  "bugs": {
+    "url": "https://github.com/ZhanRuiXin/dsh-research-team-preset/issues"
+  },
+  "author": {
+    "name": "Ruixin Zhan",
+    "email": "zhan-ruixin@qq.com"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "dsh-plugins",
+    "agent-preset",
+    "agent-teams",
+    "research-team",
+    "multi-agent",
+    "research-workflow"
+  ],
+  "files": [
+    "cordis.patch.yml",
+    "plugin/",
+    "settings/",
+    "client/",
+    "docs/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
   }
 }

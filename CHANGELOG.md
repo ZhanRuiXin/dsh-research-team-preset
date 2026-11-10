@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The persona now states what the Research panel reads, so the team writes the run manifest and the worklog rows instead of assuming the panel fills itself.
+
 - Architecture cards centre the boxes that share a column, so a vertical flow reads as one centred column instead of a left-aligned staircase.
 
 - Architecture node boxes size themselves from their labels: one line if it fits, two if it must wrap, so a card no longer leaves an empty half or clips a word.

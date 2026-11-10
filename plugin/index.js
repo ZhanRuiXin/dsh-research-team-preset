@@ -299,8 +299,8 @@ export function normalizeArchitectureCard(input, previous) {
     version: (previous?.version ?? 0) + 1,
     updatedAt: new Date().toISOString(),
     canvas: {
-      width: clampNumber(input.canvas?.width, 320, 4000, 1200),
-      height: clampNumber(input.canvas?.height, 240, 4000, 800)
+      width: clampNumber(input.canvas?.width, 320, 4000, 360),
+      height: clampNumber(input.canvas?.height, 240, 4000, 420)
     },
     nodes,
     edges,
@@ -786,7 +786,7 @@ export function apply(ctx) {
         id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
         card: {
           type: 'object',
-          description: 'Full card for op=save: id, title, kind (method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y,w,h}], edges [{from,to,label}], notes.'
+          description: 'Full card for op=save: id, title, kind (method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y,w,h}], edges [{from,to,label}], notes. The panel is a narrow column: draw on a portrait canvas (default 360x420), 3 to 8 nodes in a vertical flow, so labels stay readable at full width.'
         },
         expectedVersion: { type: 'number', description: 'For op=save on an existing card, the version you read; a mismatch is rejected.' }
       },

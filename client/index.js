@@ -581,60 +581,198 @@ window.__ModuleLoader__.load({
       return 'var(--dsw-alias-label-tertiary)'
     }
 
-    function smallButton(label, onClick, disabled) {
-      return h('button', {
-        type: 'button',
-        disabled: disabled === true,
-        onClick,
-        style: {
-          height: '26px',
-          padding: '0 10px',
-          border: '0.5px solid var(--dsw-alias-border-l3)',
-          borderRadius: 'var(--dsw-radius-md)',
-          background: 'var(--dsw-alias-bg-layer-2)',
-          color: 'var(--dsw-alias-label-primary)',
-          font: 'inherit',
-          fontSize: '12px',
-          cursor: disabled === true ? 'default' : 'pointer',
-          opacity: disabled === true ? 0.5 : 1
-        }
-      }, label)
+    const STATUS_LABELS = {
+      in_progress: '进行中',
+      running: '运行中',
+      in_review: '待确认',
+      blocked: '阻塞',
+      todo: '待办',
+      done: '完成',
+      failed: '失败',
+      passed: '通过',
+      waiting: '等待',
+      canceled: '已取消'
+    }
+
+    function statusLabel(status) {
+      const value = String(status ?? '').toLowerCase()
+      return STATUS_LABELS[value] || String(status || '')
+    }
+
+    const PANEL_CSS = `
+.rtp-root{display:flex;flex-direction:column;height:100%;min-height:0;overflow-y:auto;box-sizing:border-box;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-family:inherit;font-size:12.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.rtp-root *{box-sizing:border-box}
+.rtp-root ::-webkit-scrollbar{width:8px;height:8px}
+.rtp-root ::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l3);border-radius:8px}
+.rtp-header{position:relative;padding:16px 16px 13px;border-bottom:.5px solid var(--dsw-alias-border-l2);background:linear-gradient(180deg,color-mix(in srgb,var(--dsw-alias-bg-layer-1) 92%,transparent),transparent)}
+.rtp-eyebrow{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--dsw-alias-label-tertiary);text-transform:uppercase}
+.rtp-live{width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-success-primary) 18%,transparent)}
+.rtp-title{margin-top:8px;font-size:15px;font-weight:600;line-height:1.4;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rtp-sub{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11.5px;color:var(--dsw-alias-label-secondary)}
+.rtp-sub b{font-weight:500;color:var(--dsw-alias-label-primary)}
+.rtp-wait{margin-top:12px;display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;font-size:11.5px;line-height:1.45;color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 9%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
+.rtp-section{padding:14px 16px 2px}
+.rtp-sechead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.rtp-seclabel{font-size:10.5px;font-weight:600;letter-spacing:.08em;color:var(--dsw-alias-label-tertiary)}
+.rtp-count{font-size:10.5px;line-height:1;padding:3px 6px;border-radius:999px;color:var(--dsw-alias-label-secondary);background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1);font-variant-numeric:tabular-nums}
+.rtp-grow{flex:1}
+.rtp-ghost{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-tertiary);font:inherit;font-size:11px;cursor:pointer}
+.rtp-ghost:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
+.rtp-empty{padding:18px 12px;border:.5px dashed var(--dsw-alias-border-l2);border-radius:10px;text-align:center;font-size:11.5px;line-height:1.6;color:var(--dsw-alias-label-tertiary);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 60%,transparent)}
+.rtp-row{display:flex;align-items:flex-start;gap:10px;padding:8px 9px;margin:0 -9px;border-radius:8px;border:.5px solid transparent;cursor:default}
+.rtp-row:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l1)}
+.rtp-dot{flex:0 0 auto;width:6px;height:6px;margin-top:7px;border-radius:50%}
+.rtp-rowmain{min-width:0;flex:1}
+.rtp-rowtitle{display:flex;align-items:baseline;gap:6px;font-size:12.5px;color:var(--dsw-alias-label-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-id{flex:0 0 auto;font-size:10.5px;color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);letter-spacing:.02em}
+.rtp-rowmeta{margin-top:3px;font-size:11px;color:var(--dsw-alias-label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-chip{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:10.5px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
+.rtp-seeds{display:inline-flex;gap:3px;align-items:center;vertical-align:middle}
+.rtp-seed{width:7px;height:7px;border-radius:2px;background:var(--dsw-alias-border-l3)}
+.rtp-seed.on{background:var(--dsw-alias-brand-primary)}
+.rtp-seg{display:inline-flex;padding:2px;gap:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
+.rtp-seg button{height:24px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.rtp-seg button:hover{color:var(--dsw-alias-label-primary)}
+.rtp-seg button.on{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-weight:500;box-shadow:var(--dsw-shadow-lv1)}
+.rtp-seg .v{color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);font-size:10px;margin-left:4px}
+.rtp-canvas{position:relative;margin-top:8px;border:.5px solid var(--dsw-alias-border-l2);border-radius:10px;overflow:hidden;background:var(--dsw-alias-bg-layer-1)}
+.rtp-canvas svg{display:block;width:100%;height:380px;touch-action:none;cursor:crosshair}
+.rtp-tools{position:absolute;top:8px;right:8px;display:flex;gap:2px;padding:2px;border-radius:7px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 82%,transparent);border:.5px solid var(--dsw-alias-border-l2);backdrop-filter:blur(6px)}
+.rtp-tools button{width:24px;height:24px;border:0;border-radius:5px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;line-height:1;cursor:pointer}
+.rtp-tools button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
+.rtp-annot{margin-top:8px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dsw-alias-label-tertiary)}
+.rtp-pill{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:6px;font-size:10.5px;background:color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-brand-primary) 32%,transparent);color:var(--dsw-alias-brand-primary)}
+.rtp-compose{margin-top:9px;border:.5px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-1);overflow:hidden}
+.rtp-compose textarea{display:block;width:100%;min-height:64px;padding:9px 11px;border:0;outline:none;resize:vertical;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;line-height:1.5}
+.rtp-compose textarea::placeholder{color:var(--dsw-alias-label-tertiary)}
+.rtp-composebar{display:flex;align-items:center;gap:8px;padding:7px 9px;border-top:.5px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 60%,transparent)}
+.rtp-primary{height:26px;padding:0 12px;border:0;border-radius:7px;background:var(--dsw-alias-button-primary-fill);color:var(--dsw-alias-label-primary-foreground);font:inherit;font-size:11.5px;font-weight:500;cursor:pointer}
+.rtp-primary:disabled{opacity:.45;cursor:default}
+.rtp-footer{position:sticky;bottom:0;margin-top:14px;padding:9px 16px;display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--dsw-alias-label-tertiary);border-top:.5px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-base) 88%,transparent);backdrop-filter:blur(8px)}
+.rtp-error{margin:10px 16px 0;padding:8px 10px;border-radius:8px;font-size:11.5px;color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 8%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-state-error-primary) 28%,transparent)}
+.rtp-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:64px;z-index:60;padding:7px 12px;border-radius:8px;font-size:11.5px;background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-primary);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2)}
+.rtp-skel{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--dsw-alias-bg-layer-2) 25%,var(--dsw-alias-bg-layer-3) 37%,var(--dsw-alias-bg-layer-2) 63%);background-size:400% 100%;animation:rtp-shine 1.2s ease-in-out infinite}
+@keyframes rtp-shine{0%{background-position:100% 0}100%{background-position:0 0}}
+`
+
+    function ensurePanelStyles() {
+      if (typeof document === 'undefined') return
+      if (document.getElementById('rtp-panel-style') !== null) return
+      const style = document.createElement('style')
+      style.id = 'rtp-panel-style'
+      style.textContent = PANEL_CSS
+      document.head.appendChild(style)
+    }
+
+    function seedDots(seeds) {
+      const match = /^(\d+)\s*\/\s*(\d+)$/.exec(String(seeds ?? ''))
+      if (match === null) return null
+      const done = Math.min(Number(match[1]), Number(match[2]))
+      const total = Math.min(Number(match[2]), 12)
+      return Array.from({ length: total }, (_, index) =>
+        h('span', { key: `s${index}`, className: index < done ? 'rtp-seed on' : 'rtp-seed' }))
     }
 
     function Section(props) {
-      return h('div', { style: { marginTop: '14px' } }, [
-        h('div', {
-          key: 'title',
-          style: {
-            display: 'flex',
-            alignItems: 'baseline',
-            justifyContent: 'space-between',
-            fontSize: '11px',
-            letterSpacing: '0.04em',
-            color: 'var(--dsw-alias-label-tertiary)',
-            marginBottom: '6px'
-          }
-        }, [
-          h('span', { key: 'name' }, props.title),
-          props.extra === undefined ? null : h('span', { key: 'extra', style: { letterSpacing: 0 } }, props.extra)
+      return h('section', { className: 'rtp-section' }, [
+        h('div', { key: 'head', className: 'rtp-sechead' }, [
+          h('span', { key: 'label', className: 'rtp-seclabel' }, props.title),
+          props.count === undefined || props.count === 0
+            ? null
+            : h('span', { key: 'count', className: 'rtp-count' }, props.count),
+          h('span', { key: 'grow', className: 'rtp-grow' }),
+          props.action === undefined ? null : props.action
         ]),
         h('div', { key: 'body' }, props.children)
       ])
     }
 
+    function edgePath(from, to) {
+      const fc = { x: Number(from.x) + Number(from.w) / 2, y: Number(from.y) + Number(from.h) / 2 }
+      const tc = { x: Number(to.x) + Number(to.w) / 2, y: Number(to.y) + Number(to.h) / 2 }
+      const dx = tc.x - fc.x
+      const dy = tc.y - fc.y
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        const sx = dx >= 0 ? Number(from.x) + Number(from.w) : Number(from.x)
+        const tx = dx >= 0 ? Number(to.x) : Number(to.x) + Number(to.w)
+        const bend = Math.max(28, Math.abs(tx - sx) * 0.45)
+        const sign = dx >= 0 ? 1 : -1
+        return `M${sx},${fc.y} C${sx + sign * bend},${fc.y} ${tx - sign * bend},${tc.y} ${tx},${tc.y}`
+      }
+      const sy = dy >= 0 ? Number(from.y) + Number(from.h) : Number(from.y)
+      const ty = dy >= 0 ? Number(to.y) : Number(to.y) + Number(to.h)
+      const bend = Math.max(28, Math.abs(ty - sy) * 0.45)
+      const sign = dy >= 0 ? 1 : -1
+      return `M${fc.x},${sy} C${fc.x},${sy + sign * bend} ${tc.x},${ty - sign * bend} ${tc.x},${ty}`
+    }
+
+    const KIND_ACCENTS = {
+      input: 'var(--dsw-alias-state-success-primary)',
+      module: 'var(--dsw-alias-brand-primary)',
+      output: 'var(--dsw-alias-state-warn-primary)',
+      data: 'var(--dsw-alias-state-business-primary)',
+      loss: 'var(--dsw-alias-state-error-primary)',
+      note: 'var(--dsw-alias-label-tertiary)'
+    }
+
+    function fitBox(nodes, aspect) {
+      const list = Array.isArray(nodes) ? nodes : []
+      let x0 = Infinity
+      let y0 = Infinity
+      let x1 = -Infinity
+      let y1 = -Infinity
+      for (const node of list) {
+        const x = Number(node.x) || 0
+        const y = Number(node.y) || 0
+        const w = Number(node.w) || 160
+        const hgt = Number(node.h) || 56
+        x0 = Math.min(x0, x)
+        y0 = Math.min(y0, y)
+        x1 = Math.max(x1, x + w)
+        y1 = Math.max(y1, y + hgt)
+      }
+      if (!Number.isFinite(x0)) { x0 = 0; y0 = 0; x1 = 320; y1 = 220 }
+      x0 -= Math.max(40, (x1 - x0) * 0.06)
+      y0 -= Math.max(30, (y1 - y0) * 0.08)
+      x1 += Math.max(40, (x1 - x0) * 0.06)
+      y1 += Math.max(30, (y1 - y0) * 0.08)
+      let w = x1 - x0
+      let hgt = y1 - y0
+      if (w / hgt > aspect) {
+        const next = w / aspect
+        y0 -= (next - hgt) / 2
+        hgt = next
+      } else {
+        const next = hgt * aspect
+        x0 -= (next - w) / 2
+        w = next
+      }
+      return { x: x0, y: y0, w, h: hgt }
+    }
+
     function ArchitectureCanvas(props) {
       const card = props.card
       const selected = props.selected
-      const onToggle = props.onToggle
       const svgRef = React.useRef(null)
       const [view, setView] = React.useState(null)
       const [marquee, setMarquee] = React.useState(null)
       const [pointerId, setPointerId] = React.useState(null)
 
-      const canvas = card.canvas || {}
-      const width = Number(canvas.width) > 0 ? Number(canvas.width) : 1200
-      const height = Number(canvas.height) > 0 ? Number(canvas.height) : 800
-      const box = view || { x: 0, y: 0, w: width, h: height }
+      const wrapRef = React.useRef(null)
+      const [aspect, setAspect] = React.useState(360 / 380)
+      React.useEffect(() => {
+        const el = wrapRef.current
+        if (el === null || typeof ResizeObserver === 'undefined') return undefined
+        const observer = new ResizeObserver((entries) => {
+          const rect = entries[0].contentRect
+          if (rect.width > 80) setAspect(rect.width / 380)
+        })
+        observer.observe(el)
+        return () => observer.disconnect()
+      }, [])
+      const auto = fitBox(card.nodes, aspect)
+      const box = view || auto
+      const zoom = Math.round((auto.w / box.w) * 100)
 
       function point(event) {
         const svg = svgRef.current
@@ -648,16 +786,18 @@ window.__ModuleLoader__.load({
         return { x: mapped.x, y: mapped.y }
       }
 
+      function zoomTo(next, anchor) {
+        const target = Math.min(4, Math.max(1, next))
+        const w = auto.w / target
+        const hgt = auto.h / target
+        const ratioX = anchor === undefined ? 0.5 : (anchor.x - box.x) / box.w
+        const ratioY = anchor === undefined ? 0.5 : (anchor.y - box.y) / box.h
+        setView({ x: (anchor === undefined ? auto.x + auto.w / 2 : anchor.x) - ratioX * w, y: (anchor === undefined ? auto.y + auto.h / 2 : anchor.y) - ratioY * hgt, w, h: hgt })
+      }
+
       function onWheel(event) {
         event.preventDefault()
-        const factor = event.deltaY > 0 ? 1.12 : 0.89
-        const next = Math.min(4, Math.max(1, (width / box.w) * (1 / factor)))
-        const anchored = point(event)
-        const nextW = width / next
-        const nextH = height / next
-        const ratioX = (anchored.x - box.x) / box.w
-        const ratioY = (anchored.y - box.y) / box.h
-        setView({ x: anchored.x - ratioX * nextW, y: anchored.y - ratioY * nextH, w: nextW, h: nextH })
+        zoomTo((auto.w / box.w) * (event.deltaY > 0 ? 0.9 : 1.11), point(event))
       }
 
       function onDown(event) {
@@ -685,8 +825,8 @@ window.__ModuleLoader__.load({
             const left = Number(node.x) || 0
             const top = Number(node.y) || 0
             const w = Number(node.w) || 0
-            const h = Number(node.h) || 0
-            return left < x1 && left + w > x0 && top < y1 && top + h > y0
+            const hgt = Number(node.h) || 0
+            return left < x1 && left + w > x0 && top < y1 && top + hgt > y0
           }).map((node) => node.id)
           props.onMarquee(hits)
         }
@@ -700,21 +840,19 @@ window.__ModuleLoader__.load({
       const nodes = Array.isArray(card.nodes) ? card.nodes : []
       const edges = Array.isArray(card.edges) ? card.edges : []
       const byId = new Map(nodes.map((node) => [node.id, node]))
+      const gridId = `rtp-grid-${String(card.id).replace(/[^a-zA-Z0-9_-]/g, '')}`
 
       const edgeElements = edges.map((edge, index) => {
         const from = byId.get(edge.from)
         const to = byId.get(edge.to)
         if (from === undefined || to === undefined) return null
-        const x1 = Number(from.x) + Number(from.w) / 2
-        const y1 = Number(from.y) + Number(from.h) / 2
-        const x2 = Number(to.x) + Number(to.w) / 2
-        const y2 = Number(to.y) + Number(to.h) / 2
-        return h('line', {
+        return h('path', {
           key: `e${index}`,
-          x1, y1, x2, y2,
-          stroke: 'var(--dsw-alias-border-l2)',
+          d: edgePath(from, to),
+          fill: 'none',
+          stroke: 'var(--dsw-alias-border-l3)',
           strokeWidth: 1.2,
-          markerEnd: 'url(#rt-arrow)'
+          markerEnd: `url(#rtp-arrow)`
         })
       })
 
@@ -722,40 +860,40 @@ window.__ModuleLoader__.load({
         const isSelected = selected.indexOf(node.id) >= 0
         const w = Number(node.w) || 160
         const hgt = Number(node.h) || 56
-        const lines = wrapLabel(node.label, Math.max(6, Math.floor((w - 20) / 13)))
-        const stroke = isSelected ? 'var(--dsw-alias-brand-primary)' : 'var(--dsw-alias-border-l2)'
+        const x = Number(node.x) || 0
+        const y = Number(node.y) || 0
+        const lines = wrapLabel(node.label, Math.max(6, Math.floor((w - 24) / 13)))
+        const accent = KIND_ACCENTS[node.kind] || KIND_ACCENTS.module
         return h('g', {
           key: node.id,
           onClick: (event) => {
             event.stopPropagation()
-            onToggle(node.id)
+            props.onToggle(node.id)
           },
           style: { cursor: 'pointer' }
         }, [
           h('rect', {
-            key: 'box',
-            x: Number(node.x) || 0,
-            y: Number(node.y) || 0,
-            width: w,
-            height: hgt,
-            rx: 8,
-            fill: isSelected ? 'var(--dsw-alias-bg-layer-3)' : 'var(--dsw-alias-bg-layer-2)',
-            stroke,
-            strokeWidth: isSelected ? 1.6 : 1
+            key: 'hit',
+            x, y, width: w, height: hgt, rx: 9,
+            fill: isSelected ? 'color-mix(in srgb,var(--dsw-alias-brand-primary) 10%,var(--dsw-alias-bg-layer-2))' : 'var(--dsw-alias-bg-layer-2)',
+            stroke: isSelected ? 'var(--dsw-alias-brand-primary)' : 'var(--dsw-alias-border-l2)',
+            strokeWidth: isSelected ? 1.5 : 1
           }),
+          h('rect', { key: 'accent', x: x + 0.5, y: y + 8, width: 3, height: hgt - 16, rx: 1.5, fill: accent, opacity: 0.9 }),
           h('text', {
             key: 'l1',
-            x: (Number(node.x) || 0) + 10,
-            y: (Number(node.y) || 0) + 23,
+            x: x + 14,
+            y: y + (lines.length > 1 ? 25 : 30),
             fill: 'var(--dsw-alias-label-primary)',
             fontSize: 12,
+            fontWeight: 500,
             fontFamily: 'inherit'
           }, lines[0]),
           lines.length > 1
             ? h('text', {
                 key: 'l2',
-                x: (Number(node.x) || 0) + 10,
-                y: (Number(node.y) || 0) + 39,
+                x: x + 14,
+                y: y + 40,
                 fill: 'var(--dsw-alias-label-secondary)',
                 fontSize: 11,
                 fontFamily: 'inherit'
@@ -765,29 +903,33 @@ window.__ModuleLoader__.load({
         ])
       })
 
-      return h('div', { style: { position: 'relative', border: '0.5px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-lg)', overflow: 'hidden', background: 'var(--dsw-alias-bg-layer-1)' } }, [
+      return h('div', { className: 'rtp-canvas', ref: wrapRef }, [
         h('svg', {
           key: 'svg',
           ref: svgRef,
           viewBox: `${box.x} ${box.y} ${box.w} ${box.h}`,
-          style: { display: 'block', width: '100%', height: '260px', touchAction: 'none' },
           onWheel,
           onPointerDown: onDown,
           onPointerMove: onMove,
           onPointerUp: onUp,
-          onPointerLeave: onUp
+          onPointerLeave: onUp,
+          onDoubleClick: () => setView(null)
         }, [
           h('defs', { key: 'defs' }, [
+            h('pattern', { key: 'grid', id: gridId, width: 24, height: 24, patternUnits: 'userSpaceOnUse' }, [
+              h('circle', { key: 'd', cx: 1, cy: 1, r: 1, fill: 'var(--dsw-alias-border-l1)' })
+            ]),
             h('marker', {
               key: 'arrow',
-              id: 'rt-arrow',
-              markerWidth: 8,
-              markerHeight: 8,
-              refX: 7,
-              refY: 4,
+              id: 'rtp-arrow',
+              markerWidth: 7,
+              markerHeight: 7,
+              refX: 6,
+              refY: 3.5,
               orient: 'auto'
-            }, [h('path', { key: 'p', d: 'M0,0 L8,4 L0,8 z', fill: 'var(--dsw-alias-border-l2)' })])
+            }, [h('path', { key: 'p', d: 'M0,0 L7,3.5 L0,7 z', fill: 'var(--dsw-alias-border-l3)' })])
           ]),
+          h('rect', { key: 'bg', x: box.x, y: box.y, width: box.w, height: box.h, fill: `url(#${gridId})` }),
           ...edgeElements,
           ...nodeElements,
           marquee === null ? null : h('rect', {
@@ -796,11 +938,16 @@ window.__ModuleLoader__.load({
             y: Math.min(marquee.y0, marquee.y1),
             width: Math.abs(marquee.x1 - marquee.x0),
             height: Math.abs(marquee.y1 - marquee.y0),
-            fill: 'color-mix(in srgb, var(--dsw-alias-brand-primary) 12%, transparent)',
+            fill: 'color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,transparent)',
             stroke: 'var(--dsw-alias-brand-primary)',
             strokeWidth: 1,
             strokeDasharray: '4 3'
           })
+        ]),
+        h('div', { key: 'tools', className: 'rtp-tools' }, [
+          h('button', { key: 'out', type: 'button', title: '缩小', onClick: () => zoomTo((auto.w / box.w) * 0.85) }, '−'),
+          h('button', { key: 'pct', type: 'button', title: '双击画布适应窗口', onClick: () => setView(null), style: { width: '42px', fontSize: '10.5px' } }, `${zoom}%`),
+          h('button', { key: 'in', type: 'button', title: '放大', onClick: () => zoomTo((auto.w / box.w) * 1.15) }, '+')
         ])
       ])
     }
@@ -814,6 +961,8 @@ window.__ModuleLoader__.load({
       const [note, setNote] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [toast, setToast] = React.useState('')
+
+      React.useEffect(() => { ensurePanelStyles() }, [])
 
       const load = React.useCallback(async () => {
         try {
@@ -888,67 +1037,50 @@ window.__ModuleLoader__.load({
         }
       }
 
-      const header = h('div', { key: 'header', style: { paddingBottom: '10px', borderBottom: '0.5px solid var(--dsw-alias-border-l2)' } }, [
-        h('div', {
-          key: 'objective',
-          style: { fontSize: '13px', lineHeight: '19px', color: 'var(--dsw-alias-label-primary)', fontWeight: 500 }
-        }, worklog.objective || '未设置目标'),
-        h('div', {
-          key: 'milestone',
-          style: { marginTop: '4px', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' }
-        }, [worklog.milestone, worklog.milestone && worklog.next ? ' · 下一步 ' + worklog.next : worklog.next].filter(Boolean).join('') || '尚无里程碑'),
+      const header = h('div', { key: 'header', className: 'rtp-header' }, [
+        h('div', { key: 'eyebrow', className: 'rtp-eyebrow' }, [
+          h('span', { key: 'live', className: 'rtp-live' }),
+          h('span', { key: 'label' }, 'Research team')
+        ]),
+        h('div', { key: 'objective', className: 'rtp-title' }, worklog.objective || '还没有写目标（worklog/PLAN.md）'),
+        h('div', { key: 'sub', className: 'rtp-sub' }, [
+          worklog.milestone ? h('span', { key: 'm' }, ['里程碑 ', h('b', { key: 'b' }, worklog.milestone)]) : null,
+          worklog.next ? h('span', { key: 'n' }, ['下一步 ', h('b', { key: 'b' }, worklog.next)]) : null
+        ].filter(Boolean)),
         waiting.length === 0
           ? null
-          : h('div', {
-              key: 'waiting',
-              style: {
-                marginTop: '6px',
-                fontSize: '12px',
-                color: 'var(--dsw-alias-state-warn-primary)',
-                display: 'flex',
-                gap: '6px',
-                alignItems: 'baseline'
-              }
-            }, `⚠ 等你处理 ${waiting.length} 项：${waiting.slice(0, 2).map((entry) => entry.title || entry.id).join('、')}`)
+          : h('div', { key: 'waiting', className: 'rtp-wait' }, [
+              h('span', { key: 'i' }, '◷'),
+              h('span', { key: 't' }, `等你处理 ${waiting.length} 项：${waiting.slice(0, 2).map((entry) => entry.title || entry.id).join('、')}${waiting.length > 2 ? '…' : ''}`)
+            ])
       ])
+
+      const archChips = architectures.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-seg', style: { marginBottom: '2px' } },
+        architectures.map((entry) => h('button', {
+          key: entry.id,
+          type: 'button',
+          className: entry.id === (card && card.id) ? 'on' : '',
+          onClick: () => {
+            setSelectedCard(entry.id)
+            setSelectedNodes([])
+          }
+        }, [entry.title, h('span', { key: 'v', className: 'v' }, `v${entry.version}`)])))
 
       const archSection = h(Section, {
         key: 'arch',
         title: '架构',
-        extra: architectures.length === 0 ? '' : `${architectures.length} 张`
+        count: architectures.length === 0 ? 0 : `${architectures.length} 张`
       }, [
         architectures.length === 0
-          ? h('div', { key: 'empty', style: { fontSize: '12px', color: 'var(--dsw-alias-label-tertiary)', lineHeight: '18px' } },
-              '还没有架构卡片。设计者可以用 research_architecture 建一张，或在 .research/architecture/ 下放一个 JSON。')
-          : h('div', { key: 'chips', style: { display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' } },
-              architectures.map((entry) => h('button', {
-                key: entry.id,
-                type: 'button',
-                onClick: () => {
-                  setSelectedCard(entry.id)
-                  setSelectedNodes([])
-                },
-                style: {
-                  height: '26px',
-                  padding: '0 10px',
-                  border: '0.5px solid ' + (entry.id === (card && card.id) ? 'var(--dsw-alias-brand-primary)' : 'var(--dsw-alias-border-l2)'),
-                  borderRadius: '999px',
-                  background: entry.id === (card && card.id) ? 'var(--dsw-alias-bg-layer-3)' : 'transparent',
-                  color: 'var(--dsw-alias-label-primary)',
-                  font: 'inherit',
-                  fontSize: '12px',
-                  cursor: 'pointer'
-                }
-              }, [entry.title, `v${entry.version}`].join(' · ')))),
-        card === undefined
-          ? null
-          : h('div', { key: 'detail' }, [
+          ? h('div', { key: 'empty', className: 'rtp-empty' }, '还没有架构卡片。让设计者用 research_architecture 建一张方法图，或在 .research/architecture/ 放一个 JSON。')
+          : h('div', { key: 'body' }, [
+              archChips,
               h('div', {
                 key: 'meta',
-                style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--dsw-alias-label-tertiary)', marginBottom: '6px' }
+                style: { display: 'flex', justifyContent: 'space-between', padding: '6px 1px 0', fontSize: '10.5px', color: 'var(--dsw-alias-label-tertiary)' }
               }, [
-                h('span', { key: 'kind' }, `${CARD_KIND_LABELS[card.kind] || card.kind} · ${(card.nodes || []).length} 节点`),
-                h('span', { key: 'when' }, formatSince(card.updatedAt))
+                h('span', { key: 'kind' }, `${CARD_KIND_LABELS[card.kind] || card.kind} · ${(card.nodes || []).length} 节点 · ${(card.edges || []).length} 连线`),
+                h('span', { key: 'when' }, card.updatedAt ? formatSince(card.updatedAt) : '')
               ]),
               h(ArchitectureCanvas, {
                 key: 'canvas',
@@ -957,35 +1089,37 @@ window.__ModuleLoader__.load({
                 onToggle: toggleNode,
                 onMarquee: (ids) => setSelectedNodes((current) => Array.from(new Set([...current, ...ids])))
               }),
-              h('div', {
-                key: 'hint',
-                style: { marginTop: '6px', fontSize: '11px', color: 'var(--dsw-alias-label-tertiary)' }
-              }, selectedNodes.length === 0 ? '拖动框选节点后可以提问' : `已选 ${selectedNodes.length} 个节点`),
+              h('div', { key: 'annot', className: 'rtp-annot' }, [
+                h('span', { key: 'l' }, selectedNodes.length === 0 ? '拖动框选节点即可提问' : '已选'),
+                ...selectedNodes.slice(0, 4).map((id) => h('span', { key: id, className: 'rtp-pill' }, id)),
+                selectedNodes.length > 4 ? h('span', { key: 'more', className: 'rtp-pill' }, `+${selectedNodes.length - 4}`) : null
+              ]),
               selectedNodes.length === 0
                 ? null
-                : h('div', { key: 'compose', style: { marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' } }, [
+                : h('div', { key: 'compose', className: 'rtp-compose' }, [
                     h('textarea', {
                       key: 'text',
                       value: note,
                       rows: 3,
                       placeholder: '针对选中的节点提问，例如：这一层的输入是不是漏了 mask',
-                      onChange: (event) => setNote(event.target.value),
-                      style: {
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        padding: '7px 9px',
-                        border: '0.5px solid var(--dsw-alias-border-l3)',
-                        borderRadius: 'var(--dsw-radius-md)',
-                        background: 'var(--dsw-alias-bg-layer-2)',
-                        color: 'var(--dsw-alias-label-primary)',
-                        font: 'inherit',
-                        fontSize: '12px',
-                        resize: 'vertical'
-                      }
+                      onChange: (event) => setNote(event.target.value)
                     }),
-                    h('div', { key: 'actions', style: { display: 'flex', gap: '6px' } }, [
-                      smallButton(busy ? '保存中…' : '记录标注', submitNote, busy || note.trim() === ''),
-                      smallButton('清空选择', () => setSelectedNodes([]), false)
+                    h('div', { key: 'bar', className: 'rtp-composebar' }, [
+                      h('span', { key: 'hint', style: { fontSize: '10.5px', color: 'var(--dsw-alias-label-tertiary)' } }, '写入卡片注解，下一轮由 Lead 读取'),
+                      h('span', { key: 'grow', className: 'rtp-grow' }),
+                      h('button', {
+                        key: 'clear',
+                        type: 'button',
+                        className: 'rtp-ghost',
+                        onClick: () => { setSelectedNodes([]); setNote('') }
+                      }, '清空'),
+                      h('button', {
+                        key: 'send',
+                        type: 'button',
+                        className: 'rtp-primary',
+                        disabled: busy || note.trim() === '',
+                        onClick: submitNote
+                      }, busy ? '保存中…' : '发送标注')
                     ])
                   ])
             ])
@@ -994,81 +1128,85 @@ window.__ModuleLoader__.load({
       const cardsSection = h(Section, {
         key: 'cards',
         title: '卡片',
-        extra: cards.length === 0 ? '' : `${cards.length} 张`
+        count: cards.length === 0 ? 0 : cards.length
       }, cards.length === 0
-        ? h('div', { key: 'empty', style: { fontSize: '12px', color: 'var(--dsw-alias-label-tertiary)' } }, '没有活动卡片')
-        : cards.map((entry) => h('div', {
-            key: entry.id,
-            style: { display: 'flex', gap: '8px', alignItems: 'baseline', padding: '4px 0', fontSize: '12px' }
-          }, [
-            h('span', { key: 'dot', style: { width: '6px', height: '6px', borderRadius: '3px', background: statusTone(entry.status), flex: '0 0 auto', marginTop: '5px' } }),
-            h('div', { key: 'body', style: { minWidth: 0 } }, [
-              h('div', { key: 'title', style: { color: 'var(--dsw-alias-label-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, `${entry.id} · ${entry.title}`),
-              h('div', { key: 'meta', style: { color: 'var(--dsw-alias-label-tertiary)', fontSize: '11px' } }, [entry.status, entry.owner, entry.next].filter(Boolean).join(' · '))
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '没有活动卡片。用 taskboard 建卡，或在 worklog/INDEX.md 里登记。')
+        : cards.map((entry) => h('div', { key: entry.id, className: 'rtp-row' }, [
+            h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
+            h('div', { key: 'main', className: 'rtp-rowmain' }, [
+              h('div', { key: 't', className: 'rtp-rowtitle' }, [
+                h('span', { key: 'id', className: 'rtp-id' }, entry.id),
+                h('span', { key: 'title', style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, entry.title)
+              ]),
+              h('div', { key: 'm', className: 'rtp-rowmeta' },
+                [entry.owner ? `@${entry.owner}` : '', entry.next ? `下一步 ${entry.next}` : '', entry.updated ? formatSince(entry.updated) : ''].filter(Boolean).join(' · ') || statusLabel(entry.status))
+            ]),
+            h('span', {
+              key: 'chip',
+              className: 'rtp-chip',
+              style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
+            }, statusLabel(entry.status))
+          ])))
+
+      const runsSection = h(Section, {
+        key: 'runs',
+        title: '实验',
+        count: runs.length === 0 ? 0 : runs.length
+      }, runs.length === 0
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前没有实验在跑。')
+        : runs.map((entry) => h('div', { key: entry.name, className: 'rtp-row' }, [
+            h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
+            h('div', { key: 'main', className: 'rtp-rowmain' }, [
+              h('div', { key: 't', className: 'rtp-rowtitle' }, [
+                h('span', { key: 'name', style: { fontFamily: 'var(--dsw-font-family-mono)', fontSize: '11.5px' } }, entry.name),
+                seedDots(entry.seeds) === null ? null : h('span', { key: 'seeds', className: 'rtp-seeds' }, seedDots(entry.seeds))
+              ]),
+              h('div', { key: 'm', className: 'rtp-rowmeta' }, [statusLabel(entry.status), entry.seeds ? `seed ${entry.seeds}` : '', entry.budget ? `预算 ${entry.budget}` : ''].filter(Boolean).join(' · '))
             ])
           ])))
 
-      const runsSection = h(Section, { key: 'runs', title: '实验', extra: runs.length === 0 ? '' : `${runs.length} 项` },
-        runs.length === 0
-          ? h('div', { key: 'empty', style: { fontSize: '12px', color: 'var(--dsw-alias-label-tertiary)' } }, '当前没有实验在跑')
-          : runs.map((entry) => h('div', {
-              key: entry.name,
-              style: { display: 'flex', justifyContent: 'space-between', gap: '8px', padding: '3px 0', fontSize: '12px' }
-            }, [
-              h('span', { key: 'name', style: { color: 'var(--dsw-alias-label-primary)' } }, entry.name),
-              h('span', { key: 'meta', style: { color: statusTone(entry.status), fontSize: '11px' } }, [entry.status, entry.seeds, entry.budget].filter(Boolean).join(' · ') || '—')
-            ])))
+      const designsSection = h(Section, {
+        key: 'designs',
+        title: '设计',
+        count: designs.length === 0 ? 0 : designs.length
+      }, designs.length === 0
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '还没有设计文档。设计者会写 docs/design/<name>.md。')
+        : designs.map((entry) => h('div', { key: entry.name, className: 'rtp-row' }, [
+            h('div', { key: 'main', className: 'rtp-rowmain' }, [
+              h('div', { key: 't', className: 'rtp-rowtitle' }, [
+                h('span', { key: 'name', style: { fontFamily: 'var(--dsw-font-family-mono)', fontSize: '11.5px' } }, entry.name)
+              ]),
+              h('div', { key: 'm', className: 'rtp-rowmeta' }, [entry.question, entry.updated ? formatSince(entry.updated) : ''].filter(Boolean).join(' · '))
+            ])
+          ])))
 
-      const designsSection = h(Section, { key: 'designs', title: '设计', extra: designs.length === 0 ? '' : `${designs.length} 份` },
-        designs.length === 0
-          ? h('div', { key: 'empty', style: { fontSize: '12px', color: 'var(--dsw-alias-label-tertiary)' } }, '还没有设计文档')
-          : designs.map((entry) => h('div', { key: entry.name, style: { padding: '3px 0', fontSize: '12px' } }, [
-              h('div', { key: 'name', style: { color: 'var(--dsw-alias-label-primary)' } }, entry.name),
-              h('div', { key: 'meta', style: { color: 'var(--dsw-alias-label-tertiary)', fontSize: '11px' } }, [formatSince(entry.updated), entry.question].filter(Boolean).join(' · '))
-            ])))
+      const body = state === null && error === ''
+        ? h('div', { key: 'skel', className: 'rtp-section' }, [
+            h('div', { key: 'a', className: 'rtp-skel', style: { width: '46%', height: '8px' } }),
+            h('div', { key: 'b', className: 'rtp-skel', style: { width: '86%', height: '13px', marginTop: '12px' } }),
+            h('div', { key: 'c', className: 'rtp-skel', style: { width: '64%', height: '10px', marginTop: '10px' } })
+          ])
+        : [archSection, cardsSection, runsSection, designsSection]
 
-      return h('div', {
-        style: {
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          minHeight: 0,
-          overflowY: 'auto',
-          padding: '12px',
-          boxSizing: 'border-box',
-          color: 'var(--dsw-alias-label-primary)',
-          fontFamily: 'inherit',
-          fontSize: '13px'
-        }
-      }, [
+      return h('div', { className: 'rtp-root' }, [
         header,
-        error === ''
-          ? null
-          : h('div', { key: 'error', style: { marginTop: '8px', padding: '6px 8px', borderRadius: 'var(--dsw-radius-md)', background: 'var(--dsw-alias-bg-layer-2)', color: 'var(--dsw-alias-state-error-primary)', fontSize: '12px' } }, error),
-        archSection,
-        cardsSection,
-        runsSection,
-        designsSection,
-        h('div', { key: 'footer', style: { marginTop: '14px', paddingTop: '8px', borderTop: '0.5px solid var(--dsw-alias-border-l2)', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--dsw-alias-label-tertiary)' } }, [
-          h('span', { key: 'fresh' }, state === null ? '' : `更新于 ${fresh}`),
-          h('span', { key: 'root', title: (state && state.root) || '' }, state === null ? '' : '项目根')
+        error === '' ? null : h('div', { key: 'error', className: 'rtp-error' }, error),
+        ...(Array.isArray(body) ? body : [body]),
+        h('div', { key: 'footer', className: 'rtp-footer' }, [
+          h('span', { key: 'live', className: 'rtp-live' }),
+          h('span', { key: 'fresh' }, state === null ? '连接中…' : `更新于 ${fresh} · 每 5 秒自动刷新`),
+          h('span', { key: 'grow', className: 'rtp-grow' }),
+          h('button', {
+            key: 'refresh',
+            type: 'button',
+            className: 'rtp-ghost',
+            onClick: load,
+            title: (state && state.root) || ''
+          }, '刷新')
         ]),
         toast === ''
           ? null
-          : h('div', {
-              key: 'toast',
-              role: 'status',
-              style: {
-                position: 'sticky',
-                bottom: 0,
-                marginTop: '8px',
-                padding: '6px 8px',
-                borderRadius: 'var(--dsw-radius-md)',
-                background: 'var(--dsw-alias-bg-layer-3)',
-                color: 'var(--dsw-alias-label-primary)',
-                fontSize: '11px'
-              }
-            }, toast)
+          : h('div', { key: 'toast', role: 'status', className: 'rtp-toast' }, toast)
       ])
     }
 

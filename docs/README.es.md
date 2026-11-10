@@ -45,6 +45,12 @@ La mecánica interna se queda dentro. Los traspasos entre agentes, los reintento
 
 La división del trabajo es explícita: tú marcas la dirección científica y juzgas la evidencia, y el equipo asume la carga de búsqueda, implementación, experimentación y verificación.
 
+Tus preguntas son el contrato de este turno. Si pides un panorama, una lista de extensiones o una decisión, la respuesta entrega eso; un programa de investigación, una puerta o un criterio de parada es adicional y nunca lo sustituye. La respuesta recorre tus preguntas en orden, contesta cada una con su evidencia y el archivo donde está el detalle completo, y dice con claridad si alguna todavía no puede responderse.
+
+Un turno largo no es un turno silencioso. Si el equipo lleva más de unos diez minutos trabajando, el Lead envía una respuesta intermedia breve: qué está resuelto, qué se sigue reuniendo y cuándo llegará la siguiente respuesta, para que puedas redirigir antes de gastar el cómputo.
+
+Un resultado negativo previo limita el método, los datos y el presupuesto que lo produjeron, no la idea. Antes de cerrar una dirección se formula su versión más fuerte y se muestra que falla; cada «no se puede afirmar» viene con la versión que sí podría afirmarse y la evidencia que la ganaría.
+
 ## Requisitos
 
 Research Team Mode es un **bundle de DSH a nivel de perfil**. El bundle no instala ni habilita los bundles de perfil que utiliza; el instalador de paquetes de DSH gestiona dependencias npm, no bundles de funcionalidades. Habilita primero las dependencias en el mismo perfil.

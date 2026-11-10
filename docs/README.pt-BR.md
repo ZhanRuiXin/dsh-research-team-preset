@@ -45,6 +45,12 @@ A mecânica interna fica interna. Handoffs entre agentes, retentativas, erros de
 
 A divisão de trabalho é explícita: você define a direção científica e julga a evidência, e a equipe carrega a carga de busca, implementação, experimentação e verificação.
 
+Suas perguntas são o contrato deste turno. Se você pede um panorama, uma lista de extensões ou uma decisão, a resposta entrega isso; um programa de pesquisa, um portão ou um critério de parada é adicional e nunca substituto. A resposta percorre suas perguntas na ordem, responde cada uma com sua evidência e o arquivo onde está o detalhe completo, e diz com clareza quando alguma ainda não pode ser respondida.
+
+Um turno longo não é um turno silencioso. Se a equipe está trabalhando há mais de cerca de dez minutos, o Lead envia uma resposta intermediária curta: o que está decidido, o que ainda está sendo levantado e quando vem a próxima resposta, para você poder redirecionar antes que o compute seja gasto.
+
+Um resultado negativo anterior restringe o método, os dados e o orçamento que o produziram, não a ideia. Antes de fechar uma direção, sua versão mais forte é enunciada e mostrada como falha; cada «não se pode afirmar» vem com a versão que poderia ser afirmada e a evidência que a sustentaria.
+
 ## Requisitos
 
 O Research Team Mode é um **bundle DSH de nível de perfil**. O bundle não instala nem ativa os bundles de perfil que utiliza; o instalador de pacotes do DSH lida com dependências npm, e não com bundles de recursos. Ative as dependências no mesmo perfil primeiro.

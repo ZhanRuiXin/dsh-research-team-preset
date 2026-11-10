@@ -46,6 +46,12 @@ Internal mechanics stay internal. Agent handoffs, retries, tool errors, board bo
 
 The division of labor is explicit: the user sets the scientific direction and judges the evidence, and the team carries the search, implementation, experiment, and verification load.
 
+Your questions are the contract for the turn. When you ask for a survey, an extension list, or a decision, the answer delivers that, and any research program, gate, or kill criterion is additional rather than a substitute; the reply walks your questions in order, answers each with its evidence and the file where the full detail lives, and says plainly if one cannot be answered yet.
+
+A long turn is not a silent one. If the team has been working for more than about ten minutes, the Lead sends a short interim answer saying what is settled, what is still being gathered, and when the next answer comes, so you can redirect before the compute is spent.
+
+A negative prior result constrains the method, the data, and the budget that produced it, not the idea. Before a direction is closed, the strongest version is stated and shown to fail; every "cannot be claimed" comes with the version that could be claimed and the evidence that would earn it.
+
 ## Requirements
 
 Research Team Mode is a **profile-level DSH bundle**. The bundle does not install or enable the profile bundles it uses; DSH's package installer handles npm dependencies, not feature bundles. Enable the dependencies in the same profile first.

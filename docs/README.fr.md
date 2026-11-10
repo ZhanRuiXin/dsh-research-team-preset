@@ -45,6 +45,12 @@ La mécanique interne reste interne. Les passations entre agents, les nouvelles 
 
 La répartition est explicite : vous fixez la direction scientifique et jugez les preuves, l'équipe porte la charge de la recherche, de l'implémentation, de l'expérimentation et de la vérification.
 
+Vos questions sont le contrat de ce tour. Si vous demandez un panorama, une liste d’extensions ou une décision, la réponse livre cela ; un programme de recherche, un seuil ou un critère d’arrêt s’y ajoute et ne le remplace jamais. La réponse parcourt vos questions dans l’ordre, répond à chacune avec sa preuve et le fichier où se trouve le détail, et dit clairement si l’une ne peut pas encore être traitée.
+
+Un tour long n’est pas un tour silencieux. Si l’équipe travaille depuis plus d’une dizaine de minutes, le Lead envoie une brève réponse intermédiaire : ce qui est établi, ce qui est encore en cours de collecte et quand viendra la prochaine réponse, pour que vous puissiez infléchir avant que le calcul soit dépensé.
+
+Un résultat négatif antérieur contraint la méthode, les données et le budget qui l’ont produit, pas l’idée. Avant de fermer une direction, on formule sa version la plus forte et on montre qu’elle échoue ; chaque « on ne peut pas l’affirmer » s’accompagne de la version qui pourrait l’être et de la preuve qui la mériterait.
+
 ## Prérequis
 
 Research Team Mode est un **bundle DSH au niveau du profil**. Le bundle n'installe ni n'active les bundles de profil qu'il utilise ; l'installeur de paquets de DSH gère les dépendances npm, pas les bundles de fonctionnalités. Activez d'abord les dépendances dans le même profil.

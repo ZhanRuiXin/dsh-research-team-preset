@@ -2,6 +2,12 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.1.1.
 
+## Unreleased
+
+- Answers obey the ask: the Lead keeps the user's questions as the contract for the turn, delivers the requested survey, extension list, or decision before any research program, walks each question in the reply, and says plainly when one cannot be answered yet.
+- Long turns are not silent: after about ten minutes of tool work without a user-visible answer, the Lead sends a short interim answer (what is settled, what is still being gathered, when the next answer comes) so the user can redirect before the compute is spent.
+- Negative prior results constrain the method, data, and budget that produced them, not the idea itself. Before a direction is closed it is steelmanned and shown to fail, and every "cannot be claimed" is paired with the version that could be claimed and the evidence that would earn it.
+
 ## 0.1.1 — 2026-11-10
 
 - The settings row survives a re-apply of the bundle inside one process: when the host re-mounts the plugin after a profile or hot reload, it reuses the live `/api/dsh-research-team-settings` handler instead of failing with `webserver: duplicate exact route`. Added `test/settings-route.test.js` and removed the stale `@local/dsh-research-team-preset` link and lockfile entry from the profile.

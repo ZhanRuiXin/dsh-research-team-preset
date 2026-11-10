@@ -45,6 +45,12 @@ Interne Mechanik bleibt intern. Übergaben zwischen Agenten, Wiederholungsversuc
 
 Die Arbeitsteilung ist ausdrücklich: Sie setzen die wissenschaftliche Richtung und beurteilen die Evidenz, das Team trägt die Last von Suche, Implementierung, Experiment und Verifikation.
 
+Ihre Fragen sind der Vertrag für diesen Durchgang. Wenn Sie eine Übersicht, eine Liste möglicher Erweiterungen oder eine Entscheidung verlangen, liefert die Antwort genau das; ein Forschungsprogramm, ein Gate oder ein Abbruchkriterium tritt ergänzend hinzu und ersetzt es nie. Die Antwort geht Ihre Fragen der Reihe nach durch, beantwortet jede mit ihrer Evidenz und der Datei, in der die Details stehen, und sagt offen, wenn eine noch nicht beantwortet werden kann.
+
+Ein langer Durchgang ist kein stiller. Arbeitet das Team länger als etwa zehn Minuten, sendet der Lead eine kurze Zwischenantwort: was feststeht, was noch erhoben wird und wann die nächste Antwort kommt, damit Sie umlenken können, bevor die Rechenzeit verbraucht ist.
+
+Ein negatives Ergebnis früherer Arbeit beschränkt die Methode, die Daten und das Budget, die es erzeugt haben, nicht die Idee. Bevor eine Richtung geschlossen wird, wird die stärkste Version formuliert und als scheiternd gezeigt; jedes „lässt sich nicht behaupten“ kommt mit der Version, die sich behaupten ließe, und der Evidenz, die sie verdienen würde.
+
 ## Voraussetzungen
 
 Research Team Mode ist ein **DSH-Bundle auf Profilebene**. Das Bundle installiert oder aktiviert die von ihm verwendeten Profil-Bundles nicht selbst; der Paketinstaller von DSH kümmert sich um npm-Abhängigkeiten, nicht um Feature-Bundles. Aktivieren Sie die Abhängigkeiten zuerst im selben Profil.

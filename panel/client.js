@@ -45,25 +45,88 @@ window.__ModuleLoader__.load({
       return `${date.getMonth() + 1}月${date.getDate()}日`
     }
 
-    function wrapLabel(label, perLine) {
-      const text = String(label ?? '').replace(/\s+/g, ' ').trim()
-      if (text.length <= perLine) return [text]
-      const first = text.slice(0, perLine)
-      const rest = text.slice(perLine, perLine * 2 - 1)
-      return [first, text.length > perLine * 2 - 1 ? `${rest}…` : rest]
+    let measureCanvas = null
+
+    /* Real glyph widths beat an average: mixed CJK/Latin labels wrap badly otherwise. */
+    function textWidthOf(text, fontSize, fontFamily) {
+      try {
+        if (measureCanvas === null) measureCanvas = document.createElement('canvas')
+        const context = typeof measureCanvas.getContext === 'function' ? measureCanvas.getContext('2d') : null
+        if (context === null) return null
+        context.font = `${fontSize}px ${fontFamily}`
+        return context.measureText(String(text)).width
+      } catch (error) {
+        return null
+      }
     }
 
-    /* Rough advance width: a CJK glyph is about one em, Latin about half. */
-    function labelCharsPerLine(width, fontSize) {
-      const usable = Math.max(40, width - 22)
-      let leftover = usable
-      let count = 0
-      for (const char of 'XWML方法架构数据') {
-        leftover -= /[\u3400-\u9fff]/.test(char) ? fontSize : fontSize * 0.55
-        count += 1
+    function estimateWidth(text, fontSize) {
+      let width = 0
+      for (const char of String(text)) width += /[\u3400-\u9fff]/.test(char) ? fontSize : fontSize * 0.55
+      return width
+    }
+
+    function fontFamilyOf(element) {
+      try {
+        if (typeof window !== 'undefined' && window.getComputedStyle && element) {
+          const family = String(window.getComputedStyle(element).fontFamily || '')
+          if (family !== '') return family
+        }
+      } catch (error) {
+        /* fall through to the default stack */
       }
-      const average = (usable - leftover) / count
-      return Math.max(5, Math.floor(usable / average))
+      return 'system-ui, sans-serif'
+    }
+
+    /* Split at spaces and CJK boundaries so a line never cuts a Latin word. */
+    function labelParts(text) {
+      const parts = []
+      let buffer = ''
+      const flush = () => { if (buffer !== '') { parts.push(buffer); buffer = '' } }
+      for (const char of String(text)) {
+        if (char === ' ') { flush(); parts.push(' ') }
+        else if (/[\u3400-\u9fff]/.test(char)) { flush(); parts.push(char) }
+        else buffer += char
+      }
+      flush()
+      return parts
+    }
+
+    function fitLabel(label, maxWidth, fontSize, fontFamily) {
+      const text = String(label ?? '').replace(/\s+/g, ' ').trim()
+      if (text === '') return ['']
+      const limit = Math.max(24, maxWidth)
+      const measured = (value) => {
+        const width = textWidthOf(value, fontSize, fontFamily)
+        return width === null ? estimateWidth(value, fontSize) : width
+      }
+      if (measured(text) <= limit) return [text]
+      const parts = []
+      for (const part of labelParts(text)) {
+        if (measured(part) <= limit) { parts.push(part); continue }
+        for (const char of part) parts.push(char)
+      }
+      const lines = []
+      let index = 0
+      while (index < parts.length && lines.length < 2) {
+        let line = ''
+        while (index < parts.length) {
+          if (line === '' && parts[index].trim() === '') { index += 1; continue }
+          const candidate = line + parts[index]
+          if (line !== '' && measured(candidate.replace(/\s+$/, '')) > limit) break
+          line = candidate
+          index += 1
+        }
+        if (line === '' && index < parts.length) { line = parts[index]; index += 1 }
+        lines.push(line.replace(/\s+$/, ''))
+      }
+      if (index < parts.length && lines.length > 0) {
+        const last = lines.length - 1
+        let tail = lines[last]
+        while (tail !== '' && measured(`${tail}…`) > limit) tail = tail.slice(0, -1)
+        lines[last] = `${tail.replace(/\s+$/, '')}…`
+      }
+      return lines.length === 0 ? [''] : lines
     }
 
     function statusTone(status) {
@@ -378,6 +441,7 @@ window.__ModuleLoader__.load({
       }
 
       const nodes = Array.isArray(card.nodes) ? card.nodes : []
+      const fontFamily = fontFamilyOf(svgRef.current)
       const edges = Array.isArray(card.edges) ? card.edges : []
       const byId = new Map(nodes.map((node) => [node.id, node]))
       const gridId = `rtp-grid-${String(card.id).replace(/[^a-zA-Z0-9_-]/g, '')}`
@@ -403,7 +467,7 @@ window.__ModuleLoader__.load({
         const x = Number(node.x) || 0
         const y = Number(node.y) || 0
         const fontSize = hgt >= 64 ? 15 : hgt >= 48 ? 14 : 12.5
-        const lines = wrapLabel(node.label, labelCharsPerLine(w, fontSize))
+        const lines = fitLabel(node.label, w - 24, fontSize, fontFamily)
         const clipId = `rtp-clip-${String(card.id).replace(/[^a-zA-Z0-9_-]/g, '')}-${index}`
         const accent = KIND_ACCENTS[node.kind] || KIND_ACCENTS.module
         return h('g', {

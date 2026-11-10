@@ -354,7 +354,13 @@ window.__ModuleLoader__.load({
         const x1 = Math.max(marquee.x0, marquee.x1)
         const y0 = Math.min(marquee.y0, marquee.y1)
         const y1 = Math.max(marquee.y0, marquee.y1)
-        if (x1 - x0 > 6 && y1 - y0 > 6) {
+        /* Pointer capture retargets the click to the SVG, so the background rect's
+           onClick never fires: treat a press without movement as a click on empty
+           space and clear the selection here. */
+        const moved = x1 - x0 > 6 || y1 - y0 > 6
+        if (!moved && typeof props.onClear === 'function') {
+          props.onClear()
+        } else if (x1 - x0 > 6 && y1 - y0 > 6) {
           const hits = (card.nodes || []).filter((node) => {
             const left = Number(node.x) || 0
             const top = Number(node.y) || 0

@@ -53,31 +53,43 @@ Research Team Mode ist ein **DSH-Bundle auf Profilebene**. Das Bundle installier
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Entwickelt gegen `0.2.1-rc.5`; andere Releases können funktionieren, sind aber nicht garantiert |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Stellt `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` und die Team-Services bereit |
-| Task Board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Stellt `taskboard_*` und das Board bereit |
 | PTC-Laufzeit | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) und [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Teil der DSH-Basis; aktiviert `run_code` |
+
+**Optionale Integrationen.** Diese Plugins stammen von anderen Autoren. Das Preset läuft ohne sie und installiert nichts; fügen Sie eines nur hinzu, um das Team damit zu verknüpfen:
+
+- **Task Board** ([`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)) — `taskboard_*`, nutzerseitige Karten, Abnahme-Checklisten und `presetId=research-team`-Ausführungssitzungen. Ohne es ist das Worklog (`PLAN.md`, `INDEX.md`, Kartendateien) der dauerhafte Datensatz.
+- **Zotero** (`dsh-zotero`) — die Werkzeuge der geteilten Bibliothek (`zotero_*`) und der paper-fetch-Importpfad. Ohne es nutzt die Literaturarbeit Semantic Scholar, arXiv und das Web; die Evidenztabelle hält weiterhin Aussage, Quelle und Fundstelle fest.
+- **Mnemon** (`dsh-mnemon`) — dauerhafte Notizen über Sitzungen hinweg (`mnemon_*`). Ohne es tragen Worklog und `CHANGELOG.md` die Kontinuität.
 
 Wenn eine Abhängigkeit fehlt, kann der Modus trotzdem teilweise geladen werden, aber die Team-Tools, das Board oder die Einstellungsseite sind dann nicht verfügbar. Der Plugin-Manager fragt diese Bundles nicht ab und verknüpft sie nicht automatisch.
 
 ## Installation
 
-Dieses Repository ist ein lokales DSH-Bundle. Aus einem Checkout:
+Dieses Preset wird als DSH-Bundle ausgeliefert und ist auf npm als `dsh-research-team-preset` veröffentlicht.
 
-1. **Aktivieren Sie die Voraussetzungen** im Zielprofil:
-   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
-   - Task Board: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-2. **Installieren Sie dieses Bundle** über die Installationsaktion der Plugins-Seite bzw. des Plugin-Managers mit einem lokalen Link:
+### Installation über die DSH-Plugins-Seite
 
-   ```text
-   link:/absolute/path/to/dsh-research-team-preset
-   ```
+1. **Aktivieren Sie die erforderlichen Bundles** im Zielprofil: Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). Die optionalen Integrationen oben können Sie jetzt oder später hinzufügen.
+2. Öffnen Sie **Einstellungen → Plugins** und klicken Sie auf **Hinzufügen**.
+3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.1.0` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
+4. **Starten Sie DSH neu.** Preset-Zeilen und die Client-Hälfte des Bundles werden beim Start geladen.
+5. **Prüfen Sie, dass das Bundle im selben Profil aktiviert ist**, öffnen Sie dann **eine neue Sitzung** und wählen Sie **Research Team Mode** in der Modusauswahl.
 
-   Ein lokaler Ordnerpfad funktioniert ebenfalls. Behalten Sie den Link bei, wenn Sie von diesem Checkout aus aktualisieren möchten; nach dem Ersetzen des Ordners ist eine Neuinstallation erforderlich.
-3. **Starten Sie DSH neu.** Preset-Zeilen und die Client-Hälfte des Bundles werden beim Start geladen.
-4. **Prüfen Sie, ob das Bundle aktiviert ist**, und zwar im selben Profil.
-5. **Öffnen Sie eine neue Sitzung** und wählen Sie im Modus-Auswahlfeld **Research Team Mode**.
-6. Erstellen Sie für Ausführungssitzungen des Task Boards Karten mit `presetId=research-team`, damit die Ausführung dieselbe Persona und dieselben Tools verwendet.
+### Installation über die Kommandozeile
 
-> Der Modus ist ein Bundle auf Profilebene: Eine Installation in einem Profil aktiviert ihn nicht in einem anderen. Wiederholen Sie Installation und Voraussetzungsschritte für jedes Profil.
+```text
+dsh plugin add dsh-research-team-preset@0.1.0
+```
+
+Um stattdessen die Quelle zu pinnen statt den Registrierungsserver:
+
+```text
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+```
+
+Für Task-Board-Ausführungssitzungen erstellen Sie Karten mit `presetId=research-team`, damit die Ausführung dieselbe Persona und dieselben Werkzeuge verwendet.
+
+> Der Modus ist ein profilweites Bundle: Die Installation in einem Profil aktiviert ihn nicht in einem anderen. Wiederholen Sie Installation und Voraussetzungen für jedes Profil.
 
 ## Erster Start
 
@@ -192,7 +204,7 @@ Die Einstellungsseite verwaltet mehrere benannte Modellprofile für die Standard
 Öffnen Sie:
 
 ```text
-Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
+Plugins → dsh-research-team-preset → research-team-settings → Configure
 ```
 
 Die Profilleiste oben auf der Seite:
@@ -224,7 +236,7 @@ Empfohlene Fähigkeitsstufen, als Ausgangspunkt und nicht als Regel:
 
 Die gesamte Profilliste wird gemeinsam gespeichert, sodass ein Profilwechsel die in einem anderen Profil vorgenommenen Änderungen nicht verwirft. Die Seite validiert die Namen vor dem Speichern und zeigt den Fehlertext des Servers an, wenn ein Speichern abgelehnt wird.
 
-Der Zeilenname ist entscheidend: `research-team-settings` muss an der **Paketwurzel** `@local/dsh-research-team-preset` bleiben. Der Client-Modul-Scanner von DSH erkennt `dsh.client` nur bei exakten Paketwurzelzeilen; ein Subpfad-Name startet zwar das Host-Plugin, lädt aber nie die Seite.
+Der Zeilenname ist entscheidend: `research-team-settings` muss an der **Paketwurzel** `dsh-research-team-preset` bleiben. Der Client-Modul-Scanner von DSH erkennt `dsh.client` nur bei exakten Paketwurzelzeilen; ein Subpfad-Name startet zwar das Host-Plugin, lädt aber nie die Seite.
 
 ### Wo Einstellungen gespeichert werden
 
@@ -348,7 +360,7 @@ Version 0.1.0 behebt die bekannte Ursache: Der alte Loader übergab das gesamte 
 
 - `$DSH_HOME/research-team-settings.json` existiert und die gespeicherten Profile enthält;
 - alte `{ "roles": ... }`-Dateien werden als ein einzelnes Profil `默认配置` angezeigt und beim nächsten Speichern in die Profilform umgeschrieben;
-- die Zeile `research-team-settings` exakt `@local/dsh-research-team-preset` heißt;
+- die Zeile `research-team-settings` exakt `dsh-research-team-preset` heißt;
 - der aktuelle Host dieses Checkout ausführt und keine veraltete installierte Kopie.
 
 ### Jeder Teamkollege läuft auf dem Modell des Lead
@@ -363,7 +375,7 @@ Zwei weitere Ursachen betreffen nicht die Einstellungsdatei:
 
 ### Die Einstellungsseite erscheint nicht auf der Plugins-Seite
 
-- Die Zeile muss die Paketwurzel sein, nicht `@local/dsh-research-team-preset/settings`.
+- Die Zeile muss die Paketwurzel sein, nicht `dsh-research-team-preset/settings`.
 - Die Client-Hälfte benötigt nach der Installation einen DSH-Neustart und ein Neuladen des Browsers.
 - Prüfen Sie, ob das Bundle im Profil aktiviert ist.
 

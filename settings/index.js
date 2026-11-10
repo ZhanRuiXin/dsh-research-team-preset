@@ -23,7 +23,7 @@
  * on the next save.
  *
  * The page is registered at
- * `plugins.row.config` key `@local/dsh-research-team-preset#research-team-settings`.
+ * `plugins.row.config` key `dsh-research-team-preset#research-team-settings`.
  */
 
 import fs from 'node:fs'

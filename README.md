@@ -54,29 +54,41 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*`, and the Team services |
-| Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Provides `taskboard_*` and the board |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
+
+**Optional integrations.** These are plugins by other authors. The preset runs without them and installs nothing; add one only to link the team with it:
+
+- **Task board** ([`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)) — `taskboard_*`, user-facing cards, acceptance checklists, and `presetId=research-team` execution sessions. Without it, the worklog (`PLAN.md`, `INDEX.md`, per-card files) is the durable record.
+- **Zotero** (`dsh-zotero`) — the shared library tools (`zotero_*`) and the paper-fetch import path. Without it, literature work uses Semantic Scholar, arXiv, and the web, and the evidence table still records claim, source, and location.
+- **Mnemon** (`dsh-mnemon`) — durable notes across sessions (`mnemon_*`). Without it, the worklog and `CHANGELOG.md` carry continuity.
 
 If a dependency is missing, the mode can still load partially, but the team tools, the board, or the settings page will be unavailable. The plugin manager does not prompt for these bundles and does not link them automatically.
 
 ## Install
 
-This repository is a local DSH bundle. From a checkout:
+This preset ships as a DSH bundle and is published on npm as `dsh-research-team-preset`.
 
-1. **Enable the prerequisites** in the target profile:
-   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
-   - Task board: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-2. **Install this bundle** with the Plugins page/plugin manager's install action, using a local link:
+### Install from the DSH plugins page
 
-   ```text
-   link:/absolute/path/to/dsh-research-team-preset
-   ```
+1. **Enable the required bundles** in the target profile: Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). The optional integrations above can be added now or later.
+2. Open **Settings → Plugins** and click **Add**.
+3. Paste the install spec: `dsh-research-team-preset@0.1.0` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
+4. **Restart DSH.** Preset rows and the client half of the bundle load at startup.
+5. **Check the bundle is enabled** in the same profile, then **open a new session** and select **Research Team Mode** in the mode selector.
 
-   A local folder path also works. Keep the link if you plan to update from this checkout; reinstall after replacing the folder.
-3. **Restart DSH.** Preset rows and the client half of the bundle load at startup.
-4. **Check the bundle is enabled** in the same profile.
-5. **Open a new session** and select **Research Team Mode** in the mode selector.
-6. For task-board execution sessions, create cards with `presetId=research-team` so the execution uses the same persona and tools.
+### Install from the CLI
+
+```text
+dsh plugin add dsh-research-team-preset@0.1.0
+```
+
+To pin the source instead of the registry:
+
+```text
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+```
+
+For task-board execution sessions, create cards with `presetId=research-team` so the execution uses the same persona and tools.
 
 > The mode is a profile-level bundle: installing it in one profile does not enable it in another. Repeat the install and prerequisite steps per profile.
 
@@ -193,7 +205,7 @@ The settings page keeps several named model profiles for the default team member
 Open:
 
 ```text
-Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
+Plugins → dsh-research-team-preset → research-team-settings → Configure
 ```
 
 The profile bar at the top of the page:
@@ -227,7 +239,7 @@ Suggested capability tiers, as a starting point rather than a rule:
 
 The whole profile list is saved together, so switching profiles does not discard edits made in another one. The page validates names before saving and shows the server's error text when a save is rejected.
 
-The row name matters: `research-team-settings` must stay at the **package root** `@local/dsh-research-team-preset`. DSH's client-module scanner only discovers `dsh.client` for exact package-root rows; a subpath name starts the host plugin but never loads the page.
+The row name matters: `research-team-settings` must stay at the **package root** `dsh-research-team-preset`. DSH's client-module scanner only discovers `dsh.client` for exact package-root rows; a subpath name starts the host plugin but never loads the page.
 
 ### Where settings are stored
 
@@ -357,7 +369,7 @@ Version 0.1.0 fixes the known cause: the old loader passed the whole `{ roles: .
 
 - `$DSH_HOME/research-team-settings.json` exists and contains the saved profiles;
 - old `{ "roles": ... }` files are shown as a single `默认配置` profile and are rewritten in the profile shape on the next save;
-- the `research-team-settings` row is named exactly `@local/dsh-research-team-preset`;
+- the `research-team-settings` row is named exactly `dsh-research-team-preset`;
 - the current host is running this checkout, not a stale installed copy.
 
 ### Every teammate runs on the Lead's model
@@ -371,7 +383,7 @@ Two other causes are not about the settings file:
 
 ### The settings page does not appear in Plugins
 
-- The row must be the package root, not `@local/dsh-research-team-preset/settings`.
+- The row must be the package root, not `dsh-research-team-preset/settings`.
 - The client half needs a DSH restart and a browser refresh after installation.
 - Check that the bundle is enabled in the profile.
 

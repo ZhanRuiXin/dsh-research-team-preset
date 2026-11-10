@@ -286,11 +286,11 @@
           # section (shadowing the third-party plugin's Chinese section for
           # agents in this mode only).
           - id: research-project-tool
-            name: '@local/dsh-research-team-preset/tool'
+            name: 'dsh-research-team-preset/tool'
           # Optional modeled-teammate submodule. Set enabled: false (then
           # restart DSH) to remove spawn_teammate_with_model and its wrapper.
           - id: research-modeled-teammates
-            name: '@local/dsh-research-team-preset/modeled-teammates'
+            name: 'dsh-research-team-preset/modeled-teammates'
             config:
               enabled: true
               freshProvider: spawn
@@ -300,7 +300,7 @@
 # package root, not a subpath: dsh-client-modules only associates a package's
 # dsh.client bundle with an exact package specifier, and the page registers
 # into plugins.row.config under
-# @local/dsh-research-team-preset#research-team-settings.
+# dsh-research-team-preset#research-team-settings.
 - insert:
     - id: research-team-settings
-      name: '@local/dsh-research-team-preset'
+      name: 'dsh-research-team-preset'

@@ -53,31 +53,43 @@ Research Team Mode — это **bundle DSH уровня профиля**. Bundle
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Разработано для `0.2.1-rc.5`; другие версии могут работать, но не гарантируются |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Предоставляет `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` и сервисы Team |
-| Доска задач | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | Предоставляет `taskboard_*` и доску |
 | Среда PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) и [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Входит в базовый DSH; включает `run_code` |
+
+**Необязательные интеграции.** Это плагины других авторов. Пресет работает без них и ничего не устанавливает; добавьте плагин только чтобы связать команду с ним:
+
+- **Доска задач** ([`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)) — `taskboard_*`, карточки для пользователя, чек-листы приёмки и сессии выполнения с `presetId=research-team`. Без неё worklog (`PLAN.md`, `INDEX.md`, файлы карточек) остаётся долговременной записью.
+- **Zotero** (`dsh-zotero`) — инструменты общей библиотеки (`zotero_*`) и путь импорта paper-fetch. Без него литературная работа идёт через Semantic Scholar, arXiv и веб, а таблица доказательств по-прежнему фиксирует утверждение, источник и место.
+- **Mnemon** (`dsh-mnemon`) — долговременные заметки между сессиями (`mnemon_*`). Без него непрерывность обеспечивают worklog и `CHANGELOG.md`.
 
 Если зависимости не хватает, режим всё равно может загрузиться частично, но инструменты команды, доска или страница настроек будут недоступны. Менеджер плагинов не запрашивает эти bundle и не связывает их автоматически.
 
 ## Установка
 
-Этот репозиторий — локальный DSH bundle. Из checkout:
+Этот пресет поставляется как бандл DSH и опубликован в npm как `dsh-research-team-preset`.
 
-1. **Включите предварительные условия** в целевом профиле:
-   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
-   - Доска задач: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-2. **Установите этот bundle** действием установки на странице Plugins или в менеджере плагинов, используя локальную ссылку:
+### Установка со страницы плагинов DSH
 
-   ```text
-   link:/absolute/path/to/dsh-research-team-preset
-   ```
+1. **Включите обязательные бандлы** в целевом профиле: Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). Необязательные интеграции выше можно добавить сейчас или позже.
+2. Откройте **Настройки → Плагины** и нажмите **Добавить**.
+3. Вставьте источник установки: `dsh-research-team-preset@0.1.0` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
+4. **Перезапустите DSH.** Строки пресета и клиентская часть бандла загружаются при старте.
+5. **Убедитесь, что бандл включён** в том же профиле, затем **откройте новую сессию** и выберите **Research Team Mode** в выборе режима.
 
-   Локальный путь к папке тоже подходит. Сохраняйте ссылку, если планируете обновляться из этого checkout; переустановите после замены папки.
-3. **Перезапустите DSH.** Строки preset и клиентская часть bundle загружаются при старте.
-4. **Убедитесь, что bundle включён** в том же профиле.
-5. **Откройте новую сессию** и выберите **Research Team Mode** в селекторе режимов.
-6. Для сессий выполнения с доски задач создавайте карточки с `presetId=research-team`, чтобы выполнение использовало ту же персону и инструменты.
+### Установка из командной строки
 
-> Режим — это bundle уровня профиля: установка в одном профиле не включает его в другом. Повторите шаги установки и предварительных условий для каждого профиля.
+```text
+dsh plugin add dsh-research-team-preset@0.1.0
+```
+
+Чтобы закрепить исходный код вместо реестра:
+
+```text
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+```
+
+Для сессий выполнения доски задач создавайте карточки с `presetId=research-team`, чтобы выполнение использовало ту же персону и инструменты.
+
+> Режим является бандлом уровня профиля: установка в одном профиле не включает его в другом. Повторите установку и предварительные условия для каждого профиля.
 
 ## Первый запуск
 
@@ -192,7 +204,7 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 Откройте:
 
 ```text
-Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
+Plugins → dsh-research-team-preset → research-team-settings → Configure
 ```
 
 Панель профилей в верхней части страницы:
@@ -224,7 +236,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 
 Весь список профилей сохраняется целиком, поэтому переключение профилей не отбрасывает правки, сделанные в другом. Страница проверяет имена перед сохранением и показывает текст ошибки сервера, когда сохранение отклонено.
 
-Имя строки имеет значение: `research-team-settings` должно оставаться в **корне пакета** `@local/dsh-research-team-preset`. Сканер клиентских модулей DSH обнаруживает `dsh.client` только для строк с точным именем корня пакета; имя подпути запускает host-плагин, но страница никогда не загружается.
+Имя строки имеет значение: `research-team-settings` должно оставаться в **корне пакета** `dsh-research-team-preset`. Сканер клиентских модулей DSH обнаруживает `dsh.client` только для строк с точным именем корня пакета; имя подпути запускает host-плагин, но страница никогда не загружается.
 
 ### Где хранятся настройки
 
@@ -348,7 +360,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 - `$DSH_HOME/research-team-settings.json` существует и содержит сохранённые профили;
 - старые файлы `{ "roles": ... }` отображаются как один профиль `默认配置` и перезаписываются в форме профилей при следующем сохранении;
-- строка `research-team-settings` называется ровно `@local/dsh-research-team-preset`;
+- строка `research-team-settings` называется ровно `dsh-research-team-preset`;
 - текущий host запускает этот checkout, а не устаревшую установленную копию.
 
 ### Каждый участник работает на модели Lead
@@ -363,7 +375,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### Страница настроек не появляется в Plugins
 
-- Строка должна быть корнем пакета, а не `@local/dsh-research-team-preset/settings`.
+- Строка должна быть корнем пакета, а не `dsh-research-team-preset/settings`.
 - Клиентской части нужен перезапуск DSH и обновление браузера после установки.
 - Проверьте, что bundle включён в профиле.
 

@@ -53,31 +53,43 @@ Research Team Mode एक **प्रोफ़ाइल-स्तरीय DSH �
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` के विरुद्ध विकसित; अन्य रिलीज़ काम कर सकते हैं, परंतु गारंटी नहीं है |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` और Team सेवाएँ प्रदान करता है |
-| Task board | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` और बोर्ड प्रदान करता है |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) और [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH बेस का हिस्सा; `run_code` सक्षम करता है |
+
+**वैकल्पिक एकीकरण।** ये अन्य लेखकों के प्लगइन हैं। प्रीसेट इनके बिना चलता है और इन्हें इंस्टॉल नहीं करता; केवल टीम को जोड़ने के लिए इनमें से एक जोड़ें:
+
+- **टास्क बोर्ड** ([`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)) — `taskboard_*`, उपयोगकर्ता-केंद्रित कार्ड, स्वीकृति चेकलिस्ट और `presetId=research-team` निष्पादन सत्र। इसके बिना worklog (`PLAN.md`, `INDEX.md`, प्रति-कार्ड फ़ाइलें) स्थायी रिकॉर्ड है।
+- **Zotero** (`dsh-zotero`) — साझा लाइब्रेरी टूल्स (`zotero_*`) और paper-fetch आयात पथ। इसके बिना साहित्य कार्य Semantic Scholar, arXiv और वेब से होता है, और साक्ष्य तालिका दावा, स्रोत और स्थान दर्ज करती रहती है।
+- **Mnemon** (`dsh-mnemon`) — सत्रों के पार स्थायी नोट्स (`mnemon_*`)। इसके बिना worklog और `CHANGELOG.md` निरंतरता संभालते हैं।
 
 यदि कोई निर्भरता अनुपस्थित है, तो मोड फिर भी आंशिक रूप से लोड हो सकता है, लेकिन टीम टूल, बोर्ड या सेटिंग्स पृष्ठ उपलब्ध नहीं होंगे। प्लगइन मैनेजर इन बंडलों के लिए संकेत नहीं देता और उन्हें स्वतः लिंक नहीं करता।
 
 ## इंस्टॉल
 
-यह रिपॉज़िटरी एक स्थानीय DSH बंडल है। किसी चेकआउट से:
+यह प्रीसेट DSH बंडल के रूप में वितरित होता है और npm पर `dsh-research-team-preset` नाम से प्रकाशित है।
 
-1. लक्ष्य प्रोफ़ाइल में **पूर्वापेक्षाएँ सक्षम करें**:
-   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
-   - Task board: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-2. Plugins पृष्ठ/plugin manager की install क्रिया से, स्थानीय लिंक का उपयोग करते हुए **इस बंडल को इंस्टॉल करें**:
+### DSH प्लगइन पृष्ठ से इंस्टॉल करें
 
-   ```text
-   link:/absolute/path/to/dsh-research-team-preset
-   ```
+1. **आवश्यक बंडल सक्षम करें**: लक्ष्य प्रोफ़ाइल में Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)। ऊपर दिए वैकल्पिक एकीकरण अभी या बाद में जोड़े जा सकते हैं।
+2. **सेटिंग्स → प्लगइन** खोलें और **जोड़ें** पर क्लिक करें।
+3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.1.0`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
+4. **DSH को पुनः आरंभ करें।** प्रीसेट पंक्तियाँ और बंडल का क्लाइंट भाग स्टार्टअप पर लोड होते हैं।
+5. **उसी प्रोफ़ाइल में बंडल सक्षम होने की पुष्टि करें**, फिर **नया सत्र खोलें** और मोड चयनकर्ता में **Research Team Mode** चुनें।
 
-   स्थानीय फ़ोल्डर पथ भी काम करता है। यदि आप इस चेकआउट से अपडेट करना चाहते हैं तो लिंक रखें; फ़ोल्डर बदलने के बाद पुनः इंस्टॉल करें।
-3. **DSH पुनः प्रारंभ करें।** प्रीसेट पंक्तियाँ और बंडल का क्लाइंट भाग स्टार्टअप पर लोड होते हैं।
-4. उसी प्रोफ़ाइल में **जाँचें कि बंडल सक्षम है**।
-5. **नया सत्र खोलें** और मोड चयनकर्ता में **Research Team Mode** चुनें।
-6. टास्क-बोर्ड निष्पादन सत्रों के लिए, `presetId=research-team` के साथ कार्ड बनाएँ ताकि निष्पादन उसी पर्सोना और टूल का उपयोग करे।
+### कमांड लाइन से इंस्टॉल करें
 
-> यह मोड एक प्रोफ़ाइल-स्तरीय बंडल है: इसे एक प्रोफ़ाइल में इंस्टॉल करने से वह दूसरी प्रोफ़ाइल में सक्षम नहीं होता। प्रत्येक प्रोफ़ाइल के लिए इंस्टॉल और पूर्वापेक्षा के चरण दोहराएँ।
+```text
+dsh plugin add dsh-research-team-preset@0.1.0
+```
+
+रजिस्ट्री के बजाय स्रोत पिन करने के लिए:
+
+```text
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+```
+
+टास्क बोर्ड निष्पादन सत्रों के लिए `presetId=research-team` वाले कार्ड बनाएँ ताकि निष्पादन वही persona और टूल्स उपयोग करे।
+
+> यह मोड प्रोफ़ाइल-स्तरीय बंडल है: एक प्रोफ़ाइल में इंस्टॉल करने से वह दूसरे में सक्षम नहीं होता। प्रत्येक प्रोफ़ाइल के लिए इंस्टॉल और पूर्वापेक्षाएँ दोहराएँ।
 
 ## पहला रन
 
@@ -192,7 +204,7 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 खोलें:
 
 ```text
-Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
+Plugins → dsh-research-team-preset → research-team-settings → Configure
 ```
 
 पृष्ठ के शीर्ष पर प्रोफ़ाइल बार:
@@ -224,7 +236,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 
 पूरी प्रोफ़ाइल सूची एक साथ सहेजी जाती है, इसलिए प्रोफ़ाइल बदलने से किसी दूसरी प्रोफ़ाइल में किए गए संपादन नष्ट नहीं होते। पृष्ठ सहेजने से पहले नामों की जाँच करता है और सहेजना अस्वीकार होने पर सर्वर का त्रुटि पाठ दिखाता है।
 
-पंक्ति का नाम मायने रखता है: `research-team-settings` को **package root** `@local/dsh-research-team-preset` पर ही रहना चाहिए। DSH का client-module स्कैनर केवल सटीक package-root पंक्तियों के लिए `dsh.client` खोजता है; कोई subpath नाम host plugin को शुरू करता है पर पृष्ठ कभी लोड नहीं करता।
+पंक्ति का नाम मायने रखता है: `research-team-settings` को **package root** `dsh-research-team-preset` पर ही रहना चाहिए। DSH का client-module स्कैनर केवल सटीक package-root पंक्तियों के लिए `dsh.client` खोजता है; कोई subpath नाम host plugin को शुरू करता है पर पृष्ठ कभी लोड नहीं करता।
 
 ### सेटिंग्स कहाँ संग्रहीत होती हैं
 
@@ -348,7 +360,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 - `$DSH_HOME/research-team-settings.json` मौजूद है और सहेजी गई प्रोफ़ाइल रखता है;
 - पुरानी `{ "roles": ... }` फ़ाइलें एक ही `默认配置` प्रोफ़ाइल के रूप में दिखती हैं और अगली बार सहेजने पर प्रोफ़ाइल स्वरूप में फिर से लिखी जाती हैं;
-- `research-team-settings` पंक्ति का नाम ठीक `@local/dsh-research-team-preset` है;
+- `research-team-settings` पंक्ति का नाम ठीक `dsh-research-team-preset` है;
 - वर्तमान host इस चेकआउट को चला रहा है, किसी पुरानी इंस्टॉल की गई प्रति को नहीं।
 
 ### हर साथी Lead के मॉडल पर चलता है
@@ -363,7 +375,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### सेटिंग्स पृष्ठ Plugins में नहीं दिखता
 
-- पंक्ति package root होनी चाहिए, `@local/dsh-research-team-preset/settings` नहीं।
+- पंक्ति package root होनी चाहिए, `dsh-research-team-preset/settings` नहीं।
 - क्लाइंट भाग को इंस्टॉल के बाद DSH पुनः प्रारंभ और ब्राउज़र रीफ़्रेश चाहिए।
 - जाँचें कि प्रोफ़ाइल में बंडल सक्षम है।
 

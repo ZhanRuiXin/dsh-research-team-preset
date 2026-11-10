@@ -53,31 +53,43 @@ Research Team Mode 是一個 **profile 層級的 DSH bundle**。此 bundle 不�
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 以 `0.2.1-rc.5` 為開發基準；其他版本可能可用但不保證 |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*` 與 Team 服務 |
-| 任務看板 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | 提供 `taskboard_*` 與看板 |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 與 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | 屬於 DSH 基礎的一部分；啟用 `run_code` |
+
+**可選聯動外掛。** 這些是他人開發的外掛；本 preset 不依賴它們，也不會安裝它們，安裝只為與團隊聯動：
+
+- **任務看板**（[`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)）——提供 `taskboard_*`、面向使用者的卡片、驗收清單和 `presetId=research-team` 執行工作階段。沒有它時，worklog（`PLAN.md`、`INDEX.md`、逐卡檔案）是持久記錄。
+- **Zotero**（`dsh-zotero`）——提供共享文獻庫工具（`zotero_*`）與 paper-fetch 匯入路徑。沒有它時，文獻工作改用 Semantic Scholar、arXiv 與網路檢索，證據表仍記錄 claim、來源與位置。
+- **Mnemon**（`dsh-mnemon`）——提供跨工作階段的持久筆記（`mnemon_*`）。沒有它時，由 worklog 與 `CHANGELOG.md` 承擔連續性。
 
 若缺少相依項目，此模式仍可部分載入，但團隊工具、看板或設定頁面將無法使用。外掛管理員不會提示這些 bundle，也不會自動連結它們。
 
 ## 安裝
 
-此儲存庫是本機的 DSH bundle。從 checkout 開始：
+此 preset 以 DSH bundle 形式發佈，npm 套件名為 `dsh-research-team-preset`。
 
-1. **在目標 profile 中啟用先決條件**：
-   - Agent Teams：[`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
-   - 任務看板：[`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-2. **安裝此 bundle**，使用 Plugins 頁面／外掛管理員的安裝動作，並使用本機連結：
+### 從 DSH 外掛頁面安裝
 
-   ```text
-   link:/absolute/path/to/dsh-research-team-preset
-   ```
+1. **啟用必需的 bundle**：在目標 profile 中啟用 Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)。上面的可選聯動外掛可以現在安裝，也可以之後再加。
+2. 開啟 **設定 → 外掛**，點擊 **新增**。
+3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.1.0`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+4. **重新啟動 DSH。** preset 列與 bundle 的用戶端部分在啟動時載入。
+5. **確認 bundle 在同一個 profile 中已啟用**，然後**開啟新工作階段**，在模式選擇器中選擇 **Research Team Mode**。
 
-   本機資料夾路徑也可行。若打算從此 checkout 更新，請保留該連結；替換資料夾後需重新安裝。
-3. **重新啟動 DSH。** Preset 列與 bundle 的用戶端部分會在啟動時載入。
-4. **確認 bundle 已在同一個 profile 中啟用**。
-5. **開啟新的工作階段**，並在模式選擇器中選擇 **Research Team Mode**。
-6. 若用於任務看板執行工作階段，建立卡片時請使用 `presetId=research-team`，讓執行使用相同 persona 與工具。
+### 從命令列安裝
 
-> 此模式是 profile 層級的 bundle：在一個 profile 中安裝並不會在另一個 profile 中啟用。請依每個 profile 重複安裝與先決條件步驟。
+```text
+dsh plugin add dsh-research-team-preset@0.1.0
+```
+
+若要固定原始碼而不是從 registry 安裝：
+
+```text
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+```
+
+任務看板的執行工作階段請建立帶 `presetId=research-team` 的卡片，讓執行沿用同一套 persona 與工具。
+
+> 此模式是 profile 層級的 bundle：在一個 profile 中安裝不會在另一個 profile 中啟用。每個 profile 都要重複安裝與前置步驟。
 
 ## 首次執行
 
@@ -192,7 +204,7 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 開啟：
 
 ```text
-Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
+Plugins → dsh-research-team-preset → research-team-settings → Configure
 ```
 
 頁面頂端的配置列：
@@ -224,7 +236,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 
 整份配置清單會一起儲存，因此切換配置不會丟棄在另一個配置中所做的編輯。頁面在儲存前會驗證名稱，儲存被拒絕時會顯示伺服器的錯誤文字。
 
-列名很重要：`research-team-settings` 必須保持在**套件根目錄** `@local/dsh-research-team-preset`。DSH 的用戶端模組掃描器只會為套件根目錄的列探索 `dsh.client`；子路徑名稱會啟動主機外掛，但永遠不會載入頁面。
+列名很重要：`research-team-settings` 必須保持在**套件根目錄** `dsh-research-team-preset`。DSH 的用戶端模組掃描器只會為套件根目錄的列探索 `dsh.client`；子路徑名稱會啟動主機外掛，但永遠不會載入頁面。
 
 ### 設定儲存位置
 
@@ -348,7 +360,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 - `$DSH_HOME/research-team-settings.json` 存在且包含已儲存的配置；
 - 舊的 `{ "roles": ... }` 檔案會顯示為單一 `默认配置` 配置，並在下一次儲存時改寫為配置結構；
-- `research-team-settings` 列的名稱完全是 `@local/dsh-research-team-preset`；
+- `research-team-settings` 列的名稱完全是 `dsh-research-team-preset`；
 - 目前主機執行的是此 checkout，而不是過時的已安裝副本。
 
 ### 每個隊友都跑在 Lead 的模型上
@@ -359,7 +371,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### Plugins 中沒有出現設定頁面
 
-- 列必須是套件根目錄，而不是 `@local/dsh-research-team-preset/settings`。
+- 列必須是套件根目錄，而不是 `dsh-research-team-preset/settings`。
 - 用戶端部分在安裝後需要重新啟動 DSH 並重新整理瀏覽器。
 - 檢查 bundle 是否已在 profile 中啟用。
 

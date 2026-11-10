@@ -53,31 +53,43 @@ Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 �
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` 기준으로 개발되었습니다. 다른 릴리스에서도 동작할 수 있지만 보장되지는 않습니다 |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*`와 Team 서비스를 제공합니다 |
-| 작업 보드 | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*`와 보드를 제공합니다 |
 | PTC 런타임 | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 및 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH 기본 구성의 일부이며 `run_code`를 활성화합니다 |
+
+**선택적 연동 플러그인.** 다른 제작자가 만든 플러그인입니다. 이 프리셋은 이들 없이도 동작하며 설치하지도 않습니다. 팀과 연동하려는 경우에만 추가하세요:
+
+- **태스크 보드**([`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)) — `taskboard_*`, 사용자용 카드, 승인 체크리스트, `presetId=research-team` 실행 세션을 제공합니다. 없으면 worklog(`PLAN.md`, `INDEX.md`, 카드별 파일)가 영구 기록입니다.
+- **Zotero**(`dsh-zotero`) — 공유 라이브러리 도구(`zotero_*`)와 paper-fetch 가져오기 경로를 제공합니다. 없으면 문헌 작업은 Semantic Scholar, arXiv, 웹을 사용하며 증거 표는 주장·출처·위치를 계속 기록합니다.
+- **Mnemon**(`dsh-mnemon`) — 세션 간 영구 노트(`mnemon_*`)를 제공합니다. 없으면 worklog와 `CHANGELOG.md`가 연속성을 담당합니다.
 
 의존성이 없으면 모드는 부분적으로 로드될 수 있지만, 팀 도구, 보드 또는 설정 페이지를 사용할 수 없습니다. 플러그인 관리자는 이러한 번들을 제안하지 않으며 자동으로 연결하지도 않습니다.
 
 ## 설치
 
-이 저장소는 로컬 DSH 번들입니다. 체크아웃에서:
+이 프리셋은 DSH 번들로 배포되며 npm에 `dsh-research-team-preset`으로 게시되어 있습니다.
 
-1. 대상 프로필에서 **사전 요구 사항을 활성화**합니다:
-   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
-   - 작업 보드: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-2. Plugins 페이지/플러그인 관리자의 설치 기능에서 로컬 링크를 사용해 **이 번들을 설치**합니다:
+### DSH 플러그인 페이지에서 설치
 
-   ```text
-   link:/absolute/path/to/dsh-research-team-preset
-   ```
+1. **필수 번들을 활성화**합니다: 대상 프로필에서 Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). 위의 선택적 연동 플러그인은 지금 또는 나중에 추가할 수 있습니다.
+2. **설정 → 플러그인**을 열고 **추가**를 클릭합니다.
+3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.1.0`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
+4. **DSH를 재시작합니다.** 프리셋 행과 번들의 클라이언트 부분은 시작 시 로드됩니다.
+5. **같은 프로필에서 번들이 활성화되어 있는지 확인**한 뒤, **새 세션을 열고** 모드 선택기에서 **Research Team Mode**를 선택합니다.
 
-   로컬 폴더 경로도 사용할 수 있습니다. 이 체크아웃에서 업데이트할 계획이라면 링크를 유지하십시오. 폴더를 교체한 뒤에는 다시 설치해야 합니다.
-3. **DSH를 재시작합니다.** 프리셋 행과 번들의 클라이언트 절반은 시작 시 로드됩니다.
-4. 같은 프로필에서 **번들이 활성화되었는지 확인**합니다.
-5. **새 세션을 열고** 모드 선택기에서 **Research Team Mode**를 선택합니다.
-6. 작업 보드 실행 세션의 경우 `presetId=research-team`으로 카드를 만들어 실행이 동일한 페르소나와 도구를 사용하도록 합니다.
+### 명령줄에서 설치
 
-> 이 모드는 프로필 수준 번들입니다. 한 프로필에 설치해도 다른 프로필에서는 활성화되지 않습니다. 프로필마다 설치와 사전 요구 사항 단계를 반복하십시오.
+```text
+dsh plugin add dsh-research-team-preset@0.1.0
+```
+
+레지스트리 대신 소스를 고정하려면:
+
+```text
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+```
+
+태스크 보드 실행 세션은 `presetId=research-team`이 붙은 카드를 생성해 같은 persona와 도구로 실행합니다.
+
+> 이 모드는 프로필 수준 번들입니다. 한 프로필에 설치해도 다른 프로필에서는 활성화되지 않습니다. 프로필마다 설치와 사전 요구사항을 반복하세요.
 
 ## 첫 실행
 
@@ -192,7 +204,7 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 여십시오:
 
 ```text
-Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
+Plugins → dsh-research-team-preset → research-team-settings → Configure
 ```
 
 페이지 상단의 프로필 바에서 다음을 할 수 있습니다:
@@ -224,7 +236,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 
 프로필 목록 전체가 한꺼번에 저장되므로, 프로필을 전환해도 다른 프로필에서 편집한 내용이 버려지지 않습니다. 페이지는 저장 전에 이름을 검증하며, 저장이 거부되면 서버의 오류 텍스트를 표시합니다.
 
-행 이름이 중요합니다: `research-team-settings`는 **패키지 루트** `@local/dsh-research-team-preset`에 있어야 합니다. DSH의 클라이언트 모듈 스캐너는 정확히 패키지 루트인 행에 대해서만 `dsh.client`를 탐색합니다. 하위 경로 이름을 쓰면 호스트 플러그인은 시작되지만 페이지는 절대 로드되지 않습니다.
+행 이름이 중요합니다: `research-team-settings`는 **패키지 루트** `dsh-research-team-preset`에 있어야 합니다. DSH의 클라이언트 모듈 스캐너는 정확히 패키지 루트인 행에 대해서만 `dsh.client`를 탐색합니다. 하위 경로 이름을 쓰면 호스트 플러그인은 시작되지만 페이지는 절대 로드되지 않습니다.
 
 ### 설정이 저장되는 위치
 
@@ -348,7 +360,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 - `$DSH_HOME/research-team-settings.json`이 존재하고 저장된 프로필을 포함하는지;
 - 이전 `{ "roles": ... }` 파일은 단일 `默认配置` 프로필로 표시되며, 다음 저장 시 프로필 형태로 다시 기록되는지;
-- `research-team-settings` 행의 이름이 정확히 `@local/dsh-research-team-preset`인지;
+- `research-team-settings` 행의 이름이 정확히 `dsh-research-team-preset`인지;
 - 현재 호스트가 오래된 설치본이 아니라 이 체크아웃을 실행 중인지.
 
 ### 모든 팀원은 Lead의 모델로 실행된다
@@ -363,7 +375,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### Plugins에 설정 페이지가 나타나지 않음
 
-- 행은 `@local/dsh-research-team-preset/settings`가 아니라 패키지 루트여야 합니다.
+- 행은 `dsh-research-team-preset/settings`가 아니라 패키지 루트여야 합니다.
 - 클라이언트 절반은 설치 후 DSH 재시작과 브라우저 새로 고침이 필요합니다.
 - 프로필에서 번들이 활성화되어 있는지 확인하십시오.
 

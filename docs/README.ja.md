@@ -53,31 +53,43 @@ Research Team Mode は**プロファイルレベルの DSH バンドル**です�
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` を基準に開発。他のリリースでも動作する可能性はありますが保証はありません |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*`、および Team サービスを提供 |
-| タスクボード | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | `taskboard_*` とボードを提供 |
 | PTC ランタイム | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) と [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH ベースの一部。`run_code` を有効化 |
+
+**任意の連携プラグイン。** これらは他者が開発したプラグインです。本プリセットはこれらに依存せず、インストールもしません。チームと連携させたい場合にのみ追加します:
+
+- **タスクボード**（[`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)）——`taskboard_*`、ユーザー向けカード、受け入れチェックリスト、`presetId=research-team` の実行セッションを提供します。無い場合、worklog（`PLAN.md`、`INDEX.md`、カードごとのファイル）が永続的な記録になります。
+- **Zotero**（`dsh-zotero`）——共有ライブラリのツール（`zotero_*`）と paper-fetch の取り込み経路を提供します。無い場合、文献作業は Semantic Scholar、arXiv、Web を使い、証拠表は主張・出典・位置を記録し続けます。
+- **Mnemon**（`dsh-mnemon`）——セッションをまたぐ永続ノート（`mnemon_*`）を提供します。無い場合、worklog と `CHANGELOG.md` が継続性を担います。
 
 依存関係が欠けていてもモードは部分的に読み込まれますが、チームツール、ボード、設定ページのいずれかが利用できなくなります。プラグインマネージャーはこれらのバンドルを促したり、自動でリンクしたりすることはありません。
 
 ## インストール
 
-このリポジトリはローカルの DSH バンドルです。チェックアウトから次の手順で行います。
+このプリセットは DSH バンドルとして配布され、npm で `dsh-research-team-preset` として公開されています。
 
-1. 対象のプロファイルで**前提条件を有効化**します:
-   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
-   - タスクボード: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-2. Plugins ページ／プラグインマネージャーのインストール操作で、ローカルリンクを指定して**このバンドルをインストール**します:
+### DSH のプラグインページからインストール
 
-   ```text
-   link:/absolute/path/to/dsh-research-team-preset
-   ```
+1. **必須バンドルを有効化**します: 対象プロファイルで Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)。上記の任意の連携プラグインは今からでも後からでも追加できます。
+2. **設定 → プラグイン** を開き、**追加** をクリックします。
+3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.1.0`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
+4. **DSH を再起動します。** プリセット行とバンドルのクライアント側は起動時に読み込まれます。
+5. **同じプロファイルでバンドルが有効になっていることを確認**し、**新しいセッションを開いて** モード選択で **Research Team Mode** を選びます。
 
-   ローカルのフォルダパスでも構いません。このチェックアウトから更新する予定がある場合はリンクを保持してください。フォルダを置き換えた後は再インストールしてください。
-3. **DSH を再起動します。** プリセットの行とバンドルのクライアント側は起動時に読み込まれます。
-4. 同じプロファイルで**バンドルが有効になっていること**を確認します。
-5. **新しいセッションを開き**、モードセレクターで **Research Team Mode** を選択します。
-6. タスクボードの実行セッションでは、`presetId=research-team` を指定してカードを作成し、実行が同じペルソナとツールを使うようにします。
+### コマンドラインからインストール
 
-> このモードはプロファイルレベルのバンドルです。あるプロファイルにインストールしても、別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件の手順を繰り返してください。
+```text
+dsh plugin add dsh-research-team-preset@0.1.0
+```
+
+レジストリではなくソースを固定する場合:
+
+```text
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+```
+
+タスクボードの実行セッションでは `presetId=research-team` を付けたカードを作成し、同じ persona とツールで実行します。
+
+> このモードはプロファイル単位のバンドルです。あるプロファイルにインストールしても別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件を繰り返してください。
 
 ## 初回実行
 
@@ -192,7 +204,7 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 次の場所を開きます:
 
 ```text
-Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
+Plugins → dsh-research-team-preset → research-team-settings → Configure
 ```
 
 ページ上部のプロファイルバー:
@@ -224,7 +236,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 
 プロファイル一覧はまとめて保存されるため、プロファイルを切り替えても別のプロファイルでの編集は失われません。ページは保存前に名前を検証し、保存が拒否された場合はサーバーのエラーテキストを表示します。
 
-行の名前が重要です: `research-team-settings` は**パッケージルート** `@local/dsh-research-team-preset` に置く必要があります。DSH のクライアントモジュールスキャナーは、パッケージルートに完全一致する行についてのみ `dsh.client` を検出します。サブパスの名前ではホストプラグインは起動しますが、ページは決して読み込まれません。
+行の名前が重要です: `research-team-settings` は**パッケージルート** `dsh-research-team-preset` に置く必要があります。DSH のクライアントモジュールスキャナーは、パッケージルートに完全一致する行についてのみ `dsh.client` を検出します。サブパスの名前ではホストプラグインは起動しますが、ページは決して読み込まれません。
 
 ### 設定の保存場所
 
@@ -348,7 +360,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 - `$DSH_HOME/research-team-settings.json` が存在し、保存したプロファイルが含まれているか。
 - 古い `{ "roles": ... }` ファイルは単一の `默认配置` プロファイルとして表示され、次回の保存時にプロファイル形式へ書き換えられるか。
-- `research-team-settings` 行の名前が正確に `@local/dsh-research-team-preset` か。
+- `research-team-settings` 行の名前が正確に `dsh-research-team-preset` か。
 - 現在のホストがこのチェックアウトを実行しており、古いインストール済みコピーではないか。
 
 ### 各チームメイトは Lead のモデルで実行される
@@ -363,7 +375,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### 設定ページが Plugins に表示されない
 
-- 行はパッケージルートである必要があり、`@local/dsh-research-team-preset/settings` ではいけません。
+- 行はパッケージルートである必要があり、`dsh-research-team-preset/settings` ではいけません。
 - クライアント側はインストール後に DSH の再起動とブラウザのリロードが必要です。
 - バンドルがプロファイルで有効になっているか確認してください。
 

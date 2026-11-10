@@ -1,5 +1,5 @@
 window.__ModuleLoader__.load({
-  id: '@local/dsh-research-team-preset',
+  id: 'dsh-research-team-preset',
   factory: (require) => {
     const module = { exports: {} }
     const exports = module.exports
@@ -529,7 +529,7 @@ window.__ModuleLoader__.load({
       const loadCatalog = () => ctx.remote.session.modelCatalog()
       ctx.slots.inject('plugins.row.config', () => ctx.slots.register({
         name: 'plugins.row.config',
-        key: '@local/dsh-research-team-preset#research-team-settings'
+        key: 'dsh-research-team-preset#research-team-settings'
       }, (props) => props && props.view === 'summary'
         ? '配置默认团队成员的 LLM 与思考强度'
         : h(SettingsPage, { ...(props || {}), loadCatalog })))

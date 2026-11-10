@@ -53,31 +53,43 @@
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | طُوِّر على `0.2.1-rc.5`؛ قد تعمل إصدارات أخرى، لكن ذلك غير مضمون |
 | Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | يوفّر `spawn_teammate` و`send_message` و`wait_agent` و`interrupt_agent` و`team_task_*` وخدمات Team |
-| لوحة المهام | [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) | يوفّر `taskboard_*` ولوحة المهام |
 | بيئة PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) و[`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | جزء من أساس DSH؛ يتيح `run_code` |
+
+**تكاملات اختيارية.** هذه إضافات من مؤلفين آخرين. يعمل الإعداد المسبق بدونها ولا يثبّتها؛ أضف واحدة فقط لربط الفريق بها:
+
+- **لوحة المهام** ([`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)) — `taskboard_*` وبطاقات للمستخدم وقوائم قبول وجلسات تنفيذ `presetId=research-team`. بدونها يكون سجل العمل (`PLAN.md` و`INDEX.md` وملفات البطاقات) هو السجل الدائم.
+- **Zotero** (`dsh-zotero`) — أدوات المكتبة المشتركة (`zotero_*`) ومسار الاستيراد عبر paper-fetch. بدونه يعتمد العمل الأدبي على Semantic Scholar وarXiv والويب، ويواصل جدول الأدلة تسجيل الادعاء والمصدر والموضع.
+- **Mnemon** (`dsh-mnemon`) — ملاحظات دائمة عبر الجلسات (`mnemon_*`). بدونه يحمل سجل العمل و`CHANGELOG.md` الاستمرارية.
 
 إذا غابت إحدى التبعيات، يظل الوضع قادرًا على التحميل جزئيًا، لكن أدوات الفريق أو اللوحة أو صفحة الإعدادات ستكون غير متاحة. ولا يطلب مدير الإضافات هذه الـ bundles ولا يربطها تلقائيًا.
 
 ## التثبيت
 
-هذا المستودع bundle محلي في DSH. بدءًا من نسخة checkout:
+يُوزَّع هذا الإعداد المسبق كحزمة DSH ويُنشر على npm باسم `dsh-research-team-preset`.
 
-1. **فعّل المتطلبات المسبقة** في الـ profile المستهدف:
-   - Agent Teams: [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)
-   - لوحة المهام: [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)
-2. **ثبّت هذا الـ bundle** عبر إجراء التثبيت في صفحة Plugins/مدير الإضافات، باستخدام رابط محلي:
+### التثبيت من صفحة الإضافات في DSH
 
-   ```text
-   link:/absolute/path/to/dsh-research-team-preset
-   ```
+1. **فعّل الحزم المطلوبة** في ملف التعريف الهدف: Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). يمكن إضافة التكاملات الاختيارية أعلاه الآن أو لاحقًا.
+2. افتح **الإعدادات ← الإضافات** واضغط **إضافة**.
+3. الصق مصدر التثبيت: `dsh-research-team-preset@0.1.0` لحزمة npm، أو `github:ZhanRuiXin/dsh-research-team-preset#v0.1.0` لتثبيت المصدر، أو `link:/absolute/path/to/dsh-research-team-preset` لنسخة محلية.
+4. **أعد تشغيل DSH.** تُحمَّل أسطر الإعداد المسبق والجزء العميلي من الحزمة عند البدء.
+5. **تحقق من تفعيل الحزمة** في ملف التعريف نفسه، ثم **افتح جلسة جديدة** واختر **Research Team Mode** في محدِّد الوضع.
 
-   كما يعمل مسار مجلد محلي أيضًا. أبقِ الرابط إذا كنت تخطّط للتحديث من نسخة الـ checkout هذه؛ وأعد التثبيت بعد استبدال المجلد.
-3. **أعد تشغيل DSH.** تُحمَّل صفوف الـ preset والجزء العميل من الـ bundle عند بدء التشغيل.
-4. **تحقق من تفعيل الـ bundle** في الـ profile نفسه.
-5. **افتح جلسة جديدة** واختر **Research Team Mode** في محدّد الوضع.
-6. لجلسات التنفيذ في لوحة المهام، أنشئ البطاقات بـ `presetId=research-team` كي يستخدم التنفيذ الشخصية (persona) والأدوات نفسها.
+### التثبيت من سطر الأوامر
 
-> الوضع bundle على مستوى profile: تثبيته في profile واحد لا يفعّله في profile آخر. كرّر خطوات التثبيت والمتطلبات المسبقة لكل profile.
+```text
+dsh plugin add dsh-research-team-preset@0.1.0
+```
+
+لتثبيت المصدر بدلاً من السجل:
+
+```text
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.0
+```
+
+لجلسات تنفيذ لوحة المهام، أنشئ بطاقات تحمل `presetId=research-team` كي يستخدم التنفيذ الشخصية والأدوات نفسها.
+
+> الوضع هو حزمة على مستوى ملف التعريف: تثبيته في ملف تعريف لا يفعّله في ملف آخر. أعد التثبيت والمتطلبات المسبقة لكل ملف تعريف.
 
 ## أول تشغيل
 
@@ -192,7 +204,7 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 افتح:
 
 ```text
-Plugins → @local/dsh-research-team-preset → research-team-settings → Configure
+Plugins → dsh-research-team-preset → research-team-settings → Configure
 ```
 
 شريط ملفات التعريف أعلى الصفحة:
@@ -224,7 +236,7 @@ Plugins → @local/dsh-research-team-preset → research-team-settings → Confi
 
 تُحفظ قائمة ملفات التعريف كاملةً معًا، لذا لا يلغي التبديل بين ملفات التعريف التعديلات التي أُجريت في ملف آخر. وتتحقق الصفحة من الأسماء قبل الحفظ وتعرض نص خطأ الخادم عندما يُرفض الحفظ.
 
-اسم الصف مهم: يجب أن يبقى `research-team-settings` في **جذر الحزمة** `@local/dsh-research-team-preset`. فماسح وحدات العميل في DSH لا يكتشف `dsh.client` إلا في صفوف جذر الحزمة بالضبط؛ أما الاسم بمسار فرعي فيشغّل إضافة المضيف لكنه لا يحمّل الصفحة أبدًا.
+اسم الصف مهم: يجب أن يبقى `research-team-settings` في **جذر الحزمة** `dsh-research-team-preset`. فماسح وحدات العميل في DSH لا يكتشف `dsh.client` إلا في صفوف جذر الحزمة بالضبط؛ أما الاسم بمسار فرعي فيشغّل إضافة المضيف لكنه لا يحمّل الصفحة أبدًا.
 
 ### أين تُخزَّن الإعدادات
 
@@ -348,7 +360,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 - وجود `$DSH_HOME/research-team-settings.json` واحتوائه على ملفات التعريف المحفوظة؛
 - الملفات القديمة `{ "roles": ... }` تُعرض كملف تعريف واحد باسم `默认配置`، ويُعاد كتابتها بشكل ملفات التعريف عند الحفظ التالي؛
-- أن صف `research-team-settings` مسمّى بالضبط `@local/dsh-research-team-preset`؛
+- أن صف `research-team-settings` مسمّى بالضبط `dsh-research-team-preset`؛
 - أن المضيف الحالي يشغّل نسخة الـ checkout هذه، لا نسخة مثبَّتة قديمة.
 
 ### كل عضو في الفريق يعمل على نموذج Lead
@@ -363,7 +375,7 @@ GET/POST http://127.0.0.1:<port>/api/dsh-research-team-settings
 
 ### صفحة الإعدادات لا تظهر في Plugins
 
-- يجب أن يكون الصف هو جذر الحزمة، لا `@local/dsh-research-team-preset/settings`.
+- يجب أن يكون الصف هو جذر الحزمة، لا `dsh-research-team-preset/settings`.
 - يحتاج الجزء العميل إلى إعادة تشغيل DSH وتحديث المتصفح بعد التثبيت.
 - تحقق من تفعيل الـ bundle في الـ profile.
 

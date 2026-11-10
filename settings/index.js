@@ -277,6 +277,16 @@ export function apply(ctx) {
     }
   }
 
-  const dispose = ctx.webServer.register({ kind: 'exact', path: ROUTE, handler })
+  // The host can re-apply this bundle inside one process (a profile reload or
+  // a hot reload after a plugin change). The route table refuses a second exact
+  // path, but the handler from the first mount already serves this store, so an
+  // already-mounted route is reused instead of failing the row at startup.
+  let dispose = () => {}
+  try {
+    dispose = ctx.webServer.register({ kind: 'exact', path: ROUTE, handler })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (!message.includes(`webserver: duplicate exact route "${ROUTE}"`)) throw error
+  }
   return () => dispose()
 }

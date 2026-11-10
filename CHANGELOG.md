@@ -1,6 +1,10 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.1.0.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.1.1.
+
+## 0.1.1 — 2026-11-10
+
+- The settings row survives a re-apply of the bundle inside one process: when the host re-mounts the plugin after a profile or hot reload, it reuses the live `/api/dsh-research-team-settings` handler instead of failing with `webserver: duplicate exact route`. Added `test/settings-route.test.js` and removed the stale `@local/dsh-research-team-preset` link and lockfile entry from the profile.
 
 ## 0.1.0 — 2026-11-10
 

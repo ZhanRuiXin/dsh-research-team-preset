@@ -129,6 +129,34 @@ window.__ModuleLoader__.load({
       return lines.length === 0 ? [''] : lines
     }
 
+    const NODE_FONT = 14
+    const NODE_PAD_X = 12
+    const NODE_MIN_W = 96
+    const NODE_MAX_W = 220
+    const NODE_LINE_H = 15
+    const NODE_MIN_H = 42
+
+    /* Width and height follow the label: one line if it fits, two if it must wrap. */
+    function sizeNode(node, fontFamily) {
+      const label = String(node.label ?? '')
+      const natural = textWidthOf(label, NODE_FONT, fontFamily)
+      const single = (natural === null ? estimateWidth(label, NODE_FONT) : natural) + NODE_PAD_X * 2
+      const w = Math.min(NODE_MAX_W, Math.max(NODE_MIN_W, single))
+      const lines = fitLabel(label, w - NODE_PAD_X * 2, NODE_FONT, fontFamily)
+      const h = Math.max(NODE_MIN_H, lines.length * NODE_LINE_H + 20)
+      return {
+        id: node.id,
+        label: node.label,
+        kind: node.kind,
+        x: Number(node.x) || 0,
+        y: Number(node.y) || 0,
+        w,
+        h,
+        lines,
+        fontSize: NODE_FONT
+      }
+    }
+
     function statusTone(status) {
       const value = String(status ?? '').toLowerCase()
       if (value === 'in_progress' || value === 'running') return 'var(--dsw-alias-brand-primary)'
@@ -330,7 +358,10 @@ window.__ModuleLoader__.load({
         observer.observe(el)
         return () => observer.disconnect()
       }, [])
-      const auto = fitBox(card.nodes, aspect)
+      const nodes = Array.isArray(card.nodes) ? card.nodes : []
+      const fontFamily = fontFamilyOf(svgRef.current)
+      const sized = nodes.map((node) => sizeNode(node, fontFamily))
+      const auto = fitBox(sized, aspect)
       const box = view || auto
       const zoom = Math.round((auto.w / box.w) * 100)
 
@@ -424,13 +455,9 @@ window.__ModuleLoader__.load({
         if (!moved && typeof props.onClear === 'function') {
           props.onClear()
         } else if (x1 - x0 > 6 && y1 - y0 > 6) {
-          const hits = (card.nodes || []).filter((node) => {
-            const left = Number(node.x) || 0
-            const top = Number(node.y) || 0
-            const w = Number(node.w) || 0
-            const hgt = Number(node.h) || 0
-            return left < x1 && left + w > x0 && top < y1 && top + hgt > y0
-          }).map((node) => node.id)
+          const hits = sized.filter((node) => (
+            node.x < x1 && node.x + node.w > x0 && node.y < y1 && node.y + node.h > y0
+          )).map((node) => node.id)
           props.onMarquee(hits)
         }
         setMarquee(null)
@@ -440,10 +467,8 @@ window.__ModuleLoader__.load({
         setPointerId(null)
       }
 
-      const nodes = Array.isArray(card.nodes) ? card.nodes : []
-      const fontFamily = fontFamilyOf(svgRef.current)
       const edges = Array.isArray(card.edges) ? card.edges : []
-      const byId = new Map(nodes.map((node) => [node.id, node]))
+      const byId = new Map(sized.map((node) => [node.id, node]))
       const gridId = `rtp-grid-${String(card.id).replace(/[^a-zA-Z0-9_-]/g, '')}`
 
       const edgeElements = edges.map((edge, index) => {
@@ -460,14 +485,14 @@ window.__ModuleLoader__.load({
         })
       })
 
-      const nodeElements = nodes.map((node, index) => {
+      const nodeElements = sized.map((node, index) => {
         const isSelected = selected.indexOf(node.id) >= 0
-        const w = Number(node.w) || 160
-        const hgt = Number(node.h) || 56
-        const x = Number(node.x) || 0
-        const y = Number(node.y) || 0
-        const fontSize = hgt >= 64 ? 15 : hgt >= 48 ? 14 : 12.5
-        const lines = fitLabel(node.label, w - 24, fontSize, fontFamily)
+        const w = node.w
+        const hgt = node.h
+        const x = node.x
+        const y = node.y
+        const fontSize = node.fontSize
+        const lines = node.lines
         const clipId = `rtp-clip-${String(card.id).replace(/[^a-zA-Z0-9_-]/g, '')}-${index}`
         const accent = KIND_ACCENTS[node.kind] || KIND_ACCENTS.module
         return h('g', {

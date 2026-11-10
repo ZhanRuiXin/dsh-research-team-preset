@@ -179,6 +179,8 @@ The preset adds a Research tab to the right sidebar. It answers what the team is
 
 Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the note you write is stored on the card as an annotation the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
 
+The panel ships as its own module under `panel/`, separate from the settings form, so it can be enabled or disabled on its own. It appears both as a left-rail entry and as a right-sidebar tab.
+
 ## Task board workflow
 
 ```text

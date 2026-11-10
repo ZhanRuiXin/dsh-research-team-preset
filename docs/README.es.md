@@ -178,6 +178,8 @@ El preset añade una pestaña Investigación a la barra lateral derecha. Respond
 
 Las tarjetas de arquitectura son diagramas de nodos y aristas guardados como JSON en `.research/architecture/`, un archivo por tarjeta. El agente las lee y actualiza con la herramienta `research_architecture`, de modo que el diagrama siga al diseño en lugar de derivar en una diapositiva. La tarjeta se representa en SVG dentro del panel; al arrastrar un recuadro sobre los nodos se seleccionan, y la nota que escribes se guarda en la tarjeta como anotación que el agente lee antes de responder. La pestaña se registra mediante `dsh-better-sidebar` cuando ese plugin está instalado y, si no, en la barra lateral derecha nativa.
 
+El panel es un módulo propio en `panel/`, separado del formulario de ajustes, y se puede activar o desactivar por separado. Aparece como entrada de la barra izquierda y como pestaña de la barra lateral derecha.
+
 ## Flujo de trabajo del tablero de tareas
 
 ```text

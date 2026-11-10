@@ -308,3 +308,12 @@
 - insert:
     - id: research-team-settings
       name: 'dsh-research-team-preset'
+
+# Research sidebar module. Its own package (panel/) so dsh-client-modules
+# composes a second client bundle, independent of the settings page: the
+# sidebar can be enabled or disabled on its own, and a failure in it cannot
+# take the settings form down with it. The row resolves through the package
+# directory next to this patch.
+- insert:
+    - id: research-team-panel
+      name: './panel/index.js'

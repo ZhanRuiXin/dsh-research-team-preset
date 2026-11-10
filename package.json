@@ -54,6 +54,7 @@
     "plugin/",
     "settings/",
     "client/",
+    "panel/",
     "docs/",
     "README.md",
     "DEVELOPMENT.md",

@@ -181,6 +181,8 @@ Architecture cards are node and edge diagrams stored as JSON under `.research/ar
 
 The panel ships as its own module under `panel/`, separate from the settings form, so it can be enabled or disabled on its own. It appears both as a left-rail entry and as a right-sidebar tab.
 
+The designer owns the method card and the builder owns the implementation card; the advisor reads both before reviewing a design or implementation decision, and the reviewer checks them at the results gate. Drag with the middle mouse button to pan the canvas, scroll to zoom, and drag a box over nodes to select them for an annotation.
+
 ## Task board workflow
 
 ```text

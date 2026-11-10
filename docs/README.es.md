@@ -180,6 +180,8 @@ Las tarjetas de arquitectura son diagramas de nodos y aristas guardados como JSO
 
 El panel es un módulo propio en `panel/`, separado del formulario de ajustes, y se puede activar o desactivar por separado. Aparece como entrada de la barra izquierda y como pestaña de la barra lateral derecha.
 
+El diseñador posee la tarjeta del método y el constructor la de implementación; el asesor lee ambas antes de revisar una decisión de diseño o implementación, y el revisor las contrasta en la puerta de resultados. Arrastra con el botón central para desplazar el lienzo, usa la rueda para acercar y arrastra un rectángulo sobre los nodos para seleccionarlos y anotar.
+
 ## Flujo de trabajo del tablero de tareas
 
 ```text

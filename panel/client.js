@@ -118,6 +118,8 @@ window.__ModuleLoader__.load({
 .rtp-seg .v{color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);font-size:12.5px;margin-left:4px}
 .rtp-canvas{position:relative;margin-top:8px;border:.5px solid var(--dsw-alias-border-l2);border-radius:10px;overflow:hidden;background:var(--dsw-alias-bg-layer-1)}
 .rtp-canvas svg{display:block;width:100%;height:360px;touch-action:none;cursor:crosshair}
+.rtp-canvas,.rtp-canvas *{user-select:none;-webkit-user-select:none}
+.rtp-canvas.rtp-panning svg{cursor:grabbing}
 .rtp-tools{position:absolute;top:8px;right:8px;display:flex;gap:2px;padding:2px;border-radius:7px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 82%,transparent);border:.5px solid var(--dsw-alias-border-l2);backdrop-filter:blur(6px)}
 .rtp-tools button{width:27px;height:27px;border:0;border-radius:5px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:16px;line-height:1;cursor:pointer}
 .rtp-tools button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
@@ -238,6 +240,7 @@ window.__ModuleLoader__.load({
       const [view, setView] = React.useState(null)
       const [marquee, setMarquee] = React.useState(null)
       const [pointerId, setPointerId] = React.useState(null)
+      const panRef = React.useRef(null)
 
       const wrapRef = React.useRef(null)
       const [aspect, setAspect] = React.useState(360 / 380)
@@ -282,6 +285,22 @@ window.__ModuleLoader__.load({
       }
 
       function onDown(event) {
+        if (event.button === 1) {
+          event.preventDefault()
+          const svg = svgRef.current
+          const rect = svg === null ? null : svg.getBoundingClientRect()
+          panRef.current = {
+            pointerId: event.pointerId,
+            clientX: event.clientX,
+            clientY: event.clientY,
+            box,
+            scale: rect === null || rect.width === 0 ? 1 : box.w / rect.width
+          }
+          if (svg !== null) {
+            try { svg.setPointerCapture(event.pointerId) } catch {}
+          }
+          return
+        }
         if (event.button !== 0) return
         const start = point(event)
         setPointerId(event.pointerId)
@@ -290,12 +309,31 @@ window.__ModuleLoader__.load({
       }
 
       function onMove(event) {
+        const pan = panRef.current
+        if (pan !== null && pan.pointerId === event.pointerId) {
+          event.preventDefault()
+          setView({
+            x: pan.box.x - (event.clientX - pan.clientX) * pan.scale,
+            y: pan.box.y - (event.clientY - pan.clientY) * pan.scale,
+            w: pan.box.w,
+            h: pan.box.h
+          })
+          return
+        }
         if (marquee === null) return
         const current = point(event)
         setMarquee({ ...marquee, x1: current.x, y1: current.y })
       }
 
       function onUp() {
+        const pan = panRef.current
+        if (pan !== null) {
+          panRef.current = null
+          if (svgRef.current !== null) {
+            try { svgRef.current.releasePointerCapture(pan.pointerId) } catch {}
+          }
+          return
+        }
         if (marquee === null) return
         const x0 = Math.min(marquee.x0, marquee.x1)
         const x1 = Math.max(marquee.x0, marquee.x1)
@@ -390,6 +428,8 @@ window.__ModuleLoader__.load({
           ref: svgRef,
           viewBox: `${box.x} ${box.y} ${box.w} ${box.h}`,
           onWheel,
+          onAuxClick: (event) => event.preventDefault(),
+          onContextMenu: (event) => event.preventDefault(),
           onPointerDown: onDown,
           onPointerMove: onMove,
           onPointerUp: onUp,
@@ -427,7 +467,7 @@ window.__ModuleLoader__.load({
         ]),
         h('div', { key: 'tools', className: 'rtp-tools' }, [
           h('button', { key: 'out', type: 'button', title: '缩小', onClick: () => zoomTo((auto.w / box.w) * 0.85) }, '−'),
-          h('button', { key: 'pct', type: 'button', title: '双击画布适应窗口', onClick: () => setView(null), style: { width: '42px', fontSize: '13px' } }, `${zoom}%`),
+          h('button', { key: 'pct', type: 'button', title: '中键拖动平移，滚轮缩放，双击适应窗口', onClick: () => setView(null), style: { width: '42px', fontSize: '13px' } }, `${zoom}%`),
           h('button', { key: 'in', type: 'button', title: '放大', onClick: () => zoomTo((auto.w / box.w) * 1.15) }, '+')
         ])
       ])

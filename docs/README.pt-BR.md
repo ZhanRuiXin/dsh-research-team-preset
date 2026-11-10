@@ -180,6 +180,8 @@ Os cartões de arquitetura são diagramas de nós e arestas armazenados como JSO
 
 O painel é um módulo próprio em `panel/`, separado do formulário de configurações, e pode ser ativado ou desativado isoladamente. Ele aparece como entrada na barra esquerda e como aba na barra lateral direita.
 
+O designer é dono do cartão de método e o builder do cartão de implementação; o advisor lê os dois antes de revisar uma decisão de design ou implementação, e o revisor os confere no portão de resultados. Arraste com o botão do meio para mover a tela, use a roda para ampliar e arraste uma caixa sobre os nós para selecioná-los e anotar.
+
 ## Fluxo do quadro de tarefas
 
 ```text

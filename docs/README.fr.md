@@ -180,6 +180,8 @@ Les cartes d'architecture sont des diagrammes nœuds-liens stockés en JSON sous
 
 Le panneau est un module à part sous `panel/`, séparé du formulaire de réglages, activable ou désactivable indépendamment. Il apparaît à la fois comme entrée de la barre de gauche et comme onglet de la barre latérale droite.
 
+Le designer possède la carte de méthode, le builder la carte d’implémentation ; l’advisor lit les deux avant de revoir une décision de conception ou d’implémentation, et le reviewer les vérifie à la porte des résultats. Faire glisser avec le bouton du milieu déplace la vue, la molette zoome, et un cadre sur les nœuds les sélectionne pour une annotation.
+
 ## Flux du tableau des tâches
 
 ```text

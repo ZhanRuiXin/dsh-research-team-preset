@@ -5,6 +5,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 ## Unreleased
 
 - Research sidebar: a Research entry in the left rail and a right-side tab show the objective, active cards, runs, design documents and architecture cards, registering through `dsh-better-sidebar` when present and the native sidebar otherwise; architecture cards live in `.research/architecture/`, render as SVG, support box-selection annotations, and are edited by the agent through the new `research_architecture` tool. The panel ships as its own module under `panel/`, independent of the settings form.
+- Architecture cards are owned by the role that realizes them (designer: method, builder: implementation), the advisor reads them before a review and the reviewer checks them at the results gate; the canvas pans with the middle mouse button and no longer selects text while dragging a selection box.
 - The Research panel got a visual pass: a token-based stylesheet with light and dark support, a fitted architecture view that fills the column, portrait architecture cards, seed progress on runs, and a compose card for annotations.
 
 - Answers obey the ask: the Lead keeps the user's questions as the contract for the turn, delivers the requested survey, extension list, or decision before any research program, walks each question in the reply, and says plainly when one cannot be answered yet.

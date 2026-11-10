@@ -180,6 +180,8 @@ Architekturkarten sind Knoten-Kanten-Diagramme als JSON unter `.research/archite
 
 Das Panel ist ein eigenes Modul unter `panel/`, getrennt vom Einstellungsformular, und lässt sich einzeln aktivieren oder deaktivieren. Es erscheint sowohl als Eintrag in der linken Leiste als auch als Tab in der rechten Seitenleiste.
 
+Der Designer besitzt die Methodenkarte, der Builder die Implementierungskarte; der Advisor liest beide, bevor er eine Design- oder Implementierungsentscheidung prüft, und der Reviewer gleicht sie am Ergebnis-Gate ab. Mit der mittleren Maustaste ziehen verschiebt die Ansicht, das Rad zoomt, und ein Rahmen über Knoten wählt sie für eine Notiz aus.
+
 ## Arbeitsablauf im Task Board
 
 ```text

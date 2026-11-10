@@ -778,9 +778,15 @@ window.__ModuleLoader__.load({
         return ''
       }
 
-      const betterSidebar = typeof ctx.get === 'function' ? ctx.get('betterSidebar') : undefined
-      if (betterSidebar !== undefined && betterSidebar !== null && typeof betterSidebar.registerTab === 'function') {
-        ctx.effect(() => betterSidebar.registerTab({
+      /* better-sidebar may activate after this module does, so wait for its service
+         instead of deciding once at apply time: an immediate ctx.get() misses it on
+         a cold start and the tab only reappears when the module is toggled. */
+      let registeredFor = null
+      const registerBetterTab = (service) => {
+        if (service === undefined || service === null || typeof service.registerTab !== 'function') return
+        if (registeredFor === service) return
+        registeredFor = service
+        ctx.effect(() => service.registerTab({
           id: 'research-team:panel',
           title: '研究',
           description: '团队状态：架构卡片、任务、实验与设计文档',
@@ -789,6 +795,14 @@ window.__ModuleLoader__.load({
           component: (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })
         }))
       }
+
+      if (typeof ctx.inject === 'function') {
+        ctx.inject(['betterSidebar'], (inner) => {
+          registerBetterTab(inner.betterSidebar)
+        })
+      }
+      const immediate = typeof ctx.get === 'function' ? ctx.get('betterSidebar') : undefined
+      if (immediate !== undefined) registerBetterTab(immediate)
 
       ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab',

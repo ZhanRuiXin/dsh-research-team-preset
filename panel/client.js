@@ -296,7 +296,7 @@ window.__ModuleLoader__.load({
     }
 
     const PANEL_CSS = `
-.rtp-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow-y:auto;box-sizing:border-box;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-family:inherit;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.rtp-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-family:inherit;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 .rtp-root *{box-sizing:border-box}
 .rtp-root ::-webkit-scrollbar{width:8px;height:8px}
 .rtp-root ::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l3);border-radius:8px}
@@ -323,7 +323,7 @@ window.__ModuleLoader__.load({
 .rtp-id{flex:0 0 auto;font-size:13px;color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);letter-spacing:.02em}
 .rtp-rowmeta{margin-top:3px;font-size:13.5px;color:var(--dsw-alias-label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
-.rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px}
+.rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-root{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .rtp-root textarea,.rtp-root input,.rtp-id,.rtp-rowtitle,.rtp-rowmeta,.rtp-rowmain,.rtp-annot,.rtp-empty{-webkit-user-select:text;user-select:text}
@@ -341,7 +341,7 @@ window.__ModuleLoader__.load({
 .rtp-rolechip{flex:0 0 auto;display:inline-flex;align-items:center;height:17px;padding:0 5px;border-radius:4px;font-size:11.5px;font-weight:500;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-tertiary)}
 .rtp-memmeta{display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;font-size:12px;color:var(--dsw-alias-label-tertiary)}
 .rtp-memitem{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rtp-tip{position:absolute;z-index:80;width:244px;padding:8px 10px;border-radius:9px;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2);font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary);pointer-events:none;animation:rtp-tip-in .12s ease-out}
+.rtp-tip{position:absolute;z-index:80;width:244px;max-width:calc(100% - 16px);padding:8px 10px;border-radius:9px;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2);font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary);pointer-events:none;animation:rtp-tip-in .12s ease-out}
 .rtp-tiparrow{position:absolute;top:-5px;width:9px;height:9px;transform:rotate(45deg);background:var(--dsw-alias-bg-layer-3);border-left:.5px solid var(--dsw-alias-border-l2);border-top:.5px solid var(--dsw-alias-border-l2)}
 .rtp-tipbody{position:relative}
 @keyframes rtp-tip-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
@@ -349,6 +349,7 @@ window.__ModuleLoader__.load({
 .rtp-tiptitle{margin-bottom:3px;font-size:12.5px;font-weight:600;color:var(--dsw-alias-label-primary)}
 .rtp-tipline{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:232px}
 .rtp-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:500;border:.5px solid transparent}
+.rtp-idle{flex:0 0 auto;width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-border-l3);margin-right:3px}
 .rtp-pill.on{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 30%,transparent)}
 .rtp-pill.off{color:var(--dsw-alias-label-tertiary);background:var(--dsw-alias-bg-layer-2);border-color:var(--dsw-alias-border-l1)}
 .rtp-pill.warn{color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
@@ -367,8 +368,8 @@ window.__ModuleLoader__.load({
 .rtp-approval{font-size:12.5px;color:var(--dsw-alias-label-tertiary);margin-left:2px}
 .rtp-seed{width:7px;height:7px;border-radius:2px;background:var(--dsw-alias-border-l3)}
 .rtp-seed.on{background:var(--dsw-alias-brand-primary)}
-.rtp-seg{display:inline-flex;padding:2px;gap:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
-.rtp-seg button{height:27px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.rtp-seg{display:flex;flex-wrap:wrap;max-width:100%;padding:2px;gap:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
+.rtp-seg button{flex:0 1 auto;min-width:0;height:27px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .rtp-seg button:hover{color:var(--dsw-alias-label-primary)}
 .rtp-seg button.on{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-weight:500;box-shadow:var(--dsw-shadow-lv1)}
 .rtp-seg .v{color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);font-size:12.5px;margin-left:4px}
@@ -379,7 +380,7 @@ window.__ModuleLoader__.load({
 .rtp-tools{position:absolute;top:8px;right:8px;display:flex;gap:2px;padding:2px;border-radius:7px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 82%,transparent);border:.5px solid var(--dsw-alias-border-l2);backdrop-filter:blur(6px)}
 .rtp-tools button{width:27px;height:27px;border:0;border-radius:5px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:16px;line-height:1;cursor:pointer}
 .rtp-tools button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
-.rtp-annot{margin-top:8px;display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--dsw-alias-label-tertiary)}
+.rtp-annot{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13.5px;color:var(--dsw-alias-label-tertiary)}
 .rtp-pill{display:inline-flex;align-items:center;gap:4px;height:23px;padding:0 7px;border-radius:6px;font-size:13px;background:color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-brand-primary) 32%,transparent);color:var(--dsw-alias-brand-primary)}
 .rtp-compose{margin-top:9px;border:.5px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-1);overflow:hidden}
 .rtp-compose textarea{display:block;width:100%;min-height:80px;padding:9px 11px;border:0;outline:none;resize:vertical;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:14.5px;line-height:1.5}
@@ -911,6 +912,9 @@ window.__ModuleLoader__.load({
       const teamPill = (status) => {
         const value = String(status ?? '').toLowerCase()
         const tone = value === 'running' ? 'on' : value === 'provisioning' ? 'warn' : value === 'failed' ? 'err' : 'off'
+        if (value === 'inactive') {
+          return h('span', { key: 'pill', className: 'rtp-idle', title: '空闲' })
+        }
         return h('span', { key: 'pill', className: `rtp-pill ${tone}` }, [
           value === 'running' ? h('span', { key: 'd', className: 'rtp-pulse' }) : null,
           memberLabel(value)
@@ -934,10 +938,10 @@ window.__ModuleLoader__.load({
               onMouseEnter: (event) => {
                 const rootEl = rootRef.current
                 const rect = event.currentTarget.getBoundingClientRect()
-                const width = 244
                 const height = 104
                 if (rootEl === null) return
                 const box = rootEl.getBoundingClientRect()
+                const width = Math.min(244, Math.max(160, box.width - 16))
                 const scrollTop = rootEl.scrollTop || 0
                 const anchor = rect.left - box.left + 21
                 const left = Math.max(8, Math.min(anchor - 26, box.width - width - 8))

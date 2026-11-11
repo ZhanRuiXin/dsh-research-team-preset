@@ -20,6 +20,16 @@ import path from 'node:path'
 export const ITEM_STATUSES = Object.freeze(['todo', 'in_progress', 'in_review', 'blocked', 'done', 'canceled'])
 export const ITEM_KINDS = Object.freeze(['gated', 'internal'])
 
+/** Allowed status moves. `done` and `canceled` are terminal; a reopen goes through the user. */
+export const ITEM_TRANSITIONS = Object.freeze({
+  todo: ['in_progress', 'in_review', 'blocked', 'canceled'],
+  in_progress: ['in_review', 'blocked', 'todo', 'canceled'],
+  in_review: ['done', 'in_progress', 'blocked', 'canceled'],
+  blocked: ['in_progress', 'todo', 'canceled'],
+  done: [],
+  canceled: []
+})
+
 const STATUS_ORDER = { in_progress: 0, in_review: 1, blocked: 2, todo: 3, done: 4, canceled: 5 }
 
 const STATE_DIR = '.research'
@@ -192,6 +202,16 @@ function normalizeItem(input) {
     base: short(input.base, 64),
     head: short(input.head, 64),
     evidence: Array.isArray(input.evidence) ? input.evidence.map((e) => short(e, 300)).slice(0, 40) : [],
+    history: Array.isArray(input.history)
+      ? input.history
+          .map((entry) => ({
+            at: short(entry?.at, 32),
+            from: ITEM_STATUSES.includes(entry?.from) ? entry.from : '',
+            to: ITEM_STATUSES.includes(entry?.to) ? entry.to : '',
+            by: short(entry?.by, 40)
+          }))
+          .slice(-40)
+      : [],
     checklist: Array.isArray(input.checklist)
       ? input.checklist.map((entry) => ({
           text: short(entry?.text, 300),
@@ -347,11 +367,25 @@ export function upsertItem(root, input = {}) {
   if (input.status === 'done' && input.by !== 'user') {
     return { error: 'done belongs to the user: record acceptance only after the user accepted the work (pass by: "user")' }
   }
+  const history = previous !== undefined && Array.isArray(previous.history) ? [...previous.history] : []
+  if (previous !== undefined && status !== previous.status) {
+    const allowed = ITEM_TRANSITIONS[previous.status] ?? []
+    if (!allowed.includes(status)) {
+      return {
+        error: `cannot move "${id}" from ${previous.status} to ${status}; allowed from ${previous.status}: ${allowed.join(', ') || 'none'}`
+      }
+    }
+    if (status === 'blocked' && short(input.blocked ?? previous.blocked, 300) === '') {
+      return { error: 'blocked needs a reason: pass blocked with what the item is waiting for' }
+    }
+    history.push({ at: nowIso(), from: previous.status, to: status, by: short(input.by ?? input.owner ?? previous.owner, 40) })
+  }
   const item = normalizeItem({
     ...previous,
     ...input,
     id,
     status,
+    history,
     kind: input.kind ?? previous?.kind ?? (/^t-/.test(id) ? 'gated' : 'internal'),
     updated: nowDay(),
     title: input.title ?? previous?.title ?? '',
@@ -386,6 +420,12 @@ export function gateItem(root, input = {}) {
   const previous = readItem(root, id)
   if (previous === undefined) return { error: `no work item "${id}"` }
   const checklist = Array.isArray(input.checklist) ? input.checklist : previous.checklist
+  const evidence = Array.isArray(input.evidence) ? input.evidence : previous.evidence
+  const hasEvidence =
+    evidence.length > 0 || checklist.some((entry) => entry?.done === true && short(entry?.note, 400) !== '')
+  if (!hasEvidence) {
+    return { error: 'a gate needs evidence: record at least one evidence entry, or a checklist item with a note' }
+  }
   return upsertItem(root, {
     ...previous,
     id,

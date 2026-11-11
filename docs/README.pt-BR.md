@@ -25,7 +25,7 @@ O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rast
 | **Conclusão** | `in_review` é a última parada do agente; somente o usuário pode mover um cartão para `done` |
 | **Roteamento de modelos** | Provedor, modelo e esforço de raciocínio por função, definidos em um formulário na página de Plugins |
 | **Git** | Inicializado pelo agente quando o trabalho substantivo começa; mudanças destrutivas em uma branch; mesclagem somente após a aceitação |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + um arquivo limitado por cartão com gate; ao retomar, ler PLAN e INDEX primeiro |
+| **Worklog** | Armazenamento JSON em `.research/worklog/`; `PLAN.md` e `INDEX.md` são visões geradas; ao retomar, primeiro `research_state` |
 | **Runtime** | PTC (`run_code` + SDK gerado), uma camada de subagente por membro |
 
 ## Para quem
@@ -74,7 +74,6 @@ Este preset é distribuído como bundle DSH e publicado no npm como `dsh-researc
 
 ### Instalar pela página de Plugins do DSH
 
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Fornece `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` e os servicos de Team; o preset registra o trabalho no worklog, nao em tarefas de equipe |
 2. Abra **Configurações → Plugins** e clique em **Adicionar**.
 3. Cole a origem de instalação: `dsh-research-team-preset@0.1.1` para o pacote npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1` para fixar o código-fonte, ou `link:/absolute/path/to/dsh-research-team-preset` para um checkout local.
 4. **Reinicie o DSH.** As linhas do preset e a metade cliente do bundle carregam na inicialização.
@@ -92,7 +91,6 @@ Para fixar o código-fonte em vez do registro:
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-
 > O modo é um bundle no nível do perfil: instalá-lo em um perfil não o habilita em outro. Repita a instalação e os pré-requisitos em cada perfil.
 
 ## Primeira execução
@@ -102,17 +100,17 @@ Peça ao Lead para verificar o ambiente e o worklog antes de começar o trabalho
 ```text
 list_agents                    # create only the roles the task needs
 research_project               # resolve the current project root
-research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
+research_workspace_init        # seed .research/worklog/ and render the views if missing
 ```
 
 Uma primeira tarefa típica:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> worklog card at user gates -> INDEX row + send_message
-Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
+Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message
+Members: research_worklog op=claim -> work -> research_worklog op=gate (evidence, next) + send_message
 Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: summarize -> user acceptance (research_worklog op=update, by="user")
 ```
 
 ## Equipe padrão
@@ -164,20 +162,17 @@ O Lead admite a execução, o runner se recusa a iniciá-la sem o registro prév
 
 ## Continuidade entre sessões
 
-Uma sessão é uma conversa, não o projeto: o worklog, o worklog e o git carregam o trabalho, enquanto o chat, o time e os jobs em segundo plano não sobrevivem à sessão. Num projeto que já tem `worklog/PLAN.md`, antes da primeira ação substancial o agente lê PLAN e INDEX e então o bloco de estado do cartão atual, antes de planejar ou gastar computação.
+O trabalho que atravessa sessões vive como JSON em `.research/worklog/`: `plan.json` com objetivo, marcos, próximo passo e decisões, e um `items/<id>.json` por item. Os arquivos `PLAN.md`, `INDEX.md` e os cartões são gerados pelas ferramentas; não edite à mão.
 
-O worklog fica na raiz do projeto retornada por `research_project`, nao em um subdiretorio da sessao, entao todas as sessoes do projeto compartilham um PLAN e um INDEX. PLAN, INDEX, arquivos de cartao, git e memoria sao duraveis; conversas entre colegas e trabalhos em segundo plano existem so na sessao. Tudo que uma sessao futura precisa saber e escrito no PLAN ou no arquivo de cartao antes do fim.
+O trabalho que atravessa sessões vive como JSON em `.research/worklog/`: `plan.json` com objetivo, marcos, próximo passo e decisões, e um `items/<id>.json` por item. `PLAN.md`, `INDEX.md` e os cartões são gerados pelas ferramentas; não edite à mão.
 
 Uma execução ou job longo que sobrevive ao turno deixa seu identificador de job ou terminal, host, hora de início, conclusão esperada e a regra de decisão que serve no arquivo do cartão ou no PLAN. Ao retomar, o agente verifica a vitalidade primeiro; uma execução órfã é reconciliada e apresentada ao usuário como adotar, reiniciar ou parar, em vez de rodar duas vezes em silêncio. Um cartão mantido por uma sessão que não existe mais é reportado ao usuário para reabertura, nunca assumido.
 
 ## Barra lateral de pesquisa
 
-O preset adiciona uma aba "Pesquisa" a barra lateral direita. Ela responde o que a equipe esta fazendo, onde esta bloqueada e qual e o proximo passo: objetivo e marco de `worklog/PLAN.md`, itens ativos de `worklog/INDEX.md`, execucoes recentes, documentos de design e cartoes de arquitetura.
-
 Os cartões de arquitetura são diagramas de nós e arestas armazenados como JSON em `.research/architecture/`, um arquivo por cartão. O agente os lê e atualiza com a ferramenta `research_architecture`, para que o diagrama acompanhe o design em vez de ficar desatualizado num slide. Um cartão é renderizado em SVG dentro do painel; arrastar uma caixa sobre os nós os seleciona, e a nota que você escreve é salva no cartão como anotação que o agente lê antes de responder. A aba se registra via `dsh-better-sidebar` quando esse plugin está instalado e, caso contrário, na barra lateral direita nativa.
 
 A secao de experimentos lista as execucoes da mais recente para a mais antiga e mostra ha quanto tempo rodam ou quanto tempo levaram. Cada execucao segue um ciclo de vida explicito (planejada, aguardando aprovacao, aprovada, em andamento, concluida, interrompida, falha ou rejeitada) conduzido pela ferramenta `research_experiment`: register grava a regra, as seeds e o orcamento, start recusa sem aprovacao e finish registra concluida, interrompida ou falha com o motivo. O cabecalho tem um seletor (exige aprovacao / automatica); uma execucao aguardando mostra aprovar e rejeitar, cuja resposta vai para o manifest, e a lista rola dentro da propria caixa.
-
 
 O painel é um módulo próprio em `panel/`, separado do formulário de configurações, e pode ser ativado ou desativado isoladamente. Ele aparece como aba da barra lateral direita em cada conversa.
 
@@ -185,28 +180,24 @@ O designer é dono do cartão de método e o builder do cartão de implementaç�
 
 ## Worklog e coordenacao
 
-O registro de trabalho fica em JSON sob `.research/worklog/`: `plan.json` com objetivo, marcos e proximo passo, e um `items/<id>.json` por item (titulo, responsavel, status, kind, proximo passo, bloqueio, evidencia, checklist). `worklog/PLAN.md`, `worklog/INDEX.md` e `worklog/<id>.md` sao visoes geradas; a leitura e escrita e feita com `research_worklog` (init, list, get, update, claim, gate, plan), decisoes, evidencia e campos de projeto com `research_decision`, `research_evidence` e `research_design`, e `research_state` le todo o estado da equipe em uma chamada.
-
-O preset adiciona uma aba "Pesquisa" a barra lateral direita. Ela responde o que a equipe esta fazendo, onde esta bloqueada e qual e o proximo passo: objetivo e marco de `worklog/PLAN.md`, itens ativos de `worklog/INDEX.md`, execucoes recentes, documentos de design e cartoes de arquitetura.
+As mudanças de estado seguem uma tabela fixa (`todo → in_progress → in_review → done`); `blocked` e `canceled` são estados laterais. `blocked` exige um motivo, um portão exige ao menos uma entrada de evidência, e cada mudança fica no histórico do item.
 
 No portao, o responsavel escreve a lista com evidencias, o resumo de execucao, o intervalo de commits e o proximo passo no arquivo de cartao, roda `research_scope_check` nos caminhos alterados e muda o status para `in_review`. O reviewer escreve um PASS/FAIL com evidencias; o Lead relata id do cartao, status e evidencias so ao chegar ao portao ou quando o usuario precisa agir. `done` pertence ao aceite do usuario; `blocked` significa que nao da para continuar, `canceled` que nao vai continuar.
 
 ```text
 User goal
-Lead:  research_project -> worklog card (checklist) only at user gates
-       -> INDEX row (owner, status=todo, next) + send_message
-Member: write owner + in_progress into the INDEX row and the card header -> work
-        -> write evidence, summary, base..head, next into the card file -> in_review
-Internal steps stay INDEX rows; only user gates get a card file
-Reviewer: independent PASS/FAIL with evidence in the card file
+Lead:  research_project -> research_state
+       -> research_worklog op=update (status=todo, next) + send_message
+Member: research_worklog op=claim -> work
+        -> research_worklog op=gate (evidence, summary, base..head, next)
+Internal steps stay index rows; only items waiting for the user get a card view
+Reviewer: independent PASS/FAIL with evidence
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
-User:  accept -> done (agents can never set done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> item id/status when a gate needs the user
+User:  accept -> research_worklog op=update with by="user" (agents can never do that)
 ```
 
 ## Fluxo de trabalho com Git
-
-O modo inicializa o rastreamento durável quando o trabalho substantivo começa, e o agente decide se uma solicitação é trabalho real ou uma pergunta simples. Em um espaço de trabalho que ainda não está dentro de um repositório, o agente chama `research_workspace_init`, que cria `worklog/PLAN.md` e `worklog/INDEX.md` e executa `git init`. Ele nunca cria um repositório aninhado nem faz commit do andaime.
 
 Mudanças destrutivas ou de risco acontecem em uma branch nomeada pela etapa, por exemplo `task/<title>+<id>` (o cartão para o trabalho com gate, a tarefa de equipe para o trabalho interno), em vez de editar a branch padrão. O cartão ou a tarefa de equipe registra os commits base e head, e o reviewer lê `git diff <base>..<head>` como base da revisão de código e executa novamente as verificações de aceitação.
 
@@ -214,11 +205,7 @@ Uma branch só é mesclada depois que o cartão é aceito, e então é removida.
 
 ## Worklog
 
-O registro de trabalho fica em JSON sob `.research/worklog/`: `plan.json` com objetivo, marcos e proximo passo, e um `items/<id>.json` por item (titulo, responsavel, status, kind, proximo passo, bloqueio, evidencia, checklist). `worklog/PLAN.md`, `worklog/INDEX.md` e `worklog/<id>.md` sao visoes geradas; a leitura e escrita e feita com `research_worklog` (init, list, get, update, claim, gate, plan), decisoes, evidencia e campos de projeto com `research_decision`, `research_evidence` e `research_design`, e `research_state` le todo o estado da equipe em uma chamada.
-
-O trabalho que pode abranger várias sessões mantém um registro pequeno e limitado ao lado do código. `worklog/PLAN.md` contém o objetivo, o marco atual, os cartões ativos, os bloqueios e as decisões datadas; `worklog/INDEX.md` contém uma linha por cartão ativo. Cada cartão recebe `worklog/<task-id>.md` com um bloco de estado atual no topo e entradas curtas apenas de acréscimo abaixo.
-
-Ao retomar, o agente lê primeiro PLAN e INDEX e depois apenas o bloco de estado e o final do cartão alvo, nunca o arquivo inteiro nem o diretório inteiro. PLAN fica abaixo de cerca de 100 linhas, os arquivos de cartão abaixo de cerca de 200, e os cartões concluídos são retirados do índice. Modelos compactos dos três arquivos ficam na persona do preset, então qualquer sessão pode criá-los ou atualizá-los sem ler este repositório.
+Ao retomar, primeiro `research_state`, depois `research_worklog op=get` para o item e a evidência mais recente. As visões são espelhos; a fonte é o JSON.
 
 ## Perfis de modelo da equipe
 
@@ -347,8 +334,6 @@ Outras duas causas não têm a ver com o arquivo de configurações:
 - Verifique se o bundle está ativo no perfil.
 
 ### Faltam ferramentas de equipe
-
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Fornece `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` e os servicos de Team; o preset registra o trabalho no worklog, nao em tarefas de equipe |
 
 ### Faltam ferramentas do worklog de tarefas
 

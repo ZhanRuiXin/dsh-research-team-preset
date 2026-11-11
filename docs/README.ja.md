@@ -25,7 +25,7 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 | **完了** | `in_review` がエージェントの最終地点。カードを `done` に移動できるのはユーザーだけ |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
 | **Git** | 実質的な作業の開始時にエージェントが初期化。破壊的な変更はブランチで行い、受け入れ後にのみマージ |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + ゲート対象カードごとに 1 つの有界ファイル。再開時は PLAN と INDEX を先に読む |
+| **Worklog** | `.research/worklog/` の JSON ストア。`PLAN.md` と `INDEX.md` は生成されたビュー。再開時はまず `research_state` |
 | **ランタイム** | PTC（`run_code` + 生成 SDK）。メンバーごとにサブエージェント 1 層 |
 
 ## 対象となるユーザー
@@ -53,8 +53,6 @@ Lead の返答は科学的なコミュニケーションであり、ステータ
 
 ## 要件
 
-Research Team Mode は、単一のチャットではなくチームとしてエンドツーエンドの研究を進めるための DSH エージェントプリセットです。Lead が作業を計画し、ワークログの記録（ユーザーゲート用のカードファイル、内部ステップ用の INDEX 行）を維持し、作業を割り当て、結果を統合し、ユーザーと対話します。8 名の既定スペシャリストが、顧問レビュー、文献と証拠、データ取得、実験設計、コード、実行、独立レビュー、論文執筆を担当します。
-
 | 機能 | Provider | 備考 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` を基準に開発。他のリリースでも動作する可能性はありますが保証はありません |
@@ -74,7 +72,6 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 
 ### DSH のプラグインページからインストール
 
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` と Team サービスを提供。本プリセットは作業をワークログに記録し、チームタスクには記録しません |
 2. **設定 → プラグイン** を開き、**追加** をクリックします。
 3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.1.1`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
 4. **DSH を再起動します。** プリセット行とバンドルのクライアント側は起動時に読み込まれます。
@@ -92,7 +89,6 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-
 > このモードはプロファイル単位のバンドルです。あるプロファイルにインストールしても別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件を繰り返してください。
 
 ## 初回実行
@@ -102,17 +98,17 @@ dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```text
 list_agents                    # create only the roles the task needs
 research_project               # resolve the current project root
-research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
+research_workspace_init        # seed .research/worklog/ and render the views if missing
 ```
 
 典型的な最初のタスク:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> worklog card at user gates -> INDEX row + send_message
-Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
+Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message
+Members: research_worklog op=claim -> work -> research_worklog op=gate (evidence, next) + send_message
 Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: summarize -> user acceptance (research_worklog op=update, by="user")
 ```
 
 ## 既定チーム
@@ -164,20 +160,17 @@ Lead が実行を承認し、runner は記録がなければ起動を拒否し�
 
 ## セッションの継続性
 
-セッションは会話であり、プロジェクトそのものではない。作業を運ぶのはワークログ、git であり、チャット、チーム、バックグラウンドジョブはセッションとともに消える。`worklog/PLAN.md` が既にあるプロジェクトでは、最初の実質的な作業の前に PLAN と INDEX、続いて対象カードの現在状態ブロックを読み、それから計画を立てるか計算資源を使う。
+セッションをまたぐ仕事は `.research/worklog/` の JSON に保存します：`plan.json` に目標・マイルストーン・次の一手・決定、項目ごとに `items/<id>.json`。`PLAN.md`・`INDEX.md`・カードはツールが生成するもので、手で編集しません。
 
-ワークログは `research_project` が返すプロジェクトルートに置き、セッションのサブディレクトリには置きません。プロジェクト上の全セッションが一つの PLAN と INDEX を共有します。PLAN、INDEX、カードファイル、git、メモリは永続的ですが、チームメイトとの会話とバックグラウンドジョブはそのセッションにしか存在しません。後のセッションが知る必要のあることは、セッション終了前に PLAN かカードファイルへ書きます。
+セッションは会話であり、プロジェクトそのものではありません。`.research/worklog/`、git、アーキテクチャカードが仕事を保持し、チャット・チーム・バックグラウンドジョブはセッションとともに消えます。再開時はまず `research_state` を呼びます。
 
 ターンを超えて続く実行や長時間ジョブは、ジョブやターミナルのハンドル、ホスト、開始時刻、完了見込み、それが支える決定規則をカードファイルか PLAN に残す。再開時はまず生存を確認し、ハンドルが消えていれば孤児として扱い、成果物を突き合わせたうえで採用・再起動・停止をユーザーに諮る。同じ作業を黙って二度走らせない。既に存在しないセッションが保持するカードは、引き継がずユーザーに再オープンを求める。
 
 ## リサーチサイドバー
 
-プリセットは右サイドバーに「研究」タブを追加します。チームが今何をしているか、どこで止まっているか、次の一歩は何かを示します：`worklog/PLAN.md` の目的とマイルストーン、`worklog/INDEX.md` のアクティブな作業項目、最近の実行、設計ドキュメント、アーキテクチャカード。
-
 アーキテクチャカードは `.research/architecture/` に JSON で保存されるノードとエッジの図で、1 枚につき 1 ファイルです。エージェントは `research_architecture` ツールで読み書きするため、図はスライドの中ではなく設計と同期したままになります。カードはパネル内で SVG として描画され、ノードの上をドラッグして範囲選択でき、書いたメモはカードの注釈として保存され、エージェントは回答前にそれを読みます。`dsh-better-sidebar` がインストールされていればそれ経由で、なければネイティブの右サイドバーに登録されます。
 
 実験セクションは実行を新しい順に並べ、実行中なら経過時間、完了なら所要時間を表示します。各実行は明確なライフサイクル（登録済み、承認待ち、承認済み、実行中、完了、停止、失敗、却下）を持ち、`research_experiment` ツールが進めます。register は判断ルール・seed・予算を書き、start は未承認なら拒否し、finish は完了・停止・失敗を理由とともに記録します。見出しには切り替え（承認が必要 / 自動承認）があり、承認待ちの実行は承認・却下ボタンを表示して結果を manifest に書き込み、リストは枠内でスクロールします。
-
 
 パネルは `panel/` 配下の独立したモジュールで、設定ページとは別に単独で有効化・無効化できます。各会話の右サイドバーのタブとして表示されます。
 
@@ -185,28 +178,24 @@ Lead が実行を承認し、runner は記録がなければ起動を拒否し�
 
 ## ワークログと協働
 
-作業ログは `.research/worklog/` に JSON で保存します。`plan.json` に目標・マイルストーン・次の一手、各作業項目に `items/<id>.json`（タイトル、担当、状態、kind、次の一手、ブロック、根拠、チェックリスト）。`worklog/PLAN.md`、`worklog/INDEX.md`、`worklog/<id>.md` は生成された表示にすぎません。読み書きは `research_worklog`（init、list、get、update、claim、gate、plan）、決定・根拠・設計項目は `research_decision`、`research_evidence`、`research_design`、全体状態は `research_state` を使います。
-
-プリセットは右サイドバーに「研究」タブを追加します。チームが今何をしているか、どこで止まっているか、次の一歩は何かを示します：`worklog/PLAN.md` の目的とマイルストーン、`worklog/INDEX.md` のアクティブな作業項目、最近の実行、設計ドキュメント、アーキテクチャカード。
+状態遷移は固定表に従います（`todo → in_progress → in_review → done`）。`blocked` と `canceled` は側状態です。`blocked` には理由が必要で、ゲートには証拠が 1 件以上必要で、各遷移は項目の履歴に残ります。
 
 ゲートでは、担当者が証拠付きチェックリスト、実行サマリー、コミット範囲、次のアクションをカードファイルに書き、変更パスに `research_scope_check` を実行してから状態を `in_review` にします。reviewer は証拠付きの PASS/FAIL を書き、Lead はゲート到達時またはユーザーの判断が必要なときだけカード id、状態、証拠を報告します。`done` はユーザーの承認だけが設定できます。`blocked` は継続不可、`canceled` は今後進めないという意味です。
 
 ```text
 User goal
-Lead:  research_project -> worklog card (checklist) only at user gates
-       -> INDEX row (owner, status=todo, next) + send_message
-Member: write owner + in_progress into the INDEX row and the card header -> work
-        -> write evidence, summary, base..head, next into the card file -> in_review
-Internal steps stay INDEX rows; only user gates get a card file
-Reviewer: independent PASS/FAIL with evidence in the card file
+Lead:  research_project -> research_state
+       -> research_worklog op=update (status=todo, next) + send_message
+Member: research_worklog op=claim -> work
+        -> research_worklog op=gate (evidence, summary, base..head, next)
+Internal steps stay index rows; only items waiting for the user get a card view
+Reviewer: independent PASS/FAIL with evidence
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
-User:  accept -> done (agents can never set done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> item id/status when a gate needs the user
+User:  accept -> research_worklog op=update with by="user" (agents can never do that)
 ```
 
 ## Git ワークフロー
-
-このモードは実質的な作業の開始時に耐久記録を初期化し、その要求が本当の作業か単純な質問かはエージェントが判断します。ワークスペースがまだリポジトリ内にない場合、エージェントは `research_workspace_init` を呼び、`worklog/PLAN.md` と `worklog/INDEX.md` を作成して `git init` を実行します。ネストしたリポジトリは作成せず、足場をコミットすることもありません。
 
 破壊的またはリスクの高い変更は、既定ブランチを直接編集せず、ステップ名のブランチ（例 `task/<title>+<id>`。ゲート対象の作業はカード、内部作業はチームタスク）で行います。カードまたはチームタスクには base と head のコミットを記録し、reviewer は `git diff <base>..<head>` をコードレビューの根拠とし、受け入れチェックも再実行します。
 
@@ -214,11 +203,7 @@ User:  accept -> done (agents can never set done)
 
 ## ワークログ
 
-作業ログは `.research/worklog/` に JSON で保存します。`plan.json` に目標・マイルストーン・次の一手、各作業項目に `items/<id>.json`（タイトル、担当、状態、kind、次の一手、ブロック、根拠、チェックリスト）。`worklog/PLAN.md`、`worklog/INDEX.md`、`worklog/<id>.md` は生成された表示にすぎません。読み書きは `research_worklog`（init、list、get、update、claim、gate、plan）、決定・根拠・設計項目は `research_decision`、`research_evidence`、`research_design`、全体状態は `research_state` を使います。
-
-セッションをまたぐ可能性のある作業は、コードの隣に小さく有界な記録を残します。`worklog/PLAN.md` には目的、現在のマイルストーン、アクティブなカード、ブロッカー、日付付きの決定を、`worklog/INDEX.md` にはアクティブなカード 1 件につき 1 行を置きます。各カードには `worklog/<task-id>.md` があり、先頭に現在の状態ブロック、その下に短い追記エントリを置きます。
-
-再開時、エージェントはまず PLAN と INDEX を読み、次に対象カードの状態ブロックと末尾だけを読みます。ファイル全体やディレクトリ全体は読みません。PLAN は約 100 行、カードファイルは約 200 行に保ち、完了したカードは索引から外します。3 種類のファイルの簡潔なテンプレートはプリセットの persona にあり、どのセッションもこのリポジトリを読まずに作成・更新できます。
+再開時はまず `research_state`、次に `research_worklog op=get` で項目と最新の証拠を読みます。ビューは鏡像で、正は JSON です。
 
 ## チームモデルプロファイル
 
@@ -347,8 +332,6 @@ $DSH_HOME/research-team-settings.json
 - バンドルがプロファイルで有効になっているか確認してください。
 
 ### チームツールが見つからない
-
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` と Team サービスを提供。本プリセットは作業をワークログに記録し、チームタスクには記録しません |
 
 ### タスクワークログのツールが見つからない
 

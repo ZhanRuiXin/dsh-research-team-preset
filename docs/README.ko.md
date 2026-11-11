@@ -25,7 +25,7 @@ Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 �
 | **완료** | `in_review`가 에이전트의 마지막 지점입니다. 사용자만 카드를 `done`으로 옮길 수 있습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
 | **Git** | 실질적 작업이 시작될 때 에이전트가 초기화. 파괴적 변경은 브랜치에서 진행하고 수락 후에만 병합 |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 게이트 카드마다 하나의 제한된 파일. 재개 시 PLAN과 INDEX를 먼저 읽음 |
+| **Worklog** | `.research/worklog/`의 JSON 저장소. `PLAN.md`와 `INDEX.md`는 생성된 보기. 재개 시 먼저 `research_state` |
 | **런타임** | PTC(`run_code` + 생성된 SDK), 멤버당 하위 에이전트 계층 1개 |
 
 ## 대상 사용자
@@ -53,8 +53,6 @@ Lead의 답변은 상태 피드가 아니라 과학적 커뮤니케이션이다.
 
 ## 요구 사항
 
-Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 수행하기 위한 DSH 에이전트 프리셋입니다. Lead는 작업을 계획하고, 작업 로그 기록(사용자 게이트는 카드 파일, 내부 단계는 INDEX 행)을 유지하며, 일을 배분하고, 결과를 통합하고, 사용자와 소통합니다. 8개 기본 역할이 자문, 문헌과 증거, 데이터 확보, 실험 설계, 코드, 실행, 독립 검토, 논문 작성을 담당합니다.
-
 | 기능 | 제공자 | 비고 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` 기준으로 개발되었습니다. 다른 릴리스에서도 동작할 수 있지만 보장되지는 않습니다 |
@@ -74,7 +72,6 @@ Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 �
 
 ### DSH 플러그인 페이지에서 설치
 
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다. 이 프리셋은 작업을 작업 로그에 기록하고 팀 작업에는 기록하지 않습니다 |
 2. **설정 → 플러그인**을 열고 **추가**를 클릭합니다.
 3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.1.1`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
 4. **DSH를 재시작합니다.** 프리셋 행과 번들의 클라이언트 부분은 시작 시 로드됩니다.
@@ -92,7 +89,6 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-
 > 이 모드는 프로필 수준 번들입니다. 한 프로필에 설치해도 다른 프로필에서는 활성화되지 않습니다. 프로필마다 설치와 사전 요구사항을 반복하세요.
 
 ## 첫 실행
@@ -102,17 +98,17 @@ dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```text
 list_agents                    # create only the roles the task needs
 research_project               # resolve the current project root
-research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
+research_workspace_init        # seed .research/worklog/ and render the views if missing
 ```
 
 일반적인 첫 작업:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> worklog card at user gates -> INDEX row + send_message
-Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
+Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message
+Members: research_worklog op=claim -> work -> research_worklog op=gate (evidence, next) + send_message
 Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: summarize -> user acceptance (research_worklog op=update, by="user")
 ```
 
 ## 기본 팀
@@ -164,20 +160,19 @@ Lead가 실행을 승인하고, runner는 기록이 없으면 시작을 거부�
 
 ## 세션 연속성
 
-세션은 대화이지 프로젝트 자체가 아니다. 작업을 운반하는 것은 워크로그, 작업 로그, git이며, 채팅·팀·백그라운드 작업은 세션과 함께 사라진다. `worklog/PLAN.md`가 이미 있는 프로젝트에서는 첫 번째 실질적 행동 전에 PLAN과 INDEX, 이어서 현재 카드의 현재 상태 블록을 읽은 뒤 계획을 세우거나 연산을 쓴다.
+세션은 대화이지 프로젝트가 아닙니다. `.research/worklog/`, git, 아키텍처 카드가 작업을 보존하고 채팅·팀·백그라운드 작업은 세션과 함께 사라집니다. 재개 시 먼저 `research_state`를 호출하고 항목과 증거를 읽으십시오.
 
-작업 로그는 `research_project`가 반환하는 프로젝트 루트에 두며 세션 하위 디렉터리에 두지 않습니다. 그래서 프로젝트의 모든 세션이 하나의 PLAN과 INDEX를 공유합니다. PLAN, INDEX, 카드 파일, git, 메모리는 영속하고, 팀원 간 대화와 백그라운드 작업은 해당 세션에만 존재합니다. 이후 세션이 알아야 할 것은 세션이 끝나기 전에 PLAN이나 카드 파일에 씁니다.
+세션은 대화이지 프로젝트가 아닙니다. `.research/worklog/`, git, 아키텍처 카드가 작업을 보존하고 채팅·팀·백그라운드 작업은 세션과 함께 사라집니다. 재개 시 먼저 `research_state`를 호출하십시오.
 
 턴을 넘겨 계속되는 실행이나 장기 작업은 작업이나 터미널 핸들, 호스트, 시작 시각, 예상 완료, 그것이 따르는 결정 규칙을 카드 파일이나 PLAN에 남긴다. 재개 시 먼저 생존을 확인하고, 핸들이 사라졌으면 고아 실행으로 표시해 산출물을 대조한 뒤 채택·재시작·중단을 사용자에게 묻는다. 같은 작업을 조용히 두 번 실행하지 않는다. 더 이상 존재하지 않는 세션이 보유한 카드는 인수하지 않고 사용자에게 재개를 요청한다.
 
 ## 연구 사이드바
 
-프리셋은 오른쪽 사이드바에 "연구" 탭을 추가합니다. 팀이 지금 무엇을 하는지, 어디서 막혔는지, 다음 단계가 무엇인지를 보여줍니다: `worklog/PLAN.md`의 목표와 마일스톤, `worklog/INDEX.md`의 활성 작업 항목, 최근 실행, 설계 문서, 아키텍처 카드.
+세션을 넘는 작업은 `.research/worklog/`의 JSON으로 저장합니다. `plan.json`에 목표·마일스톤·다음 단계·결정, 항목마다 `items/<id>.json`. `PLAN.md`, `INDEX.md`, 카드는 도구가 생성하며 손으로 고치지 않습니다.
 
 아키텍처 카드는 `.research/architecture/` 아래에 JSON으로 저장되는 노드-엣지 다이어그램이며 카드마다 한 파일입니다. 에이전트는 `research_architecture` 도구로 읽고 갱신하므로 다이어그램이 슬라이드 속에서 낡지 않고 설계와 함께 움직입니다. 카드는 패널 안에서 SVG로 렌더링되고, 노드 위를 드래그해 상자로 선택할 수 있으며, 작성한 메모는 카드에 주석으로 저장되어 에이전트가 답하기 전에 읽습니다. `dsh-better-sidebar`가 설치되어 있으면 이를 통해 등록하고, 아니면 네이티브 오른쪽 사이드바에 등록합니다.
 
 실험 섹션은 실행을 최신순으로 보여주고 실행 중이면 경과 시간, 끝났으면 소요 시간을 표시합니다. 각 실행은 명확한 수명 주기(등록됨, 승인 대기, 승인됨, 실행 중, 완료, 중지, 실패, 거부)를 가지며 `research_experiment` 도구가 진행합니다. register는 판단 규칙, seed, 예산을 쓰고, start는 승인 없이는 거부하며, finish는 완료·중지·실패를 이유와 함께 기록합니다. 제목에는 전환(승인 필요 / 자동 승인)이 있고, 승인을 기다리는 실행은 승인·거절 버튼을 보여 그 결과를 manifest에 쓰며, 목록은 자기 상자 안에서 스크롤됩니다.
-
 
 패널은 `panel/` 아래의 독립 모듈로 설정 페이지와 분리되어 있으며 따로 켜거나 끌 수 있습니다. 각 대화의 오른쪽 사이드바 탭으로 나타납니다.
 
@@ -185,28 +180,24 @@ Lead가 실행을 승인하고, runner는 기록이 없으면 시작을 거부�
 
 ## 작업 로그와 협업
 
-작업 로그는 `.research/worklog/` 아래 JSON으로 저장됩니다. `plan.json`에는 목표, 마일스톤, 다음 단계가, 각 작업 항목에는 `items/<id>.json`(제목, 소유자, 상태, kind, 다음 단계, 차단, 근거, 체크리스트)이 들어갑니다. `worklog/PLAN.md`, `worklog/INDEX.md`, `worklog/<id>.md`는 생성된 보기일 뿐입니다. 읽고 쓰기는 `research_worklog`(init, list, get, update, claim, gate, plan), 결정·근거·설계 필드는 `research_decision`, `research_evidence`, `research_design`, 전체 상태는 `research_state`로 합니다.
-
-프리셋은 오른쪽 사이드바에 "연구" 탭을 추가합니다. 팀이 지금 무엇을 하는지, 어디서 막혔는지, 다음 단계가 무엇인지를 보여줍니다: `worklog/PLAN.md`의 목표와 마일스톤, `worklog/INDEX.md`의 활성 작업 항목, 최근 실행, 설계 문서, 아키텍처 카드.
+상태 전이는 고정 표를 따릅니다(`todo → in_progress → in_review → done`). `blocked`와 `canceled`는 보조 상태입니다. `blocked`에는 이유가 필요하고, 게이트에는 증거가 최소 하나 필요하며, 모든 전이는 항목 기록에 남습니다.
 
 게이트에서 담당자는 증거가 있는 체크리스트, 실행 요약, 커밋 범위, 다음 행동을 카드 파일에 쓰고, 변경된 경로에 `research_scope_check`를 실행한 뒤 상태를 `in_review`로 바꿉니다. reviewer는 증거와 함께 PASS/FAIL을 씁니다. Lead는 게이트에 도달했을 때나 사용자가 판단해야 할 때만 카드 id, 상태, 증거를 보고합니다. `done`은 사용자의 승인만 설정할 수 있습니다. `blocked`는 계속할 수 없음, `canceled`는 더 진행하지 않음입니다.
 
 ```text
 User goal
-Lead:  research_project -> worklog card (checklist) only at user gates
-       -> INDEX row (owner, status=todo, next) + send_message
-Member: write owner + in_progress into the INDEX row and the card header -> work
-        -> write evidence, summary, base..head, next into the card file -> in_review
-Internal steps stay INDEX rows; only user gates get a card file
-Reviewer: independent PASS/FAIL with evidence in the card file
+Lead:  research_project -> research_state
+       -> research_worklog op=update (status=todo, next) + send_message
+Member: research_worklog op=claim -> work
+        -> research_worklog op=gate (evidence, summary, base..head, next)
+Internal steps stay index rows; only items waiting for the user get a card view
+Reviewer: independent PASS/FAIL with evidence
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
-User:  accept -> done (agents can never set done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> item id/status when a gate needs the user
+User:  accept -> research_worklog op=update with by="user" (agents can never do that)
 ```
 
 ## Git 워크플로
-
-이 모드는 실질적 작업이 시작될 때 내구성 기록을 초기화하며, 요청이 실제 작업인지 단순 질문인지는 에이전트가 판단합니다. 워크스페이스가 아직 저장소 안에 없으면 에이전트는 `research_workspace_init`을 호출해 `worklog/PLAN.md`와 `worklog/INDEX.md`를 만들고 `git init`을 실행합니다. 중첩 저장소는 만들지 않으며 스캐폴드를 커밋하지도 않습니다.
 
 파괴적이거나 위험한 변경은 기본 브랜치를 직접 수정하지 않고 단계 이름의 브랜치(예 `task/<title>+<id>`; 게이트 작업은 카드, 내부 작업은 팀 작업의 이름)에서 진행합니다. 카드 또는 팀 작업에 base와 head 커밋을 기록하고, reviewer는 `git diff <base>..<head>`를 코드 리뷰 근거로 삼고 승인 검사도 다시 실행합니다.
 
@@ -214,11 +205,9 @@ User:  accept -> done (agents can never set done)
 
 ## 워크로그
 
-작업 로그는 `.research/worklog/` 아래 JSON으로 저장됩니다. `plan.json`에는 목표, 마일스톤, 다음 단계가, 각 작업 항목에는 `items/<id>.json`(제목, 소유자, 상태, kind, 다음 단계, 차단, 근거, 체크리스트)이 들어갑니다. `worklog/PLAN.md`, `worklog/INDEX.md`, `worklog/<id>.md`는 생성된 보기일 뿐입니다. 읽고 쓰기는 `research_worklog`(init, list, get, update, claim, gate, plan), 결정·근거·설계 필드는 `research_decision`, `research_evidence`, `research_design`, 전체 상태는 `research_state`로 합니다.
+세션은 대화이지 프로젝트가 아닙니다. `.research/worklog/`, git, 아키텍처 카드가 작업을 보존하고 채팅·팀·백그라운드 작업은 세션과 함께 사라집니다. 재개 시 먼저 `research_state`를 호출하고 항목과 증거를 읽으십시오.
 
-세션을 넘길 수 있는 작업은 코드 옆에 작고 제한된 기록을 남깁니다. `worklog/PLAN.md`에는 목표, 현재 마일스톤, 활성 카드, 차단 항목, 날짜가 붙은 결정을 두고, `worklog/INDEX.md`에는 활성 카드마다 한 줄을 둡니다. 각 카드에는 `worklog/<task-id>.md`가 있으며 맨 위에 현재 상태 블록, 그 아래에 짧은 추가 항목을 둡니다.
-
-재개할 때 에이전트는 PLAN과 INDEX를 먼저 읽고, 그다음 대상 카드의 상태 블록과 끝부분만 읽습니다. 파일 전체나 디렉터리 전체는 읽지 않습니다. PLAN은 약 100줄, 카드 파일은 약 200줄로 유지하고 완료된 카드는 색인에서 뺍니다. 세 파일의 간결한 템플릿은 프리셋 persona에 있어 어떤 세션도 이 저장소를 읽지 않고 만들거나 갱신할 수 있습니다.
+재개 시 먼저 `research_state`, 그다음 `research_worklog op=get`으로 항목과 최신 증거를 읽습니다. 보기는 거울일 뿐이며 원본은 JSON입니다.
 
 ## 팀 모델 프로필
 
@@ -347,8 +336,6 @@ $DSH_HOME/research-team-settings.json
 - 프로필에서 번들이 활성화되어 있는지 확인하십시오.
 
 ### 팀 도구가 없음
-
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다. 이 프리셋은 작업을 작업 로그에 기록하고 팀 작업에는 기록하지 않습니다 |
 
 ### 작업 작업 로그 도구가 없음
 

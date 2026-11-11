@@ -25,7 +25,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊�
 | **完成** | `in_review` 是 agent 的最後一站；只有使用者能把卡片移到 `done` |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
 | **Git** | 實質性工作開始時由 agent 初始化；破壞性改動走分支；驗收通過後才合併 |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 每張關卡卡片一個有界檔案；恢復時先讀 PLAN 和 INDEX |
+| **工作日誌** | `.research/worklog/` 下的 JSON 儲存；`PLAN.md` 與 `INDEX.md` 是產生視圖；恢復時先讀 `research_state` |
 | **執行環境** | PTC（`run_code` + 產生的 SDK），每位成員一層 subagent |
 
 ## 適用對象
@@ -53,8 +53,6 @@ Lead 的回覆是科學性溝通，而不是狀態播報：先給結論或結果
 
 ## 需求
 
-Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊天的方式執行端到端研究。Lead 負責規劃工作、維護工作日誌記錄（使用者關卡用卡片檔，內部步驟用 INDEX 列）、分派工作、整合結果並與使用者溝通。八名預設專家分別涵蓋顧問評估、文獻與證據、資料取得、實驗設計、程式、執行、獨立複核與論文寫作。
-
 | 能力 | 提供者 | 備註 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 以 `0.2.1-rc.5` 為開發基準；其他版本可能可用但不保證 |
@@ -74,7 +72,6 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊�
 
 ### 從 DSH 外掛頁面安裝
 
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服務；本 preset 把工作記錄在工作日誌，而不是團隊任務 |
 2. 開啟 **設定 → 外掛**，點擊 **新增**。
 3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.1.1`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重新啟動 DSH。** preset 列與 bundle 的用戶端部分在啟動時載入。
@@ -92,7 +89,6 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-
 > 此模式是 profile 層級的 bundle：在一個 profile 中安裝不會在另一個 profile 中啟用。每個 profile 都要重複安裝與前置步驟。
 
 ## 首次執行
@@ -102,17 +98,17 @@ dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```text
 list_agents                    # create only the roles the task needs
 research_project               # resolve the current project root
-research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
+research_workspace_init        # seed .research/worklog/ and render the views if missing
 ```
 
 典型的首次任務：
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> worklog card at user gates -> INDEX row + send_message
-Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
+Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message
+Members: research_worklog op=claim -> work -> research_worklog op=gate (evidence, next) + send_message
 Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: summarize -> user acceptance (research_worklog op=update, by="user")
 ```
 
 ## 預設團隊
@@ -164,9 +160,9 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 ## 跨工作階段延續
 
-工作階段只是一次對話，不是專案本身：工作日誌、任務板和 git 承載工作，而聊天、團隊和背景工作不會隨工作階段保留。在一個已有 `worklog/PLAN.md` 的專案裡，第一次實質動作之前，先讀 PLAN 和 INDEX，再讀目前卡片的目前狀態區塊，然後才做計畫或消耗算力。
+可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
 
-工作日誌放在 `research_project` 回傳的專案根目錄，而不是工作階段的子目錄，這樣專案上的每個工作階段共用一份 PLAN 與一份 INDEX。PLAN、INDEX、卡片檔、git 與記憶是持久的；隊友對話與背景工作只存在於目前工作階段。後續工作階段需要知道的任何東西，都要在工作階段結束前寫進 PLAN 或卡片檔。
+可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
 
 跨回合仍在執行的實驗或長任務，要在卡片檔案或 PLAN 裡留下任務或終端控制代碼、主機、開始時間、預計完成時間和它服務的決策規則。恢復時先確認存活；控制代碼已消失的執行標記為孤兒，核對產物後交給使用者決定採用、重新啟動還是停止，絕不能悄悄重跑一遍。由已不存在工作階段持有的卡片，回報給使用者重新開啟，絕不接管。
 
@@ -178,14 +174,15 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 實驗區按時間由晚到早列出每個實驗，並顯示已進行或已用的時間。每個實驗都有明確的生命週期（已登記、待批准、已批准、執行中、已完成、已停止、失敗、已拒絕），由 `research_experiment` 工具推進：登記寫決策規則、seed 與預算，啟動在未獲批時被拒絕，結束時記錄完成、停止或失敗及原因。區塊標題右側可切換「需要審批 / 自動審批」，等待批准的實驗帶批准與拒絕按鈕，結果寫進該實驗的 manifest；條目變多後清單在自己的框內捲動。
 
-
 面板作為獨立模組放在 `panel/` 下，與設定頁分開，可以單獨啟用或停用；它在每個會話的右側欄中作為標籤頁出現。
 
 方法卡由 designer 維護，實作卡由 builder 維護；advisor 在評審設計或實作決定前先讀這兩張卡，reviewer 在結果閘門處核對它們。按住滑鼠中鍵拖曳可平移畫布，滾輪縮放，在節點上拖出選取框即可選取並寫註記。
 
 ## 工作日誌與協作
 
-工作紀錄以 JSON 形式存放在 `.research/worklog/`：`plan.json` 記錄目標、里程碑與下一步，每個工作項一個 `items/<id>.json`（標題、負責人、狀態、kind、下一步、阻塞、證據、檢查清單）。`worklog/PLAN.md`、`worklog/INDEX.md` 與 `worklog/<id>.md` 只是產生的檢視；用 `research_worklog` 讀寫（init、list、get、update、claim、gate、plan），決策、證據與設計欄位分別用 `research_decision`、`research_evidence`、`research_design` 記錄，`research_state` 一次讀出全隊狀態。
+可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
+
+狀態轉移遵循固定表（`todo → in_progress → in_review → done`），`blocked` 與 `canceled` 是旁路狀態；`blocked` 必須寫明原因，進入 `in_review` 至少要有一條證據，每次轉移都記錄在該項的歷史裡。
 
 預設會在右側邊欄新增一個「研究」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 的目標與里程碑、`worklog/INDEX.md` 的活動工作項、最近的執行、設計文件與架構卡片。
 
@@ -193,20 +190,20 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 ```text
 User goal
-Lead:  research_project -> worklog card (checklist) only at user gates
-       -> INDEX row (owner, status=todo, next) + send_message
-Member: write owner + in_progress into the INDEX row and the card header -> work
-        -> write evidence, summary, base..head, next into the card file -> in_review
-Internal steps stay INDEX rows; only user gates get a card file
-Reviewer: independent PASS/FAIL with evidence in the card file
+Lead:  research_project -> research_state
+       -> research_worklog op=update (status=todo, next) + send_message
+Member: research_worklog op=claim -> work
+        -> research_worklog op=gate (evidence, summary, base..head, next)
+Internal steps stay index rows; only items waiting for the user get a card view
+Reviewer: independent PASS/FAIL with evidence
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
-User:  accept -> done (agents can never set done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> item id/status when a gate needs the user
+User:  accept -> research_worklog op=update with by="user" (agents can never do that)
 ```
 
 ## Git 工作流程
 
-此模式在實質性工作開始時初始化耐久記錄，由 agent 判斷請求是真正的工作還是簡單問題。工作區還不在任何儲存庫裡時，agent 呼叫 `research_workspace_init`，它會建立 `worklog/PLAN.md` 和 `worklog/INDEX.md`，並執行 `git init`。它不會建立巢狀儲存庫，也不會提交腳手架。
+可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
 
 破壞性或風險較高的改動在依步驟命名的分支上進行，例如 `task/<title>+<id>`（有使用者關卡的工作用卡片，內部工作用團隊任務），不直接改預設分支。卡片或團隊任務記錄 base 與 head 提交，reviewer 以 `git diff <base>..<head>` 作為程式碼審查依據，並仍會重跑驗收檢查。
 
@@ -214,9 +211,9 @@ User:  accept -> done (agents can never set done)
 
 ## 工作日誌
 
-可能跨工作階段的工作會在程式碼旁邊保留一份小而受限的記錄。`worklog/PLAN.md` 存目標、目前里程碑、活躍卡片、阻塞項與帶日期的決策；`worklog/INDEX.md` 每張活躍卡一行。每張卡有 `worklog/<task-id>.md`，頂部是目前狀態區塊，下面是簡短的追加條目。
+可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
 
-恢復時 agent 先讀 PLAN 和 INDEX，再只讀目標卡的狀態區塊與尾部，不整讀檔案也不整讀目錄。PLAN 控制在約一百行，單卡檔案約兩百行，完成的卡從索引撤掉。三種檔案的精簡範本就在預設 persona 裡，任何工作階段都能直接建立或更新，不需要讀本儲存庫。
+恢復時先呼叫 `research_state`，再視需要 `research_worklog op=get` 讀目標項與最新證據。視圖只是給人看的鏡像，以 JSON 為準。
 
 ## 團隊模型配置
 
@@ -341,8 +338,6 @@ $DSH_HOME/research-team-settings.json
 - 檢查 bundle 是否已在 profile 中啟用。
 
 ### 缺少團隊工具
-
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服務；本 preset 把工作記錄在工作日誌，而不是團隊任務 |
 
 ### 缺少任務工作日誌工具
 

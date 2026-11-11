@@ -25,7 +25,7 @@ Research Team Mode एक DSH agent preset है जो अंत-से-अं
 | **पूर्णता** | `in_review` एजेंट का अंतिम पड़ाव है; कार्ड को केवल उपयोगकर्ता ही `done` में बदल सकता है |
 | **मॉडल रूटिंग** | Plugins पृष्ठ के सेटिंग्स फ़ॉर्म से प्रति भूमिका provider, model और reasoning effort |
 | **Git** | ठोस काम शुरू होने पर एजेंट इसे आरंभ करता है; विनाशकारी बदलाव ब्रांच पर; स्वीकृति के बाद ही मर्ज |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + हर गेट वाले कार्ड के लिए एक सीमित फ़ाइल; फिर से शुरू करते समय पहले PLAN और INDEX पढ़ें |
+| **Worklog** | `.research/worklog/` में JSON संग्रह; `PLAN.md` और `INDEX.md` जनरेटेड दृश्य हैं; फिर से शुरू करते समय पहले `research_state` |
 | **रनटाइम** | PTC (`run_code` + जनरेट किया गया SDK), प्रति सदस्य एक subagent परत |
 
 ## किसके लिए है
@@ -53,8 +53,6 @@ Lead के उत्तर वैज्ञानिक संचार हो�
 
 ## आवश्यकताएँ
 
-Research Team Mode एक DSH agent preset है जो अंत-से-अंत शोध को एकल चैट के बजाय टीम के रूप में चलाता है। Lead काम की योजना बनाता है, वर्कलॉग रजिस्टर (उपयोगकर्ता गेट के लिए कार्ड फ़ाइलें, आंतरिक चरणों के लिए INDEX पंक्तियाँ) रखता है, काम बाँटता है, परिणाम जोड़ता है और उपयोगकर्ता से संवाद करता है। आठ डिफ़ॉल्ट भूमिकाएँ सलाह, साहित्य व साक्ष्य, डेटा प्राप्ति, प्रयोग डिज़ाइन, कोड, रन, स्वतंत्र समीक्षा और पेपर लेखन को कवर करती हैं।
-
 | क्षमता | प्रदाता | नोट्स |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` के विरुद्ध विकसित; अन्य रिलीज़ काम कर सकते हैं, परंतु गारंटी नहीं है |
@@ -74,7 +72,6 @@ Research Team Mode एक DSH agent preset है जो अंत-से-अं
 
 ### DSH प्लगइन पृष्ठ से इंस्टॉल करें
 
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` और Team सेवाएँ देता है; यह preset अपना काम वर्कलॉग में लिखता है, टीम टास्क में नहीं |
 2. **सेटिंग्स → प्लगइन** खोलें और **जोड़ें** पर क्लिक करें।
 3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.1.1`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
 4. **DSH को पुनः आरंभ करें।** प्रीसेट पंक्तियाँ और बंडल का क्लाइंट भाग स्टार्टअप पर लोड होते हैं।
@@ -92,7 +89,6 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-
 > यह मोड प्रोफ़ाइल-स्तरीय बंडल है: एक प्रोफ़ाइल में इंस्टॉल करने से वह दूसरे में सक्षम नहीं होता। प्रत्येक प्रोफ़ाइल के लिए इंस्टॉल और पूर्वापेक्षाएँ दोहराएँ।
 
 ## पहला रन
@@ -102,17 +98,17 @@ dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```text
 list_agents                    # create only the roles the task needs
 research_project               # resolve the current project root
-research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
+research_workspace_init        # seed .research/worklog/ and render the views if missing
 ```
 
 एक विशिष्ट पहला कार्य:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> worklog card at user gates -> INDEX row + send_message
-Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
+Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message
+Members: research_worklog op=claim -> work -> research_worklog op=gate (evidence, next) + send_message
 Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: summarize -> user acceptance (research_worklog op=update, by="user")
 ```
 
 ## डिफ़ॉल्ट टीम
@@ -164,20 +160,19 @@ Lead रन स्वीकार करता है, runner रिकॉर्
 
 ## सत्र-से-सत्र निरंतरता
 
-सत्र एक बातचीत है, प्रोजेक्ट नहीं: काम को वर्कलॉग और git ढोते हैं, जबकि चैट, टीम और बैकग्राउंड जॉब्स सत्र के साथ समाप्त हो जाते हैं। जिस प्रोजेक्ट में पहले से `worklog/PLAN.md` है, वहाँ पहली ठोस कार्रवाई से पहले एजेंट PLAN और INDEX, फिर वर्तमान कार्ड का करंट-स्टेट ब्लॉक पढ़ता है, तब योजना बनाता है या कंप्यूट खर्च करता है।
+सत्र एक बातचीत है, परियोजना नहीं: `.research/worklog/`, git और आर्किटेक्चर कार्ड काम को थामे रखते हैं; चैट, टीम और पृष्ठभूमि कार्य सत्र के साथ समाप्त हो जाते हैं। फिर से शुरू करते समय पहले `research_state` कॉल करें, फिर आइटम और उसका साक्ष्य पढ़ें।
 
-वर्कलॉग उस प्रोजेक्ट की जड़ में रहता है जो `research_project` लौटाता है, सत्र की उपनिर्देशिका में नहीं, इसलिए प्रोजेक्ट के सभी सत्र एक ही PLAN और INDEX साझा करते हैं। PLAN, INDEX, कार्ड फ़ाइलें, git और मेमोरी टिकाऊ हैं; टीम सदस्यों के संवाद और बैकग्राउंड जॉब्स केवल सत्र में रहते हैं। बाद के सत्र को जो जानना है, वह सत्र समाप्त होने से पहले PLAN या कार्ड फ़ाइल में लिखा जाता है।
+सत्र एक बातचीत है, परियोजना नहीं: `.research/worklog/`, git और आर्किटेक्चर कार्ड काम थामे रखते हैं; चैट, टीम और पृष्ठभूमि कार्य सत्र के साथ समाप्त होते हैं। फिर से शुरू करते समय पहले `research_state` कॉल करें।
 
 टर्न से आगे चलने वाला रन या लंबा जॉब कार्ड फ़ाइल या PLAN में जॉब या टर्मिनल हैंडल, होस्ट, शुरू का समय, अपेक्षित पूर्णता और वह निर्णय-नियम छोड़ता है जिसकी वह सेवा करता है। फिर से शुरू करने पर पहले जीवितता जाँची जाती है; हैंडल गया हुआ रन अनाथ चिह्नित होकर आर्टिफ़ैक्ट मिलाकर उपयोगकर्ता के सामने अपनाएँ, पुनः आरंभ करें या रोकें के रूप में रखा जाता है, चुपचाप दोबारा नहीं चलाया जाता। जो कार्ड ऐसे सत्र के पास है जो अब नहीं है, उसे उपयोगकर्ता को फिर से खोलने के लिए बताया जाता है, कभी अधिग्रहित नहीं किया जाता।
 
 ## अनुसंधान साइडबार
 
-यह प्रीसेट दाएँ साइडबार में «अनुसंधान» टैब जोड़ता है। यह बताता है कि टीम अभी क्या कर रही है, कहाँ अटकी है और अगला कदम क्या है: `worklog/PLAN.md` का लक्ष्य और माइलस्टोन, `worklog/INDEX.md` के सक्रिय कार्य आइटम (टास्क वर्कलॉग अलग है और यहाँ नहीं दिखता), हाल के रन, डिज़ाइन दस्तावेज़ और आर्किटेक्चर कार्ड।
+सत्रों के पार चलने वाला काम `.research/worklog/` में JSON के रूप में रहता है: `plan.json` में लक्ष्य, माइलस्टोन, अगला कदम और निर्णय, और हर आइटम के लिए `items/<id>.json`। `PLAN.md`, `INDEX.md` और कार्ड उपकरणों से बनते हैं; उन्हें हाथ से न बदलें।
 
 आर्किटेक्चर कार्ड `.research/architecture/` के अंतर्गत JSON के रूप में संग्रहीत नोड-एज आरेख हैं, प्रति कार्ड एक फ़ाइल। एजेंट उन्हें `research_architecture` टूल से पढ़ता और अद्यतन करता है, ताकि आरेख डिज़ाइन के साथ चले, स्लाइड में पुराना न पड़ा रहे। कार्ड पैनल में SVG के रूप में प्रदर्शित होता है; नोड्स पर बॉक्स खींचकर उन्हें चुना जाता है, और आपका लिखा नोट कार्ड पर टिप्पणी के रूप में सहेजा जाता है जिसे एजेंट उत्तर देने से पहले पढ़ता है। जब `dsh-better-sidebar` स्थापित हो तो टैब उसके माध्यम से पंजीकृत होता है, अन्यथा मूल दाएँ साइडबार में।
 
 प्रयोग अनुभाग नवीनतम पहले रन दिखाता है और बताता है कि रन कितनी देर से चल रहा है या कितना समय लिया। हर रन का स्पष्ट जीवनचक्र है (योजनाबद्ध, स्वीकृति प्रतीक्षित, स्वीकृत, चल रहा, पूर्ण, रोका गया, विफल, अस्वीकृत) और इसे `research_experiment` टूल चलाता है: register निर्णय नियम, seed और बजट लिखता है, start बिना स्वीकृति अस्वीकार करता है, finish पूर्ण, रोका या विफल कारण के साथ दर्ज करता है। शीर्षक में स्विच (स्वीकृति आवश्यक / स्वतः) है; प्रतीक्षारत रन स्वीकृत और अस्वीकृत बटन दिखाता है जिनका उत्तर manifest में जाता है, और सूची अपने बॉक्स में स्क्रॉल होती है।
-
 
 पैनल `panel/` के अंतर्गत एक अलग मॉड्यूल है, सेटिंग फ़ॉर्म से स्वतंत्र, इसे अलग से सक्षम या अक्षम किया जा सकता है। यह हर बातचीत में दाएँ साइडबार के टैब के रूप में दिखता है।
 
@@ -185,28 +180,26 @@ Lead रन स्वीकार करता है, runner रिकॉर्
 
 ## वर्कलॉग और समन्वय
 
-कार्य लॉग `.research/worklog/` में JSON के रूप में रखा जाता है: `plan.json` में लक्ष्य, माइलस्टोन और अगला कदम, और हर कार्य-वस्तु के लिए एक `items/<id>.json` (शीर्षक, स्वामी, स्थिति, kind, अगला कदम, अवरोध, प्रमाण, चेकलिस्ट)। `worklog/PLAN.md`, `worklog/INDEX.md` और `worklog/<id>.md` केवल बने हुए दृश्य हैं; इन्हें `research_worklog` (init, list, get, update, claim, gate, plan) से पढ़ें-लिखें, निर्णय, प्रमाण और डिज़ाइन फ़ील्ड के लिए `research_decision`, `research_evidence`, `research_design`, और पूरी टीम स्थिति के लिए `research_state`।
+स्थिति परिवर्तन एक निश्चित तालिका का पालन करते हैं (`todo → in_progress → in_review → done`); `blocked` और `canceled` पार्श्व स्थितियाँ हैं। `blocked` में कारण आवश्यक है, गेट के लिए कम से कम एक साक्ष्य प्रविष्टि चाहिए, और हर परिवर्तन आइटम के इतिहास में दर्ज होता है।
 
-प्रोजेक्ट वर्कलॉग ही एकमात्र रिकॉर्ड है: `PLAN.md` (उद्देश्य, माइलस्टोन, सक्रिय आइटम, अवरोध, तिथि-युक्त निर्णय), `INDEX.md` में हर सक्रिय कार्य-आइटम के लिए एक पंक्ति, और हर उपयोगकर्ता-गेट के लिए एक कार्ड फ़ाइल जिसके ऊपर Current state ब्लॉक है। केवल वे चरण जिनमें उपयोगकर्ता की समीक्षा या स्वीकृति चाहिए, कार्ड फ़ाइल पाते हैं - डिलीवरेबल चेकपॉइंट, स्कोप निर्णय, जोखिम भरे बदलाव, अंतिम हैंडऑफ़ - आंतरिक चरण INDEX पंक्तियाँ ही रहते हैं। काम लेने वाला अपनी भूमिका और `in_progress` पंक्ति तथा कार्ड हेडर में लिखता है; यदि पंक्ति में पहले से कोई और मालिक है तो वह कार्य नहीं लेता। टीम कोई टास्क-वर्कलॉग प्लगइन नहीं वापस करती: न कुछ इंस्टॉल करना है, न सिंक करना।
+सत्रों के पार चलने वाला काम `.research/worklog/` में JSON के रूप में रहता है: `plan.json` में लक्ष्य, माइलस्टोन, अगला कदम और निर्णय, और हर आइटम के लिए `items/<id>.json`। `PLAN.md`, `INDEX.md` और कार्ड उपकरणों से बनते हैं; हाथ से न बदलें।
 
 गेट पर ज़िम्मेदार व्यक्ति साक्ष्य के साथ चेकलिस्ट, निष्पादन सारांश, कमिट रेंज और अगला कदम कार्ड फ़ाइल में लिखता है, बदले हुए पाथ पर `research_scope_check` चलाता है, फिर स्थिति `in_review` करता है। reviewer साक्ष्य के साथ PASS/FAIL लिखता है; Lead केवल गेट पर या जब उपयोगकर्ता को कार्रवाई करनी हो, कार्ड आईडी, स्थिति और साक्ष्य बताता है। `done` केवल उपयोगकर्ता की स्वीकृति है; `blocked` अर्थ है आगे नहीं बढ़ सकते, `canceled` अर्थ है आगे नहीं बढ़ेंगे।
 
 ```text
 User goal
-Lead:  research_project -> worklog card (checklist) only at user gates
-       -> INDEX row (owner, status=todo, next) + send_message
-Member: write owner + in_progress into the INDEX row and the card header -> work
-        -> write evidence, summary, base..head, next into the card file -> in_review
-Internal steps stay INDEX rows; only user gates get a card file
-Reviewer: independent PASS/FAIL with evidence in the card file
+Lead:  research_project -> research_state
+       -> research_worklog op=update (status=todo, next) + send_message
+Member: research_worklog op=claim -> work
+        -> research_worklog op=gate (evidence, summary, base..head, next)
+Internal steps stay index rows; only items waiting for the user get a card view
+Reviewer: independent PASS/FAIL with evidence
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
-User:  accept -> done (agents can never set done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> item id/status when a gate needs the user
+User:  accept -> research_worklog op=update with by="user" (agents can never do that)
 ```
 
 ## Git वर्कफ़्लो
-
-यह मोड ठोस काम शुरू होने पर टिकाऊ ट्रैकिंग आरंभ करता है, और यह एजेंट तय करता है कि अनुरोध वास्तविक काम है या साधारण प्रश्न। जब कार्यक्षेत्र पहले से किसी रिपॉज़िटरी में न हो, तो एजेंट `research_workspace_init` कॉल करता है, जो `worklog/PLAN.md` और `worklog/INDEX.md` बनाता है और `git init` चलाता है। यह कभी नेस्टेड रिपॉज़िटरी नहीं बनाता और scaffold को कमिट नहीं करता।
 
 विनाशकारी या जोखिम भरे परिवर्तन चरण के नाम वाली ब्रांच पर होते हैं, जैसे `task/<title>+<id>` (गेट वाले काम के लिए कार्ड, आंतरिक काम के लिए टीम टास्क), न कि सीधे डिफ़ॉल्ट ब्रांच पर। कार्ड या टीम टास्क base और head कमिट दर्ज करता है, और reviewer कोड समीक्षा के आधार के रूप में `git diff <base>..<head>` पढ़ता है और स्वीकृति जाँच भी दोबारा चलाता है।
 
@@ -214,11 +207,7 @@ User:  accept -> done (agents can never set done)
 
 ## Worklog
 
-कार्य लॉग `.research/worklog/` में JSON के रूप में रखा जाता है: `plan.json` में लक्ष्य, माइलस्टोन और अगला कदम, और हर कार्य-वस्तु के लिए एक `items/<id>.json` (शीर्षक, स्वामी, स्थिति, kind, अगला कदम, अवरोध, प्रमाण, चेकलिस्ट)। `worklog/PLAN.md`, `worklog/INDEX.md` और `worklog/<id>.md` केवल बने हुए दृश्य हैं; इन्हें `research_worklog` (init, list, get, update, claim, gate, plan) से पढ़ें-लिखें, निर्णय, प्रमाण और डिज़ाइन फ़ील्ड के लिए `research_decision`, `research_evidence`, `research_design`, और पूरी टीम स्थिति के लिए `research_state`।
-
-जो काम कई सत्रों तक चल सकता है, वह कोड के पास एक छोटा, सीमित रिकॉर्ड रखता है। `worklog/PLAN.md` में उद्देश्य, वर्तमान माइलस्टोन, सक्रिय कार्ड, अवरोध और तिथि-युक्त निर्णय होते हैं; `worklog/INDEX.md` में प्रति सक्रिय कार्ड एक पंक्ति होती है। हर कार्ड के लिए `worklog/<task-id>.md` होता है जिसके शीर्ष पर वर्तमान स्थिति ब्लॉक और नीचे छोटी केवल-जोड़ने वाली प्रविष्टियाँ होती हैं।
-
-फिर से शुरू करते समय एजेंट पहले PLAN और INDEX पढ़ता है, फिर केवल लक्ष्य कार्ड का स्थिति ब्लॉक और अंत, पूरी फ़ाइल या पूरी डायरेक्टरी कभी नहीं। PLAN लगभग 100 पंक्तियों के भीतर, कार्ड फ़ाइलें लगभग 200 के भीतर रहती हैं, और पूर्ण कार्ड सूचकांक से हटा दिए जाते हैं। तीनों फ़ाइलों के संक्षिप्त टेम्पलेट प्रीसेट persona में हैं, इसलिए कोई भी सत्र इस रिपॉज़िटरी को पढ़े बिना उन्हें बना या अपडेट कर सकता है।
+फिर से शुरू करते समय पहले `research_state`, फिर आइटम और नवीनतम साक्ष्य के लिए `research_worklog op=get`। दृश्य केवल प्रतिबिंब हैं; स्रोत JSON है।
 
 ## टीम मॉडल प्रोफ़ाइलें
 
@@ -347,8 +336,6 @@ $DSH_HOME/research-team-settings.json
 - जाँचें कि प्रोफ़ाइल में बंडल सक्षम है।
 
 ### टीम टूल अनुपस्थित हैं
-
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` और Team सेवाएँ देता है; यह preset अपना काम वर्कलॉग में लिखता है, टीम टास्क में नहीं |
 
 ### टास्क-वर्कलॉग टूल अनुपस्थित हैं
 

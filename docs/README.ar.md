@@ -25,7 +25,7 @@
 | **الإنجاز** | `in_review` هي آخر محطة للوكيل؛ ولا ينقل البطاقة إلى `done` إلا المستخدم |
 | **توجيه النماذج** | provider وmodel وقوة الاستدلال لكل دور من نموذج إعدادات في صفحة Plugins |
 | **Git** | يهيّئه الوكيل عند بدء العمل الجوهري؛ التغييرات المدمِّرة على فرع؛ الدمج بعد القبول فقط |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + ملف محدود لكل بطاقة مرتبطة ببوابة؛ عند الاستئناف تُقرأ PLAN وINDEX أولًا |
+| **Worklog** | مخزن JSON في `.research/worklog/`؛ `PLAN.md` و`INDEX.md` عرضان مولّدان؛ الاستئناف يبدأ بـ`research_state` |
 | **بيئة التشغيل** | PTC (`run_code` + SDK المولَّد)، وطبقة subagent واحدة لكل عضو |
 
 ## لمن هذا الوضع
@@ -74,7 +74,6 @@
 
 ### التثبيت من صفحة الإضافات في DSH
 
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | يوفر `spawn_teammate` و`send_message` و`wait_agent` و`interrupt_agent` وخدمات Team؛ ويسجل هذا الإعداد العمل في سجل العمل لا في مهام الفريق |
 2. افتح **الإعدادات ← الإضافات** واضغط **إضافة**.
 3. الصق مصدر التثبيت: `dsh-research-team-preset@0.1.1` لحزمة npm، أو `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1` لتثبيت المصدر، أو `link:/absolute/path/to/dsh-research-team-preset` لنسخة محلية.
 4. **أعد تشغيل DSH.** تُحمَّل أسطر الإعداد المسبق والجزء العميلي من الحزمة عند البدء.
@@ -92,7 +91,6 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-
 > الوضع هو حزمة على مستوى ملف التعريف: تثبيته في ملف تعريف لا يفعّله في ملف آخر. أعد التثبيت والمتطلبات المسبقة لكل ملف تعريف.
 
 ## أول تشغيل
@@ -102,17 +100,17 @@ dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```text
 list_agents                    # create only the roles the task needs
 research_project               # resolve the current project root
-research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
+research_workspace_init        # seed .research/worklog/ and render the views if missing
 ```
 
 مهمة أولى نموذجية:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> worklog card at user gates -> INDEX row + send_message
-Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
+Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message
+Members: research_worklog op=claim -> work -> research_worklog op=gate (evidence, next) + send_message
 Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: summarize -> user acceptance (research_worklog op=update, by="user")
 ```
 
 ## الفريق الافتراضي
@@ -164,20 +162,17 @@ Lead: summarize -> user acceptance (done)
 
 ## استمرارية العمل عبر الجلسات
 
-الجلسة محادثة وليست المشروع: سجل العمل والسجل العمل وgit تحمل العمل، أما الدردشة والفريق والمهام الخلفية فلا تبقى مع الجلسة. في مشروع لديه `worklog/PLAN.md` مسبقًا، قبل أول إجراء جوهري يقرأ الوكيل PLAN وINDEX ثم كتلة الحالة الحالية للبطاقة، قبل التخطيط أو صرف الحوسبة.
+العمل الذي قد يمتد عبر الجلسات يُحفظ كـ JSON في `.research/worklog/`: `plan.json` للهدف والمعالم والخطوة التالية والقرارات، وملف `items/<id>.json` لكل بند. الملفات `PLAN.md` و`INDEX.md` والبطاقات تُولَّد بالأدوات، ولا تُحرَّر يدويًا.
 
-يقع سجل العمل في جذر المشروع الذي يعيده `research_project`، لا في دليل فرعي للجلسة، فتشترك كل جلسات المشروع في PLAN وINDEX واحدين. PLAN وINDEX وملفات البطاقات وgit والذاكرة دائمة؛ أما محادثات الأعضاء والمهام الخلفية فتبقى في الجلسة فقط. وكل ما تحتاج جلسة لاحقة معرفته يكتب في PLAN أو ملف البطاقة قبل انتهاء الجلسة.
+الجلسة محادثة وليست المشروع: `.research/worklog/` وgit وبطاقات المعمار تحمل العمل؛ الدردشة والفريق والمهام الخلفية لا تبقى مع الجلسة. عند الاستئناف استدعِ `research_state` أولًا.
 
 التشغيل أو المهمة الطويلة التي تتجاوز الدور تترك معرّف المهمة أو الطرفية والمضيف ووقت البدء والانتهاء المتوقع وقاعدة القرار التي تخدمها في ملف البطاقة أو PLAN. عند الاستئناف يُفحص البقاء أولًا؛ ويُعامل التشغيل اليتيم بأن تُطابق مخرجاته ويُعرض على المستخدم كخيار تبنٍّ أو إعادة تشغيل أو إيقاف، لا أن يُعاد تشغيله مرتين بصمت. البطاقة التي تحتفظ بها جلسة لم تعد موجودة تُبلَّغ للمستخدم لإعادة فتحها ولا تُستولى عليها أبدًا.
 
 ## الشريط الجانبي للبحث
 
-يضيف الإعداد تبويب "البحث" إلى الشريط الجانبي الأيمن. يجيب عما يفعله الفريق الآن وأين تعطل وما الخطوة التالية: الهدف والمعالم من `worklog/PLAN.md`، والعناصر النشطة من `worklog/INDEX.md`، وآخر التشغيلات، ووثائق التصميم، وبطاقات البنية.
-
 بطاقات المعمارية مخططات عُقد ووصلات تُحفظ بصيغة JSON تحت `.research/architecture/`، ملف واحد لكل بطاقة. يقرأها الوكيل ويحدّثها بأداة `research_architecture`، فيبقى المخطط متزامنًا مع التصميم بدل أن يتقادم في شريحة عرض. تُعرض البطاقة بصيغة SVG داخل السجل العمل؛ وسحب إطار حول العُقد يحدّدها، وتُحفظ الملاحظة التي تكتبها على البطاقة كتعليق يقرأه الوكيل قبل أن يجيب. تُسجّل علامة التبويب عبر `dsh-better-sidebar` عند تثبيت هذه الإضافة، وإلا ففي الشريط الجانبي الأيمن الأصلي.
 
 يعرض قسم التجارب التشغيلات من الأحدث إلى الأقدم ومدة كل تشغيل. لكل تشغيل دورة حياة واضحة (مخطط، بانتظار الموافقة، موافق عليه، قيد التشغيل، مكتمل، متوقف، فشل، مرفوض) تديرها أداة `research_experiment`: register يكتب قاعدة القرار والبذور والميزانية، وstart يرفض دون موافقة، وfinish يسجل الاكتمال أو التوقف أو الفشل مع السبب. يحمل العنوان مبدلا (يتطلب موافقة / تلقائي)؛ ويظهر التشغيل المنتظر زري موافقة ورفض ويُكتب الجواب في manifest الخاص به، وتمرر القائمة داخل إطارها.
-
 
 السجل العمل وحدة مستقلة ضمن `panel/`، منفصلة عن نموذج الإعدادات، ويمكن تمكينها أو تعطيلها وحدها. وهي تظهر كعلامة تبويب في الشريط الجانبي الأيمن لكل محادثة.
 
@@ -185,28 +180,24 @@ Lead: summarize -> user acceptance (done)
 
 ## سجل العمل والتنسيق
 
-يُحفظ سجل العمل بصيغة JSON في `.research/worklog/`: يحتوي `plan.json` على الهدف والمعالم والخطوة التالية، ولكل عنصر عمل ملف `items/<id>.json` (العنوان، المالك، الحالة، kind، الخطوة التالية، العائق، الأدلة، قائمة التحقق). ملفات `worklog/PLAN.md` و`worklog/INDEX.md` و`worklog/<id>.md` مجرد عروض مولدة؛ تُقرأ وتُكتب بأداة `research_worklog` (init, list, get, update, claim, gate, plan)، والقرارات والأدلة وحقول التصميم بـ `research_decision` و`research_evidence` و`research_design`، وتقرأ `research_state` حالة الفريق كاملة في نداء واحد.
-
-يضيف الإعداد تبويب "البحث" إلى الشريط الجانبي الأيمن. يجيب عما يفعله الفريق الآن وأين تعطل وما الخطوة التالية: الهدف والمعالم من `worklog/PLAN.md`، والعناصر النشطة من `worklog/INDEX.md`، وآخر التشغيلات، ووثائق التصميم، وبطاقات البنية.
+تتبع انتقالات الحالة جدولًا ثابتًا (`todo → in_progress → in_review → done`)، و`blocked` و`canceled` حالتان جانبيتان؛ `blocked` يتطلب سببًا، والبوابة تتطلب سجل أدلة واحدًا على الأقل، ويُحفظ كل انتقال في تاريخ البند.
 
 عند البوابة يكتب المسؤول قائمة التحقق مع الأدلة، وملخص التنفيذ، ونطاق الإيداع، والخطوة التالية في ملف البطاقة، ثم يشغل `research_scope_check` على المسارات المتغيرة ويضع الحالة `in_review`. يكتب المراجع PASS/FAIL مع الدليل؛ ولا يبلغ Lead بمعرف البطاقة والحالة والدليل إلا عند بلوغ بوابة أو حين يجب على المستخدم التصرف. `done` من حق قبول المستخدم فقط؛ `blocked` تعني تعذر المتابعة، و`canceled` تعني عدم المتابعة.
 
 ```text
 User goal
-Lead:  research_project -> worklog card (checklist) only at user gates
-       -> INDEX row (owner, status=todo, next) + send_message
-Member: write owner + in_progress into the INDEX row and the card header -> work
-        -> write evidence, summary, base..head, next into the card file -> in_review
-Internal steps stay INDEX rows; only user gates get a card file
-Reviewer: independent PASS/FAIL with evidence in the card file
+Lead:  research_project -> research_state
+       -> research_worklog op=update (status=todo, next) + send_message
+Member: research_worklog op=claim -> work
+        -> research_worklog op=gate (evidence, summary, base..head, next)
+Internal steps stay index rows; only items waiting for the user get a card view
+Reviewer: independent PASS/FAIL with evidence
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
-User:  accept -> done (agents can never set done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> item id/status when a gate needs the user
+User:  accept -> research_worklog op=update with by="user" (agents can never do that)
 ```
 
 ## سير عمل Git
-
-يهيّئ الوضع تتبعًا دائمًا عند بدء العمل الجوهري، ويقدّر الوكيل ما إذا كان الطلب عملًا حقيقيًا أم سؤالًا بسيطًا. وإذا لم تكن مساحة العمل داخل مستودع بعد، يستدعي الوكيل `research_workspace_init`، الذي ينشئ `worklog/PLAN.md` و`worklog/INDEX.md` وينفّذ `git init`. ولا ينشئ مستودعًا متداخلًا أبدًا ولا يثبّت الهيكل الأولي.
 
 تُنفَّذ التغييرات المدمِّرة أو عالية المخاطر على فرع يحمل اسم الخطوة، مثل `task/<title>+<id>` (البطاقة للعمل المرتبط ببوابة، ومهمة الفريق للعمل الداخلي)، بدلًا من تعديل الفرع الافتراضي مباشرة. وتسجّل البطاقة أو مهمة الفريق كوميتَي base وhead، ويقرأ reviewer ناتج `git diff <base>..<head>` أساسًا لمراجعة الشيفرة، ويعيد تشغيل فحوص القبول أيضًا.
 
@@ -214,11 +205,7 @@ User:  accept -> done (agents can never set done)
 
 ## Worklog
 
-يُحفظ سجل العمل بصيغة JSON في `.research/worklog/`: يحتوي `plan.json` على الهدف والمعالم والخطوة التالية، ولكل عنصر عمل ملف `items/<id>.json` (العنوان، المالك، الحالة، kind، الخطوة التالية، العائق، الأدلة، قائمة التحقق). ملفات `worklog/PLAN.md` و`worklog/INDEX.md` و`worklog/<id>.md` مجرد عروض مولدة؛ تُقرأ وتُكتب بأداة `research_worklog` (init, list, get, update, claim, gate, plan)، والقرارات والأدلة وحقول التصميم بـ `research_decision` و`research_evidence` و`research_design`، وتقرأ `research_state` حالة الفريق كاملة في نداء واحد.
-
-العمل الذي قد يمتد عبر جلسات يحتفظ بسجل صغير ومحدود بجوار الشيفرة. يحتوي `worklog/PLAN.md` على الهدف والمرحلة الحالية والبطاقات النشطة والعوائق والقرارات المؤرخة؛ ويحتوي `worklog/INDEX.md` على سطر لكل بطاقة نشطة. ولكل بطاقة `worklog/<task-id>.md` فيه كتلة الحالة الحالية في الأعلى وإدخالات قصيرة تُضاف أسفلها.
-
-عند الاستئناف يقرأ الوكيل PLAN وINDEX أولًا، ثم كتلة حالة البطاقة المستهدفة وذيلها فقط، ولا يقرأ الملف كاملًا ولا الدليل كاملًا. يبقى PLAN ضمن نحو 100 سطر وملفات البطاقات ضمن نحو 200، وتُزال البطاقات المكتملة من الفهرس. القوالب المكثفة للملفات الثلاثة موجودة في persona الإعداد المسبق، فيمكن لأي جلسة إنشاؤها أو تحديثها دون قراءة هذا المستودع.
+عند الاستئناف استدعِ `research_state` أولًا، ثم `research_worklog op=get` للبند والأدلة. العروض المولّدة للقراءة فقط؛ المصدر هو JSON.
 
 ## ملفات تعريف نموذج الفريق
 
@@ -347,8 +334,6 @@ $DSH_HOME/research-team-settings.json
 - تحقق من تفعيل الـ bundle في الـ profile.
 
 ### أدوات الفريق مفقودة
-
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | يوفر `spawn_teammate` و`send_message` و`wait_agent` و`interrupt_agent` وخدمات Team؛ ويسجل هذا الإعداد العمل في سجل العمل لا في مهام الفريق |
 
 ### أدوات سجل العمل المهام مفقودة
 

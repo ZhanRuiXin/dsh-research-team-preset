@@ -25,7 +25,7 @@ Research Team Mode - это пресет агента DSH для сквозно�
 | **Завершение** | `in_review` — последняя остановка агента; только пользователь может перевести карточку в `done` |
 | **Маршрутизация моделей** | Провайдер, модель и усилие рассуждения для каждой роли через форму настроек на странице Plugins |
 | **Git** | Инициализируется агентом при начале существенной работы; разрушительные изменения — в ветке; слияние только после приёмки |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + один ограниченный файл на карточку с контрольной точкой; при возобновлении сначала читаются PLAN и INDEX |
+| **Worklog** | JSON-хранилище в `.research/worklog/`; `PLAN.md` и `INDEX.md` — сгенерированные представления; при возобновлении сначала `research_state` |
 | **Среда выполнения** | PTC (`run_code` + сгенерированный SDK), один уровень subagent на участника |
 
 ## Для кого
@@ -53,8 +53,6 @@ Research Team Mode - это пресет агента DSH для сквозно�
 
 ## Требования
 
-Research Team Mode - это пресет агента DSH для сквозного исследования командой, а не одним чатом. Lead планирует работу, ведёт реестр worklog (файлы карточек для гейтов пользователя, строки INDEX для внутренних шагов), распределяет работу, объединяет результаты и общается с пользователем. Восемь ролей по умолчанию покрывают консультирование, литературу и доказательства, получение данных, дизайн экспериментов, код, запуски, независимое ревью и написание статьи.
-
 | Возможность | Провайдер | Примечания |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Разработано для `0.2.1-rc.5`; другие версии могут работать, но не гарантируются |
@@ -74,7 +72,6 @@ Research Team Mode - это пресет агента DSH для сквозно�
 
 ### Установка со страницы плагинов DSH
 
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Даёт `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` и сервисы Team; пресет пишет работу в worklog, а не в командные задачи |
 2. Откройте **Настройки → Плагины** и нажмите **Добавить**.
 3. Вставьте источник установки: `dsh-research-team-preset@0.1.1` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
 4. **Перезапустите DSH.** Строки пресета и клиентская часть бандла загружаются при старте.
@@ -92,7 +89,6 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-
 > Режим является бандлом уровня профиля: установка в одном профиле не включает его в другом. Повторите установку и предварительные условия для каждого профиля.
 
 ## Первый запуск
@@ -102,17 +98,17 @@ dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```text
 list_agents                    # create only the roles the task needs
 research_project               # resolve the current project root
-research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
+research_workspace_init        # seed .research/worklog/ and render the views if missing
 ```
 
 Типичная первая задача:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> worklog card at user gates -> INDEX row + send_message
-Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
+Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message
+Members: research_worklog op=claim -> work -> research_worklog op=gate (evidence, next) + send_message
 Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: summarize -> user acceptance (research_worklog op=update, by="user")
 ```
 
 ## Команда по умолчанию
@@ -164,20 +160,17 @@ Builder реализует дизайн, runner выполняет его, а re
 
 ## Непрерывность между сессиями
 
-Сессия — это разговор, а не проект: работу несут worklog, worklogа и git, а чат, команда и фоновые задания не переживают сессию. В проекте, где уже есть `worklog/PLAN.md`, перед первым существенным действием агент читает PLAN и INDEX, затем блок текущего состояния карточки, и только потом планирует или тратит вычисления.
+Работа, которая длится дольше сессии, хранится в JSON в `.research/worklog/`: `plan.json` с целью, вехами, следующим шагом и решениями, и `items/<id>.json` на каждый элемент. Файлы `PLAN.md`, `INDEX.md` и карточки создают инструменты; не правьте их вручную.
 
-Worklog лежит в корне проекта, который возвращает `research_project`, а не в подкаталоге сессии: все сессии проекта делят один PLAN и один INDEX. PLAN, INDEX, файлы карточек, git и память долговечны; разговоры участников и фоновые задачи существуют только в сессии. Всё, что должна знать следующая сессия, записывается в PLAN или файл карточки до её конца.
+Сессия — это разговор, а не проект: `.research/worklog/`, git и карточки архитектуры несут работу; чат, команда и фоновые задачи не переживают сессию. При возобновлении сначала вызовите `research_state`.
 
 Запуск или долгое задание, переживающее ход, оставляет в файле карточки или PLAN идентификатор задания или терминала, хост, время старта, ожидаемое завершение и правило решения, которому оно служит. При возобновлении сначала проверяется живость; осиротевший запуск сверяется с артефактами и выносится пользователю как принять, перезапустить или остановить, а не запускается молча второй раз. Карточка, которую держит несуществующая сессия, сообщается пользователю для переоткрытия и никогда не перехватывается.
 
 ## Панель исследований
 
-Пресет добавляет в правую боковую панель вкладку "Исследование". Она отвечает, что команда делает, где застряла и каков следующий шаг: цель и веха из `worklog/PLAN.md`, активные пункты из `worklog/INDEX.md`, последние запуски, проектные документы и карточки архитектуры.
-
 Карточки архитектуры — это схемы узлов и связей, хранящиеся в JSON в `.research/architecture/`, один файл на карточку. Агент читает и обновляет их инструментом `research_architecture`, поэтому схема следует за проектом, а не устаревает на слайде. Карточка отображается как SVG в панели; рамка выделения по узлам выбирает их, а написанная вами заметка сохраняется в карточке как аннотация, которую агент читает перед ответом. Вкладка регистрируется через `dsh-better-sidebar`, если этот плагин установлен, иначе — в нативной правой панели.
 
 Раздел экспериментов перечисляет запуски от новых к старым и показывает, сколько идёт запуск или сколько занял. У каждого запуска явный жизненный цикл (запланирован, ждёт одобрения, одобрен, выполняется, завершён, остановлен, сбой, отклонён), которым управляет инструмент `research_experiment`: register пишет правило, seeds и бюджет, start отказывает без одобрения, finish фиксирует завершение, остановку или сбой с причиной. В заголовке есть переключатель (нужно одобрение / автоматически); ожидающий запуск показывает кнопки «одобрить» и «отклонить», ответ пишется в его manifest, а список прокручивается внутри блока.
-
 
 Панель — отдельный модуль в `panel/`, независимый от формы настроек, его можно включать и отключать отдельно. Он отображается как вкладка правой боковой панели в каждом разговоре.
 
@@ -185,28 +178,24 @@ Worklog лежит в корне проекта, который возвраща
 
 ## Worklog и координация
 
-Журнал работы хранится в JSON в `.research/worklog/`: `plan.json` с целью, вехами и следующим шагом и по одному `items/<id>.json` на рабочую единицу (заголовок, владелец, статус, kind, следующий шаг, блокировка, доказательства, чек-лист). `worklog/PLAN.md`, `worklog/INDEX.md` и `worklog/<id>.md` — только сгенерированные представления; читать и писать следует через `research_worklog` (init, list, get, update, claim, gate, plan), решения, доказательства и поля проекта — через `research_decision`, `research_evidence`, `research_design`, а `research_state` читает всё состояние команды за один вызов.
-
-Пресет добавляет в правую боковую панель вкладку "Исследование". Она отвечает, что команда делает, где застряла и каков следующий шаг: цель и веха из `worklog/PLAN.md`, активные пункты из `worklog/INDEX.md`, последние запуски, проектные документы и карточки архитектуры.
+Смена статуса идёт по фиксированной таблице (`todo → in_progress → in_review → done`); `blocked` и `canceled` — боковые статусы. `blocked` требует причины, ворота — хотя бы одной записи доказательств, а каждый переход сохраняется в истории элемента.
 
 На гейте ответственный записывает чек-лист с доказательствами, сводку выполнения, диапазон коммитов и следующий шаг в файл карточки, запускает `research_scope_check` по изменённым путям и ставит статус `in_review`. Ревьюер пишет PASS/FAIL с доказательствами; Lead сообщает id карточки, статус и доказательства только при достижении гейта или когда пользователю нужно действовать. `done` принадлежит только приёмке пользователя; `blocked` - продолжить нельзя, `canceled` - работа не продолжится.
 
 ```text
 User goal
-Lead:  research_project -> worklog card (checklist) only at user gates
-       -> INDEX row (owner, status=todo, next) + send_message
-Member: write owner + in_progress into the INDEX row and the card header -> work
-        -> write evidence, summary, base..head, next into the card file -> in_review
-Internal steps stay INDEX rows; only user gates get a card file
-Reviewer: independent PASS/FAIL with evidence in the card file
+Lead:  research_project -> research_state
+       -> research_worklog op=update (status=todo, next) + send_message
+Member: research_worklog op=claim -> work
+        -> research_worklog op=gate (evidence, summary, base..head, next)
+Internal steps stay index rows; only items waiting for the user get a card view
+Reviewer: independent PASS/FAIL with evidence
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
-User:  accept -> done (agents can never set done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> item id/status when a gate needs the user
+User:  accept -> research_worklog op=update with by="user" (agents can never do that)
 ```
 
 ## Работа с Git
-
-Режим инициализирует долговременную запись, когда начинается существенная работа, а агент решает, является ли запрос настоящей работой или простым вопросом. Если рабочая область ещё не внутри репозитория, агент вызывает `research_workspace_init`, который создаёт `worklog/PLAN.md` и `worklog/INDEX.md` и выполняет `git init`. Вложенный репозиторий он никогда не создаёт и каркас не коммитит.
 
 Разрушительные или рискованные изменения выполняются в ветке, названной по шагу, например `task/<title>+<id>` (карточка для работы с контрольной точкой, командная задача для внутренней работы), а не напрямую в основной ветке. Карточка или командная задача фиксирует коммиты base и head, а reviewer читает `git diff <base>..<head>` как основу проверки кода и повторно выполняет приёмочные проверки.
 
@@ -214,11 +203,7 @@ User:  accept -> done (agents can never set done)
 
 ## Worklog
 
-Журнал работы хранится в JSON в `.research/worklog/`: `plan.json` с целью, вехами и следующим шагом и по одному `items/<id>.json` на рабочую единицу (заголовок, владелец, статус, kind, следующий шаг, блокировка, доказательства, чек-лист). `worklog/PLAN.md`, `worklog/INDEX.md` и `worklog/<id>.md` — только сгенерированные представления; читать и писать следует через `research_worklog` (init, list, get, update, claim, gate, plan), решения, доказательства и поля проекта — через `research_decision`, `research_evidence`, `research_design`, а `research_state` читает всё состояние команды за один вызов.
-
-Работа, которая может растянуться на несколько сессий, держит рядом с кодом небольшую ограниченную запись. В `worklog/PLAN.md` хранятся цель, текущая веха, активные карточки, блокеры и датированные решения; в `worklog/INDEX.md` — одна строка на активную карточку. У каждой карточки есть `worklog/<task-id>.md` с блоком текущего состояния сверху и короткими дописываемыми записями ниже.
-
-При возобновлении агент сначала читает PLAN и INDEX, затем только блок состояния целевой карточки и её конец, никогда не весь файл и не весь каталог. PLAN остаётся в пределах примерно 100 строк, файлы карточек — примерно 200, завершённые карточки убираются из индекса. Компактные шаблоны всех трёх файлов находятся в persona пресета, поэтому любая сессия может создать или обновить их, не читая этот репозиторий.
+При возобновлении сначала `research_state`, затем `research_worklog op=get` для элемента и свежих доказательств. Представления — только зеркала; источник — JSON.
 
 ## Профили моделей команды
 
@@ -347,8 +332,6 @@ $DSH_HOME/research-team-settings.json
 - Проверьте, что bundle включён в профиле.
 
 ### Инструменты команды отсутствуют
-
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Даёт `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` и сервисы Team; пресет пишет работу в worklog, а не в командные задачи |
 
 ### Инструменты worklogи задач отсутствуют
 

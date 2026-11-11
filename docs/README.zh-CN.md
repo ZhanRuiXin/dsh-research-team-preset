@@ -25,7 +25,7 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 | **完成** | `in_review` 是 agent 的最后一站；只有用户才能把卡片移到 `done` |
 | **模型路由** | 通过「插件」页的设置表单，按角色配置 provider、model 和推理强度 |
 | **Git** | 实质性工作开始时由 agent 初始化；破坏性改动走分支；验收通过后才合并 |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + 每张关卡卡片一个有界文件；恢复时先读 PLAN 和 INDEX |
+| **工作日志** | `.research/worklog/` 下的 JSON 存储；`PLAN.md` 与 `INDEX.md` 是生成视图；恢复时先读 `research_state` |
 | **运行时** | PTC（`run_code` + 生成的 SDK），每名成员一层 subagent |
 
 ## 适用对象
@@ -53,8 +53,6 @@ Lead 的回复是科学性沟通，而不是状态播报：先给结论或结果
 
 ## 运行要求
 
-Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊天的方式运行端到端研究。Lead 负责规划工作、维护工作日志记录（用户关卡用卡片文件，内部步骤用 INDEX 行）、分派工作、整合结果并与用户沟通。八名默认专家分别覆盖顾问评估、文献与证据、数据获取、实验设计、代码、运行、独立复核和论文写作。
-
 | 能力 | 提供方 | 说明 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 基于 `0.2.1-rc.5` 开发；其他版本可能可用，但不保证 |
@@ -74,7 +72,6 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 
 ### 从 DSH 插件页面安装
 
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服务；本预设把工作记录在工作日志里，而不是团队任务中 |
 2. 打开 **设置 → 插件**，点击 **添加**。
 3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.1.1`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重启 DSH。** preset 行与 bundle 的客户端部分在启动时加载。
@@ -92,7 +89,6 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-
 > 该模式是 profile 级 bundle：在一个 profile 中安装不会在另一个 profile 中启用。每个 profile 都要重复安装与前置步骤。
 
 ## 首次运行
@@ -102,17 +98,17 @@ dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```text
 list_agents                    # create only the roles the task needs
 research_project               # resolve the current project root
-research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
+research_workspace_init        # seed .research/worklog/ and render the views if missing
 ```
 
 一个典型的第一项任务：
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> worklog card at user gates -> INDEX row + send_message
-Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
+Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message
+Members: research_worklog op=claim -> work -> research_worklog op=gate (evidence, next) + send_message
 Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: summarize -> user acceptance (research_worklog op=update, by="user")
 ```
 
 ## 默认团队
@@ -164,9 +160,9 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 ## 会话连续性
 
-会话只是一次对话，不是项目本身：工作日志、任务板和 git 承载工作，而聊天、团队和后台任务不会随会话保留。在一个已有 `worklog/PLAN.md` 的项目里，第一次实质动作之前，先读 PLAN 和 INDEX，再读当前卡片的当前状态块，然后才做计划或消耗算力。
+会话只是一次对话，不是项目本身：`.research/worklog/`、git 与架构卡片承载工作；聊天、团队与后台任务只存在于当前会话。恢复项目时先调用 `research_state`，再读相关项与证据。
 
-工作日志放在 `research_project` 返回的项目根目录，而不是会话的子目录，这样项目上的每个会话共用一份 PLAN 和一份 INDEX。PLAN、INDEX、卡片文件、git 和记忆是持久的；队友会话和后台任务只存在于当前会话。后续会话需要知道的任何东西，都要在会话结束前写进 PLAN 或卡片文件。
+会话只是一次对话，不是项目本身：`.research/worklog/`、git 与架构卡片承载工作；聊天、团队与后台任务只存在于当前会话。恢复项目时先调用 `research_state`。
 
 跨轮次仍运行的实验或长任务，要在卡片文件或 PLAN 里留下任务或终端句柄、主机、开始时间、预计完成时间和它服务的决策规则。恢复时先确认存活；句柄已消失的运行标记为孤儿，核对产物后交给用户决定采用、重启还是停止，绝不能悄悄重跑一遍。由已不存在会话持有的卡片，报告给用户重新打开，绝不接管。
 
@@ -178,14 +174,15 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 实验区按时间从晚到早列出每个实验，并显示已进行或已用的时间。每个实验都有明确的生命周期（已登记、待批准、已批准、运行中、已完成、已停止、失败、已拒绝），由 `research_experiment` 工具推进：登记写决策规则、seed 与预算，启动在未获批时被拒绝，结束时记录完成、停止或失败及原因。区块标题右侧可以切换「需要审批 / 自动审批」，等待批准的实验带批准与拒绝按钮，结果写进该实验的 manifest；条目变多后列表在自己的框内滚动。
 
-
 面板作为独立模块放在 `panel/` 下，与设置页分开，可以单独启用或停用；它在每个会话的右侧栏中作为标签页出现。
 
 方法卡由 designer 维护，实现卡由 builder 维护；advisor 在评审设计或实现决定前先读这两张卡，reviewer 在结果门禁处核对它们。按住鼠标中键拖动可平移画布，滚轮缩放，在节点上拖出选框即可选中并写批注。
 
 ## 工作日志与协作
 
-工作日志以 JSON 形式保存在 `.research/worklog/`：`plan.json` 记录目标、里程碑与下一步，每个工作项一个 `items/<id>.json`（标题、负责人、状态、kind、下一步、阻塞、证据、检查清单）。`worklog/PLAN.md`、`worklog/INDEX.md` 和 `worklog/<id>.md` 只是生成的视图；用 `research_worklog` 读写（init、list、get、update、claim、gate、plan），决策、证据和设计字段分别用 `research_decision`、`research_evidence`、`research_design` 记录，`research_state` 一次读出全队状态。
+可能跨会话的工作记录在 `.research/worklog/` 的 JSON 存储里：`plan.json` 存目标、里程碑、下一步与决策，`items/<id>.json` 一项一个文件。`PLAN.md`、`INDEX.md` 与卡片视图由工具生成，不要手工编辑。
+
+状态迁移遵循固定表（`todo → in_progress → in_review → done`），`blocked` 与 `canceled` 是旁路状态；`blocked` 必须写明原因，进入 `in_review` 至少要有一条证据，每次迁移都记录在该项的历史里。
 
 预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行、设计文档和架构卡片。
 
@@ -193,20 +190,20 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 ```text
 User goal
-Lead:  research_project -> worklog card (checklist) only at user gates
-       -> INDEX row (owner, status=todo, next) + send_message
-Member: write owner + in_progress into the INDEX row and the card header -> work
-        -> write evidence, summary, base..head, next into the card file -> in_review
-Internal steps stay INDEX rows; only user gates get a card file
-Reviewer: independent PASS/FAIL with evidence in the card file
+Lead:  research_project -> research_state
+       -> research_worklog op=update (status=todo, next) + send_message
+Member: research_worklog op=claim -> work
+        -> research_worklog op=gate (evidence, summary, base..head, next)
+Internal steps stay index rows; only items waiting for the user get a card view
+Reviewer: independent PASS/FAIL with evidence
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
-User:  accept -> done (agents can never set done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> item id/status when a gate needs the user
+User:  accept -> research_worklog op=update with by="user" (agents can never do that)
 ```
 
 ## Git 工作流
 
-该模式在实质性工作开始时初始化耐久记录，由 agent 判断请求是真正的工作还是简单问题。工作区还不在任何仓库里时，agent 调用 `research_workspace_init`，它会创建 `worklog/PLAN.md` 和 `worklog/INDEX.md`，并执行 `git init`。它不会创建嵌套仓库，也不会提交脚手架。
+可能跨会话的工作记录在 `.research/worklog/` 的 JSON 存储里：`plan.json` 存目标、里程碑、下一步与决策，`items/<id>.json` 一项一个文件。`PLAN.md`、`INDEX.md` 与卡片视图由工具生成，不要手工编辑。
 
 破坏性或风险较高的改动在按步骤命名的分支上进行，例如 `task/<title>+<id>`（有用户关卡的工作用卡片，内部工作用团队任务），不直接改默认分支。卡片或团队任务记录 base 和 head 提交，reviewer 以 `git diff <base>..<head>` 作为代码审查的依据，并仍然复跑验收检查。
 
@@ -214,9 +211,9 @@ User:  accept -> done (agents can never set done)
 
 ## 工作日志
 
-可能跨会话的工作会在代码旁边保留一份小而受限的记录。`worklog/PLAN.md` 存目标、当前里程碑、活跃卡片、阻塞项和带日期的决策；`worklog/INDEX.md` 每张活跃卡一行。每张卡有 `worklog/<task-id>.md`，顶部是当前状态块，下面是简短的追加条目。
+会话只是一次对话，不是项目本身：`.research/worklog/`、git 与架构卡片承载工作；聊天、团队与后台任务只存在于当前会话。恢复项目时先调用 `research_state`，再读相关项与证据。
 
-恢复时 agent 先读 PLAN 和 INDEX，再只读目标卡的状态块和尾部，不整读文件也不整读目录。PLAN 控制在约一百行，单卡文件约两百行，完成的卡从索引里撤掉。三种文件的精简模板就在预设 persona 里，任何会话都能直接创建或更新，不需要读本仓库。
+恢复时先调用 `research_state`，再按需 `research_worklog op=get` 读目标项与最新证据。视图只是给人看的镜像，以 JSON 为准。
 
 ## 团队模型配置
 
@@ -343,8 +340,6 @@ $DSH_HOME/research-team-settings.json
 - 检查 bundle 是否已在 profile 中启用。
 
 ### 团队工具缺失
-
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服务；本预设把工作记录在工作日志里，而不是团队任务中 |
 
 ### 任务工作日志工具缺失
 

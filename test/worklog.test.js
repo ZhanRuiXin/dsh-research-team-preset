@@ -70,10 +70,34 @@ test('claim refuses to take over another owner', (t) => {
 test('done needs the user, and unknown statuses are rejected', (t) => {
   const dir = project(t)
   upsertItem(dir, { id: 'task-2', title: 'step' })
+  assert.match(upsertItem(dir, { id: 'task-2', status: 'done', by: 'user' }).error, /cannot move "task-2" from todo to done/)
+  const gated = gateItem(dir, { id: 'task-2', evidence: ['reports/step.md'] })
+  assert.equal(gated.item.status, 'in_review')
   assert.match(upsertItem(dir, { id: 'task-2', status: 'done' }).error, /done belongs to the user/)
   const accepted = upsertItem(dir, { id: 'task-2', status: 'done', by: 'user' })
   assert.equal(accepted.item.status, 'done')
   assert.match(upsertItem(dir, { id: 'task-2', status: 'finished' }).error, /status must be one of/)
+})
+
+test('status moves follow the transition table and leave a history', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 'task-5', title: 'step' })
+  assert.match(upsertItem(dir, { id: 'task-5', status: 'blocked' }).error, /blocked needs a reason/)
+  const blocked = upsertItem(dir, { id: 'task-5', status: 'blocked', blocked: 'waiting for the data sample' })
+  assert.equal(blocked.item.status, 'blocked')
+  assert.match(upsertItem(dir, { id: 'task-5', status: 'in_review' }).error, /cannot move "task-5" from blocked to in_review/)
+  const running = upsertItem(dir, { id: 'task-5', status: 'in_progress' })
+  assert.equal(running.item.status, 'in_progress')
+  assert.deepEqual(running.item.history.map((entry) => `${entry.from}->${entry.to}`), ['todo->blocked', 'blocked->in_progress'])
+  assert.match(upsertItem(dir, { id: 'task-5', status: 'done', by: 'user' }).error, /cannot move "task-5" from in_progress to done/)
+})
+
+test('a gate refuses to run without evidence', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 't-gate2', title: 'Gate', owner: 'lead', status: 'in_progress' })
+  assert.match(gateItem(dir, { id: 't-gate2' }).error, /a gate needs evidence/)
+  const ok = gateItem(dir, { id: 't-gate2', checklist: [{ text: 'ran', done: true, note: 'seed 42' }] })
+  assert.equal(ok.item.status, 'in_review')
 })
 
 test('decisions render into PLAN and evidence into docs/evidence.md', (t) => {

@@ -923,9 +923,7 @@ window.__ModuleLoader__.load({
       const teamSection = h(Section, {
         key: 'team',
         title: '团队',
-        action: team.length === 0
-          ? null
-          : h('span', { key: 'sum', className: 'rtp-chip' }, `${team.length} 人 · ${teamOn} 运行中`)
+        action: null
       }, team.length === 0
         ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前会话还没有队友。Lead 用带团队的模型启动后，这里会显示每位成员的运行状态。')
         : h('div', { key: 'grid', className: 'rtp-teamgrid' }, team.map((member) => {
@@ -967,19 +965,18 @@ window.__ModuleLoader__.load({
       const archSection = h(Section, {
         key: 'arch',
         title: '架构',
-        count: architectures.length === 0 ? 0 : `${architectures.length} 张`
+        count: 0
       }, [
         architectures.length === 0
           ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前项目暂无架构卡片。卡片由 research_architecture 维护，存储于 .research/architecture/。')
           : h('div', { key: 'body' }, [
               archChips,
-              h('div', {
-                key: 'meta',
-                style: { display: 'flex', justifyContent: 'space-between', padding: '6px 1px 0', fontSize: '13px', color: 'var(--dsw-alias-label-tertiary)' }
-              }, [
-                h('span', { key: 'kind' }, `${CARD_KIND_LABELS[card.kind] || card.kind} · ${(card.nodes || []).length} 节点 · ${(card.edges || []).length} 连线`),
-                h('span', { key: 'when' }, card.updatedAt ? formatSince(card.updatedAt) : '')
-              ]),
+              card.updatedAt
+                ? h('div', {
+                    key: 'meta',
+                    style: { textAlign: 'right', padding: '6px 1px 0', fontSize: '12.5px', color: 'var(--dsw-alias-label-tertiary)' }
+                  }, formatSince(card.updatedAt))
+                : null,
               h(ArchitectureCanvas, {
                 key: 'canvas',
                 card,
@@ -989,7 +986,9 @@ window.__ModuleLoader__.load({
                 onClear: () => setSelectedNodes([])
               }),
               h('div', { key: 'annot', className: 'rtp-annot' }, [
-                h('span', { key: 'l' }, selectedNodes.length === 0 ? '框选或单击节点后可提交问题；单击空白处取消选择。' : `已选择 ${selectedNodes.length} 个节点`),
+                selectedNodes.length === 0
+                  ? h('span', { key: 'l' }, '单击或框选节点，针对它提问')
+                  : h('span', { key: 'l' }, `已选择 ${selectedNodes.length} 个节点`),
                 ...selectedNodes.slice(0, 4).map((id) => h('span', { key: id, className: 'rtp-pill' }, id)),
                 selectedNodes.length > 4 ? h('span', { key: 'more', className: 'rtp-pill' }, `+${selectedNodes.length - 4}`) : null
               ]),
@@ -1004,7 +1003,6 @@ window.__ModuleLoader__.load({
                       onChange: (event) => setNote(event.target.value)
                     }),
                     h('div', { key: 'bar', className: 'rtp-composebar' }, [
-                      h('span', { key: 'hint', style: { fontSize: '13px', color: 'var(--dsw-alias-label-tertiary)' } }, '写入卡片注解，由 Lead 在下一轮读取。'),
                       h('span', { key: 'grow', className: 'rtp-grow' }),
                       h('button', {
                         key: 'clear',

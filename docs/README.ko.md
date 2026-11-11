@@ -12,7 +12,7 @@
 
 ## 개요
 
-Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 연구를 수행하기 위한 DSH 에이전트 프리셋입니다. Lead는 작업을 계획하고, 두 장부(사용자 게이트는 보드 카드, 내부 단계는 팀 작업)를 유지하며, 작업을 배정하고, 결과를 통합하고, 사용자와 소통합니다. 여덟 명의 기본 전문가가 자문 검토, 문헌과 증거, 데이터 확보, 실험 설계, 코드, 실행, 독립 검토, 논문 작성을 담당합니다.
+Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 수행하기 위한 DSH 에이전트 프리셋입니다. Lead는 작업을 계획하고, 작업 로그 기록(사용자 게이트는 카드 파일, 내부 단계는 INDEX 행)을 유지하며, 일을 배분하고, 결과를 통합하고, 사용자와 소통합니다. 8개 기본 역할이 자문, 문헌과 증거, 데이터 확보, 실험 설계, 코드, 실행, 독립 검토, 논문 작성을 담당합니다.
 
 이 모드는 며칠 또는 몇 주에 걸친 연구, 추적 가능한 증거가 필요한 작업, 명확한 역할 경계가 도움이 되는 작업을 위해 만들어졌습니다. 일회성 질의응답 모드가 아닙니다. Lead는 작업에 실제로 필요한 역할만 생성합니다.
 
@@ -21,7 +21,7 @@ Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 �
 | | |
 | --- | --- |
 | **기본 역할** | 8개: advisor, designer, researcher, data, builder, runner, reviewer, writer |
-| **워크플로** | 게이트 기반: 내부 단계는 `team_task_*`, 사용자 게이트는 보드; 생성, 인수, 실행, 보고, 검토, 사용자 수락 |
+| **워크플로** | 게이트 기반: 내부 단계는 작업 로그 색인 행, 사용자 게이트는 카드 파일; 생성, 인수, 실행, 보고, 검토, 사용자 승인 |
 | **완료** | `in_review`가 에이전트의 마지막 지점입니다. 사용자만 카드를 `done`으로 옮길 수 있습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
 | **Git** | 실질적 작업이 시작될 때 에이전트가 초기화. 파괴적 변경은 브랜치에서 진행하고 수락 후에만 병합 |
@@ -41,7 +41,7 @@ Research Team Mode는 하나의 채팅이 아니라 팀으로 엔드투엔드 �
 
 Lead의 답변은 상태 피드가 아니라 과학적 커뮤니케이션이다. 주장이나 결과를 먼저 제시하고 그 근거(run id, 데이터셋, 불확실성과 표본 크기를 포함한 지표, 출처)를 붙인 뒤, 무엇이 아직 불확실한지, 마지막으로 사용자가 결정해야 할 것을 말한다. 모든 진술은 관찰된 사실, 추론, 가설, 미해결 질문 중 무엇인지 표시되며, 방법은 사용자가 따라가고 계속 배울 수 있을 만큼 설명된다.
 
-내부 메커니즘은 내부에 남는다. 에이전트 간 인계, 재시도, 도구 오류, 보드 기록, 작업 중 팀이 얻은 교훈은 결과 해석을 바꾸거나 결정을 막지 않는 한 전달되지 않는다. 구성원 보고는 그대로 붙여넣지 않고 주장·근거·한계로 번역된다.
+내부 메커니즘은 내부에 남는다. 에이전트 간 인계, 재시도, 도구 오류, 작업 로그 기록, 작업 중 팀이 얻은 교훈은 결과 해석을 바꾸거나 결정을 막지 않는 한 전달되지 않는다. 구성원 보고는 그대로 붙여넣지 않고 주장·근거·한계로 번역된다.
 
 분업은 명시적이다. 사용자가 과학적 방향을 정하고 증거를 판단하며, 팀이 검색, 구현, 실험, 검증의 부담을 진다.
 
@@ -53,21 +53,20 @@ Lead의 답변은 상태 피드가 아니라 과학적 커뮤니케이션이다.
 
 ## 요구 사항
 
-Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 자신이 사용하는 프로필 번들을 설치하거나 활성화하지 않습니다. DSH의 패키지 설치 프로그램은 npm 의존성을 처리할 뿐, 기능 번들은 처리하지 않습니다. 같은 프로필에서 의존성을 먼저 활성화하십시오.
+Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 수행하기 위한 DSH 에이전트 프리셋입니다. Lead는 작업을 계획하고, 작업 로그 기록(사용자 게이트는 카드 파일, 내부 단계는 INDEX 행)을 유지하며, 일을 배분하고, 결과를 통합하고, 사용자와 소통합니다. 8개 기본 역할이 자문, 문헌과 증거, 데이터 확보, 실험 설계, 코드, 실행, 독립 검토, 논문 작성을 담당합니다.
 
 | 기능 | 제공자 | 비고 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` 기준으로 개발되었습니다. 다른 릴리스에서도 동작할 수 있지만 보장되지는 않습니다 |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*`와 Team 서비스를 제공합니다 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다. 이 프리셋은 작업을 작업 로그에 기록하고 팀 작업에는 기록하지 않습니다 |
 | PTC 런타임 | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 및 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH 기본 구성의 일부이며 `run_code`를 활성화합니다 |
 
 **선택적 연동 플러그인.** 다른 제작자가 만든 플러그인입니다. 이 프리셋은 이들 없이도 동작하며 설치하지도 않습니다. 팀과 연동하려는 경우에만 추가하세요:
 
-- **태스크 보드**([`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)) — `taskboard_*`, 사용자용 카드, 승인 체크리스트, `presetId=research-team` 실행 세션을 제공합니다. 없으면 worklog(`PLAN.md`, `INDEX.md`, 카드별 파일)가 영구 기록입니다.
 - **Zotero**(`dsh-zotero`) — 공유 라이브러리 도구(`zotero_*`)와 paper-fetch 가져오기 경로를 제공합니다. 없으면 문헌 작업은 Semantic Scholar, arXiv, 웹을 사용하며 증거 표는 주장·출처·위치를 계속 기록합니다.
 - **Mnemon**(`dsh-mnemon`) — 세션 간 영구 노트(`mnemon_*`)를 제공합니다. 없으면 worklog와 `CHANGELOG.md`가 연속성을 담당합니다.
 
-의존성이 없으면 모드는 부분적으로 로드될 수 있지만, 팀 도구, 보드 또는 설정 페이지를 사용할 수 없습니다. 플러그인 관리자는 이러한 번들을 제안하지 않으며 자동으로 연결하지도 않습니다.
+의존성이 없으면 모드는 부분적으로 로드될 수 있지만, 팀 도구, 작업 로그 또는 설정 페이지를 사용할 수 없습니다. 플러그인 관리자는 이러한 번들을 제안하지 않으며 자동으로 연결하지도 않습니다.
 
 ## 설치
 
@@ -75,7 +74,7 @@ Research Team Mode는 **프로필 수준 DSH 번들**입니다. 이 번들은 �
 
 ### DSH 플러그인 페이지에서 설치
 
-1. **필수 번들을 활성화**합니다: 대상 프로필에서 Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). 위의 선택적 연동 플러그인은 지금 또는 나중에 추가할 수 있습니다.
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다. 이 프리셋은 작업을 작업 로그에 기록하고 팀 작업에는 기록하지 않습니다 |
 2. **설정 → 플러그인**을 열고 **추가**를 클릭합니다.
 3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.1.1`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
 4. **DSH를 재시작합니다.** 프리셋 행과 번들의 클라이언트 부분은 시작 시 로드됩니다.
@@ -93,26 +92,25 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-태스크 보드 실행 세션은 `presetId=research-team`이 붙은 카드를 생성해 같은 persona와 도구로 실행합니다.
 
 > 이 모드는 프로필 수준 번들입니다. 한 프로필에 설치해도 다른 프로필에서는 활성화되지 않습니다. 프로필마다 설치와 사전 요구사항을 반복하세요.
 
 ## 첫 실행
 
-실제 작업을 시작하기 전에 Lead에게 환경과 보드를 확인하도록 요청하십시오:
+실제 작업을 시작하기 전에 Lead에게 환경과 작업 로그를 확인하도록 요청하십시오:
 
 ```text
-list_agents        # create only the roles the task needs
-research_project   # resolve the current project/workspaceId
-taskboard_list     # check existing cards in this project
+list_agents                    # create only the roles the task needs
+research_project               # resolve the current project root
+research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
 ```
 
 일반적인 첫 작업:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
-Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
+Lead: research_project -> worklog card at user gates -> INDEX row + send_message
+Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -130,11 +128,11 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | 문헌 노트, 코드, 결과, 논문의 주장/인용을 독립적으로 검증하고, 차단 증거와 함께 PASS/FAIL을 판정합니다 |
 | `writer` | LaTeX 논문 초안: 본문, 섹션, 표, 캡션, 인용, 그림 코드; 실험을 실행하거나 코드/모델을 변경하지 않습니다 |
 
-Lead는 목표 명확화, 분해, 보드 관리, 배정, 통합, 요약, 최종 산출물 조립, 전달을 담당합니다. 멤버는 범위가 정해진 하위 작업에 하위 에이전트 계층을 하나 사용할 수 있지만, 팀원을 만들 수는 없습니다. Lead는 자신의 도구 호출을 가볍게 유지하고, 짧은 진행 보고로 충분한 일에 도구를 더 호출하지 않으며, 깊은 작업은 담당 멤버에게 맡깁니다.
+Lead는 목표 명확화, 분해, 작업 로그 관리, 배정, 통합, 요약, 최종 산출물 조립, 전달을 담당합니다. 멤버는 범위가 정해진 하위 작업에 하위 에이전트 계층을 하나 사용할 수 있지만, 팀원을 만들 수는 없습니다. Lead는 자신의 도구 호출을 가볍게 유지하고, 짧은 진행 보고로 충분한 일에 도구를 더 호출하지 않으며, 깊은 작업은 담당 멤버에게 맡깁니다.
 
 ### 공유 Zotero 라이브러리
 
-researcher는 사용자의 Zotero 라이브러리를 팀의 공유 문헌 출처로 취급합니다. 공개 웹보다 기존 컬렉션과 항목을 먼저 검색하고, 첨부된 PDF와 주석에서 발췌한 구절을 재사용하며, 빠진 논문은 정식 출판본(version of record)으로만 가져오고 이때 PDF를 첨부해 프로젝트 컬렉션에 정리합니다. 가져올 때는 DOI와 제목으로 중복을 제거하고, 사용자의 태그와 컬렉션은 그대로 두며, `zotero://` 항목 참조를 증거 표와 보드 카드에 기록합니다. 그래서 모든 팀원이 같은 논문을 읽고 reviewer가 같은 페이지를 표본 확인할 수 있습니다. 전문이 유료 장벽 뒤에 있거나 메타데이터만 존재하면, researcher는 대체 문헌을 가져오지 않고 링크를 기록하며 해당 증거를 메타데이터만 있음(metadata-only)으로 표시합니다.
+researcher는 사용자의 Zotero 라이브러리를 팀의 공유 문헌 출처로 취급합니다. 공개 웹보다 기존 컬렉션과 항목을 먼저 검색하고, 첨부된 PDF와 주석에서 발췌한 구절을 재사용하며, 빠진 논문은 정식 출판본(version of record)으로만 가져오고 이때 PDF를 첨부해 프로젝트 컬렉션에 정리합니다. 가져올 때는 DOI와 제목으로 중복을 제거하고, 사용자의 태그와 컬렉션은 그대로 두며, `zotero://` 항목 참조를 증거 표와 작업 로그 카드에 기록합니다. 그래서 모든 팀원이 같은 논문을 읽고 reviewer가 같은 페이지를 표본 확인할 수 있습니다. 전문이 유료 장벽 뒤에 있거나 메타데이터만 존재하면, researcher는 대체 문헌을 가져오지 않고 링크를 기록하며 해당 증거를 메타데이터만 있음(metadata-only)으로 표시합니다.
 
 ### 자문 리뷰
 
@@ -166,15 +164,15 @@ Lead가 실행을 승인하고, runner는 기록이 없으면 시작을 거부�
 
 ## 세션 연속성
 
-세션은 대화이지 프로젝트 자체가 아니다. 작업을 운반하는 것은 워크로그, 보드, git이며, 채팅·팀·백그라운드 작업은 세션과 함께 사라진다. `worklog/PLAN.md`가 이미 있는 프로젝트에서는 첫 번째 실질적 행동 전에 PLAN과 INDEX, 이어서 현재 카드의 현재 상태 블록을 읽은 뒤 계획을 세우거나 연산을 쓴다.
+세션은 대화이지 프로젝트 자체가 아니다. 작업을 운반하는 것은 워크로그, 작업 로그, git이며, 채팅·팀·백그라운드 작업은 세션과 함께 사라진다. `worklog/PLAN.md`가 이미 있는 프로젝트에서는 첫 번째 실질적 행동 전에 PLAN과 INDEX, 이어서 현재 카드의 현재 상태 블록을 읽은 뒤 계획을 세우거나 연산을 쓴다.
 
-워크로그는 `research_project`가 반환하는 프로젝트 루트에 두고 세션 하위 디렉터리에 두지 않는다. 프로젝트의 모든 세션이 하나의 PLAN과 INDEX를 공유한다. PLAN, INDEX, 카드 파일, 보드, git, 메모리는 영속적이지만 `team_task_*` 항목, 팀원 대화, 백그라운드 작업은 해당 세션에만 존재한다. 이후 세션이 알아야 할 것은 세션이 끝나기 전에 PLAN이나 카드 파일에 적는다.
+작업 로그는 `research_project`가 반환하는 프로젝트 루트에 두며 세션 하위 디렉터리에 두지 않습니다. 그래서 프로젝트의 모든 세션이 하나의 PLAN과 INDEX를 공유합니다. PLAN, INDEX, 카드 파일, git, 메모리는 영속하고, 팀원 간 대화와 백그라운드 작업은 해당 세션에만 존재합니다. 이후 세션이 알아야 할 것은 세션이 끝나기 전에 PLAN이나 카드 파일에 씁니다.
 
 턴을 넘겨 계속되는 실행이나 장기 작업은 작업이나 터미널 핸들, 호스트, 시작 시각, 예상 완료, 그것이 따르는 결정 규칙을 카드 파일이나 PLAN에 남긴다. 재개 시 먼저 생존을 확인하고, 핸들이 사라졌으면 고아 실행으로 표시해 산출물을 대조한 뒤 채택·재시작·중단을 사용자에게 묻는다. 같은 작업을 조용히 두 번 실행하지 않는다. 더 이상 존재하지 않는 세션이 보유한 카드는 인수하지 않고 사용자에게 재개를 요청한다.
 
 ## 연구 사이드바
 
-이 프리셋은 오른쪽 사이드바에 '연구' 탭을 추가합니다. 팀이 지금 무엇을 하는지, 어디서 막혔는지, 다음 단계는 무엇인지 답합니다: `worklog/PLAN.md`의 목표와 마일스톤, `worklog/INDEX.md`의 활성 작업 항목(태스크 보드는 별도이며 여기 표시되지 않습니다), 최근 실행, 설계 문서, 아키텍처 카드입니다.
+프리셋은 오른쪽 사이드바에 "연구" 탭을 추가합니다. 팀이 지금 무엇을 하는지, 어디서 막혔는지, 다음 단계가 무엇인지를 보여줍니다: `worklog/PLAN.md`의 목표와 마일스톤, `worklog/INDEX.md`의 활성 작업 항목, 최근 실행, 설계 문서, 아키텍처 카드.
 
 아키텍처 카드는 `.research/architecture/` 아래에 JSON으로 저장되는 노드-엣지 다이어그램이며 카드마다 한 파일입니다. 에이전트는 `research_architecture` 도구로 읽고 갱신하므로 다이어그램이 슬라이드 속에서 낡지 않고 설계와 함께 움직입니다. 카드는 패널 안에서 SVG로 렌더링되고, 노드 위를 드래그해 상자로 선택할 수 있으며, 작성한 메모는 카드에 주석으로 저장되어 에이전트가 답하기 전에 읽습니다. `dsh-better-sidebar`가 설치되어 있으면 이를 통해 등록하고, 아니면 네이티브 오른쪽 사이드바에 등록합니다.
 
@@ -182,22 +180,24 @@ Lead가 실행을 승인하고, runner는 기록이 없으면 시작을 거부�
 
 방법 카드는 디자이너가, 구현 카드는 빌더가 소유하며, 어드바이저는 설계나 구현 결정을 검토하기 전에 두 카드를 모두 읽고, 리뷰어는 결과 게이트에서 두 카드를 대조합니다. 가운데 버튼으로 드래그해 캔버스를 이동하고, 휠로 확대하며, 노드 위를 드래그해 선택해 주석을 남길 수 있습니다.
 
-## 작업 보드 워크플로
+## 작업 로그와 협업
+
+프리셋은 오른쪽 사이드바에 "연구" 탭을 추가합니다. 팀이 지금 무엇을 하는지, 어디서 막혔는지, 다음 단계가 무엇인지를 보여줍니다: `worklog/PLAN.md`의 목표와 마일스톤, `worklog/INDEX.md`의 활성 작업 항목, 최근 실행, 설계 문서, 아키텍처 카드.
+
+게이트에서 담당자는 증거가 있는 체크리스트, 실행 요약, 커밋 범위, 다음 행동을 카드 파일에 쓰고, 변경된 경로에 `research_scope_check`를 실행한 뒤 상태를 `in_review`로 바꿉니다. reviewer는 증거와 함께 PASS/FAIL을 씁니다. Lead는 게이트에 도달했을 때나 사용자가 판단해야 할 때만 카드 id, 상태, 증거를 보고합니다. `done`은 사용자의 승인만 설정할 수 있습니다. `blocked`는 계속할 수 없음, `canceled`는 더 진행하지 않음입니다.
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
-       -> team_task_create (owner, blocked_by, write scopes) -> send_message
-Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
-Internal steps and member handoffs stay off the board; only user gates get cards
-At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
-Reviewer: independent PASS/FAIL with evidence on gated cards
+Lead:  research_project -> worklog card (checklist) only at user gates
+       -> INDEX row (owner, status=todo, next) + send_message
+Member: write owner + in_progress into the INDEX row and the card header -> work
+        -> write evidence, summary, base..head, next into the card file -> in_review
+Internal steps stay INDEX rows; only user gates get a card file
+Reviewer: independent PASS/FAIL with evidence in the card file
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  summarize -> report card ids/status/evidence/risks to the user
-User:  accept in the GUI -> done (agents can never move a card to done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
+User:  accept -> done (agents can never set done)
 ```
-
-사용자의 검토나 승인이 필요한 단계만 보드 카드가 됩니다. 산출물 체크포인트, 사용자가 확인해야 할 범위 결정, 위험한 변경, 최종 인계가 여기에 해당합니다. 내부 단계, 스스로 승인한 하위 작업, 구성원 간 인계는 `team_task_*`로 추적하고 보드에는 올리지 않습니다. 게이트에 도달하면 산출물, 근거, 검토 판정은 카드에 남깁니다. 팀원 간 조율은 내부적으로 영어로 하고, 사용자에게 보이는 답변·카드·산출물은 사용자의 언어를 따릅니다. 사용자의 결정이나 누락된 정보가 필요하면 Lead가 `ask_user_question`으로 직접 묻고 카드에 대기 상태를 남기지 않습니다. 질문이 시간 초과되면 Lead는 어드바이저에게 독립적인 권고를 구해 기록한 뒤 작업을 계속합니다.
 
 ## Git 워크플로
 
@@ -308,7 +308,6 @@ $DSH_HOME/research-team-settings.json
 ## 동작 방식
 
 - **프리셋**: `cordis.patch.yml`이 페르소나, 도구 행, modeled-teammates 하위 모듈, 최상위 설정 행을 선언합니다.
-- **작업 보드 프롬프트**: `plugin/index.js`가 프리셋 범위에 영어 프로토콜 섹션(`plugin:dsh-taskboard`)을 등록하고 현재 워크스페이스를 확인하는 `research_project`를 제공합니다.
 - **역할별 라우팅**: `plugin/modeled-teammates.js`가 `AsyncLocalStorage`로 `subagents.startActivation`을 감싸고 `spawn_teammate_with_model` 호출에만 `agentOptions`를 주입합니다. 공식 Agent Teams 패키지는 수정되지 않습니다. Cordis는 서비스를 추적 가능한 프록시로 반환하므로, 래퍼는 메서드 동일성 대신 자체 속성 설명자를 검증합니다.
 - **설정**: `settings/index.js`가 프로필 JSON 파일을 로드/저장하고 `GET/POST /api/dsh-research-team-settings`를 제공합니다. `client/index.js`는 `plugins.row.config`를 통해 Plugins 페이지의 프로필 편집기를 등록합니다.
 - **새로 고침**: `plugin/settings-store.js`가 인메모리 스냅샷을 보관하고, 읽기와 spawn 시마다 활성 프로필을 확인하며, 읽기에 실패하면 마지막 정상 스냅샷을 유지합니다.
@@ -342,11 +341,11 @@ $DSH_HOME/research-team-settings.json
 
 ### 팀 도구가 없음
 
-같은 프로필에서 [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)을 활성화하고 재시작하십시오. 설치 프로그램은 이에 대해 묻지 않습니다.
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다. 이 프리셋은 작업을 작업 로그에 기록하고 팀 작업에는 기록하지 않습니다 |
 
-### 작업 보드 도구가 없음
+### 작업 작업 로그 도구가 없음
 
-같은 프로필에서 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)를 활성화하고 재시작하십시오.
+작업 로그 항목은 "연구" 사이드바에 `worklog/INDEX.md`에서 표시됩니다. 팀은 작업 보드 플러그인을 쓰지 않습니다.
 
 ### `spawn_teammate_with_model`을 사용할 수 없음
 
@@ -376,6 +375,6 @@ MIT. [LICENSE](../LICENSE)를 참고하십시오.
 
 ## 감사의 글
 
-[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)와 [Cordis](https://github.com/cordiverse/cordis)를 기반으로 만들어졌습니다. 작업 보드 통합은 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 플러그인을 사용하고, 팀 도구는 공식 Agent Teams 프로필 번들에서 제공됩니다. 플러그인 작성자들과 실제 연구 프로젝트에서 이 모드를 시험해 준 모든 분께 감사드립니다.
+작업 로그 항목은 "연구" 사이드바에 `worklog/INDEX.md`에서 표시됩니다. 팀은 작업 보드 플러그인을 쓰지 않습니다.
 
 기여와 내부 개발 노트는 [DEVELOPMENT.md](../DEVELOPMENT.md)에 있습니다.

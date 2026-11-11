@@ -12,7 +12,7 @@
 
 ## 概述
 
-Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊天的方式运行端到端研究。Lead 负责规划工作、维护两套记录（用户关卡用看板卡片，内部步骤用团队任务）、分派工作、整合结果并与用户沟通。八名默认专家分别覆盖顾问评估、文献与证据、数据获取、实验设计、代码、运行、独立复核和论文写作。
+Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊天的方式运行端到端研究。Lead 负责规划工作、维护工作日志记录（用户关卡用卡片文件，内部步骤用 INDEX 行）、分派工作、整合结果并与用户沟通。八名默认专家分别覆盖顾问评估、文献与证据、数据获取、实验设计、代码、运行、独立复核和论文写作。
 
 该模式面向持续数天或数周、需要可追溯证据、并能从清晰角色边界中获益的研究工作。它不是一次性问答模式：Lead 只创建任务真正需要的角色。
 
@@ -21,7 +21,7 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 | | |
 | --- | --- |
 | **默认角色** | 8 个：advisor、designer、researcher、data、builder、runner、reviewer、writer |
-| **工作流** | 关卡制：内部步骤在 `team_task_*` 中，用户关卡在看板上；建卡、认领、执行、报告、复核、用户验收 |
+| **工作流** | 关卡制：内部步骤是工作日志索引行，用户关卡是卡片文件；建卡、认领、执行、报告、复核、用户验收 |
 | **完成** | `in_review` 是 agent 的最后一站；只有用户才能把卡片移到 `done` |
 | **模型路由** | 通过「插件」页的设置表单，按角色配置 provider、model 和推理强度 |
 | **Git** | 实质性工作开始时由 agent 初始化；破坏性改动走分支；验收通过后才合并 |
@@ -41,7 +41,7 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 
 Lead 的回复是科学性沟通，而不是状态播报：先给结论或结果，再给支撑它的证据（run id、数据集、指标及其不确定度与样本量、来源），然后说明哪里仍不确定，最后是需要你决定的事项。每句话都标明其性质——已观察到的事实、推断、假设或尚未解决的问题——方法要讲到你能跟上并持续学习为止。
 
-内部机制留在内部。agent 之间的交接、重试、工具报错、看板记账，以及团队在工作中得到的经验，除非会改变某个结果的解读或阻碍决策，否则不转发给你。成员报告会被转述为“主张—证据—边界”，而不是原样粘贴。
+内部机制留在内部。agent 之间的交接、重试、工具报错、工作日志记账，以及团队在工作中得到的经验，除非会改变某个结果的解读或阻碍决策，否则不转发给你。成员报告会被转述为“主张—证据—边界”，而不是原样粘贴。
 
 分工是明确的：你确定科学方向并判断证据，团队承担检索、实现、实验和验证的工作量。
 
@@ -53,21 +53,20 @@ Lead 的回复是科学性沟通，而不是状态播报：先给结论或结果
 
 ## 运行要求
 
-Research Team Mode 是一个 **profile 级 DSH bundle**。该 bundle 不会安装或启用它所用到的 profile bundle；DSH 的包安装器处理的是 npm 依赖，而不是功能 bundle。请先在同一 profile 中启用这些依赖。
+Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊天的方式运行端到端研究。Lead 负责规划工作、维护工作日志记录（用户关卡用卡片文件，内部步骤用 INDEX 行）、分派工作、整合结果并与用户沟通。八名默认专家分别覆盖顾问评估、文献与证据、数据获取、实验设计、代码、运行、独立复核和论文写作。
 
 | 能力 | 提供方 | 说明 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 基于 `0.2.1-rc.5` 开发；其他版本可能可用，但不保证 |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*` 以及 Team 服务 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服务；本预设把工作记录在工作日志里，而不是团队任务中 |
 | PTC 运行时 | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 和 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH 基础组件的一部分；用于启用 `run_code` |
 
 **可选联动插件。** 这些是他人开发的插件；本 preset 不依赖它们，也不会安装它们，安装只为与团队联动：
 
-- **任务看板**（[`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)）——提供 `taskboard_*`、面向用户的卡片、验收清单和 `presetId=research-team` 执行会话。没有它时，worklog（`PLAN.md`、`INDEX.md`、逐卡文件）是持久记录。
 - **Zotero**（`dsh-zotero`）——提供共享文献库工具（`zotero_*`）与 paper-fetch 导入路径。没有它时，文献工作改用 Semantic Scholar、arXiv 与网络检索，证据表仍记录 claim、来源与位置。
 - **Mnemon**（`dsh-mnemon`）——提供跨会话的持久笔记（`mnemon_*`）。没有它时，由 worklog 与 `CHANGELOG.md` 承担连续性。
 
-如果缺少某个依赖，该模式仍可部分加载，但团队工具、看板或设置页将不可用。插件管理器不会提示这些 bundle，也不会自动链接它们。
+如果缺少某个依赖，该模式仍可部分加载，但团队工具、工作日志或设置页将不可用。插件管理器不会提示这些 bundle，也不会自动链接它们。
 
 ## 安装
 
@@ -75,7 +74,7 @@ Research Team Mode 是一个 **profile 级 DSH bundle**。该 bundle 不会安�
 
 ### 从 DSH 插件页面安装
 
-1. **启用必需的 bundle**：在目标 profile 中启用 Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)。上面的可选联动插件可以现在装，也可以以后再加。
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服务；本预设把工作记录在工作日志里，而不是团队任务中 |
 2. 打开 **设置 → 插件**，点击 **添加**。
 3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.1.1`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重启 DSH。** preset 行与 bundle 的客户端部分在启动时加载。
@@ -93,26 +92,25 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-任务看板的执行会话请创建带 `presetId=research-team` 的卡片，使执行沿用同一套 persona 与工具。
 
 > 该模式是 profile 级 bundle：在一个 profile 中安装不会在另一个 profile 中启用。每个 profile 都要重复安装与前置步骤。
 
 ## 首次运行
 
-在开始实际工作前，让 Lead 检查环境和看板：
+在开始实际工作前，让 Lead 检查环境和工作日志：
 
 ```text
-list_agents        # create only the roles the task needs
-research_project   # resolve the current project/workspaceId
-taskboard_list     # check existing cards in this project
+list_agents                    # create only the roles the task needs
+research_project               # resolve the current project root
+research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
 ```
 
 一个典型的第一项任务：
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
-Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
+Lead: research_project -> worklog card at user gates -> INDEX row + send_message
+Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -130,11 +128,11 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | 独立核验文献笔记、代码、结果和论文主张/引用；给出带阻断性证据的 PASS/FAIL |
 | `writer` | LaTeX 论文草稿：正文、章节、表格、图注、引用和图表代码；不运行实验，也不修改代码/模型 |
 
-Lead 负责目标澄清、任务拆解、看板管理、分派、整合、总结、最终产物组装和交付。成员可以为一个限定范围的子任务使用一层 subagent；成员不能创建新的 teammate。 Lead 控制自己的工具调用量，能用一句进展回复说清的事不再多跑一次工具，深入的工作交给对应成员。
+Lead 负责目标澄清、任务拆解、工作日志管理、分派、整合、总结、最终产物组装和交付。成员可以为一个限定范围的子任务使用一层 subagent；成员不能创建新的 teammate。 Lead 控制自己的工具调用量，能用一句进展回复说清的事不再多跑一次工具，深入的工作交给对应成员。
 
 ### 共享 Zotero 文库
 
-researcher 把用户的 Zotero 文库作为团队的共享文献源：先检索现有的分类和条目，再检索公开网络；复用已附带的 PDF 和批注片段；只有在缺少某篇文献时，才导入正式版（version of record）全文，附带 PDF 并归档到项目分类中。导入按 DOI 和标题去重，不改动用户的标签和分类，并把 `zotero://` 条目引用记录到证据表和看板卡片上，让每位团队成员读到同一篇论文，reviewer 也能抽查相同的页面。当全文受付费墙限制或只有元数据时，researcher 会记录链接，并将证据标记为仅元数据，而不是导入替代品。
+researcher 把用户的 Zotero 文库作为团队的共享文献源：先检索现有的分类和条目，再检索公开网络；复用已附带的 PDF 和批注片段；只有在缺少某篇文献时，才导入正式版（version of record）全文，附带 PDF 并归档到项目分类中。导入按 DOI 和标题去重，不改动用户的标签和分类，并把 `zotero://` 条目引用记录到证据表和工作日志卡片上，让每位团队成员读到同一篇论文，reviewer 也能抽查相同的页面。当全文受付费墙限制或只有元数据时，researcher 会记录链接，并将证据标记为仅元数据，而不是导入替代品。
 
 ### 顾问评审
 
@@ -168,13 +166,13 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 会话只是一次对话，不是项目本身：工作日志、任务板和 git 承载工作，而聊天、团队和后台任务不会随会话保留。在一个已有 `worklog/PLAN.md` 的项目里，第一次实质动作之前，先读 PLAN 和 INDEX，再读当前卡片的当前状态块，然后才做计划或消耗算力。
 
-工作日志放在 `research_project` 返回的项目根目录，而不是会话的子目录，这样项目上的每个会话共用一份 PLAN 和一份 INDEX。PLAN、INDEX、卡片文件、任务板、git 和记忆是持久的；`team_task_*` 条目、队友会话和后台任务只存在于当前会话。后续会话需要知道的任何东西，都要在会话结束前写进 PLAN 或卡片文件。
+工作日志放在 `research_project` 返回的项目根目录，而不是会话的子目录，这样项目上的每个会话共用一份 PLAN 和一份 INDEX。PLAN、INDEX、卡片文件、git 和记忆是持久的；队友会话和后台任务只存在于当前会话。后续会话需要知道的任何东西，都要在会话结束前写进 PLAN 或卡片文件。
 
 跨轮次仍运行的实验或长任务，要在卡片文件或 PLAN 里留下任务或终端句柄、主机、开始时间、预计完成时间和它服务的决策规则。恢复时先确认存活；句柄已消失的运行标记为孤儿，核对产物后交给用户决定采用、重启还是停止，绝不能悄悄重跑一遍。由已不存在会话持有的卡片，报告给用户重新打开，绝不接管。
 
 ## 研究侧栏
 
-预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项（任务看板是独立的，不在这里显示）、最近的运行、设计文档和架构卡片。
+预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行、设计文档和架构卡片。
 
 架构卡片是以 JSON 形式存放在 `.research/architecture/` 下的节点-连线图，一张卡片一个文件。智能体通过 `research_architecture` 工具读取和更新它们，因此图会与设计保持同步，而不是散落在幻灯片里。卡片在面板内以 SVG 渲染；在节点上拖出选框即可选中，你写下的备注会作为批注存到卡片上，智能体在回答前会读取它。安装了 `dsh-better-sidebar` 时标签页通过它注册，否则回退到原生右侧边栏。
 
@@ -182,22 +180,24 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 方法卡由 designer 维护，实现卡由 builder 维护；advisor 在评审设计或实现决定前先读这两张卡，reviewer 在结果门禁处核对它们。按住鼠标中键拖动可平移画布，滚轮缩放，在节点上拖出选框即可选中并写批注。
 
-## 任务看板工作流
+## 工作日志与协作
+
+预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行、设计文档和架构卡片。
+
+到达关卡时，负责人在卡片文件里写入带证据的清单、执行摘要、提交范围和下一步，对改动路径运行 `research_scope_check`，再把状态设为 `in_review`。reviewer 写入带证据的 PASS/FAIL 结论；Lead 只在到达关卡或需要用户行动时报告卡片 id、状态和证据。`done` 只属于用户的验收动作；`blocked` 表示无法继续，`canceled` 表示不再继续。
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
-       -> team_task_create (owner, blocked_by, write scopes) -> send_message
-Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
-Internal steps and member handoffs stay off the board; only user gates get cards
-At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
-Reviewer: independent PASS/FAIL with evidence on gated cards
+Lead:  research_project -> worklog card (checklist) only at user gates
+       -> INDEX row (owner, status=todo, next) + send_message
+Member: write owner + in_progress into the INDEX row and the card header -> work
+        -> write evidence, summary, base..head, next into the card file -> in_review
+Internal steps stay INDEX rows; only user gates get a card file
+Reviewer: independent PASS/FAIL with evidence in the card file
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  summarize -> report card ids/status/evidence/risks to the user
-User:  accept in the GUI -> done (agents can never move a card to done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
+User:  accept -> done (agents can never set done)
 ```
-
-只有需要用户审查或验收的步骤才建立看板卡片，例如交付物节点、需要用户确认的范围决策、风险改动和最终交接。内部步骤、自行批准的子任务以及成员之间的交接用 `team_task_*` 跟踪，不进入看板；到达验收节点时，交付物、证据和评审结论都记录在卡片上。团队成员之间用英语协作；面向用户的回复、卡片和交付物则使用用户的语言。 需要用户决定或补充信息时，Lead 用 `ask_user_question` 直接询问，而不是把等待状态留在卡片上；询问超时后，Lead 征求顾问的独立建议并记录下来，然后继续推进。
 
 ## Git 工作流
 
@@ -310,7 +310,6 @@ $DSH_HOME/research-team-settings.json
 ## 工作原理
 
 - **Preset**：`cordis.patch.yml` 声明 persona、工具行、modeled-teammates 子模块和顶层设置行。
-- **任务看板提示**：`plugin/index.js` 在 preset 作用域注册英文协议段（`plugin:dsh-taskboard`），并提供 `research_project` 用于解析当前工作区。
 - **按角色路由**：`plugin/modeled-teammates.js` 通过 `AsyncLocalStorage` 包装 `subagents.startActivation`，只对 `spawn_teammate_with_model` 调用注入 `agentOptions`。路由由 `plugin/settings-file.js` 在 spawn 时直接读配置 JSON 解析，读不到才退回进程内快照，因此 preset 子模块不再依赖顶层设置行先填好快照。官方 Agent Teams 包未被修改。 Cordis 对服务返回可追踪代理，因此包装器校验自身属性描述符，而不比较方法身份。
 - **设置**：`settings/index.js` 加载/保存配置 JSON 文件并提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 通过 `plugins.row.config` 注册「插件」页的配置编辑器。
 - **刷新**：`plugin/settings-store.js` 持有内存快照，在每次读取和 spawn 时解析活动配置，并在读取失败时保留最后一次有效快照。
@@ -340,11 +339,11 @@ $DSH_HOME/research-team-settings.json
 
 ### 团队工具缺失
 
-在同一 profile 中启用 [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) 并重启。安装器不会提示安装它。
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服务；本预设把工作记录在工作日志里，而不是团队任务中 |
 
-### 任务看板工具缺失
+### 任务工作日志工具缺失
 
-在同一 profile 中启用 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 并重启。
+工作日志条目显示在「研究」侧栏里，来自 `worklog/INDEX.md`；团队不使用任何任务看板插件。
 
 ### `spawn_teammate_with_model` 不可用
 
@@ -374,6 +373,6 @@ MIT。参见 [LICENSE](../LICENSE)。
 
 ## 致谢
 
-构建于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 和 [Cordis](https://github.com/cordiverse/cordis) 之上。任务看板集成使用 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 插件；团队工具来自官方 Agent Teams profile bundle。感谢插件作者，以及所有在真实研究项目中测试该模式的人。
+工作日志条目显示在「研究」侧栏里，来自 `worklog/INDEX.md`；团队不使用任何任务看板插件。
 
 贡献与内部开发说明见 [DEVELOPMENT.md](../DEVELOPMENT.md)。

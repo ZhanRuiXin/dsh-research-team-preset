@@ -2,13 +2,11 @@
  * Research-team helpers.
  *
  * 1. `research_project` — resolve the calling session's DSH project
- *    (workspaceId), because the task board requires a project UUID when a card
- *    is created and workspace ids are random.
- * 2. An English task-board protocol section registered at this preset's scope.
- *    The third-party dsh-taskboard plugin ships its protocol section in
- *    Chinese; a scoped section with the same name shadows it for agents in
- *    this mode only, so this mode's system prompt is English while the plugin
- *    itself stays untouched.
+ *    (workspaceId, title, path), because a worklog card must land in the right
+ *    project and workspace ids are random.
+ * 2. An English coordination-ledger section registered at this preset's
+ *    scope: the worklog files are the record, and no external task board is
+ *    read or written.
  * 3. `research_workspace_init` — idempotent durable-tracking bootstrap for a
  *    workspace: create `worklog/PLAN.md` and `worklog/INDEX.md` when missing,
  *    and initialize a git repository when the workspace is not already inside
@@ -54,20 +52,18 @@ __pycache__/
 .dsh-worktrees/
 `
 
-/** English counterpart of dsh-taskboard's protocol section (same rules). */
-const TASKBOARD_PROTOCOL_EN = `The dsh-taskboard plugin (DSH task board) is installed: tasks belong to projects (DSH workspaces) and are read and written with the taskboard_* tools; the human sees the same data live on the Web GUI board. Capabilities: list/get, create, update, move, comment_add/comments, delete (mark only), checklist, execution_report. Tasks carry urgency (urgent red / normal purple / relaxed blue), execution mode (claim / scheduled), and an optional pinned model. Board cards mark steps that need the user's review or acceptance (deliverable checkpoints, scope decisions, risky changes, final handoff); internal assignments and member-to-member handoffs use team_task_* and stay off the board.
-Working discipline:
-1. Check the board before starting gated work: call taskboard_list (filtered to this project, status=todo) and claim a claimable card in the stated order. Internal assignments live in team_task_*: claim them with team_task_update, complete them with a one-line result and an evidence path, and keep them off the board.
-2. Read before acting: call taskboard_get and read every comment before touching a card. Comments are the latest requirements; if they ask you to wait or pause, stop and report without changing status.
-3. Claim before working: for a gated card, only after todo -> in_progress (with ifVersion) succeeds should you read code or analyze implementation; for an internal assignment, claim it with team_task_update first. If claiming fails (version conflict / project boundary mismatch / already held by someone else), stop and report; never retry in a loop or take over another session's task.
-4. Version conflict: retry exactly once. On an ifVersion conflict, re-read the card and retry once with the new version only if the task is still claimable and the requirements are unchanged; if it fails again, stop and report.
-5. Review handoff: after implementing and self-verifying, submit a structured taskboard_execution_report (summary / changed files / self-checks / risks), record details in a comment, then move in_progress -> in_review. When the task has an acceptance checklist, tick each item with taskboard_checklist and attach evidence.
-6. Completion requires user confirmation: you can never move a task to done — that is the user's confirmation action. A fully ticked checklist still does not mean done. blocked = cannot continue; canceled = will not continue.
-7. backlog = not authorized: a backlog task is not approved for execution; being assigned it is not authorization either, unless the user explicitly asks.
-8. Model and schedule are read-only: a task's model and execution configuration belong to the creator/user; the update tool does not allow you to change those two fields.
-9. Ask the user with ask_user_question when you need input, a login, a scan, or a decision; keep the board for work, not pending questions, and do not set waitingForHuman or waitingReason through taskboard_update. If the answer does not arrive within the wait timeout, ask the advisor for an independent recommendation, record it on the card or in the plan, and keep the work moving; the advisor's reply is advice, not the user's approval.
-Project boundary: by default only a session inside the owning project may claim (todo -> in_progress) or execute it; cross-root claiming is allowed only when the board enables allowClaimFromLinkedRoots and the task project is one of the linked workspace roots of this session. Task ownership never changes: reads, writes, builds, and git operations must use the owning project directory; linked-root visibility is not write permission.
-When the user mentions the task board, the board, or claiming a task, they mean this plugin; cooperate accordingly.`
+/** The coordination ledger: worklog files are the record (see `## Coordination ledger`). */
+const WORKLOG_PROTOCOL_EN = `The team records its work in the project worklog, not on an external board. The ledger is the worklog directory at the project root: worklog/PLAN.md (objective, milestone, active items, blockers, dated decisions, next actions), worklog/INDEX.md (one row per active work item: id, title, owner, status, updated, next), and one markdown file per gated item (Current state block at the top, then short append-only entries).
+Discipline:
+1. Read before acting: read PLAN and INDEX before starting, then the target card's Current state and its tail only.
+2. Claim before working: write your role and in_progress into the INDEX row and the card header before you begin. If the row names another owner, stop and report; never take over.
+3. Internal steps are INDEX rows; only steps that need the user's review or acceptance get a card file - deliverable checkpoints, scope decisions, risky changes, and the final handoff. Do not create a card per internal step, and never leave user-facing work only in chat.
+4. Handoff: before moving a card to in_review, write the checklist items with evidence, the execution summary (changed files, self-checks, risks), the base..head commit range when the project uses git, and the next action into the card file; run research_scope_check on the changed paths.
+5. Review: the reviewer independently re-checks the card and writes a PASS/FAIL verdict with evidence into the card file; the Lead decides reopen or rework.
+6. Acceptance belongs to the user: never mark a card done. done means the user accepted it; blocked means the work cannot continue; canceled means it will not.
+7. Report at gates only: when a gate is reached or the user must act, report the card id, status and evidence. Do not narrate ledger bookkeeping between gates.
+8. Ask the user with ask_user_question when you need input, a login, or a decision, and record the wait in the card file instead of a status field of an external tool. If the answer does not arrive within the wait timeout, ask the advisor for an independent recommendation, record it in the card file, and keep the work moving; the advisor's reply is advice, not the user's approval.
+The worklog lives at the project root returned by research_project. If the user installs a task board, this preset neither reads nor writes it; the worklog remains the record.`
 
 async function runGit(cwd, args) {
   return execFileAsync('git', args, { cwd, windowsHide: true, maxBuffer: 1024 * 1024 })
@@ -543,16 +539,16 @@ function renderInit(value) {
 
 export function apply(ctx) {
   const disposeSection = ctx.systemPrompt.section({
-    name: 'plugin:dsh-taskboard',
+    name: 'plugin:dsh-research-team-worklog',
     order: 180,
-    text: TASKBOARD_PROTOCOL_EN
+    text: WORKLOG_PROTOCOL_EN
   })
 
   const disposeTool = ctx.tools.register({
     name: 'research_project',
     description:
       'Resolve the current DSH project (workspace) for the calling session. ' +
-      'Returns workspaceId, title and path. Call this before taskboard_create so a card lands in the right project.',
+      'Returns workspaceId, title and path. Call this before writing a worklog card so the record lands in the right project.',
     parameters: {
       type: 'object',
       properties: {},

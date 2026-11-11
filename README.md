@@ -21,12 +21,12 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | | |
 | --- | --- |
 | **Default roles** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
-| **Workflow** | Gate-based: internal steps in `team_task_*`, user gates on the board; create, claim, execute, report, review, user acceptance |
+| **Workflow** | Gate-based: internal steps are worklog index rows, user gates are card files; create, claim, execute, report, review, user acceptance |
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
 | **Worklog** | `worklog/PLAN.md` + `INDEX.md` + one bounded file per gated card; resume reads PLAN and INDEX first |
-| **Continuity** | One worklog per project at its root; a resumed session reads PLAN, INDEX, then the current card's state block; the board and git carry state across sessions |
+| **Continuity** | One worklog per project at its root; a resumed session reads PLAN, INDEX, then the current card's state block; the worklog and git carry state across sessions |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
 
 ## Who it is for
@@ -59,12 +59,11 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 | Capability | Provider | Notes |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*`, and the Team services |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, and the Team services; the preset records work in the worklog, not in team tasks |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
 
 **Optional integrations.** These are plugins by other authors. The preset runs without them and installs nothing; add one only to link the team with it:
 
-- **Task board** ([`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)) — `taskboard_*`, user-facing cards, acceptance checklists, and `presetId=research-team` execution sessions. Without it, the worklog (`PLAN.md`, `INDEX.md`, per-card files) is the durable record.
 - **Zotero** (`dsh-zotero`) — the shared library tools (`zotero_*`) and the paper-fetch import path. Without it, literature work uses Semantic Scholar, arXiv, and the web, and the evidence table still records claim, source, and location.
 - **Mnemon** (`dsh-mnemon`) — durable notes across sessions (`mnemon_*`). Without it, the worklog and `CHANGELOG.md` carry continuity.
 
@@ -94,26 +93,24 @@ To pin the source instead of the registry:
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-For task-board execution sessions, create cards with `presetId=research-team` so the execution uses the same persona and tools.
-
 > The mode is a profile-level bundle: installing it in one profile does not enable it in another. Repeat the install and prerequisite steps per profile.
 
 ## First run
 
-Ask the Lead to check the environment and the board before starting real work:
+Ask the Lead to check the environment and the worklog before starting real work:
 
 ```text
-list_agents        # create only the roles the task needs
-research_project   # resolve the current project/workspaceId
-taskboard_list     # check existing cards in this project
+list_agents                    # create only the roles the task needs
+research_project               # resolve the current project root
+research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
 ```
 
 A typical first task:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
-Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
+Lead: research_project -> worklog card at user gates -> INDEX row + send_message
+Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -169,13 +166,13 @@ The Lead admits the run, the runner refuses to launch without the pre-flight rec
 
 A session is a conversation, not the project: the worklog, the board, and git carry the work, while the chat, the team, and background jobs do not survive the session. Before the first substantive action in a project that already has `worklog/PLAN.md`, the agent reads PLAN and INDEX, then the current card's state block, before planning or spending compute.
 
-The worklog lives at the project root returned by `research_project`, not in a session subdirectory, so every session on the project shares one PLAN and one INDEX. PLAN, INDEX, card files, the board, git, and memory are durable; `team_task_*` entries, teammate conversations, and background jobs live only in the session. Anything a later session must know is written into PLAN or the card file before the session ends.
+The worklog lives at the project root returned by `research_project`, not in a session subdirectory, so every session on the project shares one PLAN and one INDEX. PLAN, INDEX, card files, git, and memory are durable; teammate conversations and background jobs live only in the session. Anything a later session must know is written into PLAN or the card file before the session ends.
 
 A run or long job that outlives the turn leaves its job or terminal handle, host, start time, expected completion, and decision rule in the card file or PLAN. On resume the agent checks liveness first, and an orphaned run is reconciled and put to the user as adopt, restart, or stop rather than silently run twice. A card held by a session that no longer exists is reported to the user for reopening, never taken over.
 
 ## Research sidebar
 
-The preset adds a Research tab to the right sidebar. It answers what the team is doing now, what is blocked, and what the next step is: the objective and milestone from `worklog/PLAN.md`, the active work items from `worklog/INDEX.md` (the task board is separate and is not rendered here), recent runs, the design documents, and the architecture cards.
+The preset adds a Research tab to the right sidebar. It answers what the team is doing now, what is blocked, and what the next step is: the objective and milestone from `worklog/PLAN.md`, the active work items from `worklog/INDEX.md`, recent runs, the design documents, and the architecture cards.
 
 Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the note you write is stored on the card as an annotation the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
 
@@ -183,22 +180,24 @@ The panel ships as its own module under `panel/`, separate from the settings for
 
 The designer owns the method card and the builder owns the implementation card; the advisor reads both before reviewing a design or implementation decision, and the reviewer checks them at the results gate. Drag with the middle mouse button to pan the canvas, scroll to zoom, and drag a box over nodes to select them for an annotation.
 
-## Task board workflow
+## Worklog and coordination
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
-       -> team_task_create (owner, blocked_by, write scopes) -> send_message
-Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
-Internal steps and member handoffs stay off the board; only user gates get cards
-At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
-Reviewer: independent PASS/FAIL with evidence on gated cards
+Lead:  research_project -> worklog card (checklist) only at user gates
+       -> INDEX row (owner, status=todo, next) + send_message
+Member: write owner + in_progress into the INDEX row and the card header -> work
+        -> write evidence, summary, base..head, next into the card file -> in_review
+Internal steps stay INDEX rows; only user gates get a card file
+Reviewer: independent PASS/FAIL with evidence in the card file
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card ids/status only when a gate needs the user
-User:  accept in the GUI -> done (agents can never move a card to done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
+User:  accept -> done (agents can never set done)
 ```
 
-Only steps waiting for the user's review or acceptance get a board card: deliverable checkpoints, scope decisions the user must confirm, risky changes, and the final handoff. Internal steps, self-approved subtasks, and member-to-member handoffs are tracked in `team_task_*` and stay off the board; when a gate is reached, the card keeps the deliverable, its evidence, and the review verdict. Team members coordinate internally in English; user-facing replies, cards, and deliverables follow the user's language. When a decision or missing information belongs to the user, the Lead asks with `ask_user_question` instead of leaving a waiting state on the card; if the question times out, the Lead asks the advisor for an independent recommendation, records it, and keeps the work moving.
+The project worklog is the whole record: `PLAN.md` for the objective, milestones, active items, blockers and dated decisions; `INDEX.md` with one row per active work item; and one card file per gated item, opened with a Current state block. Only steps that need the user's review or acceptance get a card file - deliverable checkpoints, scope decisions, risky changes, final handoff - while internal steps stay index rows. A member claims work by writing its role and `in_progress` into the row and card header; a row that already names another owner is not claimed. The team uses no task-board plugin, so there is nothing to install and nothing to sync.
+
+At a gate the owner writes the checklist with evidence, the execution summary, the commit range and the next action into the card file, runs `research_scope_check` on the changed paths, and sets the status to `in_review`. The reviewer writes a PASS/FAIL verdict with evidence; the Lead reports card ids, status and evidence only when a gate is reached or the user must act. `done` belongs to the user's acceptance; `blocked` means the work cannot continue and `canceled` means it will not.
 
 ## Git workflow
 
@@ -301,17 +300,18 @@ $DSH_HOME/research-team-settings.json
 
 | Setting | Location | Notes |
 | --- | --- | --- |
-| Preset id | `cordis.patch.yml` | `research-team`; task cards should use `presetId=research-team` |
+| Preset id | `cordis.patch.yml` | `research-team`; use it when a session should run this preset |
 | Persona | `cordis.patch.yml` | English system prompt; mode-wide rules |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Set `false` to remove `spawn_teammate_with_model` and its service wrapper |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Subagent providers used by the modeled spawn tool; defaults `spawn` / `fork` |
 | `research-team-settings` row | `cordis.patch.yml` | Top-level host row; keep the package-root name |
+| `dsh-research-team-panel` row | `cordis.patch.yml` | Top-level host row for the Research sidebar module; mounted by package name |
 | Team model profiles | `$DSH_HOME/research-team-settings.json` | Named profiles; the active profile supplies provider/model/reasoningEffort for the eight default roles |
 
 ## How it works
 
 - **Preset**: `cordis.patch.yml` declares the persona, tool rows, the modeled-teammates submodule, and the top-level settings row.
-- **Task-board prompt**: `plugin/index.js` registers an English protocol section (`plugin:dsh-taskboard`) at the preset scope and provides `research_project` to resolve the current workspace.
+- **Coordination ledger**: `plugin/index.js` registers an English ledger section (`plugin:dsh-research-team-worklog`) at the preset scope and provides `research_project` to resolve the current project root.
 - **Per-role routing**: `plugin/modeled-teammates.js` wraps `subagents.startActivation` with `AsyncLocalStorage` and injects `agentOptions` only for a `spawn_teammate_with_model` call. It resolves the route from `plugin/settings-file.js` (the settings JSON, read at spawn time) and falls back to the in-process store, so a preset submodule never depends on the top-level settings row having filled that store first. The official Agent Teams package is untouched. Cordis returns a traceable proxy for services, so the wrapper verifies its own property descriptor instead of method identity.
 - **Settings**: `settings/index.js` loads/saves the profile JSON file and serves `GET/POST /api/dsh-research-team-settings`; `client/index.js` registers the Plugins-page profile editor through `plugins.row.config`.
 - **Refresh**: `plugin/settings-store.js` holds the in-memory snapshot, resolves the active profile on every read and spawn, and keeps the last good snapshot if a read fails.
@@ -346,9 +346,9 @@ Two other causes are not about the settings file:
 
 Enable [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) in the same profile and restart. The installer does not prompt for it.
 
-### Task-board tools are missing
+### A worklog card is missing from the sidebar
 
-Enable [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) in the same profile and restart.
+The Research panel lists `worklog/INDEX.md` rows, not task-board cards. Add or update the row in `INDEX.md` (id, title, owner, status, updated, next) and the panel picks it up within five seconds.
 
 ### `spawn_teammate_with_model` is unavailable
 
@@ -378,6 +378,6 @@ MIT. See [LICENSE](LICENSE).
 
 ## Acknowledgements
 
-Built on [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) and [Cordis](https://github.com/cordiverse/cordis). The task-board integration uses the [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) plugin; team tools come from the official Agent Teams profile bundle. Thanks to the plugin authors and everyone who tests the mode on real research projects.
+Built on [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) and [Cordis](https://github.com/cordiverse/cordis). The preset records its work in the project worklog; team tools come from the official Agent Teams profile bundle. Thanks to the plugin authors and everyone who tests the mode on real research projects.
 
 Contributing and internal development notes live in [DEVELOPMENT.md](DEVELOPMENT.md).

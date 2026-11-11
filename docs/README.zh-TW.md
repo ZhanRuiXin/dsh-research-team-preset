@@ -12,7 +12,7 @@
 
 ## 概觀
 
-Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對話的方式執行端到端研究。Lead 負責規劃工作、維護兩套記錄（使用者關卡用看板卡片，內部步驟用團隊任務）、分派工作、整合結果，並與使用者溝通。八名預設專家分別涵蓋顧問審查、文獻與證據、資料取得、實驗設計、程式碼、執行、獨立複核與論文寫作。
+Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊天的方式執行端到端研究。Lead 負責規劃工作、維護工作日誌記錄（使用者關卡用卡片檔，內部步驟用 INDEX 列）、分派工作、整合結果並與使用者溝通。八名預設專家分別涵蓋顧問評估、文獻與證據、資料取得、實驗設計、程式、執行、獨立複核與論文寫作。
 
 此模式是為橫跨數天或數週、需要可追溯證據，且受益於清楚角色界線的研究而打造。它不是一次問答模式：Lead 只會建立任務實際需要的角色。
 
@@ -21,7 +21,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對�
 | | |
 | --- | --- |
 | **預設角色** | 8 名：advisor、designer、researcher、data、builder、runner、reviewer、writer |
-| **工作流程** | 關卡制：內部步驟在 `team_task_*` 中，使用者關卡在看板上；建立、認領、執行、回報、審查、使用者驗收 |
+| **工作流** | 關卡制：內部步驟是工作日誌索引列，使用者關卡是卡片檔；建卡、認領、執行、回報、複核、使用者驗收 |
 | **完成** | `in_review` 是 agent 的最後一站；只有使用者能把卡片移到 `done` |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
 | **Git** | 實質性工作開始時由 agent 初始化；破壞性改動走分支；驗收通過後才合併 |
@@ -41,7 +41,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一對�
 
 Lead 的回覆是科學性溝通，而不是狀態播報：先給結論或結果，再給支撐它的證據（run id、資料集、指標及其不確定度與樣本量、來源），然後說明哪裡仍不確定，最後是需要你決定的事項。每句話都標明其性質——觀察到的事實、推論、假設或尚未解決的問題——方法要講到你能跟上並持續學習為止。
 
-內部機制留在內部。agent 之間的交接、重試、工具報錯、看板記帳，以及團隊在工作中得到的經驗，除非會改變某個結果的解讀或阻礙決策，否則不轉發給你。成員報告會被轉述為「主張—證據—邊界」，而不是原樣貼上。
+內部機制留在內部。agent 之間的交接、重試、工具報錯、工作日誌記帳，以及團隊在工作中得到的經驗，除非會改變某個結果的解讀或阻礙決策，否則不轉發給你。成員報告會被轉述為「主張—證據—邊界」，而不是原樣貼上。
 
 分工是明確的：你決定科學方向並判斷證據，團隊承擔檢索、實作、實驗與驗證的工作量。
 
@@ -53,21 +53,20 @@ Lead 的回覆是科學性溝通，而不是狀態播報：先給結論或結果
 
 ## 需求
 
-Research Team Mode 是一個 **profile 層級的 DSH bundle**。此 bundle 不會安裝或啟用它所使用的 profile bundle；DSH 的套件安裝器處理的是 npm 相依套件，而非功能 bundle。請先在同一個 profile 中啟用相依項目。
+Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊天的方式執行端到端研究。Lead 負責規劃工作、維護工作日誌記錄（使用者關卡用卡片檔，內部步驟用 INDEX 列）、分派工作、整合結果並與使用者溝通。八名預設專家分別涵蓋顧問評估、文獻與證據、資料取得、實驗設計、程式、執行、獨立複核與論文寫作。
 
 | 能力 | 提供者 | 備註 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 以 `0.2.1-rc.5` 為開發基準；其他版本可能可用但不保證 |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*` 與 Team 服務 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服務；本 preset 把工作記錄在工作日誌，而不是團隊任務 |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 與 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | 屬於 DSH 基礎的一部分；啟用 `run_code` |
 
 **可選聯動外掛。** 這些是他人開發的外掛；本 preset 不依賴它們，也不會安裝它們，安裝只為與團隊聯動：
 
-- **任務看板**（[`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)）——提供 `taskboard_*`、面向使用者的卡片、驗收清單和 `presetId=research-team` 執行工作階段。沒有它時，worklog（`PLAN.md`、`INDEX.md`、逐卡檔案）是持久記錄。
 - **Zotero**（`dsh-zotero`）——提供共享文獻庫工具（`zotero_*`）與 paper-fetch 匯入路徑。沒有它時，文獻工作改用 Semantic Scholar、arXiv 與網路檢索，證據表仍記錄 claim、來源與位置。
 - **Mnemon**（`dsh-mnemon`）——提供跨工作階段的持久筆記（`mnemon_*`）。沒有它時，由 worklog 與 `CHANGELOG.md` 承擔連續性。
 
-若缺少相依項目，此模式仍可部分載入，但團隊工具、看板或設定頁面將無法使用。外掛管理員不會提示這些 bundle，也不會自動連結它們。
+若缺少相依項目，此模式仍可部分載入，但團隊工具、工作日誌或設定頁面將無法使用。外掛管理員不會提示這些 bundle，也不會自動連結它們。
 
 ## 安裝
 
@@ -75,7 +74,7 @@ Research Team Mode 是一個 **profile 層級的 DSH bundle**。此 bundle 不�
 
 ### 從 DSH 外掛頁面安裝
 
-1. **啟用必需的 bundle**：在目標 profile 中啟用 Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)。上面的可選聯動外掛可以現在安裝，也可以之後再加。
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服務；本 preset 把工作記錄在工作日誌，而不是團隊任務 |
 2. 開啟 **設定 → 外掛**，點擊 **新增**。
 3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.1.1`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重新啟動 DSH。** preset 列與 bundle 的用戶端部分在啟動時載入。
@@ -93,26 +92,25 @@ dsh plugin add dsh-research-team-preset@0.1.1
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-任務看板的執行工作階段請建立帶 `presetId=research-team` 的卡片，讓執行沿用同一套 persona 與工具。
 
 > 此模式是 profile 層級的 bundle：在一個 profile 中安裝不會在另一個 profile 中啟用。每個 profile 都要重複安裝與前置步驟。
 
 ## 首次執行
 
-在開始實際工作前，請 Lead 檢查環境與看板：
+在開始實際工作前，請 Lead 檢查環境與工作日誌：
 
 ```text
-list_agents        # create only the roles the task needs
-research_project   # resolve the current project/workspaceId
-taskboard_list     # check existing cards in this project
+list_agents                    # create only the roles the task needs
+research_project               # resolve the current project root
+research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
 ```
 
 典型的首次任務：
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
-Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
+Lead: research_project -> worklog card at user gates -> INDEX row + send_message
+Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -130,11 +128,11 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | 獨立驗證文獻筆記、程式碼、結果與論文主張／引用；以阻擋性證據給出 PASS/FAIL |
 | `writer` | LaTeX 論文草稿：行文、章節、表格、圖說、引用與圖表程式碼；不執行實驗或修改程式碼／模型 |
 
-Lead 負責目標釐清、拆解、看板管理、分派、整合、摘要、最終資產組裝與交付。成員可使用一層 subagent 處理界定清楚的子任務；他們不能建立隊友。 Lead 控制自己的工具呼叫量，能用一句進度回覆說清的事不再多跑一次工具，深入的工作交給對應成員。
+Lead 負責目標釐清、拆解、工作日誌管理、分派、整合、摘要、最終資產組裝與交付。成員可使用一層 subagent 處理界定清楚的子任務；他們不能建立隊友。 Lead 控制自己的工具呼叫量，能用一句進度回覆說清的事不再多跑一次工具，深入的工作交給對應成員。
 
 ### 共享 Zotero 文獻庫
 
-researcher 把使用者的 Zotero 文獻庫當作團隊的共享文獻來源：先搜尋既有的分類與條目，再搜尋公開網路；重複使用已附加的 PDF 與註記片段；只有在缺少某篇文獻時，才匯入正式版本（version of record）全文，附上 PDF 並歸檔到專案分類中。匯入時依 DOI 與標題去重，不去更動使用者的標籤與分類，並把 `zotero://` 條目參照記錄到證據表和看板卡片上，讓每位隊友讀到同一篇論文，reviewer 也能抽查相同的頁面。當全文受付費牆限制或只有中繼資料時，researcher 會記錄連結，並將證據標記為僅中繼資料，而不是匯入替代品。
+researcher 把使用者的 Zotero 文獻庫當作團隊的共享文獻來源：先搜尋既有的分類與條目，再搜尋公開網路；重複使用已附加的 PDF 與註記片段；只有在缺少某篇文獻時，才匯入正式版本（version of record）全文，附上 PDF 並歸檔到專案分類中。匯入時依 DOI 與標題去重，不去更動使用者的標籤與分類，並把 `zotero://` 條目參照記錄到證據表和工作日誌卡片上，讓每位隊友讀到同一篇論文，reviewer 也能抽查相同的頁面。當全文受付費牆限制或只有中繼資料時，researcher 會記錄連結，並將證據標記為僅中繼資料，而不是匯入替代品。
 
 ### 顧問審查
 
@@ -168,13 +166,13 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 工作階段只是一次對話，不是專案本身：工作日誌、任務板和 git 承載工作，而聊天、團隊和背景工作不會隨工作階段保留。在一個已有 `worklog/PLAN.md` 的專案裡，第一次實質動作之前，先讀 PLAN 和 INDEX，再讀目前卡片的目前狀態區塊，然後才做計畫或消耗算力。
 
-工作日誌放在 `research_project` 回傳的專案根目錄，而不是工作階段的子目錄，這樣專案上的每個工作階段共用一份 PLAN 和一份 INDEX。PLAN、INDEX、卡片檔案、任務板、git 和記憶是持久的；`team_task_*` 項目、隊友對話和背景工作只存在於目前工作階段。後續工作階段需要知道的任何東西，都要在工作階段結束前寫進 PLAN 或卡片檔案。
+工作日誌放在 `research_project` 回傳的專案根目錄，而不是工作階段的子目錄，這樣專案上的每個工作階段共用一份 PLAN 與一份 INDEX。PLAN、INDEX、卡片檔、git 與記憶是持久的；隊友對話與背景工作只存在於目前工作階段。後續工作階段需要知道的任何東西，都要在工作階段結束前寫進 PLAN 或卡片檔。
 
 跨回合仍在執行的實驗或長任務，要在卡片檔案或 PLAN 裡留下任務或終端控制代碼、主機、開始時間、預計完成時間和它服務的決策規則。恢復時先確認存活；控制代碼已消失的執行標記為孤兒，核對產物後交給使用者決定採用、重新啟動還是停止，絕不能悄悄重跑一遍。由已不存在工作階段持有的卡片，回報給使用者重新開啟，絕不接管。
 
 ## 研究側欄
 
-預設會在右側邊欄新增一個「研究」標籤頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 中的目標與里程碑、`worklog/INDEX.md` 中的活動工作項（任務看板是獨立的，不在這裡顯示）、最近的執行、設計文件與架構卡片。
+預設會在右側邊欄新增一個「研究」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 的目標與里程碑、`worklog/INDEX.md` 的活動工作項、最近的執行、設計文件與架構卡片。
 
 架構卡片是以 JSON 形式存放在 `.research/architecture/` 下的節點-連線圖，一張卡片一個檔案。代理透過 `research_architecture` 工具讀取與更新它們，因此圖會與設計保持同步，而不是散落在簡報裡。卡片在面板內以 SVG 呈現；在節點上拖出選取框即可選取，你寫下的備註會作為註解存到卡片上，代理在回答前會先讀取它。安裝了 `dsh-better-sidebar` 時標籤頁透過它註冊，否則回退到原生右側邊欄。
 
@@ -182,22 +180,24 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 方法卡由 designer 維護，實作卡由 builder 維護；advisor 在評審設計或實作決定前先讀這兩張卡，reviewer 在結果閘門處核對它們。按住滑鼠中鍵拖曳可平移畫布，滾輪縮放，在節點上拖出選取框即可選取並寫註記。
 
-## 任務看板流程
+## 工作日誌與協作
+
+預設會在右側邊欄新增一個「研究」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 的目標與里程碑、`worklog/INDEX.md` 的活動工作項、最近的執行、設計文件與架構卡片。
+
+到達關卡時，負責人在卡片檔寫入帶證據的清單、執行摘要、提交範圍與下一步，對改動路徑執行 `research_scope_check`，再把狀態設為 `in_review`。reviewer 寫入帶證據的 PASS/FAIL 結論；Lead 只在到達關卡或需要使用者行動時回報卡片 id、狀態與證據。`done` 只屬於使用者的驗收動作；`blocked` 表示無法繼續，`canceled` 表示不再繼續。
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
-       -> team_task_create (owner, blocked_by, write scopes) -> send_message
-Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
-Internal steps and member handoffs stay off the board; only user gates get cards
-At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
-Reviewer: independent PASS/FAIL with evidence on gated cards
+Lead:  research_project -> worklog card (checklist) only at user gates
+       -> INDEX row (owner, status=todo, next) + send_message
+Member: write owner + in_progress into the INDEX row and the card header -> work
+        -> write evidence, summary, base..head, next into the card file -> in_review
+Internal steps stay INDEX rows; only user gates get a card file
+Reviewer: independent PASS/FAIL with evidence in the card file
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  summarize -> report card ids/status/evidence/risks to the user
-User:  accept in the GUI -> done (agents can never move a card to done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
+User:  accept -> done (agents can never set done)
 ```
-
-只有需要使用者審查或驗收的步驟才建立看板卡片，例如交付項目節點、需要使用者確認的範圍決策、風險改動和最終交接。內部步驟、自行核准的子任務以及成員之間的交接用 `team_task_*` 追蹤，不進入看板；到達驗收節點時，交付項目、證據和評審結論都記錄在卡片上。團隊成員之間以英文協作；面向使用者的回覆、卡片與交付項目則使用使用者的語言。 需要使用者決定或補充資訊時，Lead 用 `ask_user_question` 直接詢問，而不是把等待狀態留在卡片上；詢問逾時後，Lead 徵詢顧問的独立建議並記錄下來，然後繼續推進。
 
 ## Git 工作流程
 
@@ -308,7 +308,6 @@ $DSH_HOME/research-team-settings.json
 ## 運作原理
 
 - **Preset**：`cordis.patch.yml` 宣告 persona、工具列、modeled-teammates 子模組與頂層設定列。
-- **任務看板提示詞**：`plugin/index.js` 在 preset 範圍註冊英文協定區段（`plugin:dsh-taskboard`），並提供 `research_project` 以解析目前工作區。
 - **各角色路由**：`plugin/modeled-teammates.js` 以 `AsyncLocalStorage` 包裝 `subagents.startActivation`，僅在 `spawn_teammate_with_model` 呼叫時注入 `agentOptions`。官方 Agent Teams 套件未被改動。 Cordis 對服務回傳可追蹤代理，因此包裝器改為檢查自身屬性描述符，而不比較方法身分。
 - **設定**：`settings/index.js` 載入／儲存配置 JSON 檔並提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 透過 `plugins.row.config` 註冊 Plugins 頁面的配置編輯器。
 - **重新整理**：`plugin/settings-store.js` 持有記憶體快照，在每次讀取與 spawn 時解析作用中的配置，並在讀取失敗時保留上一次良好的快照。
@@ -338,11 +337,11 @@ $DSH_HOME/research-team-settings.json
 
 ### 缺少團隊工具
 
-在同一個 profile 中啟用 [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) 並重新啟動。安裝器不會提示它。
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服務；本 preset 把工作記錄在工作日誌，而不是團隊任務 |
 
-### 缺少任務看板工具
+### 缺少任務工作日誌工具
 
-在同一個 profile 中啟用 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 並重新啟動。
+工作日誌條目顯示在「研究」側欄裡，來自 `worklog/INDEX.md`；團隊不使用任何任務看板外掛。
 
 ### `spawn_teammate_with_model` 無法使用
 
@@ -372,6 +371,6 @@ MIT。參見 [LICENSE](../LICENSE)。
 
 ## 致謝
 
-建構於 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 與 [Cordis](https://github.com/cordiverse/cordis) 之上。任務看板整合使用 [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) 外掛；團隊工具來自官方 Agent Teams profile bundle。感謝外掛作者，以及所有在真實研究專案上測試此模式的人。
+工作日誌條目顯示在「研究」側欄裡，來自 `worklog/INDEX.md`；團隊不使用任何任務看板外掛。
 
 貢獻與內部開發說明見 [DEVELOPMENT.md](../DEVELOPMENT.md)。

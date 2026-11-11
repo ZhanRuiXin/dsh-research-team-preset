@@ -12,7 +12,7 @@
 
 ## Überblick
 
-Research Team Mode ist ein DSH-Agent-Preset, mit dem sich End-to-End-Forschung als Team statt in einem einzigen Chat betreiben lässt. Der Lead plant die Arbeit, führt beide Register (Board-Karten für Nutzer-Gates, Team-Tasks für interne Schritte), verteilt Arbeit, integriert Ergebnisse und kommuniziert mit der nutzenden Person. Acht Standardrollen decken Beratung, Literatur und Evidenz, Datenbeschaffung, Versuchsdesign, Code, Läufe, unabhängige Prüfung und das Schreiben des Papers ab.
+Research Team Mode ist ein DSH-Agent-Preset, mit dem sich End-to-End-Forschung als Team statt in einem einzigen Chat betreiben laesst. Der Lead plant die Arbeit, fuehrt das Worklog-Register (Kartendateien fuer Nutzer-Gates, INDEX-Zeilen fuer interne Schritte), verteilt Arbeit, integriert Ergebnisse und kommuniziert mit der nutzenden Person. Acht Standardrollen decken Beratung, Literatur und Evidenz, Datenbeschaffung, Versuchsdesign, Code, Laeufe, unabhaengige Pruefung und das Schreiben des Papers ab.
 
 Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt, nachvollziehbare Evidenz benötigt und von klaren Rollengrenzen profitiert. Er ist kein Modus für einmalige Fragen und Antworten: Der Lead erstellt nur die Rollen, die eine Aufgabe tatsächlich braucht.
 
@@ -21,7 +21,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 | | |
 | --- | --- |
 | **Standardrollen** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
-| **Workflow** | Gate-basiert: interne Schritte in `team_task_*`, Nutzer-Gates auf dem Board; erstellen, übernehmen, ausführen, berichten, prüfen, Abnahme durch die nutzende Person |
+| **Workflow** | Gate-basiert: interne Schritte als Worklog-Indexzeilen, Nutzer-Gates als Kartendateien; erstellen, uebernehmen, ausfuehren, berichten, pruefen, Abnahme durch die nutzende Person |
 | **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann eine Karte auf `done` setzen |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
 | **Git** | Wird beim Start substanzieller Arbeit vom Agenten initialisiert; destruktive Änderungen auf einem Branch; Zusammenführung erst nach Abnahme |
@@ -41,7 +41,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 
 Die Antworten des Lead sind wissenschaftliche Kommunikation, kein Status-Feed: zuerst die Behauptung oder das Ergebnis mit der dahinterstehenden Evidenz (Run-ID, Datensatz, Metrik mit Unsicherheit und Stichprobengröße, Quelle), dann was unsicher ist, dann was Sie entscheiden müssen. Jede Aussage ist als beobachtete Tatsache, Schlussfolgerung, Hypothese oder offene Frage gekennzeichnet, und die Methode wird so weit erklärt, dass Sie folgen und weiterlernen können.
 
-Interne Mechanik bleibt intern. Übergaben zwischen Agenten, Wiederholungsversuche, Tool-Fehler, Board-Buchhaltung und was das Team bei der Arbeit gelernt hat, werden nicht weitergegeben, es sei denn, sie ändern die Lesart eines Ergebnisses oder blockieren eine Entscheidung. Mitgliederberichte werden in Behauptung, Evidenz und Grenzen übersetzt statt eingefügt.
+Interne Mechanik bleibt intern. Übergaben zwischen Agenten, Wiederholungsversuche, Tool-Fehler, Worklog-Buchhaltung und was das Team bei der Arbeit gelernt hat, werden nicht weitergegeben, es sei denn, sie ändern die Lesart eines Ergebnisses oder blockieren eine Entscheidung. Mitgliederberichte werden in Behauptung, Evidenz und Grenzen übersetzt statt eingefügt.
 
 Die Arbeitsteilung ist ausdrücklich: Sie setzen die wissenschaftliche Richtung und beurteilen die Evidenz, das Team trägt die Last von Suche, Implementierung, Experiment und Verifikation.
 
@@ -53,21 +53,20 @@ Ein negatives Ergebnis früherer Arbeit beschränkt die Methode, die Daten und d
 
 ## Voraussetzungen
 
-Research Team Mode ist ein **DSH-Bundle auf Profilebene**. Das Bundle installiert oder aktiviert die von ihm verwendeten Profil-Bundles nicht selbst; der Paketinstaller von DSH kümmert sich um npm-Abhängigkeiten, nicht um Feature-Bundles. Aktivieren Sie die Abhängigkeiten zuerst im selben Profil.
+Research Team Mode ist ein DSH-Agent-Preset, mit dem sich End-to-End-Forschung als Team statt in einem einzigen Chat betreiben laesst. Der Lead plant die Arbeit, fuehrt das Worklog-Register (Kartendateien fuer Nutzer-Gates, INDEX-Zeilen fuer interne Schritte), verteilt Arbeit, integriert Ergebnisse und kommuniziert mit der nutzenden Person. Acht Standardrollen decken Beratung, Literatur und Evidenz, Datenbeschaffung, Versuchsdesign, Code, Laeufe, unabhaengige Pruefung und das Schreiben des Papers ab.
 
 | Funktion | Provider | Hinweise |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Entwickelt gegen `0.2.1-rc.5`; andere Releases können funktionieren, sind aber nicht garantiert |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Stellt `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, `team_task_*` und die Team-Services bereit |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Stellt `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` und die Team-Services bereit; das Preset fuehrt seine Arbeit im Worklog, nicht in Team-Tasks |
 | PTC-Laufzeit | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) und [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Teil der DSH-Basis; aktiviert `run_code` |
 
 **Optionale Integrationen.** Diese Plugins stammen von anderen Autoren. Das Preset läuft ohne sie und installiert nichts; fügen Sie eines nur hinzu, um das Team damit zu verknüpfen:
 
-- **Task Board** ([`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)) — `taskboard_*`, nutzerseitige Karten, Abnahme-Checklisten und `presetId=research-team`-Ausführungssitzungen. Ohne es ist das Worklog (`PLAN.md`, `INDEX.md`, Kartendateien) der dauerhafte Datensatz.
 - **Zotero** (`dsh-zotero`) — die Werkzeuge der geteilten Bibliothek (`zotero_*`) und der paper-fetch-Importpfad. Ohne es nutzt die Literaturarbeit Semantic Scholar, arXiv und das Web; die Evidenztabelle hält weiterhin Aussage, Quelle und Fundstelle fest.
 - **Mnemon** (`dsh-mnemon`) — dauerhafte Notizen über Sitzungen hinweg (`mnemon_*`). Ohne es tragen Worklog und `CHANGELOG.md` die Kontinuität.
 
-Wenn eine Abhängigkeit fehlt, kann der Modus trotzdem teilweise geladen werden, aber die Team-Tools, das Board oder die Einstellungsseite sind dann nicht verfügbar. Der Plugin-Manager fragt diese Bundles nicht ab und verknüpft sie nicht automatisch.
+Wenn eine Abhängigkeit fehlt, kann der Modus trotzdem teilweise geladen werden, aber die Team-Tools, das Worklog oder die Einstellungsseite sind dann nicht verfügbar. Der Plugin-Manager fragt diese Bundles nicht ab und verknüpft sie nicht automatisch.
 
 ## Installation
 
@@ -75,7 +74,7 @@ Dieses Preset wird als DSH-Bundle ausgeliefert und ist auf npm als `dsh-research
 
 ### Installation über die DSH-Plugins-Seite
 
-1. **Aktivieren Sie die erforderlichen Bundles** im Zielprofil: Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). Die optionalen Integrationen oben können Sie jetzt oder später hinzufügen.
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Stellt `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` und die Team-Services bereit; das Preset fuehrt seine Arbeit im Worklog, nicht in Team-Tasks |
 2. Öffnen Sie **Einstellungen → Plugins** und klicken Sie auf **Hinzufügen**.
 3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.1.1` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
 4. **Starten Sie DSH neu.** Preset-Zeilen und die Client-Hälfte des Bundles werden beim Start geladen.
@@ -93,26 +92,25 @@ Um stattdessen die Quelle zu pinnen statt den Registrierungsserver:
 dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
 ```
 
-Für Task-Board-Ausführungssitzungen erstellen Sie Karten mit `presetId=research-team`, damit die Ausführung dieselbe Persona und dieselben Werkzeuge verwendet.
 
 > Der Modus ist ein profilweites Bundle: Die Installation in einem Profil aktiviert ihn nicht in einem anderen. Wiederholen Sie Installation und Voraussetzungen für jedes Profil.
 
 ## Erster Start
 
-Bitten Sie den Lead, Umgebung und Board zu prüfen, bevor die eigentliche Arbeit beginnt:
+Bitten Sie den Lead, Umgebung und Worklog zu prüfen, bevor die eigentliche Arbeit beginnt:
 
 ```text
-list_agents        # create only the roles the task needs
-research_project   # resolve the current project/workspaceId
-taskboard_list     # check existing cards in this project
+list_agents                    # create only the roles the task needs
+research_project               # resolve the current project root
+research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
 ```
 
 Eine typische erste Aufgabe:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
-Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
+Lead: research_project -> worklog card at user gates -> INDEX row + send_message
+Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
 Reviewer: independent PASS/FAIL with evidence
 Lead: summarize -> user acceptance (done)
 ```
@@ -130,11 +128,11 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | Unabhängige Verifikation von Literaturnotizen, Code, Ergebnissen und Paper-Behauptungen/-Zitaten; PASS/FAIL mit blockierender Evidenz |
 | `writer` | LaTeX-Paper-Entwurf: Prosa, Abschnitte, Tabellen, Bildunterschriften, Zitate und Abbildungscode; führt keine Experimente aus und ändert weder Code noch Modelle |
 
-Der Lead verantwortet Zielklärung, Zerlegung, Board-Verwaltung, Zuweisung, Integration, Zusammenfassungen, die Zusammenstellung der finalen Artefakte und die Auslieferung. Mitglieder dürfen für eine abgegrenzte Teilaufgabe eine Subagent-Ebene nutzen; sie können keine Teammitglieder erstellen. Der Lead hält seinen eigenen Werkzeugeinsatz schlank, bevorzugt eine kurze Statusmeldung an den Nutzer gegenüber einem weiteren Routinearuf und überlässt die eigentliche Tiefenarbeit dem zuständigen Mitglied.
+Der Lead verantwortet Zielklärung, Zerlegung, Worklog-Verwaltung, Zuweisung, Integration, Zusammenfassungen, die Zusammenstellung der finalen Artefakte und die Auslieferung. Mitglieder dürfen für eine abgegrenzte Teilaufgabe eine Subagent-Ebene nutzen; sie können keine Teammitglieder erstellen. Der Lead hält seinen eigenen Werkzeugeinsatz schlank, bevorzugt eine kurze Statusmeldung an den Nutzer gegenüber einem weiteren Routinearuf und überlässt die eigentliche Tiefenarbeit dem zuständigen Mitglied.
 
 ### Gemeinsame Zotero-Bibliothek
 
-Der Researcher behandelt die Zotero-Bibliothek der nutzenden Person als die gemeinsame Literaturquelle des Teams. Er durchsucht vorhandene Sammlungen und Einträge vor dem offenen Web, nutzt angehängte PDFs und Passagen aus den Annotationen erneut und importiert eine fehlende Arbeit nur in ihrer offiziellen Version of Record, mit angehängtem PDF und einsortiert in eine Projekt-Sammlung. Importe deduplizieren nach DOI und Titel, lassen Tags und Sammlungen der nutzenden Person unberührt und halten die `zotero://`-Referenz des Eintrags in der Evidenztabelle und auf der Board-Karte fest, sodass jedes Teammitglied dasselbe Paper liest und der Reviewer dieselben Seiten stichprobenartig prüfen kann. Liegt der Volltext hinter einer Paywall oder existieren nur Metadaten, hält der Researcher den Link fest und markiert die Evidenz als reine Metadaten (metadata-only), statt einen Ersatz zu importieren.
+Der Researcher behandelt die Zotero-Bibliothek der nutzenden Person als die gemeinsame Literaturquelle des Teams. Er durchsucht vorhandene Sammlungen und Einträge vor dem offenen Web, nutzt angehängte PDFs und Passagen aus den Annotationen erneut und importiert eine fehlende Arbeit nur in ihrer offiziellen Version of Record, mit angehängtem PDF und einsortiert in eine Projekt-Sammlung. Importe deduplizieren nach DOI und Titel, lassen Tags und Sammlungen der nutzenden Person unberührt und halten die `zotero://`-Referenz des Eintrags in der Evidenztabelle und auf der Worklog-Karte fest, sodass jedes Teammitglied dasselbe Paper liest und der Reviewer dieselben Seiten stichprobenartig prüfen kann. Liegt der Volltext hinter einer Paywall oder existieren nur Metadaten, hält der Researcher den Link fest und markiert die Evidenz als reine Metadaten (metadata-only), statt einen Ersatz zu importieren.
 
 ### Beratendes Review
 
@@ -166,15 +164,15 @@ Der Lead lässt den Lauf zu, der Runner verweigert den Start ohne den Pre-Flight
 
 ## Sitzungsübergreifende Kontinuität
 
-Eine Sitzung ist ein Gespräch, nicht das Projekt: Arbeit tragen Worklog, Board und git, während Chat, Team und Hintergrundjobs die Sitzung nicht überleben. In einem Projekt mit vorhandenem `worklog/PLAN.md` liest der Agent vor der ersten substanziellen Aktion PLAN und INDEX und dann den Statusblock der aktuellen Karte, bevor er plant oder Rechenzeit ausgibt.
+Eine Sitzung ist ein Gespräch, nicht das Projekt: Arbeit tragen Worklog und git, während Chat, Team und Hintergrundjobs die Sitzung nicht überleben. In einem Projekt mit vorhandenem `worklog/PLAN.md` liest der Agent vor der ersten substanziellen Aktion PLAN und INDEX und dann den Statusblock der aktuellen Karte, bevor er plant oder Rechenzeit ausgibt.
 
-Das Worklog liegt im Projektstamm, den `research_project` zurückgibt, nicht in einem Unterverzeichnis der Sitzung, sodass alle Sitzungen des Projekts ein PLAN und ein INDEX teilen. PLAN, INDEX, Kartendateien, Board, git und Gedächtnis sind dauerhaft; `team_task_*`-Einträge, Teammate-Gespräche und Hintergrundjobs existieren nur in der Sitzung. Was eine spätere Sitzung wissen muss, wird vor Sitzungsende in PLAN oder Kartendatei geschrieben.
+Das Worklog liegt im Projektstamm, den `research_project` zurueckgibt, nicht in einem Unterverzeichnis der Sitzung, sodass alle Sitzungen des Projekts ein PLAN und ein INDEX teilen. PLAN, INDEX, Kartendateien, git und Gedaechtnis sind dauerhaft; Teammate-Gespraeche und Hintergrundjobs existieren nur in der Sitzung. Was eine spaetere Sitzung wissen muss, wird vor Sitzungsende in PLAN oder Kartendatei geschrieben.
 
 Ein Lauf oder Langzeitjob, der den Turn überlebt, hinterlässt Job- oder Terminal-Handle, Host, Startzeit, erwartetes Ende und die Entscheidungsregel, der er dient, in der Kartendatei oder im PLAN. Beim Wiederaufnehmen wird zuerst die Lebendigkeit geprüft; ein verwaister Lauf wird abgeglichen und dem Nutzer als übernehmen, neu starten oder stoppen vorgelegt, statt still zweimal zu laufen. Eine Karte, die eine nicht mehr existierende Sitzung hält, wird dem Nutzer zum Wiederöffnen gemeldet und nie übernommen.
 
 ## Forschungs-Seitenleiste
 
-Das Preset fügt der rechten Seitenleiste einen Tab „Forschung“ hinzu. Er beantwortet, was das Team gerade tut, wo es blockiert ist und was der nächste Schritt ist: Ziel und Meilenstein aus `worklog/PLAN.md`, die aktiven Arbeitseinträge aus `worklog/INDEX.md` (das Task-Board ist getrennt und wird hier nicht angezeigt), letzte Läufe, die Designdokumente und die Architekturkarten.
+Das Preset fuegt der rechten Seitenleiste einen Tab "Forschung" hinzu. Er beantwortet, was das Team gerade tut, wo es blockiert ist und was der naechste Schritt ist: Ziel und Meilenstein aus `worklog/PLAN.md`, die aktiven Arbeitseintraege aus `worklog/INDEX.md`, letzte Laeufe, die Designdokumente und die Architekturkarten.
 
 Architekturkarten sind Knoten-Kanten-Diagramme als JSON unter `.research/architecture/`, eine Datei pro Karte. Der Agent liest und aktualisiert sie mit dem Werkzeug `research_architecture`, damit das Diagramm mit dem Design Schritt hält statt in einer Folie zu veralten. Eine Karte wird im Panel als SVG gerendert; ein Auswahlrahmen über Knoten wählt sie aus, und die Notiz, die du schreibst, wird als Anmerkung an der Karte gespeichert, die der Agent vor seiner Antwort liest. Der Tab registriert sich über `dsh-better-sidebar`, wenn dieses Plugin installiert ist, und sonst über die native rechte Seitenleiste.
 
@@ -182,22 +180,24 @@ Das Panel ist ein eigenes Modul unter `panel/`, getrennt vom Einstellungsformula
 
 Der Designer besitzt die Methodenkarte, der Builder die Implementierungskarte; der Advisor liest beide, bevor er eine Design- oder Implementierungsentscheidung prüft, und der Reviewer gleicht sie am Ergebnis-Gate ab. Mit der mittleren Maustaste ziehen verschiebt die Ansicht, das Rad zoomt, und ein Rahmen über Knoten wählt sie für eine Notiz aus.
 
-## Arbeitsablauf im Task Board
+## Worklog und Zusammenarbeit
+
+Das Preset fuegt der rechten Seitenleiste einen Tab "Forschung" hinzu. Er beantwortet, was das Team gerade tut, wo es blockiert ist und was der naechste Schritt ist: Ziel und Meilenstein aus `worklog/PLAN.md`, die aktiven Arbeitseintraege aus `worklog/INDEX.md`, letzte Laeufe, die Designdokumente und die Architekturkarten.
+
+Am Gate schreibt der Verantwortliche die Checkliste mit Evidenz, die Ausfuehrungszusammenfassung, den Commit-Bereich und den naechsten Schritt in die Kartendatei, fuehrt `research_scope_check` auf den geaenderten Pfaden aus und setzt den Status auf `in_review`. Der Reviewer schreibt ein PASS/FAIL mit Evidenz; der Lead berichtet Karten-id, Status und Evidenz nur am Gate oder wenn die Person handeln muss. `done` gehoert allein der Abnahme durch die Person; `blocked` heisst nicht fortfahrbar, `canceled` heisst beendet.
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
-       -> team_task_create (owner, blocked_by, write scopes) -> send_message
-Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
-Internal steps and member handoffs stay off the board; only user gates get cards
-At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
-Reviewer: independent PASS/FAIL with evidence on gated cards
+Lead:  research_project -> worklog card (checklist) only at user gates
+       -> INDEX row (owner, status=todo, next) + send_message
+Member: write owner + in_progress into the INDEX row and the card header -> work
+        -> write evidence, summary, base..head, next into the card file -> in_review
+Internal steps stay INDEX rows; only user gates get a card file
+Reviewer: independent PASS/FAIL with evidence in the card file
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  summarize -> report card ids/status/evidence/risks to the user
-User:  accept in the GUI -> done (agents can never move a card to done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
+User:  accept -> done (agents can never set done)
 ```
-
-Nur Schritte, die die Prüfung oder Abnahme durch die Nutzerin oder den Nutzer brauchen, bekommen eine Board-Karte: Deliverable-Checkpoints, Scope-Entscheidungen, die bestätigt werden müssen, riskante Änderungen und die finale Übergabe. Interne Schritte, selbst freigegebene Unteraufgaben und Übergaben zwischen Mitgliedern werden in `team_task_*` verfolgt und bleiben vom Board fern; am Gate hält die Karte das Deliverable, seine Belege und das Review-Urteil. Teammitglieder koordinieren sich intern auf Englisch; nutzerseitige Antworten, Karten und Deliverables folgen der Sprache der nutzenden Person. Braucht der Nutzer eine Entscheidung oder fehlende Information, fragt der Lead mit `ask_user_question` direkt und lässt keinen Wartestatus auf der Karte zurück. Läuft die Frage in ein Timeout, holt der Lead eine unabhängige Empfehlung des Advisors ein, hält sie fest und führt die Arbeit fort.
 
 ## Git-Workflow
 
@@ -308,7 +308,6 @@ $DSH_HOME/research-team-settings.json
 ## Funktionsweise
 
 - **Preset**: `cordis.patch.yml` deklariert die Persona, Tool-Zeilen, das modeled-teammates-Submodul und die Einstellungszeile auf oberster Ebene.
-- **Task-Board-Prompt**: `plugin/index.js` registriert einen englischen Protokollabschnitt (`plugin:dsh-taskboard`) im Preset-Scope und stellt `research_project` bereit, um den aktuellen Workspace aufzulösen.
 - **Rollenbasiertes Routing**: `plugin/modeled-teammates.js` umschließt `subagents.startActivation` mit `AsyncLocalStorage` und injiziert `agentOptions` nur für einen Aufruf von `spawn_teammate_with_model`. Das offizielle Agent-Teams-Paket bleibt unverändert. Cordis liefert Dienste als nachverfolgbaren Proxy; der Wrapper prüft daher seinen eigenen Property-Deskriptor statt der Methodenidentität.
 - **Einstellungen**: `settings/index.js` lädt und speichert die Profil-JSON-Datei und bedient `GET/POST /api/dsh-research-team-settings`; `client/index.js` registriert den Profil-Editor der Plugins-Seite über `plugins.row.config`.
 - **Aktualisierung**: `plugin/settings-store.js` hält den In-Memory-Snapshot, löst bei jedem Lesezugriff und jedem Spawn das aktive Profil auf und behält den letzten guten Snapshot, falls ein Lesevorgang fehlschlägt.
@@ -342,11 +341,11 @@ Zwei weitere Ursachen betreffen nicht die Einstellungsdatei:
 
 ### Team-Tools fehlen
 
-Aktivieren Sie [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) im selben Profil und starten Sie neu. Der Installer fragt danach nicht.
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Stellt `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` und die Team-Services bereit; das Preset fuehrt seine Arbeit im Worklog, nicht in Team-Tasks |
 
-### Task-Board-Tools fehlen
+### Worklog-Eintraege fehlen
 
-Aktivieren Sie [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) im selben Profil und starten Sie neu.
+Worklog-Eintraege zeigt die Seitenleiste "Forschung" aus `worklog/INDEX.md`; das Team nutzt kein Task-Board-Plugin.
 
 ### `spawn_teammate_with_model` ist nicht verfügbar
 
@@ -376,6 +375,6 @@ MIT. Siehe [LICENSE](../LICENSE).
 
 ## Danksagungen
 
-Basiert auf [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) und [Cordis](https://github.com/cordiverse/cordis). Die Task-Board-Integration verwendet das Plugin [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard); die Team-Tools stammen aus dem offiziellen Agent-Teams-Profil-Bundle. Danke an die Plugin-Autoren und alle, die den Modus an echten Forschungsprojekten testen.
+Worklog-Eintraege zeigt die Seitenleiste "Forschung" aus `worklog/INDEX.md`; das Team nutzt kein Task-Board-Plugin.
 
 Beiträge und interne Entwicklungsnotizen stehen in [DEVELOPMENT.md](../DEVELOPMENT.md).

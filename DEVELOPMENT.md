@@ -62,7 +62,7 @@ Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-researc
 new session -> Research Team Mode
 list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
-taskboard_list                           # matches the GUI board
+research_architecture op=list            # cards render in the Research sidebar
 research_scope_check                     # envelope check on a card handoff
 ```
 

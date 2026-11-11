@@ -290,7 +290,7 @@ window.__ModuleLoader__.load({
     }
 
     const PANEL_CSS = `
-.rtp-root{display:flex;flex-direction:column;height:100%;min-height:0;overflow-y:auto;box-sizing:border-box;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-family:inherit;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.rtp-root{position:relative;display:flex;flex-direction:column;height:100%;min-height:0;overflow-y:auto;box-sizing:border-box;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-family:inherit;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 .rtp-root *{box-sizing:border-box}
 .rtp-root ::-webkit-scrollbar{width:8px;height:8px}
 .rtp-root ::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l3);border-radius:8px}
@@ -333,7 +333,7 @@ window.__ModuleLoader__.load({
 .rtp-rolechip{flex:0 0 auto;display:inline-flex;align-items:center;height:17px;padding:0 5px;border-radius:4px;font-size:11.5px;font-weight:500;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-tertiary)}
 .rtp-memmeta{display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;font-size:12px;color:var(--dsw-alias-label-tertiary)}
 .rtp-memitem{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rtp-tip{position:fixed;z-index:80;width:244px;padding:8px 10px;border-radius:9px;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2);font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary);pointer-events:none;animation:rtp-tip-in .12s ease-out}
+.rtp-tip{position:absolute;z-index:80;width:244px;padding:8px 10px;border-radius:9px;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2);font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary);pointer-events:none;animation:rtp-tip-in .12s ease-out}
 .rtp-tiparrow{position:absolute;top:-5px;width:9px;height:9px;transform:rotate(45deg);background:var(--dsw-alias-bg-layer-3);border-left:.5px solid var(--dsw-alias-border-l2);border-top:.5px solid var(--dsw-alias-border-l2)}
 .rtp-tipbody{position:relative}
 @keyframes rtp-tip-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
@@ -759,6 +759,7 @@ window.__ModuleLoader__.load({
       const [busy, setBusy] = React.useState(false)
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
+      const rootRef = React.useRef(null)
 
       React.useEffect(() => { ensurePanelStyles() }, [])
 
@@ -919,14 +920,20 @@ window.__ModuleLoader__.load({
               className: `rtp-mem${member.role === 'lead' ? ' is-lead' : ''}`,
               'aria-label': memberBrief(member).replaceAll('\n', '; '),
               onMouseEnter: (event) => {
+                const rootEl = rootRef.current
                 const rect = event.currentTarget.getBoundingClientRect()
                 const width = 244
-                const viewWidth = typeof window === 'undefined' ? 1200 : window.innerWidth
-                const viewHeight = typeof window === 'undefined' ? 900 : window.innerHeight
-                const anchor = rect.left + 21
-                const left = Math.max(8, Math.min(anchor - 26, viewWidth - width - 8))
+                const height = 104
+                if (rootEl === null) return
+                const box = rootEl.getBoundingClientRect()
+                const scrollTop = rootEl.scrollTop || 0
+                const anchor = rect.left - box.left + 21
+                const left = Math.max(8, Math.min(anchor - 26, box.width - width - 8))
                 const arrow = Math.max(12, Math.min(anchor - left - 5, width - 20))
-                const top = rect.bottom + 9 > viewHeight - 120 ? Math.max(8, rect.top - 104) : rect.bottom + 9
+                const below = rect.bottom - box.top + scrollTop + 9
+                const top = below + height > box.height + scrollTop
+                  ? Math.max(8, rect.top - box.top + scrollTop - height - 9)
+                  : below
                 setHover({ member, left, top, arrow })
               },
               onMouseLeave: () => setHover(null)
@@ -1105,7 +1112,7 @@ window.__ModuleLoader__.load({
           ])
         : [teamSection, archSection, cardsSection, runsSection, designsSection]
 
-      return h('div', { className: 'rtp-root' }, [
+      return h('div', { className: 'rtp-root', ref: rootRef }, [
         header,
         error === '' ? null : h('div', { key: 'error', className: 'rtp-error' }, error),
         ...(Array.isArray(body) ? body : [body]),

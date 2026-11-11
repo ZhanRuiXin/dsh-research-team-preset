@@ -260,7 +260,7 @@ window.__ModuleLoader__.load({
       const model = shortModel(member.model)
       if (model !== '') {
         const suffix = member.effort ? `（${member.effort}）` : ''
-        lines.push(`模型：${model}${suffix}${member.modelSource === 'configured' ? '（按角色配置，成员空闲）' : ''}`)
+        lines.push(`模型：${model}${suffix}`)
       } else {
         lines.push('模型：未知')
       }

@@ -257,7 +257,7 @@ window.__ModuleLoader__.load({
         lines.push('未分配工作项')
       }
       const model = shortModel(member.model)
-      if (model !== '') lines.push(member.effort ? `模型：${model} · 思考等级 ${member.effort}` : `模型：${model}`)
+      if (model !== '') lines.push(member.effort ? `模型：${model}（${member.effort}）` : `模型：${model}`)
       return lines.join('\n')
     }
 

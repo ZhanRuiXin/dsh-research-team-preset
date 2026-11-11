@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The Research panel quotes an architecture selection into the conversation composer instead of carrying its own textarea, and the architecture canvas no longer zooms with the wheel.
+
 - The Research panel gives every `in_review` work item 确认完成 and 退回 buttons: acceptance is the user's click, and the worklog tool now refuses `status: done` from the model.
 
 - Work items now follow a fixed status table (`todo -> in_progress -> in_review -> done`, with `blocked` and `canceled` as side states): `blocked` requires a reason, a gate requires at least one evidence entry or a noted checklist item, every move is kept in the item history, and the translated READMEs were updated to the JSON worklog.

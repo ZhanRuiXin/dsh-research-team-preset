@@ -539,11 +539,6 @@ window.__ModuleLoader__.load({
         setView({ x: (anchor === undefined ? auto.x + auto.w / 2 : anchor.x) - ratioX * w, y: (anchor === undefined ? auto.y + auto.h / 2 : anchor.y) - ratioY * hgt, w, h: hgt })
       }
 
-      function onWheel(event) {
-        event.preventDefault()
-        zoomTo((auto.w / box.w) * (event.deltaY > 0 ? 0.9 : 1.11), point(event))
-      }
-
       function onDown(event) {
         if (event.button === 1) {
           event.preventDefault()
@@ -701,7 +696,6 @@ window.__ModuleLoader__.load({
           key: 'svg',
           ref: svgRef,
           viewBox: `${box.x} ${box.y} ${box.w} ${box.h}`,
-          onWheel,
           onAuxClick: (event) => event.preventDefault(),
           onContextMenu: (event) => event.preventDefault(),
           onPointerDown: onDown,
@@ -758,13 +752,21 @@ window.__ModuleLoader__.load({
       ])
     }
 
+    let pluginCtx = null
+
+    function focusComposer() {
+      if (typeof document === 'undefined') return
+      const card = document.querySelector('[data-composer-card]')
+      const box = card === null ? null : card.querySelector('[contenteditable="true"], textarea')
+      if (box !== null) box.focus()
+    }
+
     function ResearchPanel(props) {
       const sessionId = props.sessionId
       const [state, setState] = React.useState(null)
       const [error, setError] = React.useState('')
       const [selectedCard, setSelectedCard] = React.useState('')
       const [selectedNodes, setSelectedNodes] = React.useState([])
-      const [note, setNote] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
@@ -857,25 +859,30 @@ window.__ModuleLoader__.load({
         postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? '实验已批准。' : '实验已拒绝。')
       }
 
-      async function submitNote() {
-        if (card === undefined || note.trim() === '' || busy) return
-        setBusy(true)
+      function quoteSelection() {
+        if (card === undefined || selectedNodes.length === 0) return
+        const title = card.title || card.id
+        const text = `研究侧栏引用 · 架构卡「${title}」（${card.id}，v${card.version}）\n节点：${selectedNodes.join('、')}`
         try {
-          const response = await fetch(PANEL_ROUTE, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ op: 'annotate', sessionId, id: card.id, text: note.trim(), targets: selectedNodes })
-          })
-          const data = await response.json()
-          if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`)
-          setNote('')
-          setSelectedNodes([])
-          setToast('标注已记录，将在模型下一轮读取。')
-          load()
+          const actx = pluginCtx !== null && typeof pluginCtx.sessions?.scope === 'function' ? pluginCtx.sessions.scope(sessionId) : undefined
+          const conversation = actx !== undefined && typeof actx.get === 'function' ? actx.get('conversation') : undefined
+          const shell = conversation !== undefined && typeof conversation.input?.for === 'function' ? conversation.input.for(actx) : undefined
+          const actions = shell === undefined ? undefined : shell.actions
+          if (actions !== undefined && typeof actions.insertQuote === 'function' && actions.insertQuote(text) !== false) {
+            setSelectedNodes([])
+            setToast('已加入输入框')
+            if (typeof window !== 'undefined') window.setTimeout(focusComposer, 30)
+            return
+          }
         } catch (failure) {
-          setToast(failure.message)
-        } finally {
-          setBusy(false)
+          void failure
+        }
+        try {
+          navigator.clipboard.writeText(text)
+          setToast('已复制引用，粘贴到输入框')
+        } catch (failure) {
+          void failure
+          setToast(text)
         }
       }
 
@@ -990,35 +997,17 @@ window.__ModuleLoader__.load({
                   ? h('span', { key: 'l' }, '单击或框选节点，针对它提问')
                   : h('span', { key: 'l' }, `已选择 ${selectedNodes.length} 个节点`),
                 ...selectedNodes.slice(0, 4).map((id) => h('span', { key: id, className: 'rtp-pill' }, id)),
-                selectedNodes.length > 4 ? h('span', { key: 'more', className: 'rtp-pill' }, `+${selectedNodes.length - 4}`) : null
-              ]),
-              selectedNodes.length === 0
-                ? null
-                : h('div', { key: 'compose', className: 'rtp-compose' }, [
-                    h('textarea', {
-                      key: 'text',
-                      value: note,
-                      rows: 3,
-                      placeholder: '针对所选节点提问，例如：这一层的输入是否漏掉了 mask',
-                      onChange: (event) => setNote(event.target.value)
-                    }),
-                    h('div', { key: 'bar', className: 'rtp-composebar' }, [
-                      h('span', { key: 'grow', className: 'rtp-grow' }),
-                      h('button', {
-                        key: 'clear',
-                        type: 'button',
-                        className: 'rtp-ghost',
-                        onClick: () => { setSelectedNodes([]); setNote('') }
-                      }, '清空'),
-                      h('button', {
-                        key: 'send',
-                        type: 'button',
-                        className: 'rtp-primary',
-                        disabled: busy || note.trim() === '',
-                        onClick: submitNote
-                      }, busy ? '提交中…' : '提交标注')
-                    ])
-                  ])
+                selectedNodes.length > 4 ? h('span', { key: 'more', className: 'rtp-pill' }, `+${selectedNodes.length - 4}`) : null,
+                selectedNodes.length === 0
+                  ? null
+                  : h('button', {
+                      key: 'quote',
+                      type: 'button',
+                      className: 'rtp-primary',
+                      style: { marginLeft: 'auto', height: '27px', padding: '0 10px', fontSize: '13.5px' },
+                      onClick: quoteSelection
+                    }, '引用')
+              ])
             ])
       ])
 
@@ -1192,6 +1181,7 @@ window.__ModuleLoader__.load({
           registerBetterTab(inner.betterSidebar)
         })
       }
+      pluginCtx = ctx
       const immediate = typeof ctx.get === 'function' ? ctx.get('betterSidebar') : undefined
       if (immediate !== undefined) registerBetterTab(immediate)
 
@@ -1208,7 +1198,7 @@ window.__ModuleLoader__.load({
 
     exports.apply = apply
     exports.name = 'research-team-panel-client'
-    exports.inject = ["slots"]
+    exports.inject = ["slots", "sessions"]
     return module.exports
   }
 })

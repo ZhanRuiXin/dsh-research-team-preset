@@ -376,11 +376,6 @@ window.__ModuleLoader__.load({
 .rtp-approval{font-size:12.5px;color:var(--dsw-alias-label-tertiary);margin-left:2px}
 .rtp-seed{width:7px;height:7px;border-radius:2px;background:var(--dsw-alias-border-l3)}
 .rtp-seed.on{background:var(--dsw-alias-brand-primary)}
-.rtp-seg{display:flex;flex-wrap:wrap;max-width:100%;padding:2px;gap:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
-.rtp-seg button{flex:0 1 auto;min-width:0;height:27px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.rtp-seg button:hover{color:var(--dsw-alias-label-primary)}
-.rtp-seg button.on{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-weight:500;box-shadow:var(--dsw-shadow-lv1)}
-.rtp-seg .v{color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);font-size:12.5px;margin-left:4px}
 .rtp-canvas{position:relative;margin-top:8px;border:.5px solid var(--dsw-alias-border-l2);border-radius:10px;overflow:hidden;background:var(--dsw-alias-bg-layer-1)}
 .rtp-canvas svg{display:block;width:100%;height:320px;touch-action:none;cursor:crosshair}
 .rtp-canvas,.rtp-canvas *{user-select:none;-webkit-user-select:none}

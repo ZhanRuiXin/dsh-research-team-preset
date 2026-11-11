@@ -895,6 +895,16 @@ export function teamRoster(ctx, sessionId, items) {
     if (!Array.isArray(members)) return []
     return members.map((member) => {
       const open = list.find((item) => item.owner === member.name)
+      let effort = typeof member.reasoningEffort === 'string' ? member.reasoningEffort : ''
+      if (effort === '' && typeof member.id === 'string') {
+        try {
+          const live = ctx?.agents?.get?.(member.id)
+          const value = live?.options?.reasoningEffort ?? live?.options?.effort
+          effort = typeof value === 'string' ? value : ''
+        } catch {
+          effort = ''
+        }
+      }
       return {
         id: typeof member.id === 'string' ? member.id : '',
         name: typeof member.name === 'string' ? member.name : '',
@@ -902,6 +912,7 @@ export function teamRoster(ctx, sessionId, items) {
         status: typeof member.status === 'string' ? member.status : 'inactive',
         description: typeof member.description === 'string' ? member.description : '',
         model: typeof member.model === 'string' ? member.model : '',
+        effort,
         item: open === undefined ? null : { id: open.id, title: open.title, status: open.status, updated: open.updated, next: open.next }
       }
     })

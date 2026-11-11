@@ -257,7 +257,7 @@ window.__ModuleLoader__.load({
         lines.push('未分配工作项')
       }
       const model = shortModel(member.model)
-      if (model !== '') lines.push(`模型：${model}`)
+      if (model !== '') lines.push(member.effort ? `模型：${model} · 思考等级 ${member.effort}` : `模型：${model}`)
       return lines.join('\n')
     }
 
@@ -332,6 +332,7 @@ window.__ModuleLoader__.load({
 .rtp-membody{min-width:0;flex:1}
 .rtp-memname{display:flex;align-items:center;gap:5px;min-width:0;margin-top:3px}
 .rtp-membername{font-size:13.5px;font-weight:600;color:var(--dsw-alias-label-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-effort{flex:0 0 auto;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--dsw-alias-label-tertiary);border:.5px solid var(--dsw-alias-border-l1);border-radius:4px;padding:0 3px;line-height:15px}
 .rtp-rolechip{flex:0 0 auto;display:inline-flex;align-items:center;height:17px;padding:0 5px;border-radius:4px;font-size:11.5px;font-weight:500;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-tertiary)}
 .rtp-memmeta{display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;font-size:12px;color:var(--dsw-alias-label-tertiary)}
 .rtp-memitem{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -348,7 +349,7 @@ window.__ModuleLoader__.load({
 .rtp-pill.warn{color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
 .rtp-pill.err{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 30%,transparent)}
 .rtp-seeds{display:inline-flex;gap:3px;align-items:center;vertical-align:middle}
-.rtp-exp{max-height:304px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
+.rtp-exp{max-height:304px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
 .rtp-exp::-webkit-scrollbar{width:8px}
 .rtp-exp::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l2);border-radius:8px}
 .rtp-exp::-webkit-scrollbar-track{background:transparent}
@@ -949,6 +950,7 @@ window.__ModuleLoader__.load({
                 on ? h('span', { key: 'p', className: 'rtp-pulse' }) : null
               ].filter(Boolean)),
               h('span', { key: 'nm', className: 'rtp-membername' }, member.name || '未命名成员'),
+              member.effort ? h('span', { key: 'ef', className: 'rtp-effort', title: `思考等级：${member.effort}` }, member.effort) : null,
               h('span', { key: 'grow', style: { flex: '1 1 auto' } }),
               teamPill(member.status)
             ].filter(Boolean))
@@ -1066,7 +1068,6 @@ window.__ModuleLoader__.load({
             const elapsed = formatElapsed(entry.elapsedMs)
             const timed = state === 'running' ? `已进行 ${elapsed}` : state === 'completed' || state === 'stopped' || state === 'failed' ? `用时 ${elapsed}` : ''
             const meta = [
-              statusLabel(state),
               elapsed === '' ? '' : timed,
               entry.seeds ? `seed ${entry.seeds}` : '',
               entry.budget ? `预算 ${entry.budget}` : '',

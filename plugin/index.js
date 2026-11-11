@@ -893,7 +893,13 @@ export function teamRoster(ctx, sessionId, items) {
     if (agent === undefined || agent === null) return []
     const members = ctx?.agentTeams?.listMembers?.(agent)
     if (!Array.isArray(members)) return []
-    return members.map((member) => {
+    const seen = new Set()
+    return members.filter((member) => {
+      const key = typeof member.id === 'string' && member.id !== '' ? member.id : `name:${member.name}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    }).map((member) => {
       const open = list.find((item) => item.owner === member.name)
       let effort = typeof member.reasoningEffort === 'string' ? member.reasoningEffort : ''
       if (effort === '' && typeof member.id === 'string') {

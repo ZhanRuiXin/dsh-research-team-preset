@@ -245,8 +245,9 @@ window.__ModuleLoader__.load({
 
     function memberBrief(member) {
       const lines = []
-      const role = member.role === 'lead' ? 'Lead' : '成员'
-      lines.push(`${member.name || '未命名成员'} · ${role} · ${memberLabel(member.status)}`)
+      lines.push(member.role === 'lead'
+        ? `Lead · ${memberLabel(member.status)}`
+        : `${member.name || '未命名成员'} · 成员 · ${memberLabel(member.status)}`)
       const item = member.item
       if (item !== null && item !== undefined) {
         const when = item.updated ? `（${formatSince(item.updated)}更新）` : ''

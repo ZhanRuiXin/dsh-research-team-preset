@@ -243,6 +243,13 @@ window.__ModuleLoader__.load({
       return MEMBER_LABELS[value] || '空闲'
     }
 
+    function shortModel(model) {
+      const text = String(model ?? '')
+      if (text === '') return ''
+      const tail = text.split('/').pop()
+      return tail.length > 22 ? `${tail.slice(0, 21)}…` : tail
+    }
+
     function memberTone(status) {
       const value = String(status ?? '').toLowerCase()
       if (value === 'running') return 'var(--dsw-alias-state-success-primary)'
@@ -292,10 +299,27 @@ window.__ModuleLoader__.load({
 .rtp-id{flex:0 0 auto;font-size:13px;color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);letter-spacing:.02em}
 .rtp-rowmeta{margin-top:3px;font-size:13.5px;color:var(--dsw-alias-label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
-.rtp-avatar{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:22px;height:22px;margin-top:2px;border-radius:6px;font-size:12px;font-weight:600;text-transform:uppercase;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
-.rtp-membername{font-size:14.5px;font-weight:600;color:var(--dsw-alias-label-primary)}
-.rtp-rolechip{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;font-size:12.5px;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary)}
-.rtp-statelabel{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--dsw-alias-label-secondary)}
+.rtp-teamgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
+.rtp-mem:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
+.rtp-mem.is-lead{background:linear-gradient(180deg,var(--dsw-alias-bg-layer-2),var(--dsw-alias-bg-layer-1));border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 34%,transparent)}
+.rtp-mem.is-lead .rtp-avatar{color:var(--dsw-alias-brand-primary);border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 40%,transparent)}
+.rtp-avatar{position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;font-size:12.5px;font-weight:600;text-transform:uppercase;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
+.rtp-avatar.is-on{border-color:var(--dsw-alias-state-success-primary);color:var(--dsw-alias-label-primary)}
+.rtp-pulse{position:absolute;right:-2px;bottom:-2px;width:8px;height:8px;border-radius:50%;background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 0 var(--dsw-alias-state-success-primary);animation:rtp-pulse 1.6s ease-out infinite}
+@keyframes rtp-pulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}70%{box-shadow:0 0 0 5px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
+@media (prefers-reduced-motion: reduce){.rtp-pulse{animation:none}}
+.rtp-membody{min-width:0;flex:1}
+.rtp-memname{display:flex;align-items:center;gap:5px;min-width:0;margin-top:3px}
+.rtp-membername{font-size:13.5px;font-weight:600;color:var(--dsw-alias-label-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-rolechip{flex:0 0 auto;display:inline-flex;align-items:center;height:17px;padding:0 5px;border-radius:4px;font-size:11.5px;font-weight:500;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-tertiary)}
+.rtp-memmeta{display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;font-size:12px;color:var(--dsw-alias-label-tertiary)}
+.rtp-memitem{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:500;border:.5px solid transparent}
+.rtp-pill.on{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 30%,transparent)}
+.rtp-pill.off{color:var(--dsw-alias-label-tertiary);background:var(--dsw-alias-bg-layer-2);border-color:var(--dsw-alias-border-l1)}
+.rtp-pill.warn{color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
+.rtp-pill.err{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 30%,transparent)}
 .rtp-seeds{display:inline-flex;gap:3px;align-items:center;vertical-align:middle}
 .rtp-exp{max-height:304px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
 .rtp-exp::-webkit-scrollbar{width:8px}
@@ -844,33 +868,46 @@ window.__ModuleLoader__.load({
           }
         }, [entry.title, h('span', { key: 'v', className: 'v' }, `v${entry.version}`)])))
 
+      const teamOn = team.filter((member) => String(member.status).toLowerCase() === 'running').length
+      const teamPill = (status) => {
+        const value = String(status ?? '').toLowerCase()
+        const tone = value === 'running' ? 'on' : value === 'provisioning' ? 'warn' : value === 'failed' ? 'err' : 'off'
+        return h('span', { key: 'pill', className: `rtp-pill ${tone}` }, [
+          value === 'running' ? h('span', { key: 'd', className: 'rtp-pulse' }) : null,
+          memberLabel(value)
+        ].filter(Boolean))
+      }
       const teamSection = h(Section, {
         key: 'team',
         title: '团队',
-        count: team.length === 0 ? 0 : team.length
+        action: team.length === 0
+          ? null
+          : h('span', { key: 'sum', className: 'rtp-chip' }, `${team.length} 人 · ${teamOn} 运行中`)
       }, team.length === 0
         ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前会话还没有队友。Lead 用带团队的模型启动后，这里会显示每位成员的运行状态。')
-        : team.map((member) => h('div', { key: member.id || member.name, className: 'rtp-row' }, [
-            h('span', { key: 'avatar', className: 'rtp-avatar', style: { color: memberTone(member.status) } }, (member.name || '?').slice(0, 1)),
-            h('div', { key: 'main', className: 'rtp-rowmain' }, [
-              h('div', { key: 't', className: 'rtp-rowtitle' }, [
-                h('span', { key: 'n', className: 'rtp-membername' }, member.name || '未命名成员'),
-                h('span', { key: 'r', className: 'rtp-rolechip' }, member.role === 'lead' ? 'Lead' : '成员'),
-                member.model ? h('span', { key: 'm', className: 'rtp-id' }, member.model) : null
-              ]),
-              h('div', { key: 'meta', className: 'rtp-rowmeta' }, member.item === null || member.item === undefined
-                ? '未分配工作项'
-                : [
-                    `#${member.item.id}`,
-                    member.item.title,
-                    statusLabel(member.item.status)
-                  ].filter(Boolean).join(' · '))
-            ]),
-            h('span', { key: 'state', className: 'rtp-statelabel' }, [
-              h('span', { key: 'd', className: 'rtp-dot', style: { background: memberTone(member.status), marginTop: '0' } }),
-              memberLabel(member.status)
-            ])
-          ])))
+        : h('div', { key: 'grid', className: 'rtp-teamgrid' }, team.map((member) => {
+            const on = String(member.status).toLowerCase() === 'running'
+            const model = shortModel(member.model)
+            return h('div', {
+              key: member.id || member.name,
+              className: `rtp-mem${member.role === 'lead' ? ' is-lead' : ''}`,
+              title: [
+                member.role === 'lead' ? `${member.name}（Lead）` : member.name,
+                model,
+                member.item === null || member.item === undefined
+                  ? '未分配工作项'
+                  : `${member.item.id} · ${member.item.title}（${statusLabel(member.item.status)}）`
+              ].filter(Boolean).join(' · ')
+            }, [
+              h('span', { key: 'av', className: `rtp-avatar${on ? ' is-on' : ''}` }, [
+                h('span', { key: 'ch' }, (member.name || '?').slice(0, 1)),
+                on ? h('span', { key: 'p', className: 'rtp-pulse' }) : null
+              ].filter(Boolean)),
+              h('span', { key: 'nm', className: 'rtp-membername' }, member.name || '未命名成员'),
+              h('span', { key: 'grow', style: { flex: '1 1 auto' } }),
+              teamPill(member.status)
+            ].filter(Boolean))
+          })))
 
       const archSection = h(Section, {
         key: 'arch',

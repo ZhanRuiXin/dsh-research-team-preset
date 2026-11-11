@@ -901,7 +901,7 @@ export function teamRoster(ctx, sessionId, items) {
         status: typeof member.status === 'string' ? member.status : 'inactive',
         description: typeof member.description === 'string' ? member.description : '',
         model: typeof member.model === 'string' ? member.model : '',
-        item: open === undefined ? null : { id: open.id, title: open.title, status: open.status }
+        item: open === undefined ? null : { id: open.id, title: open.title, status: open.status, updated: open.updated, next: open.next }
       }
     })
   } catch {

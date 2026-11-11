@@ -960,7 +960,7 @@ export function apply(ctx) {
     name: 'research_project',
     description:
       'Resolve the current DSH project (workspace) for the calling session. ' +
-      'Returns workspaceId, title and path. Call this before writing a worklog card so the record lands in the right project.',
+      'Returns workspaceId, title and path. Call it first: every research tool resolves the same project root, so the worklog, runs and cards land in one project.',
     parameters: {
       type: 'object',
       properties: {},
@@ -1001,13 +1001,13 @@ export function apply(ctx) {
   const disposeInit = ctx.tools.register({
     name: 'research_workspace_init',
     description:
-      'Bootstrap durable work tracking in the session workspace when the agent judges that substantive work is starting: create worklog/PLAN.md and worklog/INDEX.md when missing, and initialize a git repository when the workspace is not already inside one. Writes at the registered project root so every session on the project shares one worklog; the session directory is used when the directory is not a registered project. Idempotent, never nested, never commits. Simple questions and one-off reads do not need it.',
+      'Bootstrap durable work tracking in the session workspace when the agent judges that substantive work is starting: seed .research/worklog/plan.json (importing a legacy markdown worklog once when one exists), render worklog/PLAN.md and worklog/INDEX.md from that store, and initialize a git repository when the workspace is not already inside one. Writes at the registered project root so every session on the project shares one worklog; the session directory is used when the directory is not a registered project. Idempotent, never nested, never commits. Simple questions and one-off reads do not need it.',
     parameters: {
       type: 'object',
       properties: {
         objective: {
           type: 'string',
-          description: 'Optional one-line objective seeded into worklog/PLAN.md.'
+          description: 'Optional one-line objective seeded into the worklog plan.json.'
         }
       },
       additionalProperties: false
@@ -1045,7 +1045,7 @@ export function apply(ctx) {
   const disposeScope = ctx.tools.register({
     name: 'research_scope_check',
     description:
-      'Check the files a teammate changed against that role\'s write envelope before a card handoff. Pass paths, or a base commit (with an optional head) to read `git diff --name-only base..head`. Returns PASS or FAIL with every file outside the envelope; a violation is fixed by moving the change to its owning role, or by recording an approved exception on the card. The envelope is a default table; a project may narrow or extend it in AGENTS.md or on the card.',
+      'Check the files a teammate changed against that role\'s write envelope before a work item handoff. Pass paths, or a base commit (with an optional head) to read `git diff --name-only base..head`. Returns PASS or FAIL with every file outside the envelope; a violation is fixed by moving the change to its owning role, or by recording an approved exception on the work item. The envelope is a default table; a project may narrow or extend it in AGENTS.md or on the work item.',
     parameters: {
       type: 'object',
       properties: {
@@ -1217,7 +1217,7 @@ export function apply(ctx) {
   const disposeArchitecture = ctx.tools.register({
     name: 'research_architecture',
     description:
-      'Read or update the architecture cards shown in the Research sidebar: the method, model, experiment and pipeline diagrams of this project, stored as JSON under .research/architecture/<id>.json. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete. A card is a node/edge graph with absolute coordinates; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
+      'Read or update the architecture cards shown in the Research sidebar: the method, model, experiment and pipeline diagrams of this project, stored as JSON under .research/architecture/<id>.json. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete. A card is a node/edge graph with absolute coordinates and an optional one-line summary shown on its tile; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
     parameters: {
       type: 'object',
       properties: {
@@ -1225,7 +1225,7 @@ export function apply(ctx) {
         id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
         card: {
           type: 'object',
-          description: 'Full card for op=save: id, title, kind (method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y,w,h}], edges [{from,to,label}], notes, and a one-line summary shown on the card tile. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
+          description: 'Full card for op=save: id, title, kind (method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y}], edges [{from,to,label}], notes, and a one-line summary shown on the card tile. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
         },
         expectedVersion: { type: 'number', description: 'For op=save on an existing card, the version you read; a mismatch is rejected.' }
       },
@@ -1388,7 +1388,7 @@ export function apply(ctx) {
   const disposeState = ctx.tools.register({
     name: 'research_state',
     description:
-      'Read the whole team state in one call: the worklog plan, work items with owners and status, decisions, evidence count, designs, experiments and architecture cards. Use it instead of parsing the worklog by hand; it returns the same data the Research sidebar shows.',
+      'Read the whole team state in one call: the worklog plan, work items with owners and status, decisions, evidence count, design documents, experiments and architecture cards. Use it instead of parsing the worklog by hand; it returns the same records the Research sidebar reads, plus the design documents the sidebar does not render.',
     parameters: { type: 'object', properties: {}, additionalProperties: false },
     output: { schema: {}, render(_args, value) { return renderState(value) } },
     async execute(_args, exec) {

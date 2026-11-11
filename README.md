@@ -180,8 +180,6 @@ The panel ships as its own module under `panel/`, separate from the settings for
 
 The designer owns the method card and the builder owns the implementation card; the advisor reads both before reviewing a design or implementation decision, and the reviewer checks them at the results gate. Drag with the middle mouse button to pan the canvas, scroll to zoom, and drag a box over nodes to select them for an annotation.
 
-Every section can be collapsed: click a section title to hide its body while the title, count and action stay in place.
-
 ## Worklog and coordination
 
 ```text

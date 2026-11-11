@@ -176,7 +176,6 @@ Le preset ajoute un onglet « Recherche » a la barre laterale droite. Il repond
 
 Les cartes d'architecture sont des diagrammes nœuds-liens stockés en JSON sous `.research/architecture/`, un fichier par carte. L'agent les lit et les met à jour avec l'outil `research_architecture`, afin que le diagramme suive la conception au lieu de dériver dans une diapositive. Une carte est rendue en SVG dans le panneau ; un cadre de sélection sur les nœuds les sélectionne, et la note que vous écrivez est enregistrée sur la carte comme annotation que l'agent lit avant de répondre. L'onglet s'enregistre via `dsh-better-sidebar` lorsque ce plugin est installé, sinon via la barre latérale droite native.
 
-Chaque section du panneau peut etre repliee : un clic sur son titre masque le contenu, le titre, le compteur et l'action restent visibles.
 
 Le panneau est un module à part sous `panel/`, séparé du formulaire de réglages, activable ou désactivable indépendamment. Il apparaît comme onglet de la barre latérale droite dans chaque conversation.
 

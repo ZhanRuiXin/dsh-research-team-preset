@@ -247,11 +247,6 @@ window.__ModuleLoader__.load({
 .rtp-section{padding:14px 16px 2px}
 .rtp-sechead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
 .rtp-seclabel{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--dsw-alias-label-tertiary)}
-.rtp-sectoggle{display:inline-flex;align-items:center;gap:5px;padding:2px 4px;margin-left:-4px;border:0;border-radius:6px;background:transparent;cursor:pointer;font:inherit}
-.rtp-sectoggle:hover{background:var(--dsw-alias-interactive-bg-hover)}
-.rtp-sectoggle:hover .rtp-seclabel,.rtp-sectoggle:hover span{color:var(--dsw-alias-label-primary)}
-.rtp-chev{display:inline-block;font-size:14px;line-height:1;transform:rotate(0deg);transition:transform .12s ease;color:var(--dsw-alias-label-tertiary)}
-.rtp-chev.open{transform:rotate(90deg)}
 .rtp-count{font-size:13px;line-height:1;padding:3px 6px;border-radius:999px;color:var(--dsw-alias-label-secondary);background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1);font-variant-numeric:tabular-nums}
 .rtp-grow{flex:1}
 .rtp-ghost{height:27px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-tertiary);font:inherit;font-size:13.5px;cursor:pointer}
@@ -325,28 +320,16 @@ window.__ModuleLoader__.load({
     }
 
     function Section(props) {
-      const [open, setOpen] = React.useState(props.defaultOpen !== false)
-      const label = h('button', {
-        key: 'toggle',
-        type: 'button',
-        className: 'rtp-seclabel rtp-sectoggle',
-        'aria-expanded': open,
-        title: open ? '收起' : '展开',
-        onClick: () => setOpen(!open)
-      }, [
-        h('span', { key: 'chev', className: 'rtp-chev' + (open ? ' open' : '') }, '›'),
-        h('span', { key: 'text' }, props.title)
-      ])
-      return h('section', { className: 'rtp-section' + (open ? '' : ' closed') }, [
+      return h('section', { className: 'rtp-section' }, [
         h('div', { key: 'head', className: 'rtp-sechead' }, [
-          label,
+          h('span', { key: 'label', className: 'rtp-seclabel' }, props.title),
           props.count === undefined || props.count === 0
             ? null
             : h('span', { key: 'count', className: 'rtp-count' }, props.count),
           h('span', { key: 'grow', className: 'rtp-grow' }),
           props.action === undefined ? null : props.action
         ]),
-        open ? h('div', { key: 'body' }, props.children) : null
+        h('div', { key: 'body' }, props.children)
       ])
     }
 

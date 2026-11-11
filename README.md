@@ -12,7 +12,7 @@
 
 ## Overview
 
-Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps the worklog (PLAN, INDEX and one card file per gated item for user gates, team tasks for internal steps), dispatches work, integrates results, and talks to the user. Eight default specialists cover advisory review, literature and evidence, data acquisition, experiment design, code, runs, independent review, and paper writing.
+Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps the worklog (a JSON store under `.research/worklog/` with one item per piece of work, gated or internal), dispatches work, integrates results, and talks to the user. Eight default specialists cover advisory review, literature and evidence, data acquisition, experiment design, code, runs, independent review, and paper writing.
 
 The mode is built for research that spans days or weeks, needs traceable evidence, and benefits from clear role boundaries. It is not a one-shot Q&A mode: the Lead creates only the roles a task actually needs.
 
@@ -21,12 +21,12 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | | |
 | --- | --- |
 | **Default roles** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
-| **Workflow** | Gate-based: internal steps are worklog index rows, user gates are card files; create, claim, execute, report, review, user acceptance |
+| **Workflow** | Gate-based: every piece of work is a work item; only steps that need your review carry a card view; create, claim, execute, report, review, user acceptance |
 | **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + one bounded file per gated card; resume reads PLAN and INDEX first |
-| **Continuity** | One worklog per project at its root; a resumed session reads PLAN, INDEX, then the current card's state block; the worklog and git carry state across sessions |
+| **Worklog** | `.research/worklog/` JSON store with generated `PLAN.md`, `INDEX.md` and card views; resume reads `research_state` first |
+| **Continuity** | One store per project at its root; a resumed session calls `research_state` and reads the one item it needs; the store and git carry state across sessions |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
 
 ## Who it is for
@@ -59,7 +59,7 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 | Capability | Provider | Notes |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, and the Team services; the preset records work in the worklog, not in team tasks |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, and the Team services; the preset records work in its own worklog |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
 
 **Optional integrations.** These are plugins by other authors. The preset runs without them and installs nothing; add one only to link the team with it:
@@ -102,17 +102,17 @@ Ask the Lead to check the environment and the worklog before starting real work:
 ```text
 list_agents                    # create only the roles the task needs
 research_project               # resolve the current project root
-research_workspace_init        # create worklog/PLAN.md and INDEX.md if missing
+research_workspace_init        # seed .research/worklog/ and render PLAN.md and INDEX.md if missing
 ```
 
 A typical first task:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> worklog card at user gates -> INDEX row + send_message
-Members: write owner + in_progress into the INDEX row -> work -> card file handoff + send_message
-Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: research_project -> research_worklog (gated item at a user gate, internal item otherwise) -> send_message
+Members: research_worklog op=claim -> work -> op=gate with checklist evidence and base..head -> send_message
+Reviewer: independent PASS/FAIL with evidence through research_worklog op=update
+Lead: summarize -> user acceptance (done, set by the user)
 ```
 
 ## Default team
@@ -132,7 +132,7 @@ The Lead owns goal clarification, decomposition, ledger management, dispatch, in
 
 ### Shared Zotero library
 
-The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and in the card file, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
+The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and in the item's evidence, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
 
 ### Advisory review
 
@@ -148,7 +148,7 @@ The builder implements the design, the runner executes it, and the reviewer chec
 
 ## Write envelope
 
-Each role writes only inside its own envelope. The advisor and the reviewer write nothing; the researcher owns `literature/`, `notes/`, and `docs/evidence`; data owns `data/`, `manifests/`, download scripts under `scripts/`, and `reports/`; the designer owns `docs/design/`; the builder owns `src/`, `configs/`, and `tests/`; the runner owns `runs/`, `logs/`, and `checkpoints/`; the writer owns `paper/` and `figures/`; the Lead is unrestricted. Reading, searching, and card comments stay open to everyone.
+Each role writes only inside its own envelope. The advisor and the reviewer write nothing; the researcher owns `literature/`, `notes/`, and `docs/evidence`; data owns `data/`, `manifests/`, download scripts under `scripts/`, and `reports/`; the designer owns `docs/design/`; the builder owns `src/`, `configs/`, and `tests/`; the runner owns `runs/`, `logs/`, and `checkpoints/`; the writer owns `paper/` and `figures/`; the Lead is unrestricted. Reading, searching, and the annotation note on an architecture card stay open to everyone.
 
 The envelope is a contract rather than a preference: a change that belongs to another role is reported to that owner instead of written by the wrong member. The advisor and the reviewer are spawned read-only, so a review reports what must change instead of changing it; any teammate that genuinely needs to write outside its envelope gets an explicit exception from the Lead, recorded on the card before the work starts. Every other role inherits the Lead's sandbox permission, so a teammate is never more restricted than the Lead unless its role requires it.
 
@@ -164,11 +164,11 @@ The Lead admits the run, the runner refuses to launch without the pre-flight rec
 
 ## Session continuity
 
-A session is a conversation, not the project: the worklog and git carry the work, while the chat, the team, and background jobs do not survive the session. Before the first substantive action in a project that already has `worklog/PLAN.md`, the agent reads PLAN and INDEX, then the current card's state block, before planning or spending compute.
+A session is a conversation, not the project: the worklog and git carry the work, while the chat, the team, and background jobs do not survive the session. Before the first substantive action in a project that already has a worklog, the agent calls `research_state` and reads the one item it is taking before planning or spending compute.
 
-The worklog lives at the project root returned by `research_project`, not in a session subdirectory, so every session on the project shares one PLAN and one INDEX. PLAN, INDEX, card files, git, and memory are durable; teammate conversations and background jobs live only in the session. Anything a later session must know is written into PLAN or the card file before the session ends.
+The worklog lives at the project root returned by `research_project`, not in a session subdirectory, so every session on the project shares one store. The `.research/` store, git, and memory are durable; the PLAN, INDEX and card files are generated views, and teammate conversations and background jobs live only in the session. Anything a later session must know is recorded through the tools before the session ends.
 
-A run or long job that outlives the turn leaves its job or terminal handle, host, start time, expected completion, and decision rule in the card file or PLAN. On resume the agent checks liveness first, and an orphaned run is reconciled and put to the user as adopt, restart, or stop rather than silently run twice. A card held by a session that no longer exists is reported to the user for reopening, never taken over.
+A run or long job that outlives the turn leaves its job or terminal handle, host, start time, expected completion, and decision rule in the item's `next` and `evidence` fields. On resume the agent checks liveness first, and an orphaned run is reconciled and put to the user as adopt, restart, or stop rather than silently run twice. A work item held by a session that no longer exists is reported to the user for reopening, never taken over.
 
 ## Research sidebar
 
@@ -199,17 +199,17 @@ The full discipline lives in the preset prompt and in `AGENTS.md` of the project
 
 ## Git workflow
 
-The mode initializes durable tracking when substantive work starts, and the agent judges whether a request is real work or a simple question. In a workspace that is not already inside a repository, the agent calls `research_workspace_init`, which creates `worklog/PLAN.md` and `worklog/INDEX.md` and runs `git init`. It never creates a nested repository and never commits the scaffold.
+The mode initializes durable tracking when substantive work starts, and the agent judges whether a request is real work or a simple question. In a workspace that is not already inside a repository, the agent calls `research_workspace_init`, which seeds `.research/worklog/` and renders `worklog/PLAN.md` and `worklog/INDEX.md`, and runs `git init`. It never creates a nested repository and never commits the scaffold.
 
-Destructive or risky changes run on a branch named after the step, for example `task/<title>+<id>` (the card for gated work, the team task for internal work), instead of editing the default branch in place. The card or team task records the base and head commits, and the reviewer reads `git diff <base>..<head>` as the code-review basis and still re-runs the acceptance checks.
+Destructive or risky changes run on a branch named after the step, for example `task/<title>+<id>` (the work item id, gated or internal alike), instead of editing the default branch in place. The item records the base and head commits, and the reviewer reads `git diff <base>..<head>` as the code-review basis and still re-runs the acceptance checks.
 
-A branch is merged only after the card is accepted, then deleted. Generated artifacts such as datasets, checkpoints, logs, and caches stay out of the repository. When the project is not a git repository, review falls back to a file-hash snapshot plus the evidence recorded on the card.
+A branch is merged only after the item is accepted, then deleted. Generated artifacts such as datasets, checkpoints, logs, and caches stay out of the repository. When the project is not a git repository, review falls back to a file-hash snapshot plus the evidence recorded on the item.
 
 ## Worklog
 
 Work that may span sessions keeps a small, bounded record next to the code, at the project root. `worklog/PLAN.md` holds the objective, current milestone, active cards, blockers, and dated decisions; `worklog/INDEX.md` holds one line per active card. Each card gets `worklog/<task-id>.md` with a current-state block at the top and short append-only entries below.
 
-On resume the agent reads PLAN and INDEX first, then only the target card's state block and tail, never the whole file or the whole directory; `session_search` is a fallback when the session history is available, not the record. PLAN stays under about 100 lines and card files under about 200, with finished cards trimmed from the index. Compact templates for all three files live in the preset persona, so every session can create or update them without reading this repository.
+On resume the agent calls `research_state`, then reads the one item it is taking, never the whole store; `session_search` is a fallback when the session history is available, not the record. The generated PLAN stays under about 100 lines and card views under about 200, with finished items trimmed from the index. The tools write the views, so no session has to copy a template.
 
 ## Team model profiles
 

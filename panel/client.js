@@ -333,7 +333,11 @@ window.__ModuleLoader__.load({
 .rtp-rolechip{flex:0 0 auto;display:inline-flex;align-items:center;height:17px;padding:0 5px;border-radius:4px;font-size:11.5px;font-weight:500;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-tertiary)}
 .rtp-memmeta{display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;font-size:12px;color:var(--dsw-alias-label-tertiary)}
 .rtp-memitem{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rtp-tip{position:fixed;z-index:80;max-width:252px;padding:8px 10px;border-radius:9px;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2);font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary);pointer-events:none}
+.rtp-tip{position:fixed;z-index:80;width:244px;padding:8px 10px;border-radius:9px;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2);font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary);pointer-events:none;animation:rtp-tip-in .12s ease-out}
+.rtp-tiparrow{position:absolute;top:-5px;width:9px;height:9px;transform:rotate(45deg);background:var(--dsw-alias-bg-layer-3);border-left:.5px solid var(--dsw-alias-border-l2);border-top:.5px solid var(--dsw-alias-border-l2)}
+.rtp-tipbody{position:relative}
+@keyframes rtp-tip-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.rtp-tip{animation:none}}
 .rtp-tiptitle{margin-bottom:3px;font-size:12.5px;font-weight:600;color:var(--dsw-alias-label-primary)}
 .rtp-tipline{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:232px}
 .rtp-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:500;border:.5px solid transparent}
@@ -914,8 +918,17 @@ window.__ModuleLoader__.load({
               key: member.id || member.name,
               className: `rtp-mem${member.role === 'lead' ? ' is-lead' : ''}`,
               'aria-label': memberBrief(member).replaceAll('\n', '; '),
-              onMouseEnter: (event) => setHover({ member, x: event.clientX, y: event.clientY }),
-              onMouseMove: (event) => setHover((current) => current === null || current.member !== member ? current : { member, x: event.clientX, y: event.clientY }),
+              onMouseEnter: (event) => {
+                const rect = event.currentTarget.getBoundingClientRect()
+                const width = 244
+                const viewWidth = typeof window === 'undefined' ? 1200 : window.innerWidth
+                const viewHeight = typeof window === 'undefined' ? 900 : window.innerHeight
+                const anchor = rect.left + 21
+                const left = Math.max(8, Math.min(anchor - 26, viewWidth - width - 8))
+                const arrow = Math.max(12, Math.min(anchor - left - 5, width - 20))
+                const top = rect.bottom + 9 > viewHeight - 120 ? Math.max(8, rect.top - 104) : rect.bottom + 9
+                setHover({ member, left, top, arrow })
+              },
               onMouseLeave: () => setHover(null)
             }, [
               h('span', { key: 'av', className: `rtp-avatar${on ? ' is-on' : ''}` }, [
@@ -1099,11 +1112,11 @@ window.__ModuleLoader__.load({
         hover === null ? null : h('div', {
           key: 'tip',
           className: 'rtp-tip',
-          style: {
-            left: `${Math.min(hover.x + 12, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 268)}px`,
-            top: `${Math.min(hover.y + 14, (typeof window !== 'undefined' ? window.innerHeight : 900) - 150)}px`
-          }
-        }, memberBrief(hover.member).split('\n').map((line, index) => h('div', { key: `l${index}`, className: index === 0 ? 'rtp-tiptitle' : 'rtp-tipline' }, line))),
+          style: { left: `${hover.left}px`, top: `${hover.top}px` }
+        }, [
+          h('span', { key: 'arrow', className: 'rtp-tiparrow', style: { left: `${hover.arrow}px` } }),
+          h('div', { key: 'lines', className: 'rtp-tipbody' }, memberBrief(hover.member).split('\n').map((line, index) => h('div', { key: `l${index}`, className: index === 0 ? 'rtp-tiptitle' : 'rtp-tipline' }, line)))
+        ]),
         h('div', { key: 'footer', className: 'rtp-footer' }, [
           h('span', { key: 'live', className: 'rtp-live' }),
           h('span', { key: 'fresh' }, state === null ? '正在连接…' : `更新于 ${fresh} · 每 5 秒刷新`),

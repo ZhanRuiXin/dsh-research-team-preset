@@ -761,11 +761,11 @@ window.__ModuleLoader__.load({
       }
 
       function setApprovalMode(mode) {
-        postPanel({ op: 'approval-mode', mode }, mode === 'auto' ? '实验改为自动审批' : '实验改为需要审批')
+        postPanel({ op: 'approval-mode', mode }, mode === 'auto' ? '实验审批方式已设为自动审批。' : '实验审批方式已设为需要审批。')
       }
 
       function decideRun(runId, decision) {
-        postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? '已批准该实验' : '已拒绝该实验')
+        postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? '实验已批准。' : '实验已拒绝。')
       }
 
       async function submitNote() {
@@ -781,7 +781,7 @@ window.__ModuleLoader__.load({
           if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`)
           setNote('')
           setSelectedNodes([])
-          setToast('标注已记录，模型下一轮会读到')
+          setToast('标注已记录，将在模型下一轮读取。')
           load()
         } catch (failure) {
           setToast(failure.message)
@@ -793,9 +793,9 @@ window.__ModuleLoader__.load({
       const header = h('div', { key: 'header', className: 'rtp-header' }, [
         h('div', { key: 'eyebrow', className: 'rtp-eyebrow' }, [
           h('span', { key: 'live', className: 'rtp-live' }),
-          h('span', { key: 'label' }, 'Research team')
+          h('span', { key: 'label' }, '研究团队')
         ]),
-        h('div', { key: 'objective', className: 'rtp-title' }, worklog.objective || '还没有写目标（worklog/PLAN.md）'),
+        h('div', { key: 'objective', className: 'rtp-title' }, worklog.objective || '尚未设置研究目标'),
         h('div', { key: 'sub', className: 'rtp-sub' }, [
           worklog.milestone ? h('span', { key: 'm' }, ['里程碑 ', h('b', { key: 'b' }, worklog.milestone)]) : null,
           worklog.next ? h('span', { key: 'n' }, ['下一步 ', h('b', { key: 'b' }, worklog.next)]) : null
@@ -804,7 +804,7 @@ window.__ModuleLoader__.load({
           ? null
           : h('div', { key: 'waiting', className: 'rtp-wait' }, [
               h('span', { key: 'i' }, '◷'),
-              h('span', { key: 't' }, `等你处理 ${waiting.length} 项：${waiting.slice(0, 2).map((entry) => entry.title || entry.id).join('、')}${waiting.length > 2 ? '…' : ''}`)
+              h('span', { key: 't' }, `待你验收 ${waiting.length} 项：${waiting.slice(0, 2).map((entry) => entry.title || entry.id).join('、')}${waiting.length > 2 ? '…' : ''}`)
             ])
       ])
 
@@ -825,7 +825,7 @@ window.__ModuleLoader__.load({
         count: architectures.length === 0 ? 0 : `${architectures.length} 张`
       }, [
         architectures.length === 0
-          ? h('div', { key: 'empty', className: 'rtp-empty' }, '还没有架构卡片。让设计者用 research_architecture 建一张方法图，或在 .research/architecture/ 放一个 JSON。')
+          ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前项目暂无架构卡片。卡片由 research_architecture 维护，存储于 .research/architecture/。')
           : h('div', { key: 'body' }, [
               archChips,
               h('div', {
@@ -844,7 +844,7 @@ window.__ModuleLoader__.load({
                 onClear: () => setSelectedNodes([])
               }),
               h('div', { key: 'annot', className: 'rtp-annot' }, [
-                h('span', { key: 'l' }, selectedNodes.length === 0 ? '点击或框选节点即可提问，点空白处清空' : '已选'),
+                h('span', { key: 'l' }, selectedNodes.length === 0 ? '框选或单击节点后可提交问题；单击空白处取消选择。' : `已选择 ${selectedNodes.length} 个节点`),
                 ...selectedNodes.slice(0, 4).map((id) => h('span', { key: id, className: 'rtp-pill' }, id)),
                 selectedNodes.length > 4 ? h('span', { key: 'more', className: 'rtp-pill' }, `+${selectedNodes.length - 4}`) : null
               ]),
@@ -855,11 +855,11 @@ window.__ModuleLoader__.load({
                       key: 'text',
                       value: note,
                       rows: 3,
-                      placeholder: '针对选中的节点提问，例如：这一层的输入是不是漏了 mask',
+                      placeholder: '针对所选节点提问，例如：这一层的输入是否漏掉了 mask',
                       onChange: (event) => setNote(event.target.value)
                     }),
                     h('div', { key: 'bar', className: 'rtp-composebar' }, [
-                      h('span', { key: 'hint', style: { fontSize: '13px', color: 'var(--dsw-alias-label-tertiary)' } }, '写入卡片注解，下一轮由 Lead 读取'),
+                      h('span', { key: 'hint', style: { fontSize: '13px', color: 'var(--dsw-alias-label-tertiary)' } }, '写入卡片注解，由 Lead 在下一轮读取。'),
                       h('span', { key: 'grow', className: 'rtp-grow' }),
                       h('button', {
                         key: 'clear',
@@ -873,7 +873,7 @@ window.__ModuleLoader__.load({
                         className: 'rtp-primary',
                         disabled: busy || note.trim() === '',
                         onClick: submitNote
-                      }, busy ? '保存中…' : '发送标注')
+                      }, busy ? '提交中…' : '提交标注')
                     ])
                   ])
             ])
@@ -884,7 +884,7 @@ window.__ModuleLoader__.load({
         title: '工作项',
         count: cards.length === 0 ? 0 : cards.length
       }, cards.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '没有工作项。Lead 还没有在 worklog/INDEX.md 里登记工作项；登记后这里会显示。')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前项目暂无工作项。工作项由 research_worklog 登记于 .research/worklog/。')
         : cards.map((entry) => h('div', { key: entry.id, className: 'rtp-row' }, [
             h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
             h('div', { key: 'main', className: 'rtp-rowmain' }, [
@@ -919,7 +919,7 @@ window.__ModuleLoader__.load({
         count: runs.length === 0 ? 0 : runs.length,
         action: approvalSelect
       }, runs.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前没有实验记录。运行开始前写 runs/<line>/manifest.json。')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前项目暂无实验记录。运行前由 research_experiment 登记，记录写入 runs/<line>/manifest.json。')
         : h('div', { key: 'list', className: 'rtp-exp' }, runs.map((entry) => {
             const state = entry.state === undefined ? entry.status : entry.state
             const pending = state === 'awaiting_approval'
@@ -965,7 +965,7 @@ window.__ModuleLoader__.load({
         title: '设计',
         count: designs.length === 0 ? 0 : designs.length
       }, designs.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '还没有设计文档。设计者会写 docs/design/<name>.md。')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前项目暂无设计文档。设计文档位于 docs/design/。')
         : designs.map((entry) => h('div', { key: entry.name, className: 'rtp-row' }, [
             h('div', { key: 'main', className: 'rtp-rowmain' }, [
               h('div', { key: 't', className: 'rtp-rowtitle' }, [
@@ -989,7 +989,7 @@ window.__ModuleLoader__.load({
         ...(Array.isArray(body) ? body : [body]),
         h('div', { key: 'footer', className: 'rtp-footer' }, [
           h('span', { key: 'live', className: 'rtp-live' }),
-          h('span', { key: 'fresh' }, state === null ? '连接中…' : `更新于 ${fresh} · 每 5 秒自动刷新`),
+          h('span', { key: 'fresh' }, state === null ? '正在连接…' : `更新于 ${fresh} · 每 5 秒刷新`),
           h('span', { key: 'grow', className: 'rtp-grow' }),
           h('button', {
             key: 'refresh',

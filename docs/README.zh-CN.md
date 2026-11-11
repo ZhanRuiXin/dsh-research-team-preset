@@ -185,6 +185,8 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 ## 工作日志与协作
 
+工作日志以 JSON 形式保存在 `.research/worklog/`：`plan.json` 记录目标、里程碑与下一步，每个工作项一个 `items/<id>.json`（标题、负责人、状态、kind、下一步、阻塞、证据、检查清单）。`worklog/PLAN.md`、`worklog/INDEX.md` 和 `worklog/<id>.md` 只是生成的视图；用 `research_worklog` 读写（init、list、get、update、claim、gate、plan），决策、证据和设计字段分别用 `research_decision`、`research_evidence`、`research_design` 记录，`research_state` 一次读出全队状态。
+
 预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行、设计文档和架构卡片。
 
 到达关卡时，负责人在卡片文件里写入带证据的清单、执行摘要、提交范围和下一步，对改动路径运行 `research_scope_check`，再把状态设为 `in_review`。reviewer 写入带证据的 PASS/FAIL 结论；Lead 只在到达关卡或需要用户行动时报告卡片 id、状态和证据。`done` 只属于用户的验收动作；`blocked` 表示无法继续，`canceled` 表示不再继续。

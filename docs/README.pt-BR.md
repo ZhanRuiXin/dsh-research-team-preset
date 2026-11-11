@@ -176,6 +176,8 @@ O preset adiciona uma aba "Pesquisa" a barra lateral direita. Ela responde o que
 
 Os cartões de arquitetura são diagramas de nós e arestas armazenados como JSON em `.research/architecture/`, um arquivo por cartão. O agente os lê e atualiza com a ferramenta `research_architecture`, para que o diagrama acompanhe o design em vez de ficar desatualizado num slide. Um cartão é renderizado em SVG dentro do painel; arrastar uma caixa sobre os nós os seleciona, e a nota que você escreve é salva no cartão como anotação que o agente lê antes de responder. A aba se registra via `dsh-better-sidebar` quando esse plugin está instalado e, caso contrário, na barra lateral direita nativa.
 
+Cada secao do painel pode ser recolhida: um clique no titulo esconde o conteudo, e o titulo, o contador e a acao continuam visiveis.
+
 O painel é um módulo próprio em `panel/`, separado do formulário de configurações, e pode ser ativado ou desativado isoladamente. Ele aparece como aba da barra lateral direita em cada conversa.
 
 O designer é dono do cartão de método e o builder do cartão de implementação; o advisor lê os dois antes de revisar uma decisão de design ou implementação, e o revisor os confere no portão de resultados. Arraste com o botão do meio para mover a tela, use a roda para ampliar e arraste uma caixa sobre os nós para selecioná-los e anotar.

@@ -219,6 +219,19 @@ window.__ModuleLoader__.load({
       return STATUS_LABELS[value] || String(status || '')
     }
 
+    function formatElapsed(ms) {
+      const value = Number(ms)
+      if (!Number.isFinite(value) || value < 0) return ''
+      if (value < 60 * 1000) return '刚刚'
+      const minutes = Math.floor(value / 60000)
+      if (minutes < 60) return `${minutes} 分钟`
+      const hours = Math.floor(minutes / 60)
+      const rest = minutes % 60
+      if (hours < 24) return rest === 0 ? `${hours} 小时` : `${hours} 小时 ${rest} 分`
+      const days = Math.floor(hours / 24)
+      return `${days} 天 ${hours % 24} 小时`
+    }
+
     const PANEL_CSS = `
 .rtp-root{display:flex;flex-direction:column;height:100%;min-height:0;overflow-y:auto;box-sizing:border-box;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-family:inherit;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 .rtp-root *{box-sizing:border-box}
@@ -234,6 +247,11 @@ window.__ModuleLoader__.load({
 .rtp-section{padding:14px 16px 2px}
 .rtp-sechead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
 .rtp-seclabel{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--dsw-alias-label-tertiary)}
+.rtp-sectoggle{display:inline-flex;align-items:center;gap:5px;padding:2px 4px;margin-left:-4px;border:0;border-radius:6px;background:transparent;cursor:pointer;font:inherit}
+.rtp-sectoggle:hover{background:var(--dsw-alias-interactive-bg-hover)}
+.rtp-sectoggle:hover .rtp-seclabel,.rtp-sectoggle:hover span{color:var(--dsw-alias-label-primary)}
+.rtp-chev{display:inline-block;font-size:14px;line-height:1;transform:rotate(0deg);transition:transform .12s ease;color:var(--dsw-alias-label-tertiary)}
+.rtp-chev.open{transform:rotate(90deg)}
 .rtp-count{font-size:13px;line-height:1;padding:3px 6px;border-radius:999px;color:var(--dsw-alias-label-secondary);background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1);font-variant-numeric:tabular-nums}
 .rtp-grow{flex:1}
 .rtp-ghost{height:27px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-tertiary);font:inherit;font-size:13.5px;cursor:pointer}
@@ -248,6 +266,17 @@ window.__ModuleLoader__.load({
 .rtp-rowmeta{margin-top:3px;font-size:13.5px;color:var(--dsw-alias-label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-seeds{display:inline-flex;gap:3px;align-items:center;vertical-align:middle}
+.rtp-exp{max-height:304px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
+.rtp-exp::-webkit-scrollbar{width:8px}
+.rtp-exp::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l2);border-radius:8px}
+.rtp-exp::-webkit-scrollbar-track{background:transparent}
+.rtp-sel{height:24px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);border:.5px solid var(--dsw-alias-border-l1);font:inherit;font-size:12.5px;padding:0 4px;outline:none;cursor:pointer}
+.rtp-sel:hover{border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-primary)}
+.rtp-mini{height:24px;padding:0 9px;border-radius:6px;font:inherit;font-size:12.5px;line-height:1;cursor:pointer;background:transparent;border:.5px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
+.rtp-mini:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
+.rtp-mini.ok{border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 45%,transparent);color:var(--dsw-alias-state-success-primary)}
+.rtp-mini.no{border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 45%,transparent);color:var(--dsw-alias-state-error-primary)}
+.rtp-approval{font-size:12.5px;color:var(--dsw-alias-label-tertiary);margin-left:2px}
 .rtp-seed{width:7px;height:7px;border-radius:2px;background:var(--dsw-alias-border-l3)}
 .rtp-seed.on{background:var(--dsw-alias-brand-primary)}
 .rtp-seg{display:inline-flex;padding:2px;gap:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
@@ -296,16 +325,28 @@ window.__ModuleLoader__.load({
     }
 
     function Section(props) {
-      return h('section', { className: 'rtp-section' }, [
+      const [open, setOpen] = React.useState(props.defaultOpen !== false)
+      const label = h('button', {
+        key: 'toggle',
+        type: 'button',
+        className: 'rtp-seclabel rtp-sectoggle',
+        'aria-expanded': open,
+        title: open ? '收起' : '展开',
+        onClick: () => setOpen(!open)
+      }, [
+        h('span', { key: 'chev', className: 'rtp-chev' + (open ? ' open' : '') }, '›'),
+        h('span', { key: 'text' }, props.title)
+      ])
+      return h('section', { className: 'rtp-section' + (open ? '' : ' closed') }, [
         h('div', { key: 'head', className: 'rtp-sechead' }, [
-          h('span', { key: 'label', className: 'rtp-seclabel' }, props.title),
+          label,
           props.count === undefined || props.count === 0
             ? null
             : h('span', { key: 'count', className: 'rtp-count' }, props.count),
           h('span', { key: 'grow', className: 'rtp-grow' }),
           props.action === undefined ? null : props.action
         ]),
-        h('div', { key: 'body' }, props.children)
+        open ? h('div', { key: 'body' }, props.children) : null
       ])
     }
 
@@ -696,11 +737,40 @@ window.__ModuleLoader__.load({
       const cards = (state && state.cards) || []
       const runs = (state && state.runs) || []
       const designs = (state && state.designs) || []
+      const experimentSettings = (state && state.experimentSettings) || { approval: 'required' }
       const waiting = cards.filter((entry) => /waiting|in_review|blocked/i.test(entry.status))
       const fresh = state === null ? '' : formatSince(state.fetchedAt || new Date().toISOString())
 
       function toggleNode(id) {
         setSelectedNodes((current) => (current.indexOf(id) >= 0 ? current.filter((item) => item !== id) : [...current, id]))
+      }
+
+      async function postPanel(payload, message) {
+        setBusy(true)
+        try {
+          const response = await fetch(PANEL_ROUTE, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ ...payload, sessionId })
+          })
+          const data = await response.json()
+          if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`)
+          setState(data)
+          setError('')
+          setToast(message)
+        } catch (failure) {
+          setToast(failure.message)
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      function setApprovalMode(mode) {
+        postPanel({ op: 'approval-mode', mode }, mode === 'auto' ? '实验改为自动审批' : '实验改为需要审批')
+      }
+
+      function decideRun(runId, decision) {
+        postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? '已批准该实验' : '已拒绝该实验')
       }
 
       async function submitNote() {
@@ -837,22 +907,60 @@ window.__ModuleLoader__.load({
             }, statusLabel(entry.status))
           ])))
 
+      const approvalSelect = h('select', {
+        key: 'mode',
+        className: 'rtp-sel',
+        value: experimentSettings.approval,
+        onChange: (event) => setApprovalMode(event.target.value),
+        title: '实验审批方式'
+      }, [
+        h('option', { key: 'required', value: 'required' }, '需要审批'),
+        h('option', { key: 'auto', value: 'auto' }, '自动审批')
+      ])
+
       const runsSection = h(Section, {
         key: 'runs',
         title: '实验',
-        count: runs.length === 0 ? 0 : runs.length
+        count: runs.length === 0 ? 0 : runs.length,
+        action: approvalSelect
       }, runs.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前没有实验在跑。')
-        : runs.map((entry) => h('div', { key: entry.name, className: 'rtp-row' }, [
-            h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
-            h('div', { key: 'main', className: 'rtp-rowmain' }, [
-              h('div', { key: 't', className: 'rtp-rowtitle' }, [
-                h('span', { key: 'name', style: { fontFamily: 'var(--dsw-font-family-mono)', fontSize: '14px' } }, entry.name),
-                seedDots(entry.seeds) === null ? null : h('span', { key: 'seeds', className: 'rtp-seeds' }, seedDots(entry.seeds))
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前没有实验记录。运行开始前写 runs/<line>/manifest.json。')
+        : h('div', { key: 'list', className: 'rtp-exp' }, runs.map((entry) => {
+            const pending = entry.approval === 'pending'
+            const elapsed = formatElapsed(entry.elapsedMs)
+            const meta = [
+              entry.running ? '进行中' : statusLabel(entry.status),
+              elapsed === '' ? '' : entry.running ? `已进行 ${elapsed}` : `用时 ${elapsed}`,
+              entry.seeds ? `seed ${entry.seeds}` : '',
+              entry.budget ? `预算 ${entry.budget}` : '',
+              entry.approval === 'approved' ? '已批准' : entry.approval === 'rejected' ? '已拒绝' : ''
+            ].filter(Boolean).join(' · ')
+            return h('div', { key: entry.name, className: 'rtp-row' }, [
+              h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
+              h('div', { key: 'main', className: 'rtp-rowmain' }, [
+                h('div', { key: 't', className: 'rtp-rowtitle' }, [
+                  h('span', { key: 'name', style: { fontFamily: 'var(--dsw-font-family-mono)', fontSize: '14px' } }, entry.name),
+                  seedDots(entry.seeds) === null ? null : h('span', { key: 'seeds', className: 'rtp-seeds' }, seedDots(entry.seeds))
+                ]),
+                h('div', { key: 'm', className: 'rtp-rowmeta' }, meta)
               ]),
-              h('div', { key: 'm', className: 'rtp-rowmeta' }, [statusLabel(entry.status), entry.seeds ? `seed ${entry.seeds}` : '', entry.budget ? `预算 ${entry.budget}` : ''].filter(Boolean).join(' · '))
+              pending
+                ? h('div', { key: 'act', style: { display: 'flex', gap: '6px', flexShrink: 0 } }, [
+                    h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: () => decideRun(entry.name, 'approved') }, '批准'),
+                    h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: () => decideRun(entry.name, 'rejected') }, '拒绝')
+                  ])
+                : h('span', {
+                    key: 'chip',
+                    className: 'rtp-chip',
+                    style: {
+                      flexShrink: 0,
+                      color: statusTone(entry.status),
+                      borderColor: 'color-mix(in srgb,currentColor 30%,transparent)',
+                      background: 'color-mix(in srgb,currentColor 9%,transparent)'
+                    }
+                  }, entry.running ? '进行中' : statusLabel(entry.status))
             ])
-          ])))
+          })))
 
       const designsSection = h(Section, {
         key: 'designs',

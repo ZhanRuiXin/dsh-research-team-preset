@@ -9,8 +9,11 @@ import {
   listArchitectureCards,
   normalizeArchitectureCard,
   readArchitectureCard,
+  readExperimentSettings,
   sanitizeCardId,
-  saveArchitectureCard
+  saveArchitectureCard,
+  setRunApproval,
+  writeExperimentSettings
 } from '../plugin/index.js'
 
 function makeRoot() {
@@ -127,4 +130,53 @@ test('buildPanelState reads the worklog, design docs and architecture cards', ()
   assert.match(state.designs[0].question, /transfer/)
   assert.equal(state.architectures.length, 1)
   assert.equal(state.architectures[0].id, 'method')
+})
+
+test('buildPanelState reads experiment approval, elapsed time and newest-first order', () => {
+  const root = makeRoot()
+  const runs = path.join(root, 'runs')
+  for (const name of ['exp-old', 'exp-new']) {
+    fs.mkdirSync(path.join(runs, name), { recursive: true })
+  }
+  fs.writeFileSync(path.join(runs, 'exp-old', 'manifest.json'), JSON.stringify({
+    status: 'done',
+    seeds: '4/4',
+    startedAt: '2026-11-09T00:00:00.000Z',
+    finishedAt: '2026-11-09T02:00:00.000Z',
+    approval: { state: 'approved' }
+  }))
+  fs.writeFileSync(path.join(runs, 'exp-new', 'manifest.json'), JSON.stringify({
+    status: 'running',
+    seeds: '1/4',
+    startedAt: new Date(Date.now() - 65 * 60 * 1000).toISOString()
+  }))
+
+  const state = buildPanelState(root)
+  assert.equal(state.experimentSettings.approval, 'required')
+  assert.equal(state.runs.length, 2)
+  assert.equal(state.runs[0].name, 'exp-new')
+  assert.equal(state.runs[0].running, true)
+  assert.equal(state.runs[0].approval, 'pending')
+  assert.ok(state.runs[0].elapsedMs >= 64 * 60 * 1000)
+  assert.equal(state.runs[1].name, 'exp-old')
+  assert.equal(state.runs[1].approval, 'approved')
+  assert.equal(state.runs[1].elapsedMs, 2 * 60 * 60 * 1000)
+})
+
+test('experiment settings and run approval persist to disk', () => {
+  const root = makeRoot()
+  fs.mkdirSync(path.join(root, 'runs', 'exp-1'), { recursive: true })
+  fs.writeFileSync(path.join(root, 'runs', 'exp-1', 'manifest.json'), JSON.stringify({ status: 'planned' }))
+
+  assert.equal(readExperimentSettings(root).approval, 'required')
+  writeExperimentSettings(root, { approval: 'auto' })
+  assert.equal(readExperimentSettings(root).approval, 'auto')
+  assert.equal(buildPanelState(root).runs[0].approval, 'auto')
+
+  setRunApproval(root, 'exp-1', 'approved')
+  const stored = JSON.parse(fs.readFileSync(path.join(root, 'runs', 'exp-1', 'manifest.json'), 'utf8'))
+  assert.equal(stored.approval.state, 'approved')
+  assert.equal(stored.approval.by, 'user')
+  assert.match(setRunApproval(root, '../escape', 'approved').error, /invalid run id/)
+  assert.match(setRunApproval(root, 'missing', 'approved').error, /no manifest/)
 })

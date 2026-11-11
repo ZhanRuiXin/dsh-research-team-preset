@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Every Research panel section is collapsible; the header keeps its title, count and action while the body hides.
+
 - The team records everything in its own worklog: `worklog/PLAN.md`, `worklog/INDEX.md` and one card file per gated item are the only ledger, the injected worklog protocol and and the persona coordination section were rewritten for it; the optional integrations list now names only Zotero and Mnemon, and the `presetId` wiring was removed from the README and the eleven translations.
 
 - The sidebar list is now called work items and says it reads `worklog/INDEX.md`; task-board cards are documented as separate and are no longer implied to appear there.

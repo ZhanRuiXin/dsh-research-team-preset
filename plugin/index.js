@@ -396,6 +396,48 @@ function indexRows(text) {
   return rows.filter((row) => row.id !== '').slice(0, 40)
 }
 
+const EXPERIMENT_SETTINGS_PATH = path.join('.research', 'experiment-settings.json')
+
+export function readExperimentSettings(root) {
+  try {
+    const parsed = JSON.parse(readTextFile(path.join(root, EXPERIMENT_SETTINGS_PATH)) || '{}')
+    return { approval: parsed.approval === 'auto' ? 'auto' : 'required' }
+  } catch {
+    return { approval: 'required' }
+  }
+}
+
+export function writeExperimentSettings(root, settings) {
+  const dir = path.join(root, '.research')
+  fs.mkdirSync(dir, { recursive: true })
+  const file = path.join(dir, 'experiment-settings.json')
+  const temp = `${file}.tmp-${process.pid}`
+  const approval = settings.approval === 'auto' ? 'auto' : 'required'
+  fs.writeFileSync(temp, `${JSON.stringify({ approval }, null, 2)}\n`, 'utf8')
+  fs.renameSync(temp, file)
+  return { approval }
+}
+
+export function setRunApproval(root, runId, decision) {
+  const id = String(runId ?? '')
+  if (!/^[A-Za-z0-9._-]+$/.test(id) || id === '.' || id === '..') return { error: 'invalid run id' }
+  const file = path.join(root, 'runs', id, 'manifest.json')
+  const current = readTextFile(file)
+  if (current === '') return { error: `run "${id}" has no manifest` }
+  let parsed
+  try {
+    parsed = JSON.parse(current)
+  } catch {
+    return { error: `run "${id}" has an unreadable manifest` }
+  }
+  if (parsed === null || typeof parsed !== 'object') return { error: `run "${id}" has an unreadable manifest` }
+  const next = { ...parsed, approval: { state: decision, at: new Date().toISOString(), by: 'user' } }
+  const temp = `${file}.tmp-${process.pid}`
+  fs.writeFileSync(temp, `${JSON.stringify(next, null, 2)}\n`, 'utf8')
+  fs.renameSync(temp, file)
+  return { ok: true }
+}
+
 export function buildPanelState(root) {
   const plan = planSummary(readTextFile(path.join(root, 'worklog', 'PLAN.md')))
   const cards = indexRows(readTextFile(path.join(root, 'worklog', 'INDEX.md')))
@@ -412,30 +454,54 @@ export function buildPanelState(root) {
       })
     }
   } catch {}
+  const settings = readExperimentSettings(root)
+  const now = Date.now()
   const runs = []
   try {
     const dir = path.join(root, 'runs')
-    for (const name of fs.readdirSync(dir).sort()) {
-      const manifest = readTextFile(path.join(dir, name, 'manifest.json'))
+    for (const name of fs.readdirSync(dir)) {
+      const manifestPath = path.join(dir, name, 'manifest.json')
+      const manifest = readTextFile(manifestPath)
       let parsed = {}
       if (manifest !== '') {
         try {
           parsed = JSON.parse(manifest)
         } catch {}
       }
+      let modified = 0
+      try {
+        modified = fs.statSync(manifestPath).mtimeMs
+      } catch {}
+      const startedAt = typeof parsed.startedAt === 'string' ? Date.parse(parsed.startedAt) : modified
+      const finishedAt = typeof parsed.finishedAt === 'string' ? Date.parse(parsed.finishedAt) : NaN
+      const status = typeof parsed.status === 'string' ? parsed.status : ''
+      const open = Number.isNaN(finishedAt) && /run|active|in_progress|planned|pending/i.test(status)
+      const end = Number.isNaN(finishedAt) ? (open ? now : NaN) : finishedAt
       runs.push({
         name,
-        status: typeof parsed.status === 'string' ? parsed.status : '',
+        status,
         seeds: typeof parsed.seeds === 'string' ? parsed.seeds : '',
-        budget: typeof parsed.budget === 'string' ? parsed.budget : ''
+        budget: typeof parsed.budget === 'string' ? parsed.budget : '',
+        startedAt: Number.isNaN(startedAt) ? '' : new Date(startedAt).toISOString(),
+        finishedAt: Number.isNaN(finishedAt) ? '' : new Date(finishedAt).toISOString(),
+        elapsedMs: Number.isNaN(startedAt) || Number.isNaN(end) ? 0 : Math.max(0, end - startedAt),
+        running: open,
+        approval:
+          typeof parsed.approval === 'object' && parsed.approval !== null && typeof parsed.approval.state === 'string'
+            ? parsed.approval.state
+            : settings.approval === 'auto'
+              ? 'auto'
+              : 'pending'
       })
     }
   } catch {}
+  runs.sort((a, b) => String(b.startedAt || '').localeCompare(String(a.startedAt || '')))
   return {
     root,
     worklog: plan,
     cards,
-    runs: runs.slice(0, 12),
+    runs: runs.slice(0, 40),
+    experimentSettings: settings,
     designs: designs.slice(0, 12),
     architectures: listArchitectureCards(root)
   }
@@ -717,6 +783,30 @@ export function apply(ctx) {
       const root = await sessionProjectRoot(ctx, typeof body?.sessionId === 'string' ? body.sessionId : undefined)
       if (root === undefined) {
         jsonResponse(res, 404, { ok: false, error: 'cannot resolve the project for this session' })
+        return
+      }
+      if (body?.op === 'approval-mode') {
+        const mode = body.mode === 'auto' ? 'auto' : body.mode === 'required' ? 'required' : ''
+        if (mode === '') {
+          jsonResponse(res, 400, { ok: false, error: 'mode must be required or auto' })
+          return
+        }
+        writeExperimentSettings(root, { approval: mode })
+        jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
+        return
+      }
+      if (body?.op === 'approve') {
+        const decision = body.decision === 'approved' || body.decision === 'rejected' ? body.decision : ''
+        if (decision === '') {
+          jsonResponse(res, 400, { ok: false, error: 'decision must be approved or rejected' })
+          return
+        }
+        const result = setRunApproval(root, body.runId, decision)
+        if (result.error !== undefined) {
+          jsonResponse(res, 409, { ok: false, error: result.error })
+          return
+        }
+        jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
         return
       }
       const card = readArchitectureCard(root, body?.id)

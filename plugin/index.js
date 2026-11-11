@@ -47,7 +47,7 @@ import {
 
 export const name = 'research-project'
 
-export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents']
+export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents', 'agentTeams']
 
 const execFileAsync = promisify(execFile)
 

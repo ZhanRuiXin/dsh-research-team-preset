@@ -45,6 +45,7 @@ import {
   worklogSummary,
   writePlan
 } from './worklog.js'
+import { modelForRole } from './settings-store.js'
 
 export const name = 'research-project'
 
@@ -901,24 +902,30 @@ export function teamRoster(ctx, sessionId, items) {
       return true
     }).map((member) => {
       const open = list.find((item) => item.owner === member.name)
-      let effort = typeof member.reasoningEffort === 'string' ? member.reasoningEffort : ''
-      if (effort === '' && typeof member.id === 'string') {
-        try {
-          const live = ctx?.agents?.get?.(member.id)
-          const value = live?.options?.reasoningEffort ?? live?.options?.effort
-          effort = typeof value === 'string' ? value : ''
-        } catch {
-          effort = ''
-        }
+      let live
+      if (typeof member.id === 'string') {
+        try { live = ctx?.agents?.get?.(member.id) } catch { live = undefined }
       }
+      const liveModel = typeof live?.options?.model === 'string' ? live.options.model : ''
+      const liveEffortValue = live?.options?.reasoningEffort ?? live?.options?.effort
+      const liveEffort = typeof liveEffortValue === 'string' ? liveEffortValue : ''
+      const configured = modelForRole(member.name)
+      const model = liveModel !== ''
+        ? liveModel
+        : member.role === 'lead' && typeof member.model === 'string'
+          ? member.model
+          : configured !== undefined ? `${configured.provider}/${configured.model}` : ''
+      const effort = liveEffort !== '' ? liveEffort : configured?.reasoningEffort ?? ''
+      const source = liveModel !== '' || (member.role === 'lead' && model !== '') ? 'live' : model !== '' ? 'configured' : 'unknown'
       return {
         id: typeof member.id === 'string' ? member.id : '',
         name: typeof member.name === 'string' ? member.name : '',
         role: member.role === 'lead' ? 'lead' : 'teammate',
         status: typeof member.status === 'string' ? member.status : 'inactive',
         description: typeof member.description === 'string' ? member.description : '',
-        model: typeof member.model === 'string' ? member.model : '',
+        model,
         effort,
+        modelSource: source,
         item: open === undefined ? null : { id: open.id, title: open.title, status: open.status, updated: open.updated, next: open.next }
       }
     })

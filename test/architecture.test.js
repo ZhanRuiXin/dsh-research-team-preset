@@ -208,6 +208,7 @@ test('teamRoster reports members and the work item each owns', () => {
     description: '',
     model: '',
     effort: '',
+    modelSource: 'unknown',
     item: { id: 'task-3', title: '编码器脚手架', status: 'in_progress', updated: undefined, next: undefined }
   })
   assert.equal(teamRoster(ctx, 'missing', items).length, 0)

@@ -345,7 +345,7 @@ Zwei weitere Ursachen betreffen nicht die Einstellungsdatei:
 
 ### Worklog-Eintraege fehlen
 
-Worklog-Eintraege zeigt die Seitenleiste "Forschung" aus `worklog/INDEX.md`; das Team nutzt kein Task-Board-Plugin.
+Worklog-Eintraege zeigt die Seitenleiste "Forschung" aus `worklog/INDEX.md`
 
 ### `spawn_teammate_with_model` ist nicht verfügbar
 
@@ -375,6 +375,6 @@ MIT. Siehe [LICENSE](../LICENSE).
 
 ## Danksagungen
 
-Worklog-Eintraege zeigt die Seitenleiste "Forschung" aus `worklog/INDEX.md`; das Team nutzt kein Task-Board-Plugin.
+Worklog-Eintraege zeigt die Seitenleiste "Forschung" aus `worklog/INDEX.md`
 
 Beiträge und interne Entwicklungsnotizen stehen in [DEVELOPMENT.md](../DEVELOPMENT.md).

@@ -12,7 +12,7 @@
 
 ## Overview
 
-Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps both ledgers (board cards for user gates, team tasks for internal steps), dispatches work, integrates results, and talks to the user. Eight default specialists cover advisory review, literature and evidence, data acquisition, experiment design, code, runs, independent review, and paper writing.
+Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps the worklog (PLAN, INDEX and one card file per gated item for user gates, team tasks for internal steps), dispatches work, integrates results, and talks to the user. Eight default specialists cover advisory review, literature and evidence, data acquisition, experiment design, code, runs, independent review, and paper writing.
 
 The mode is built for research that spans days or weeks, needs traceable evidence, and benefits from clear role boundaries. It is not a one-shot Q&A mode: the Lead creates only the roles a task actually needs.
 
@@ -42,7 +42,7 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 
 The Lead's replies are scientific communication, not a status feed: the claim or result first, with the evidence behind it (run id, dataset, metric with uncertainty and sample size, source), then what is uncertain, then what the user has to decide. Each statement is labelled observed fact, inference, hypothesis, or open question, and the method is explained far enough that the user can follow and keep learning.
 
-Internal mechanics stay internal. Agent handoffs, retries, tool errors, board bookkeeping, and what the team learned while working are not forwarded unless they change how a result should be read or block a decision. Member reports are translated into a claim, its evidence, and its limits rather than pasted.
+Internal mechanics stay internal. Agent handoffs, retries, tool errors, ledger bookkeeping, and what the team learned while working are not forwarded unless they change how a result should be read or block a decision. Member reports are translated into a claim, its evidence, and its limits rather than pasted.
 
 The division of labor is explicit: the user sets the scientific direction and judges the evidence, and the team carries the search, implementation, experiment, and verification load.
 
@@ -67,7 +67,7 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 - **Zotero** (`dsh-zotero`) — the shared library tools (`zotero_*`) and the paper-fetch import path. Without it, literature work uses Semantic Scholar, arXiv, and the web, and the evidence table still records claim, source, and location.
 - **Mnemon** (`dsh-mnemon`) — durable notes across sessions (`mnemon_*`). Without it, the worklog and `CHANGELOG.md` carry continuity.
 
-If a dependency is missing, the mode can still load partially, but the team tools, the board, or the settings page will be unavailable. The plugin manager does not prompt for these bundles and does not link them automatically.
+If a dependency is missing, the mode can still load partially, but the team tools or the settings page will be unavailable. The plugin manager does not prompt for these bundles and does not link them automatically.
 
 ## Install
 
@@ -128,11 +128,11 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | Independent verification of literature notes, code, results, and paper claims/citations; PASS/FAIL with blocking evidence |
 | `writer` | LaTeX paper draft: prose, sections, tables, captions, citations, and figure code; does not run experiments or change code/models |
 
-The Lead owns goal clarification, decomposition, board management, dispatch, integration, summaries, final asset assembly, and delivery. Members may use one subagent layer for a scoped subtask; they cannot create teammates. The Lead keeps its own tool use light, favors a short user-facing update over another routine call, and leaves deep work to the owning member.
+The Lead owns goal clarification, decomposition, ledger management, dispatch, integration, summaries, final asset assembly, and delivery. Members may use one subagent layer for a scoped subtask; they cannot create teammates. The Lead keeps its own tool use light, favors a short user-facing update over another routine call, and leaves deep work to the owning member.
 
 ### Shared Zotero library
 
-The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and on the board card, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
+The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and in the card file, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
 
 ### Advisory review
 
@@ -164,7 +164,7 @@ The Lead admits the run, the runner refuses to launch without the pre-flight rec
 
 ## Session continuity
 
-A session is a conversation, not the project: the worklog, the board, and git carry the work, while the chat, the team, and background jobs do not survive the session. Before the first substantive action in a project that already has `worklog/PLAN.md`, the agent reads PLAN and INDEX, then the current card's state block, before planning or spending compute.
+A session is a conversation, not the project: the worklog and git carry the work, while the chat, the team, and background jobs do not survive the session. Before the first substantive action in a project that already has `worklog/PLAN.md`, the agent reads PLAN and INDEX, then the current card's state block, before planning or spending compute.
 
 The worklog lives at the project root returned by `research_project`, not in a session subdirectory, so every session on the project shares one PLAN and one INDEX. PLAN, INDEX, card files, git, and memory are durable; teammate conversations and background jobs live only in the session. Anything a later session must know is written into PLAN or the card file before the session ends.
 
@@ -195,7 +195,7 @@ Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when 
 User:  accept -> done (agents can never set done)
 ```
 
-The project worklog is the whole record: `PLAN.md` for the objective, milestones, active items, blockers and dated decisions; `INDEX.md` with one row per active work item; and one card file per gated item, opened with a Current state block. Only steps that need the user's review or acceptance get a card file - deliverable checkpoints, scope decisions, risky changes, final handoff - while internal steps stay index rows. A member claims work by writing its role and `in_progress` into the row and card header; a row that already names another owner is not claimed. The team uses no task-board plugin, so there is nothing to install and nothing to sync.
+The project worklog is the whole record: `PLAN.md` for the objective, milestones, active items, blockers and dated decisions; `INDEX.md` with one row per active work item; and one card file per gated item, opened with a Current state block. Only steps that need the user's review or acceptance get a card file - deliverable checkpoints, scope decisions, risky changes, final handoff - while internal steps stay index rows. A member claims work by writing its role and `in_progress` into the row and card header; a row that already names another owner is not claimed.
 
 At a gate the owner writes the checklist with evidence, the execution summary, the commit range and the next action into the card file, runs `research_scope_check` on the changed paths, and sets the status to `in_review`. The reviewer writes a PASS/FAIL verdict with evidence; the Lead reports card ids, status and evidence only when a gate is reached or the user must act. `done` belongs to the user's acceptance; `blocked` means the work cannot continue and `canceled` means it will not.
 
@@ -348,7 +348,7 @@ Enable [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/d
 
 ### A worklog card is missing from the sidebar
 
-The Research panel lists `worklog/INDEX.md` rows, not task-board cards. Add or update the row in `INDEX.md` (id, title, owner, status, updated, next) and the panel picks it up within five seconds.
+The Research panel lists `worklog/INDEX.md` rows. Add or update the row in `INDEX.md` (id, title, owner, status, updated, next) and the panel picks it up within five seconds.
 
 ### `spawn_teammate_with_model` is unavailable
 

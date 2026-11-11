@@ -345,7 +345,7 @@ $DSH_HOME/research-team-settings.json
 
 ### Инструменты worklogи задач отсутствуют
 
-Записи worklog показывает боковая панель «Исследование» из `worklog/INDEX.md`; команда не использует плагин доски задач.
+Записи worklog показывает боковая панель «Исследование» из `worklog/INDEX.md`
 
 ### `spawn_teammate_with_model` недоступен
 
@@ -375,6 +375,6 @@ MIT. См. [LICENSE](../LICENSE).
 
 ## Благодарности
 
-Записи worklog показывает боковая панель «Исследование» из `worklog/INDEX.md`; команда не использует плагин доски задач.
+Записи worklog показывает боковая панель «Исследование» из `worklog/INDEX.md`
 
 Заметки о вкладе и внутренней разработке — в [DEVELOPMENT.md](../DEVELOPMENT.md).

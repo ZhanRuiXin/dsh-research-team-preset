@@ -345,7 +345,7 @@ $DSH_HOME/research-team-settings.json
 
 ### 작업 작업 로그 도구가 없음
 
-작업 로그 항목은 "연구" 사이드바에 `worklog/INDEX.md`에서 표시됩니다. 팀은 작업 보드 플러그인을 쓰지 않습니다.
+작업 로그 항목은 "연구" 사이드바에 `worklog/INDEX.md`에서 표시됩니다
 
 ### `spawn_teammate_with_model`을 사용할 수 없음
 
@@ -375,6 +375,6 @@ MIT. [LICENSE](../LICENSE)를 참고하십시오.
 
 ## 감사의 글
 
-작업 로그 항목은 "연구" 사이드바에 `worklog/INDEX.md`에서 표시됩니다. 팀은 작업 보드 플러그인을 쓰지 않습니다.
+작업 로그 항목은 "연구" 사이드바에 `worklog/INDEX.md`에서 표시됩니다
 
 기여와 내부 개발 노트는 [DEVELOPMENT.md](../DEVELOPMENT.md)에 있습니다.

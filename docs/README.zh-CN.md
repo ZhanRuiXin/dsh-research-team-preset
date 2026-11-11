@@ -343,7 +343,7 @@ $DSH_HOME/research-team-settings.json
 
 ### 任务工作日志工具缺失
 
-工作日志条目显示在「研究」侧栏里，来自 `worklog/INDEX.md`；团队不使用任何任务看板插件。
+工作日志条目显示在「研究」侧栏里，来自 `worklog/INDEX.md`
 
 ### `spawn_teammate_with_model` 不可用
 
@@ -373,6 +373,6 @@ MIT。参见 [LICENSE](../LICENSE)。
 
 ## 致谢
 
-工作日志条目显示在「研究」侧栏里，来自 `worklog/INDEX.md`；团队不使用任何任务看板插件。
+工作日志条目显示在「研究」侧栏里，来自 `worklog/INDEX.md`
 
 贡献与内部开发说明见 [DEVELOPMENT.md](../DEVELOPMENT.md)。

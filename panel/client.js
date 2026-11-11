@@ -819,7 +819,7 @@ window.__ModuleLoader__.load({
         title: '工作项',
         count: cards.length === 0 ? 0 : cards.length
       }, cards.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '没有工作项。Lead 还没有在 worklog/INDEX.md 里登记活动卡片；团队任务在看板里，不在这里显示。')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '没有工作项。Lead 还没有在 worklog/INDEX.md 里登记工作项；登记后这里会显示。')
         : cards.map((entry) => h('div', { key: entry.id, className: 'rtp-row' }, [
             h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
             h('div', { key: 'main', className: 'rtp-rowmain' }, [

@@ -5,7 +5,7 @@
  *    (workspaceId, title, path), because a worklog card must land in the right
  *    project and workspace ids are random.
  * 2. An English coordination-ledger section registered at this preset's
- *    scope: the worklog files are the record, and no external task board is
+ *    scope: the worklog files are the record.
  *    read or written.
  * 3. `research_workspace_init` — idempotent durable-tracking bootstrap for a
  *    workspace: create `worklog/PLAN.md` and `worklog/INDEX.md` when missing,
@@ -53,7 +53,7 @@ __pycache__/
 `
 
 /** The coordination ledger: worklog files are the record (see `## Coordination ledger`). */
-const WORKLOG_PROTOCOL_EN = `The team records its work in the project worklog, not on an external board. The ledger is the worklog directory at the project root: worklog/PLAN.md (objective, milestone, active items, blockers, dated decisions, next actions), worklog/INDEX.md (one row per active work item: id, title, owner, status, updated, next), and one markdown file per gated item (Current state block at the top, then short append-only entries).
+const WORKLOG_PROTOCOL_EN = `The team records its work in the project worklog. The ledger is the worklog directory at the project root: worklog/PLAN.md (objective, milestone, active items, blockers, dated decisions, next actions), worklog/INDEX.md (one row per active work item: id, title, owner, status, updated, next), and one markdown file per gated item (Current state block at the top, then short append-only entries).
 Discipline:
 1. Read before acting: read PLAN and INDEX before starting, then the target card's Current state and its tail only.
 2. Claim before working: write your role and in_progress into the INDEX row and the card header before you begin. If the row names another owner, stop and report; never take over.
@@ -63,7 +63,7 @@ Discipline:
 6. Acceptance belongs to the user: never mark a card done. done means the user accepted it; blocked means the work cannot continue; canceled means it will not.
 7. Report at gates only: when a gate is reached or the user must act, report the card id, status and evidence. Do not narrate ledger bookkeeping between gates.
 8. Ask the user with ask_user_question when you need input, a login, or a decision, and record the wait in the card file instead of a status field of an external tool. If the answer does not arrive within the wait timeout, ask the advisor for an independent recommendation, record it in the card file, and keep the work moving; the advisor's reply is advice, not the user's approval.
-The worklog lives at the project root returned by research_project. If the user installs a task board, this preset neither reads nor writes it; the worklog remains the record.`
+The worklog lives at the project root returned by research_project and is the record.`
 
 async function runGit(cwd, args) {
   return execFileAsync('git', args, { cwd, windowsHide: true, maxBuffer: 1024 * 1024 })

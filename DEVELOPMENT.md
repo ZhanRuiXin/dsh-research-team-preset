@@ -14,7 +14,7 @@ dsh-research-team-preset/
 ├── cordis.patch.yml          # Preset declaration: persona, tool rows, settings row
 ├── package.json
 ├── plugin/
-│   ├── index.js              # research_project, research_workspace_init, research_scope_check, board protocol
+│   ├── index.js              # research_project, research_workspace_init, research_scope_check, worklog protocol
 │   ├── modeled-teammates.js  # spawn_teammate_with_model, research_team_routes, permission handling
 │   ├── settings-file.js
 │   └── settings-store.js

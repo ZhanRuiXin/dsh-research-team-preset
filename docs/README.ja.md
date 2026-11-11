@@ -345,7 +345,7 @@ $DSH_HOME/research-team-settings.json
 
 ### タスクワークログのツールが見つからない
 
-ワークログの項目は「研究」サイドバーに `worklog/INDEX.md` から表示されます。チームはタスクボードのプラグインを使いません。
+ワークログの項目は「研究」サイドバーに `worklog/INDEX.md` から表示されます
 
 ### `spawn_teammate_with_model` が利用できない
 
@@ -375,6 +375,6 @@ MIT。[LICENSE](../LICENSE) を参照してください。
 
 ## 謝辞
 
-ワークログの項目は「研究」サイドバーに `worklog/INDEX.md` から表示されます。チームはタスクボードのプラグインを使いません。
+ワークログの項目は「研究」サイドバーに `worklog/INDEX.md` から表示されます
 
 コントリビューションと内部開発のメモは [DEVELOPMENT.md](../DEVELOPMENT.md) にあります。

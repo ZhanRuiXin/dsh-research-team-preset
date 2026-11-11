@@ -345,7 +345,7 @@ Deux autres causes ne concernent pas le fichier de réglages :
 
 ### Les outils du worklog des tâches sont absents
 
-La barre laterale « Recherche » affiche les entrees de `worklog/INDEX.md` ; le preset n'utilise aucun plugin de tableau de taches.
+La barre laterale « Recherche » affiche les entrees de `worklog/INDEX.md`
 
 ### `spawn_teammate_with_model` est indisponible
 
@@ -375,6 +375,6 @@ MIT. Voir [LICENSE](../LICENSE).
 
 ## Remerciements
 
-La barre laterale « Recherche » affiche les entrees de `worklog/INDEX.md` ; le preset n'utilise aucun plugin de tableau de taches.
+La barre laterale « Recherche » affiche les entrees de `worklog/INDEX.md`
 
 Les notes de contribution et de développement interne se trouvent dans [DEVELOPMENT.md](../DEVELOPMENT.md).

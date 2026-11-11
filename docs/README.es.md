@@ -345,7 +345,7 @@ Otras dos causas no tienen que ver con el archivo de ajustes:
 
 ### Faltan las herramientas del worklog de tareas
 
-La barra lateral "Investigacion" muestra las entradas de `worklog/INDEX.md`; el preset no usa ningun plugin de tablero de tareas.
+La barra lateral "Investigacion" muestra las entradas de `worklog/INDEX.md`
 
 ### `spawn_teammate_with_model` no está disponible
 
@@ -375,6 +375,6 @@ MIT. Consulta [LICENSE](../LICENSE).
 
 ## Agradecimientos
 
-La barra lateral "Investigacion" muestra las entradas de `worklog/INDEX.md`; el preset no usa ningun plugin de tablero de tareas.
+La barra lateral "Investigacion" muestra las entradas de `worklog/INDEX.md`
 
 Las notas de contribución y desarrollo interno están en [DEVELOPMENT.md](../DEVELOPMENT.md).

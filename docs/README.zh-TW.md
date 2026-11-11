@@ -341,7 +341,7 @@ $DSH_HOME/research-team-settings.json
 
 ### 缺少任務工作日誌工具
 
-工作日誌條目顯示在「研究」側欄裡，來自 `worklog/INDEX.md`；團隊不使用任何任務看板外掛。
+工作日誌條目顯示在「研究」側欄裡，來自 `worklog/INDEX.md`
 
 ### `spawn_teammate_with_model` 無法使用
 
@@ -371,6 +371,6 @@ MIT。參見 [LICENSE](../LICENSE)。
 
 ## 致謝
 
-工作日誌條目顯示在「研究」側欄裡，來自 `worklog/INDEX.md`；團隊不使用任何任務看板外掛。
+工作日誌條目顯示在「研究」側欄裡，來自 `worklog/INDEX.md`
 
 貢獻與內部開發說明見 [DEVELOPMENT.md](../DEVELOPMENT.md)。

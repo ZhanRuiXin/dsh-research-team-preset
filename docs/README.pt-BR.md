@@ -345,7 +345,7 @@ Outras duas causas não têm a ver com o arquivo de configurações:
 
 ### Faltam ferramentas do worklog de tarefas
 
-A barra lateral "Pesquisa" mostra as entradas de `worklog/INDEX.md`; o preset nao usa nenhum plugin de quadro de tarefas.
+A barra lateral "Pesquisa" mostra as entradas de `worklog/INDEX.md`
 
 ### `spawn_teammate_with_model` está indisponível
 
@@ -375,6 +375,6 @@ MIT. Consulte o arquivo [LICENSE](../LICENSE).
 
 ## Agradecimentos
 
-A barra lateral "Pesquisa" mostra as entradas de `worklog/INDEX.md`; o preset nao usa nenhum plugin de quadro de tarefas.
+A barra lateral "Pesquisa" mostra as entradas de `worklog/INDEX.md`
 
 As notas de contribuição e desenvolvimento interno estão em [DEVELOPMENT.md](../DEVELOPMENT.md).

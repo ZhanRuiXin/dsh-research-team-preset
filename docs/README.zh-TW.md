@@ -168,7 +168,7 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 ## 研究側欄
 
-預設會在右側邊欄新增一個「研究」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 的目標與里程碑、`worklog/INDEX.md` 的活動工作項、最近的執行、設計文件與架構卡片。
+預設會在右側邊欄新增一個「研究」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 的目標與里程碑、`worklog/INDEX.md` 的活動工作項、最近的執行與架構卡片。
 
 架構卡片是以 JSON 形式存放在 `.research/architecture/` 下的節點-連線圖，一張卡片一個檔案。代理透過 `research_architecture` 工具讀取與更新它們，因此圖會與設計保持同步，而不是散落在簡報裡。卡片在面板內以 SVG 呈現；在節點上拖出選取框即可選取，你寫下的備註會作為註解存到卡片上，代理在回答前會先讀取它。安裝了 `dsh-better-sidebar` 時標籤頁透過它註冊，否則回退到原生右側邊欄。
 
@@ -186,7 +186,7 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 狀態轉移遵循固定表（`todo → in_progress → in_review → done`），`blocked` 與 `canceled` 是旁路狀態；`blocked` 必須寫明原因，進入 `in_review` 至少要有一條證據，每次轉移都記錄在該項的歷史裡。
 
-預設會在右側邊欄新增一個「研究」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 的目標與里程碑、`worklog/INDEX.md` 的活動工作項、最近的執行、設計文件與架構卡片。
+預設會在右側邊欄新增一個「研究」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 的目標與里程碑、`worklog/INDEX.md` 的活動工作項、最近的執行與架構卡片。
 
 到達關卡時，負責人在卡片檔寫入帶證據的清單、執行摘要、提交範圍與下一步，對改動路徑執行 `research_scope_check`，再把狀態設為 `in_review`。reviewer 寫入帶證據的 PASS/FAIL 結論；Lead 只在到達關卡或需要使用者行動時回報卡片 id、狀態與證據。`done` 只屬於使用者的驗收動作；`blocked` 表示無法繼續，`canceled` 表示不再繼續。
 

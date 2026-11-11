@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The sidebar drops the design-document list: architecture labels are brief titles with a hover card for the version and summary, and the team tiles use the registered member names, lead included.
+
 - The Research panel quotes an architecture selection into the conversation composer instead of carrying its own textarea, and the architecture canvas no longer zooms with the wheel.
 
 - The Research panel gives every `in_review` work item 确认完成 and 退回 buttons: acceptance is the user's click, and the worklog tool now refuses `status: done` from the model.

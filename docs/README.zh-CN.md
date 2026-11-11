@@ -168,7 +168,7 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 ## 研究侧栏
 
-预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行、设计文档和架构卡片。
+预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行和架构卡片。
 
 架构卡片是以 JSON 形式存放在 `.research/architecture/` 下的节点-连线图，一张卡片一个文件。智能体通过 `research_architecture` 工具读取和更新它们，因此图会与设计保持同步，而不是散落在幻灯片里。卡片在面板内以 SVG 渲染；在节点上拖出选框即可选中，你写下的备注会作为批注存到卡片上，智能体在回答前会读取它。安装了 `dsh-better-sidebar` 时标签页通过它注册，否则回退到原生右侧边栏。
 
@@ -186,7 +186,7 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 状态迁移遵循固定表（`todo → in_progress → in_review → done`），`blocked` 与 `canceled` 是旁路状态；`blocked` 必须写明原因，进入 `in_review` 至少要有一条证据，每次迁移都记录在该项的历史里。
 
-预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行、设计文档和架构卡片。
+预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行和架构卡片。
 
 到达关卡时，负责人在卡片文件里写入带证据的清单、执行摘要、提交范围和下一步，对改动路径运行 `research_scope_check`，再把状态设为 `in_review`。reviewer 写入带证据的 PASS/FAIL 结论；Lead 只在到达关卡或需要用户行动时报告卡片 id、状态和证据。`done` 只属于用户的验收动作；`blocked` 表示无法继续，`canceled` 表示不再继续。
 

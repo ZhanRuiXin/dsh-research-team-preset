@@ -172,7 +172,7 @@ A run or long job that outlives the turn leaves its job or terminal handle, host
 
 ## Research sidebar
 
-The preset adds a Research tab to the right sidebar. It answers what the team is doing now, what is blocked, and what the next step is: the objective and milestone from `worklog/PLAN.md`, the active work items from `worklog/INDEX.md`, recent runs, the design documents, and the architecture cards.
+The preset adds a Research tab to the right sidebar. It answers what the team is doing now, what is blocked, and what the next step is: the objective and milestone from `worklog/PLAN.md`, the active work items from `worklog/INDEX.md`, recent runs and the architecture cards.
 
 Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the note you write is stored on the card as an annotation the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
 

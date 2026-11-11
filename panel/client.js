@@ -246,7 +246,7 @@ window.__ModuleLoader__.load({
     function memberBrief(member) {
       const lines = []
       lines.push(member.role === 'lead'
-        ? `Lead · ${memberLabel(member.status)}`
+        ? `${member.name || 'lead'} · ${memberLabel(member.status)}`
         : `${member.name || '未命名成员'} · ${memberLabel(member.status)}`)
       const item = member.item
       if (item !== null && item !== undefined) {
@@ -325,14 +325,10 @@ window.__ModuleLoader__.load({
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
-.rtp-archgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin-bottom:7px}
-.rtp-arch{display:flex;flex-direction:column;gap:3px;min-width:0;padding:7px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1);color:inherit;font:inherit;text-align:left;cursor:pointer}
-.rtp-arch:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
-.rtp-arch.on{border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 40%,transparent);background:var(--dsw-alias-bg-layer-2)}
-.rtp-archtitle{font-size:14px;font-weight:500;color:var(--dsw-alias-label-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rtp-archmeta{display:flex;align-items:center;gap:5px;min-width:0}
-.rtp-ver{font-family:var(--dsw-font-family-mono);font-size:11.5px;color:var(--dsw-alias-label-tertiary);flex:0 0 auto}
-.rtp-archsum{font-size:12px;color:var(--dsw-alias-label-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.rtp-archgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px;max-width:100%}
+.rtp-arch{flex:0 1 auto;min-width:0;max-width:100%;height:27px;padding:0 10px;border-radius:8px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);font:inherit;font-size:13.5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-arch:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
+.rtp-arch.on{color:var(--dsw-alias-label-primary);font-weight:500;border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 40%,transparent);background:var(--dsw-alias-bg-layer-2)}
 .rtp-root{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .rtp-root textarea,.rtp-root input,.rtp-id,.rtp-rowtitle,.rtp-rowmeta,.rtp-rowmain,.rtp-annot,.rtp-empty{-webkit-user-select:text;user-select:text}
 .rtp-mem:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
@@ -816,7 +812,6 @@ window.__ModuleLoader__.load({
       const worklog = (state && state.worklog) || {}
       const cards = (state && state.cards) || []
       const runs = (state && state.runs) || []
-      const designs = (state && state.designs) || []
       const team = (state && state.team) || []
       const experimentSettings = (state && state.experimentSettings) || { approval: 'required' }
       const waiting = cards.filter((entry) => /waiting|in_review|blocked/i.test(entry.status))
@@ -903,23 +898,25 @@ window.__ModuleLoader__.load({
             ])
       ])
 
+      const archBrief = (entry) => {
+        const lines = [`${entry.title || entry.id} · v${entry.version}`]
+        if (entry.summary) lines.push(entry.summary)
+        else lines.push(CARD_KIND_LABELS[entry.kind] || '架构')
+        return lines
+      }
       const archChips = architectures.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' },
         architectures.map((entry) => h('button', {
           key: entry.id,
           type: 'button',
           className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}`,
-          title: entry.title,
+          'aria-label': archBrief(entry).join('; '),
           onClick: () => {
             setSelectedCard(entry.id)
             setSelectedNodes([])
-          }
-        }, [
-          h('span', { key: 't', className: 'rtp-archtitle' }, entry.title || entry.id),
-          h('span', { key: 'm', className: 'rtp-archmeta' }, [
-            h('span', { key: 'v', className: 'rtp-ver' }, `v${entry.version}`),
-            h('span', { key: 's', className: 'rtp-archsum' }, entry.summary || `${CARD_KIND_LABELS[entry.kind] || '架构'} · ${(entry.canvas && Array.isArray(entry.canvas.nodes) ? entry.canvas.nodes.length : 0)} 个节点`)
-          ].filter(Boolean))
-        ])))
+          },
+          onMouseEnter: (event) => openTip(event, archBrief(entry)),
+          onMouseLeave: () => setHover(null)
+        }, entry.title || entry.id)))
 
       const teamOn = team.filter((member) => String(member.status).toLowerCase() === 'running').length
       const teamPill = (status) => {
@@ -933,6 +930,24 @@ window.__ModuleLoader__.load({
           memberLabel(value)
         ].filter(Boolean))
       }
+      const openTip = (event, lines) => {
+        const rootEl = rootRef.current
+        if (rootEl === null) return
+        const rect = event.currentTarget.getBoundingClientRect()
+        const height = 104
+        const box = rootEl.getBoundingClientRect()
+        const width = Math.min(244, Math.max(160, box.width - 16))
+        const scrollTop = rootEl.scrollTop || 0
+        const anchor = rect.left - box.left + 21
+        const left = Math.max(8, Math.min(anchor - 26, box.width - width - 8))
+        const arrow = Math.max(12, Math.min(anchor - left - 5, width - 20))
+        const below = rect.bottom - box.top + scrollTop + 9
+        const top = below + height > box.height + scrollTop
+          ? Math.max(8, rect.top - box.top + scrollTop - height - 9)
+          : below
+        setHover({ lines, left, top, arrow })
+      }
+
       const teamSection = h(Section, {
         key: 'team',
         title: '团队',
@@ -946,30 +961,14 @@ window.__ModuleLoader__.load({
               key: member.id || member.name,
               className: `rtp-mem${member.role === 'lead' ? ' is-lead' : ''}`,
               'aria-label': memberBrief(member).replaceAll('\n', '; '),
-              onMouseEnter: (event) => {
-                const rootEl = rootRef.current
-                const rect = event.currentTarget.getBoundingClientRect()
-                const height = 104
-                if (rootEl === null) return
-                const box = rootEl.getBoundingClientRect()
-                const width = Math.min(244, Math.max(160, box.width - 16))
-                const scrollTop = rootEl.scrollTop || 0
-                const anchor = rect.left - box.left + 21
-                const left = Math.max(8, Math.min(anchor - 26, box.width - width - 8))
-                const arrow = Math.max(12, Math.min(anchor - left - 5, width - 20))
-                const below = rect.bottom - box.top + scrollTop + 9
-                const top = below + height > box.height + scrollTop
-                  ? Math.max(8, rect.top - box.top + scrollTop - height - 9)
-                  : below
-                setHover({ member, left, top, arrow })
-              },
+              onMouseEnter: (event) => openTip(event, memberBrief(member).split('\n')),
               onMouseLeave: () => setHover(null)
             }, [
               h('span', { key: 'av', className: `rtp-avatar${on ? ' is-on' : ''}` }, [
                 h('span', { key: 'ch' }, (member.name || '?').slice(0, 1)),
                 on ? h('span', { key: 'p', className: 'rtp-pulse' }) : null
               ].filter(Boolean)),
-              h('span', { key: 'nm', className: 'rtp-membername' }, member.role === 'lead' ? 'Lead' : member.name || '未命名成员'),
+              h('span', { key: 'nm', className: 'rtp-membername' }, member.name || '未命名成员'),
               h('span', { key: 'grow', style: { flex: '1 1 auto' } }),
               teamPill(member.status)
             ].filter(Boolean))
@@ -1096,28 +1095,13 @@ window.__ModuleLoader__.load({
             ])
           })))
 
-      const designsSection = h(Section, {
-        key: 'designs',
-        title: '设计',
-        count: designs.length === 0 ? 0 : designs.length
-      }, designs.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无设计文档')
-        : designs.map((entry) => h('div', { key: entry.name, className: 'rtp-row' }, [
-            h('div', { key: 'main', className: 'rtp-rowmain' }, [
-              h('div', { key: 't', className: 'rtp-rowtitle' }, [
-                h('span', { key: 'name', style: { fontFamily: 'var(--dsw-font-family-mono)', fontSize: '14px' } }, entry.name)
-              ]),
-              h('div', { key: 'm', className: 'rtp-rowmeta' }, [entry.question, entry.updated ? formatSince(entry.updated) : ''].filter(Boolean).join(' · '))
-            ])
-          ])))
-
       const body = state === null && error === ''
         ? h('div', { key: 'skel', className: 'rtp-section' }, [
             h('div', { key: 'a', className: 'rtp-skel', style: { width: '46%', height: '8px' } }),
             h('div', { key: 'b', className: 'rtp-skel', style: { width: '86%', height: '13px', marginTop: '12px' } }),
             h('div', { key: 'c', className: 'rtp-skel', style: { width: '64%', height: '10px', marginTop: '10px' } })
           ])
-        : [teamSection, archSection, cardsSection, runsSection, designsSection]
+        : [teamSection, archSection, cardsSection, runsSection]
 
       return h('div', { className: 'rtp-root', ref: rootRef }, [
         header,
@@ -1129,7 +1113,7 @@ window.__ModuleLoader__.load({
           style: { left: `${hover.left}px`, top: `${hover.top}px` }
         }, [
           h('span', { key: 'arrow', className: 'rtp-tiparrow', style: { left: `${hover.arrow}px` } }),
-          h('div', { key: 'lines', className: 'rtp-tipbody' }, memberBrief(hover.member).split('\n').map((line, index) => h('div', { key: `l${index}`, className: index === 0 ? 'rtp-tiptitle' : 'rtp-tipline' }, line)))
+          h('div', { key: 'lines', className: 'rtp-tipbody' }, hover.lines.map((line, index) => h('div', { key: `l${index}`, className: index === 0 ? 'rtp-tiptitle' : 'rtp-tipline' }, line)))
         ]),
         h('div', { key: 'footer', className: 'rtp-footer' }, [
           h('span', { key: 'live', className: 'rtp-live' }),
@@ -1169,7 +1153,7 @@ window.__ModuleLoader__.load({
         ctx.effect(() => service.registerTab({
           id: 'research-team:panel',
           title: '研究',
-          description: '团队状态：架构、工作项、实验与设计文档',
+          description: '团队状态：架构、工作项与实验',
           order: 40,
           single: true,
           component: (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })

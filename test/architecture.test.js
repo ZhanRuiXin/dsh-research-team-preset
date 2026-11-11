@@ -6,6 +6,9 @@ import test from 'node:test'
 
 import {
   buildPanelState,
+  finishRun,
+  registerRun,
+  startRun,
   listArchitectureCards,
   normalizeArchitectureCard,
   readArchitectureCard,
@@ -179,4 +182,35 @@ test('experiment settings and run approval persist to disk', () => {
   assert.equal(stored.approval.by, 'user')
   assert.match(setRunApproval(root, '../escape', 'approved').error, /invalid run id/)
   assert.match(setRunApproval(root, 'missing', 'approved').error, /no manifest/)
+})
+
+test('experiments move through the lifecycle through the tool functions', () => {
+  const root = makeRoot()
+  const registered = registerRun(root, {
+    run: 'exp-1',
+    question: 'does the gate improve DICE',
+    seeds: '4',
+    budget: '2 GPU-hours',
+    decisionRule: 'kill below 0.88 at the pilot'
+  })
+  assert.equal(registered.state, 'awaiting_approval')
+  assert.match(registerRun(root, { run: 'exp-1' }).error, /already exists/)
+  assert.match(startRun(root, { run: 'exp-1' }).error, /needs the user's approval/)
+
+  setRunApproval(root, 'exp-1', 'approved')
+  assert.equal(buildPanelState(root).runs[0].state, 'approved')
+
+  assert.equal(startRun(root, { run: 'exp-1' }).state, 'running')
+  const running = buildPanelState(root).runs[0]
+  assert.equal(running.running, true)
+  assert.equal(running.state, 'running')
+
+  assert.equal(finishRun(root, { run: 'exp-1', state: 'stopped', reason: 'kill criterion hit' }).state, 'stopped')
+  const stopped = buildPanelState(root).runs[0]
+  assert.equal(stopped.state, 'stopped')
+  assert.equal(stopped.running, false)
+  assert.equal(stopped.reason, 'kill criterion hit')
+  assert.match(startRun(root, { run: 'exp-1' }).error, /already stopped/)
+  assert.match(finishRun(root, { run: 'missing', state: 'completed' }).error, /no manifest/)
+  assert.match(finishRun(root, { run: 'exp-1', state: 'nonsense' }).error, /must be completed, stopped or failed/)
 })

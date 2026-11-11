@@ -194,6 +194,11 @@ window.__ModuleLoader__.load({
 
     function statusTone(status) {
       const value = String(status ?? '').toLowerCase()
+      if (value === 'awaiting_approval' || value === 'planned') return 'var(--dsw-alias-state-warn-primary)'
+      if (value === 'approved') return 'var(--dsw-alias-state-success-primary)'
+      if (value === 'completed') return 'var(--dsw-alias-state-success-primary)'
+      if (value === 'stopped') return 'var(--dsw-alias-label-secondary)'
+      if (value === 'rejected' || value === 'failed') return 'var(--dsw-alias-state-error-primary)'
       if (value === 'in_progress' || value === 'running') return 'var(--dsw-alias-brand-primary)'
       if (value === 'blocked' || value === 'failed') return 'var(--dsw-alias-state-error-primary)'
       if (value === 'in_review' || value === 'waiting') return 'var(--dsw-alias-state-warn-primary)'
@@ -202,8 +207,15 @@ window.__ModuleLoader__.load({
     }
 
     const STATUS_LABELS = {
-      in_progress: '进行中',
+      planned: '已登记',
+      awaiting_approval: '待批准',
+      approved: '已批准待启动',
       running: '运行中',
+      completed: '已完成',
+      stopped: '已停止',
+      failed: '失败',
+      rejected: '已拒绝',
+      in_progress: '进行中',
       in_review: '待确认',
       blocked: '阻塞',
       todo: '待办',
@@ -909,17 +921,20 @@ window.__ModuleLoader__.load({
       }, runs.length === 0
         ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前没有实验记录。运行开始前写 runs/<line>/manifest.json。')
         : h('div', { key: 'list', className: 'rtp-exp' }, runs.map((entry) => {
-            const pending = entry.approval === 'pending'
+            const state = entry.state === undefined ? entry.status : entry.state
+            const pending = state === 'awaiting_approval'
             const elapsed = formatElapsed(entry.elapsedMs)
+            const timed = state === 'running' ? `已进行 ${elapsed}` : state === 'completed' || state === 'stopped' || state === 'failed' ? `用时 ${elapsed}` : ''
             const meta = [
-              entry.running ? '进行中' : statusLabel(entry.status),
-              elapsed === '' ? '' : entry.running ? `已进行 ${elapsed}` : `用时 ${elapsed}`,
+              statusLabel(state),
+              elapsed === '' ? '' : timed,
               entry.seeds ? `seed ${entry.seeds}` : '',
               entry.budget ? `预算 ${entry.budget}` : '',
-              entry.approval === 'approved' ? '已批准' : entry.approval === 'rejected' ? '已拒绝' : ''
+              state === 'stopped' || state === 'failed' ? entry.reason || '' : '',
+              entry.approval === 'approved' && state !== 'approved' ? '已批准' : entry.approval === 'rejected' ? '已拒绝' : ''
             ].filter(Boolean).join(' · ')
             return h('div', { key: entry.name, className: 'rtp-row' }, [
-              h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
+              h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(state) } }),
               h('div', { key: 'main', className: 'rtp-rowmain' }, [
                 h('div', { key: 't', className: 'rtp-rowtitle' }, [
                   h('span', { key: 'name', style: { fontFamily: 'var(--dsw-font-family-mono)', fontSize: '14px' } }, entry.name),
@@ -937,11 +952,11 @@ window.__ModuleLoader__.load({
                     className: 'rtp-chip',
                     style: {
                       flexShrink: 0,
-                      color: statusTone(entry.status),
+                      color: statusTone(state),
                       borderColor: 'color-mix(in srgb,currentColor 30%,transparent)',
                       background: 'color-mix(in srgb,currentColor 9%,transparent)'
                     }
-                  }, entry.running ? '进行中' : statusLabel(entry.status))
+                  }, statusLabel(state))
             ])
           })))
 

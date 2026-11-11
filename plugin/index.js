@@ -196,6 +196,27 @@ export function checkScope(role, files, envelopes = WRITE_ENVELOPES) {
   return { role, allowed, violations, ok: violations.length === 0, envelope }
 }
 
+export function renderExperiment(value) {
+  if (value === undefined || value === null) return 'research_experiment: no result'
+  if (typeof value.error === 'string') return `research_experiment: ${value.error}`
+  if (Array.isArray(value.runs)) {
+    const total = value.runs.length
+    if (total === 0) return 'research_experiment: no runs recorded under runs/.'
+    const lines = value.runs.map((run) => {
+      const approval = run.approval === undefined ? '' : ` · ${run.approval}`
+      return `- ${run.name}: ${run.state}${approval}${run.seeds === '' ? '' : ` · seeds ${run.seeds}`}`
+    })
+    return `research_experiment: ${total} run(s), newest first\n${lines.join('\n')}`
+  }
+  const parts = []
+  if (typeof value.run === 'string') parts.push(`run ${value.run}`)
+  if (typeof value.state === 'string') parts.push(value.state)
+  if (typeof value.approval === 'string') parts.push(`approval ${value.approval}`)
+  if (typeof value.startedAt === 'string') parts.push(`started ${value.startedAt}`)
+  if (typeof value.finishedAt === 'string') parts.push(`finished ${value.finishedAt}`)
+  return `research_experiment: ${parts.join(' · ') || 'done'}`
+}
+
 function renderScope(value) {
   if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
     return [{ type: 'text', text: value.error }]
@@ -418,6 +439,129 @@ export function writeExperimentSettings(root, settings) {
   return { approval }
 }
 
+export const EXPERIMENT_STATES = Object.freeze([
+  'planned',
+  'awaiting_approval',
+  'approved',
+  'running',
+  'completed',
+  'stopped',
+  'failed',
+  'rejected'
+])
+
+const TERMINAL_RUN_STATES = new Set(['completed', 'stopped', 'failed', 'rejected'])
+
+function validRunId(value) {
+  const id = String(value ?? '')
+  return /^[A-Za-z0-9._-]+$/.test(id) && id !== '.' && id !== '..' ? id : ''
+}
+
+export function deriveRunState(parsed, settings) {
+  const raw = typeof parsed?.state === 'string' ? parsed.state.toLowerCase() : ''
+  if (EXPERIMENT_STATES.includes(raw)) return raw
+  const status = String(parsed?.status ?? '').toLowerCase()
+  const approval = typeof parsed?.approval === 'object' && parsed.approval !== null ? parsed.approval.state : ''
+  if (/fail|error|crash|异常/.test(status)) return 'failed'
+  if (/stop|kill|abort|halt|终止|停止/.test(status)) return 'stopped'
+  if (/done|complete|finish|success|完成/.test(status)) return 'completed'
+  if (/run|active|in_progress|进行中|运行/.test(status)) return 'running'
+  if (approval === 'rejected') return 'rejected'
+  if (typeof parsed?.finishedAt === 'string' && !Number.isNaN(Date.parse(parsed.finishedAt))) return 'completed'
+  if (approval === 'approved' || approval === 'auto') return 'approved'
+  return settings?.approval === 'auto' ? 'planned' : 'awaiting_approval'
+}
+
+function writeRunManifest(root, id, manifest) {
+  const dir = path.join(root, 'runs', id)
+  fs.mkdirSync(dir, { recursive: true })
+  const file = path.join(dir, 'manifest.json')
+  const temp = `${file}.tmp-${process.pid}`
+  fs.writeFileSync(temp, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+  fs.renameSync(temp, file)
+  return { ok: true, run: id }
+}
+
+function readRunManifest(root, id) {
+  const file = path.join(root, 'runs', id, 'manifest.json')
+  const text = readTextFile(file)
+  if (text === '') return undefined
+  try {
+    const parsed = JSON.parse(text)
+    return parsed !== null && typeof parsed === 'object' ? parsed : undefined
+  } catch {
+    return undefined
+  }
+}
+
+export function registerRun(root, input = {}) {
+  const id = validRunId(input.run)
+  if (id === '') return { error: 'run id must match [A-Za-z0-9._-]' }
+  if (readRunManifest(root, id) !== undefined) return { error: `run "${id}" already exists` }
+  const settings = readExperimentSettings(root)
+  const auto = settings.approval === 'auto'
+  const now = new Date().toISOString()
+  const manifest = {
+    run: id,
+    status: 'planned',
+    state: auto ? 'approved' : 'awaiting_approval',
+    question: String(input.question ?? ''),
+    hypothesis: String(input.hypothesis ?? ''),
+    decisionRule: String(input.decisionRule ?? ''),
+    seeds: String(input.seeds ?? ''),
+    budget: String(input.budget ?? ''),
+    createdAt: now,
+    approval: auto ? { state: 'auto', at: now, by: 'policy' } : { state: 'pending' }
+  }
+  writeRunManifest(root, id, manifest)
+  return { run: id, state: manifest.state, approval: manifest.approval.state }
+}
+
+export function startRun(root, input = {}) {
+  const id = validRunId(input.run)
+  if (id === '') return { error: 'run id must match [A-Za-z0-9._-]' }
+  const manifest = readRunManifest(root, id)
+  if (manifest === undefined) return { error: `run "${id}" has no manifest; register it first` }
+  const settings = readExperimentSettings(root)
+  const state = deriveRunState(manifest, settings)
+  if (state === 'running') return { error: `run "${id}" is already running` }
+  if (TERMINAL_RUN_STATES.has(state)) return { error: `run "${id}" is already ${state}` }
+  const approval = typeof manifest.approval === 'object' && manifest.approval !== null ? manifest.approval.state : ''
+  if (settings.approval === 'required' && approval !== 'approved' && approval !== 'auto') {
+    return { error: `run "${id}" is ${state}; it needs the user's approval before it can start` }
+  }
+  const startedAt = typeof manifest.startedAt === 'string' ? manifest.startedAt : new Date().toISOString()
+  const next = { ...manifest, state: 'running', status: 'running', startedAt }
+  if (approval === 'auto') next.approval = { ...(manifest.approval ?? {}), state: 'auto' }
+  writeRunManifest(root, id, next)
+  return { run: id, state: 'running', startedAt }
+}
+
+export function finishRun(root, input = {}) {
+  const id = validRunId(input.run)
+  if (id === '') return { error: 'run id must match [A-Za-z0-9._-]' }
+  const state = String(input.state ?? '')
+  if (!['completed', 'stopped', 'failed'].includes(state)) {
+    return { error: 'state must be completed, stopped or failed' }
+  }
+  const manifest = readRunManifest(root, id)
+  if (manifest === undefined) return { error: `run "${id}" has no manifest` }
+  const settings = readExperimentSettings(root)
+  const current = deriveRunState(manifest, settings)
+  if (current !== 'running') return { error: `run "${id}" is ${current}, not running` }
+  const finishedAt = new Date().toISOString()
+  const next = {
+    ...manifest,
+    state,
+    status: state,
+    finishedAt,
+    reason: String(input.reason ?? ''),
+    evidence: String(input.evidence ?? '')
+  }
+  writeRunManifest(root, id, next)
+  return { run: id, state, finishedAt }
+}
+
 export function setRunApproval(root, runId, decision) {
   const id = String(runId ?? '')
   if (!/^[A-Za-z0-9._-]+$/.test(id) || id === '.' || id === '..') return { error: 'invalid run id' }
@@ -431,7 +575,19 @@ export function setRunApproval(root, runId, decision) {
     return { error: `run "${id}" has an unreadable manifest` }
   }
   if (parsed === null || typeof parsed !== 'object') return { error: `run "${id}" has an unreadable manifest` }
-  const next = { ...parsed, approval: { state: decision, at: new Date().toISOString(), by: 'user' } }
+  const settings = readExperimentSettings(root)
+  const derived = deriveRunState(parsed, settings)
+  const lifecycle =
+    decision === 'rejected'
+      ? 'rejected'
+      : derived === 'awaiting_approval' || derived === 'planned' || derived === 'approved'
+        ? 'approved'
+        : derived
+  const next = {
+    ...parsed,
+    state: lifecycle,
+    approval: { state: decision, at: new Date().toISOString(), by: 'user' }
+  }
   const temp = `${file}.tmp-${process.pid}`
   fs.writeFileSync(temp, `${JSON.stringify(next, null, 2)}\n`, 'utf8')
   fs.renameSync(temp, file)
@@ -475,23 +631,28 @@ export function buildPanelState(root) {
       const startedAt = typeof parsed.startedAt === 'string' ? Date.parse(parsed.startedAt) : modified
       const finishedAt = typeof parsed.finishedAt === 'string' ? Date.parse(parsed.finishedAt) : NaN
       const status = typeof parsed.status === 'string' ? parsed.status : ''
-      const open = Number.isNaN(finishedAt) && /run|active|in_progress|planned|pending/i.test(status)
-      const end = Number.isNaN(finishedAt) ? (open ? now : NaN) : finishedAt
+      const state = deriveRunState(parsed, settings)
+      const running = state === 'running'
+      const measured = running ? now : finishedAt
+      const end = Number.isNaN(measured) ? NaN : measured
+      let approval
+      if (typeof parsed.approval === 'object' && parsed.approval !== null && typeof parsed.approval.state === 'string') {
+        approval = parsed.approval.state
+      } else {
+        approval = settings.approval === 'auto' ? 'auto' : 'pending'
+      }
       runs.push({
         name,
         status,
+        state,
+        reason: typeof parsed.reason === 'string' ? parsed.reason : '',
         seeds: typeof parsed.seeds === 'string' ? parsed.seeds : '',
         budget: typeof parsed.budget === 'string' ? parsed.budget : '',
         startedAt: Number.isNaN(startedAt) ? '' : new Date(startedAt).toISOString(),
         finishedAt: Number.isNaN(finishedAt) ? '' : new Date(finishedAt).toISOString(),
         elapsedMs: Number.isNaN(startedAt) || Number.isNaN(end) ? 0 : Math.max(0, end - startedAt),
-        running: open,
-        approval:
-          typeof parsed.approval === 'object' && parsed.approval !== null && typeof parsed.approval.state === 'string'
-            ? parsed.approval.state
-            : settings.approval === 'auto'
-              ? 'auto'
-              : 'pending'
+        running,
+        approval
       })
     }
   } catch {}
@@ -913,7 +1074,54 @@ export function apply(ctx) {
     }
   })
 
+  const disposeExperiment = ctx.tools.register({
+    name: 'research_experiment',
+    description:
+      'Record and drive one experiment through its lifecycle instead of hand-editing runs/<run>/manifest.json. ops: list, get, register, start, finish. register writes the manifest with the decision rule, seeds and budget, and puts the run in awaiting_approval (or approved when the project mode is auto). start refuses until the user approved the run, then records startedAt and state running. finish closes the run as completed, stopped or failed with a reason and evidence. The sidebar reads the same file.',
+    parameters: {
+      type: 'object',
+      properties: {
+        op: { type: 'string', enum: ['list', 'get', 'register', 'start', 'finish'], description: 'What to do.' },
+        run: { type: 'string', description: 'Run id, [A-Za-z0-9._-] characters.' },
+        question: { type: 'string', description: 'register: the question this run settles.' },
+        hypothesis: { type: 'string', description: 'register: the hypothesis under test.' },
+        decisionRule: { type: 'string', description: 'register: the pre-registered expected outcome, kill criterion and effect size.' },
+        seeds: { type: 'string', description: 'register: planned seeds, e.g. 4.' },
+        budget: { type: 'string', description: 'register: compute budget, e.g. 6 GPU-hours.' },
+        state: { type: 'string', enum: ['completed', 'stopped', 'failed'], description: 'finish: terminal state.' },
+        reason: { type: 'string', description: 'finish: why it ended, especially for stopped or failed.' },
+        evidence: { type: 'string', description: 'finish: where the numbers are (log, table, summary path).' }
+      },
+      required: ['op'],
+      additionalProperties: false
+    },
+    output: {
+      schema: {},
+      render(_args, value) {
+        return renderExperiment(value)
+      }
+    },
+    async execute(args, exec) {
+      const cwd = exec?.agent?.session?.header?.cwd
+      if (typeof cwd !== 'string' || cwd.length === 0) return { error: 'cannot resolve the project directory' }
+      const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
+      const root = workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0 ? workspace.path : cwd
+      const op = typeof args.op === 'string' ? args.op : ''
+      if (op === 'list') return { runs: buildPanelState(root).runs }
+      if (op === 'get') {
+        const id = String(args.run ?? '')
+        const manifest = readRunManifest(root, id)
+        return manifest === undefined ? { error: `run "${id}" has no manifest` } : manifest
+      }
+      if (op === 'register') return registerRun(root, args)
+      if (op === 'start') return startRun(root, args)
+      if (op === 'finish') return finishRun(root, args)
+      return { error: `Unknown op "${op}"; expected list, get, register, start or finish.` }
+    }
+  })
+
   return () => {
+    disposeExperiment()
     disposeArchitecture()
     disposePanel()
     disposeScope()

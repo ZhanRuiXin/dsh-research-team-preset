@@ -176,6 +176,8 @@ Das Preset fuegt der rechten Seitenleiste einen Tab "Forschung" hinzu. Er beantw
 
 Architekturkarten sind Knoten-Kanten-Diagramme als JSON unter `.research/architecture/`, eine Datei pro Karte. Der Agent liest und aktualisiert sie mit dem Werkzeug `research_architecture`, damit das Diagramm mit dem Design Schritt hält statt in einer Folie zu veralten. Eine Karte wird im Panel als SVG gerendert; ein Auswahlrahmen über Knoten wählt sie aus, und die Notiz, die du schreibst, wird als Anmerkung an der Karte gespeichert, die der Agent vor seiner Antwort liest. Der Tab registriert sich über `dsh-better-sidebar`, wenn dieses Plugin installiert ist, und sonst über die native rechte Seitenleiste.
 
+Der Versuchsbereich listet die Laeufe neueste zuerst und zeigt, wie lange ein Lauf laeuft oder gelaufen ist. Jeder Lauf folgt einem festen Lebenszyklus (geplant, wartet auf Genehmigung, genehmigt, laeuft, abgeschlossen, gestoppt, fehlgeschlagen, abgelehnt) und wird ueber `research_experiment` gesteuert: register schreibt Entscheidungsregel, Seeds und Budget, start verweigert ohne Genehmigung, finish notiert abgeschlossen, gestoppt oder fehlgeschlagen mit Begruendung. Der Abschnittskopf hat einen Schalter (Genehmigung erforderlich / automatisch); ein wartender Lauf zeigt Genehmigen und Ablehnen, deren Antwort im Manifest landet, und die Liste scrollt in ihrem Rahmen.
+
 
 Das Panel ist ein eigenes Modul unter `panel/`, getrennt vom Einstellungsformular, und lässt sich einzeln aktivieren oder deaktivieren. Es erscheint als Tab der rechten Seitenleiste in jeder Unterhaltung.
 

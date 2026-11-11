@@ -176,6 +176,8 @@ Le preset ajoute un onglet « Recherche » a la barre laterale droite. Il repond
 
 Les cartes d'architecture sont des diagrammes nœuds-liens stockés en JSON sous `.research/architecture/`, un fichier par carte. L'agent les lit et les met à jour avec l'outil `research_architecture`, afin que le diagramme suive la conception au lieu de dériver dans une diapositive. Une carte est rendue en SVG dans le panneau ; un cadre de sélection sur les nœuds les sélectionne, et la note que vous écrivez est enregistrée sur la carte comme annotation que l'agent lit avant de répondre. L'onglet s'enregistre via `dsh-better-sidebar` lorsque ce plugin est installé, sinon via la barre latérale droite native.
 
+La section des experiences liste les executions de la plus recente a la plus ancienne et indique depuis combien de temps elles tournent ou combien de temps elles ont pris. Chaque execution suit un cycle de vie explicite (planifiee, en attente d'approbation, approuvee, en cours, terminee, arretee, echouee ou rejetee) que l'outil `research_experiment` fait avancer : register ecrit la regle, les graines et le budget, start refuse sans approbation et finish note terminee, arretee ou echouee avec le motif. L'en-tete propose un selecteur (approbation requise / automatique) ; une execution en attente affiche approuver et rejeter, dont la reponse est ecrite dans son manifest, et la liste defile dans sa zone.
+
 
 Le panneau est un module à part sous `panel/`, séparé du formulaire de réglages, activable ou désactivable indépendamment. Il apparaît comme onglet de la barre latérale droite dans chaque conversation.
 

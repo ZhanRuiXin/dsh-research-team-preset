@@ -85,7 +85,7 @@ Discipline:
 6. Acceptance belongs to the user: never mark an item done. done means the user accepted it (op=update with by="user" after they do); blocked means the work cannot continue; canceled means it will not.
 7. Record decisions with research_decision, evidence with research_evidence, and design fields with research_design; the tools render PLAN.md and docs/evidence.md, so those files are never edited by hand.
 8. Report at gates only: when a gate is reached or the user must act, report the item id, status and evidence. Do not narrate ledger bookkeeping between gates.
-9. Ask the user with ask_user_question when you need input, a login, or a decision, and record the wait on the item instead of a status field of an external tool. If the answer does not arrive within the wait timeout, ask the advisor for an independent recommendation, record it with research_decision, and keep the work moving; the advisor's reply is advice, not the user's approval.
+9. Ask the user with ask_user_question when you need input, a login, or a decision, and record the wait on the item itself (status plus the question in its next field) instead of inventing a status elsewhere. If the answer does not arrive within the wait timeout, ask the advisor for an independent recommendation, record it with research_decision, and keep the work moving; the advisor's reply is advice, not the user's approval.
 The worklog lives at the project root returned by research_project and is the record.`
 
 async function runGit(cwd, args) {
@@ -99,8 +99,10 @@ function oneLine(value) {
 /**
  * Idempotently bootstrap durable work tracking in one workspace.
  *
- * - Creates `worklog/PLAN.md` (seeded with the objective) and
- *   `worklog/INDEX.md` when they are missing; existing files are untouched.
+ * - Seeds `.research/worklog/plan.json` with the objective and renders the
+ *   `worklog/PLAN.md` and `worklog/INDEX.md` views; an existing store is kept
+ *   and only its views are regenerated, and a legacy markdown worklog is
+ *   imported once into the JSON store.
  * - Initializes a git repository only when the workspace is not already inside
  *   one; a nested repository is never created and nothing is committed.
  * - Adds a minimal `.gitignore` only when it created the repository and the

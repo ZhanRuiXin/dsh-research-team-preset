@@ -243,6 +243,24 @@ window.__ModuleLoader__.load({
       return MEMBER_LABELS[value] || '空闲'
     }
 
+    function memberBrief(member) {
+      const lines = []
+      const role = member.role === 'lead' ? 'Lead' : '成员'
+      lines.push(`${member.name || '未命名成员'} · ${role} · ${memberLabel(member.status)}`)
+      const item = member.item
+      if (item !== null && item !== undefined) {
+        const when = item.updated ? `（${formatSince(item.updated)}更新）` : ''
+        lines.push(`${memberLabel(member.status) === '运行中' ? '正在' : '上次'}：#${item.id} ${item.title}${when}`)
+        lines.push(`状态：${statusLabel(item.status)}`)
+        if (item.next) lines.push(`下一步：${item.next}`)
+      } else {
+        lines.push('未分配工作项')
+      }
+      const model = shortModel(member.model)
+      if (model !== '') lines.push(`模型：${model}`)
+      return lines.join('\n')
+    }
+
     function shortModel(model) {
       const text = String(model ?? '')
       if (text === '') return ''
@@ -315,6 +333,9 @@ window.__ModuleLoader__.load({
 .rtp-rolechip{flex:0 0 auto;display:inline-flex;align-items:center;height:17px;padding:0 5px;border-radius:4px;font-size:11.5px;font-weight:500;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-tertiary)}
 .rtp-memmeta{display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;font-size:12px;color:var(--dsw-alias-label-tertiary)}
 .rtp-memitem{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-tip{position:fixed;z-index:80;max-width:252px;padding:8px 10px;border-radius:9px;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2);font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary);pointer-events:none}
+.rtp-tiptitle{margin-bottom:3px;font-size:12.5px;font-weight:600;color:var(--dsw-alias-label-primary)}
+.rtp-tipline{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:232px}
 .rtp-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:500;border:.5px solid transparent}
 .rtp-pill.on{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 30%,transparent)}
 .rtp-pill.off{color:var(--dsw-alias-label-tertiary);background:var(--dsw-alias-bg-layer-2);border-color:var(--dsw-alias-border-l1)}
@@ -733,6 +754,7 @@ window.__ModuleLoader__.load({
       const [note, setNote] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [toast, setToast] = React.useState('')
+      const [hover, setHover] = React.useState(null)
 
       React.useEffect(() => { ensurePanelStyles() }, [])
 
@@ -891,13 +913,10 @@ window.__ModuleLoader__.load({
             return h('div', {
               key: member.id || member.name,
               className: `rtp-mem${member.role === 'lead' ? ' is-lead' : ''}`,
-              title: [
-                member.role === 'lead' ? `${member.name}（Lead）` : member.name,
-                model,
-                member.item === null || member.item === undefined
-                  ? '未分配工作项'
-                  : `${member.item.id} · ${member.item.title}（${statusLabel(member.item.status)}）`
-              ].filter(Boolean).join(' · ')
+              'aria-label': memberBrief(member).replaceAll('\n', '; '),
+              onMouseEnter: (event) => setHover({ member, x: event.clientX, y: event.clientY }),
+              onMouseMove: (event) => setHover((current) => current === null || current.member !== member ? current : { member, x: event.clientX, y: event.clientY }),
+              onMouseLeave: () => setHover(null)
             }, [
               h('span', { key: 'av', className: `rtp-avatar${on ? ' is-on' : ''}` }, [
                 h('span', { key: 'ch' }, (member.name || '?').slice(0, 1)),
@@ -1077,6 +1096,14 @@ window.__ModuleLoader__.load({
         header,
         error === '' ? null : h('div', { key: 'error', className: 'rtp-error' }, error),
         ...(Array.isArray(body) ? body : [body]),
+        hover === null ? null : h('div', {
+          key: 'tip',
+          className: 'rtp-tip',
+          style: {
+            left: `${Math.min(hover.x + 12, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 268)}px`,
+            top: `${Math.min(hover.y + 14, (typeof window !== 'undefined' ? window.innerHeight : 900) - 150)}px`
+          }
+        }, memberBrief(hover.member).split('\n').map((line, index) => h('div', { key: `l${index}`, className: index === 0 ? 'rtp-tiptitle' : 'rtp-tipline' }, line))),
         h('div', { key: 'footer', className: 'rtp-footer' }, [
           h('span', { key: 'live', className: 'rtp-live' }),
           h('span', { key: 'fresh' }, state === null ? '正在连接…' : `更新于 ${fresh} · 每 5 秒刷新`),

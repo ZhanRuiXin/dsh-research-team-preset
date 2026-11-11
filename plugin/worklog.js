@@ -440,6 +440,34 @@ export function gateItem(root, input = {}) {
   })
 }
 
+/**
+ * The user's own decision on a gated item, taken from the Research panel:
+ * `accept` moves it to done, `return` sends it back to in_progress with the reason.
+ * The model cannot take this action through its tools.
+ * @param {string} root
+ * @param {{ id?: string, decision?: string, reason?: string }} input
+ */
+export function decideItem(root, input = {}) {
+  const id = validItemId(input.id)
+  if (id === undefined) return { error: 'id must match [A-Za-z0-9][A-Za-z0-9._-]{0,63}' }
+  const previous = readItem(root, id)
+  if (previous === undefined) return { error: `no work item "${id}"` }
+  if (previous.status !== 'in_review') {
+    return { error: `"${id}" is ${previous.status}; only an item in in_review can be accepted or returned` }
+  }
+  const decision = input.decision
+  if (decision !== 'accept' && decision !== 'return') {
+    return { error: 'decision must be "accept" or "return"' }
+  }
+  return upsertItem(root, {
+    ...previous,
+    id,
+    status: decision === 'accept' ? 'done' : 'in_progress',
+    by: 'user',
+    next: decision === 'return' ? short(input.reason ?? '退回：补充后再提交', 200) : previous.next
+  })
+}
+
 export function appendDecision(root, input = {}) {
   const decision = short(input.decision, 400)
   if (decision === '') return { error: 'decision is required' }

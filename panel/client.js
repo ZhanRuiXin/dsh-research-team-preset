@@ -842,6 +842,10 @@ window.__ModuleLoader__.load({
         postPanel({ op: 'approval-mode', mode }, mode === 'auto' ? '实验审批方式已设为自动审批。' : '实验审批方式已设为需要审批。')
       }
 
+      function decideItem(itemId, decision) {
+        postPanel({ op: 'item', itemId, decision }, decision === 'accept' ? '工作项已确认完成。' : '工作项已退回进行中。')
+      }
+
       function decideRun(runId, decision) {
         postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? '实验已批准。' : '实验已拒绝。')
       }
@@ -1026,11 +1030,16 @@ window.__ModuleLoader__.load({
               h('div', { key: 'm', className: 'rtp-rowmeta' },
                 [entry.owner ? `@${entry.owner}` : '', entry.next ? `下一步 ${entry.next}` : '', entry.updated ? formatSince(entry.updated) : ''].filter(Boolean).join(' · ') || statusLabel(entry.status))
             ]),
-            h('span', {
-              key: 'chip',
-              className: 'rtp-chip',
-              style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
-            }, statusLabel(entry.status))
+            entry.status === 'in_review'
+              ? h('span', { key: 'decide', style: { display: 'flex', gap: '5px' } }, [
+                  h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: () => decideItem(entry.id, 'accept') }, '确认完成'),
+                  h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: () => decideItem(entry.id, 'return') }, '退回')
+                ])
+              : h('span', {
+                  key: 'chip',
+                  className: 'rtp-chip',
+                  style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
+                }, statusLabel(entry.status))
           ])))
 
       const approvalSelect = h('select', {

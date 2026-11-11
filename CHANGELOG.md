@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The Research panel gives every `in_review` work item 确认完成 and 退回 buttons: acceptance is the user's click, and the worklog tool now refuses `status: done` from the model.
+
 - Work items now follow a fixed status table (`todo -> in_progress -> in_review -> done`, with `blocked` and `canceled` as side states): `blocked` requires a reason, a gate requires at least one evidence entry or a noted checklist item, every move is kept in the item history, and the translated READMEs were updated to the JSON worklog.
 
 - The Research panel now opens with the live team roster, laid out as a compact two-column grid instead of one full row per member: the avatar shows the member's initial, a pulsing dot marks a running member, and each tile carries the name, a Lead accent, and a status pill (运行中 / 空闲 / 启动中 / 失败); hovering a tile opens a small card with what that member is doing — its current work item, that item's status and next step, when it was last updated, and the model — and the section header counts running members.

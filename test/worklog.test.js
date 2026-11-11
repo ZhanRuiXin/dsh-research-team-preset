@@ -14,6 +14,7 @@ const {
   appendDecision,
   appendEvidence,
   claimItem,
+  decideItem,
   gateItem,
   listDecisions,
   listEvidence,
@@ -153,4 +154,27 @@ test('items list in status order and legacy rows are readable without JSON', (t)
   const rows = listItems(legacy)
   assert.equal(rows[0].id, 't-old')
   assert.equal(rows[0].status, 'blocked')
+})
+
+test('only the user accepts a gated item, and a return sends it back with the reason', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 't-accept', title: 'Acceptance', owner: 'builder' })
+  claimItem(dir, { id: 't-accept', owner: 'builder' })
+  gateItem(dir, { id: 't-accept', evidence: ['README diff checked'] })
+
+  const early = decideItem(dir, { id: 't-accept', decision: 'accept' })
+  assert.equal(early.error, undefined)
+  assert.equal(early.item.status, 'done')
+  assert.equal(early.item.by, undefined)
+
+  const again = decideItem(dir, { id: 't-accept', decision: 'accept' })
+  assert.match(again.error, /only an item in in_review/)
+
+  upsertItem(dir, { id: 't-send', title: 'Returned', owner: 'builder' })
+  claimItem(dir, { id: 't-send', owner: 'builder' })
+  gateItem(dir, { id: 't-send', evidence: ['numbers reproduced'] })
+  const back = decideItem(dir, { id: 't-send', decision: 'return', reason: '缺少对照基线' })
+  assert.equal(back.item.status, 'in_progress')
+  assert.equal(back.item.next, '缺少对照基线')
+  assert.deepEqual(back.item.history.at(-1).to, 'in_progress')
 })

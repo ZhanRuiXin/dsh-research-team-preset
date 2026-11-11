@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The worklog is now a JSON store under `.research/worklog/` (`plan.json` and one `items/<id>.json` per item) with generated markdown views, and new tools own it: `research_worklog` (init, list, get, update, claim, gate, plan), `research_state`, `research_decision`, `research_evidence` and `research_design`. `research_workspace_init` imports a legacy markdown plan and index once, then regenerates the views.
+
 - Experiments follow an explicit lifecycle (planned, awaiting approval, approved, running, completed, stopped, failed, rejected) driven by the new `research_experiment` tool (register, start, finish) instead of hand-edited manifests. The section also gained an approval switch (requires approval / auto), per-run approve and reject buttons that write into the run's manifest, elapsed or total run time, newest-first ordering, completed runs, and an internal scrollbar when the list grows.
 
 - The team records everything in its own worklog: `worklog/PLAN.md`, `worklog/INDEX.md` and one card file per gated item are the only ledger, the injected worklog protocol and and the persona coordination section were rewritten for it; the optional integrations list now names only Zotero and Mnemon, and the `presetId` wiring was removed from the README and the eleven translations.

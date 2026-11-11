@@ -185,6 +185,8 @@ Lead가 실행을 승인하고, runner는 기록이 없으면 시작을 거부�
 
 ## 작업 로그와 협업
 
+작업 로그는 `.research/worklog/` 아래 JSON으로 저장됩니다. `plan.json`에는 목표, 마일스톤, 다음 단계가, 각 작업 항목에는 `items/<id>.json`(제목, 소유자, 상태, kind, 다음 단계, 차단, 근거, 체크리스트)이 들어갑니다. `worklog/PLAN.md`, `worklog/INDEX.md`, `worklog/<id>.md`는 생성된 보기일 뿐입니다. 읽고 쓰기는 `research_worklog`(init, list, get, update, claim, gate, plan), 결정·근거·설계 필드는 `research_decision`, `research_evidence`, `research_design`, 전체 상태는 `research_state`로 합니다.
+
 프리셋은 오른쪽 사이드바에 "연구" 탭을 추가합니다. 팀이 지금 무엇을 하는지, 어디서 막혔는지, 다음 단계가 무엇인지를 보여줍니다: `worklog/PLAN.md`의 목표와 마일스톤, `worklog/INDEX.md`의 활성 작업 항목, 최근 실행, 설계 문서, 아키텍처 카드.
 
 게이트에서 담당자는 증거가 있는 체크리스트, 실행 요약, 커밋 범위, 다음 행동을 카드 파일에 쓰고, 변경된 경로에 `research_scope_check`를 실행한 뒤 상태를 `in_review`로 바꿉니다. reviewer는 증거와 함께 PASS/FAIL을 씁니다. Lead는 게이트에 도달했을 때나 사용자가 판단해야 할 때만 카드 id, 상태, 증거를 보고합니다. `done`은 사용자의 승인만 설정할 수 있습니다. `blocked`는 계속할 수 없음, `canceled`는 더 진행하지 않음입니다.
@@ -211,6 +213,8 @@ User:  accept -> done (agents can never set done)
 브랜치는 카드가 수락된 뒤에만 병합하고 그다음 삭제합니다. 데이터셋, 체크포인트, 로그, 캐시 같은 생성물은 저장소에 넣지 않습니다. git 저장소가 아니면 파일 해시 스냅샷과 카드의 증거로 리뷰합니다.
 
 ## 워크로그
+
+작업 로그는 `.research/worklog/` 아래 JSON으로 저장됩니다. `plan.json`에는 목표, 마일스톤, 다음 단계가, 각 작업 항목에는 `items/<id>.json`(제목, 소유자, 상태, kind, 다음 단계, 차단, 근거, 체크리스트)이 들어갑니다. `worklog/PLAN.md`, `worklog/INDEX.md`, `worklog/<id>.md`는 생성된 보기일 뿐입니다. 읽고 쓰기는 `research_worklog`(init, list, get, update, claim, gate, plan), 결정·근거·설계 필드는 `research_decision`, `research_evidence`, `research_design`, 전체 상태는 `research_state`로 합니다.
 
 세션을 넘길 수 있는 작업은 코드 옆에 작고 제한된 기록을 남깁니다. `worklog/PLAN.md`에는 목표, 현재 마일스톤, 활성 카드, 차단 항목, 날짜가 붙은 결정을 두고, `worklog/INDEX.md`에는 활성 카드마다 한 줄을 둡니다. 각 카드에는 `worklog/<task-id>.md`가 있으며 맨 위에 현재 상태 블록, 그 아래에 짧은 추가 항목을 둡니다.
 

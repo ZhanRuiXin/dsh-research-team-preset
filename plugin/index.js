@@ -23,6 +23,28 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
 
+import {
+  appendDecision,
+  appendEvidence,
+  claimItem,
+  gateItem,
+  itemCardPath,
+  listDecisions,
+  listDesigns,
+  listEvidence,
+  listItems,
+  migrateLegacy,
+  readDesign,
+  readItem,
+  readPlan,
+  renderViews,
+  saveDesign,
+  upsertItem,
+  worklogDirs,
+  worklogSummary,
+  writePlan
+} from './worklog.js'
+
 export const name = 'research-project'
 
 export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents']
@@ -53,16 +75,17 @@ __pycache__/
 `
 
 /** The coordination ledger: worklog files are the record (see `## Coordination ledger`). */
-const WORKLOG_PROTOCOL_EN = `The team records its work in the project worklog. The ledger is the worklog directory at the project root: worklog/PLAN.md (objective, milestone, active items, blockers, dated decisions, next actions), worklog/INDEX.md (one row per active work item: id, title, owner, status, updated, next), and one markdown file per gated item (Current state block at the top, then short append-only entries).
+const WORKLOG_PROTOCOL_EN = `The team records its work in the project worklog. Its machine state is JSON under .research/worklog/: plan.json (objective, milestones, next) and one items/<id>.json per work item (id, title, owner, status, kind, next, blocked, evidence, checklist). worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views of that state; read and write the ledger with research_worklog, never by editing the views.
 Discipline:
-1. Read before acting: read PLAN and INDEX before starting, then the target card's Current state and its tail only.
-2. Claim before working: write your role and in_progress into the INDEX row and the card header before you begin. If the row names another owner, stop and report; never take over.
-3. Internal steps are INDEX rows; only steps that need the user's review or acceptance get a card file - deliverable checkpoints, scope decisions, risky changes, and the final handoff. Do not create a card per internal step, and never leave user-facing work only in chat.
-4. Handoff: before moving a card to in_review, write the checklist items with evidence, the execution summary (changed files, self-checks, risks), the base..head commit range when the project uses git, and the next action into the card file; run research_scope_check on the changed paths.
-5. Review: the reviewer independently re-checks the card and writes a PASS/FAIL verdict with evidence into the card file; the Lead decides reopen or rework.
-6. Acceptance belongs to the user: never mark a card done. done means the user accepted it; blocked means the work cannot continue; canceled means it will not.
-7. Report at gates only: when a gate is reached or the user must act, report the card id, status and evidence. Do not narrate ledger bookkeeping between gates.
-8. Ask the user with ask_user_question when you need input, a login, or a decision, and record the wait in the card file instead of a status field of an external tool. If the answer does not arrive within the wait timeout, ask the advisor for an independent recommendation, record it in the card file, and keep the work moving; the advisor's reply is advice, not the user's approval.
+1. Read before acting: call research_state (or research_worklog op=list) before starting, then read the one item you are taking. Do not scan every file in the worklog.
+2. Claim before working: call research_worklog op=claim with your role. If another owner holds the item, stop and report; never take it over.
+3. Internal steps are items with kind=internal; only steps that need the user's review or acceptance are kind=gated - deliverable checkpoints, scope decisions, risky changes, and the final handoff. Do not create an item per internal step, and never leave user-facing work only in chat.
+4. Handoff: before moving an item to in_review, run research_scope_check on the changed paths, then record the checklist items with evidence, the execution summary (changed files, self-checks, risks), the base..head commit range when the project uses git, and the next action with research_worklog op=gate.
+5. Review: the reviewer independently re-checks the item and records a PASS/FAIL verdict with evidence through research_worklog op=update; the Lead decides reopen or rework.
+6. Acceptance belongs to the user: never mark an item done. done means the user accepted it (op=update with by="user" after they do); blocked means the work cannot continue; canceled means it will not.
+7. Record decisions with research_decision, evidence with research_evidence, and design fields with research_design; the tools render PLAN.md and docs/evidence.md, so those files are never edited by hand.
+8. Report at gates only: when a gate is reached or the user must act, report the item id, status and evidence. Do not narrate ledger bookkeeping between gates.
+9. Ask the user with ask_user_question when you need input, a login, or a decision, and record the wait on the item instead of a status field of an external tool. If the answer does not arrive within the wait timeout, ask the advisor for an independent recommendation, record it with research_decision, and keep the work moving; the advisor's reply is advice, not the user's approval.
 The worklog lives at the project root returned by research_project and is the record.`
 
 async function runGit(cwd, args) {
@@ -113,20 +136,24 @@ export async function initWorkspace(cwd, objective = '') {
     }
   }
 
-  const worklogDir = path.join(cwd, 'worklog')
-  fs.mkdirSync(worklogDir, { recursive: true })
-
-  const planPath = path.join(worklogDir, 'PLAN.md')
-  if (!fs.existsSync(planPath)) {
+  const dirs = worklogDirs(cwd)
+  const planPath = dirs.planView
+  const indexPath = dirs.indexView
+  if (!fs.existsSync(dirs.planFile)) {
     const goal = oneLine(objective)
-    fs.writeFileSync(planPath, PLAN_TEMPLATE(goal.length > 0 ? goal : 'TODO'), 'utf8')
-    created.push('worklog/PLAN.md')
-  }
-
-  const indexPath = path.join(worklogDir, 'INDEX.md')
-  if (!fs.existsSync(indexPath)) {
-    fs.writeFileSync(indexPath, INDEX_TEMPLATE, 'utf8')
-    created.push('worklog/INDEX.md')
+    const legacyPlan = fs.existsSync(path.join(cwd, 'worklog', 'PLAN.md'))
+    const legacyIndex = fs.existsSync(path.join(cwd, 'worklog', 'INDEX.md'))
+    if (legacyPlan || legacyIndex) {
+      const imported = migrateLegacy(cwd)
+      notes.push(...imported.notes)
+      if (imported.items > 0) notes.push(`worklog: imported ${imported.items} item(s) from the legacy markdown index`)
+    } else {
+      writePlan(cwd, { objective: goal.length > 0 ? goal : 'TODO' })
+    }
+    created.push('worklog/PLAN.md', 'worklog/INDEX.md')
+  } else {
+    renderViews(cwd)
+    notes.push('worklog: PLAN.md and INDEX.md already present')
   }
 
   if (gitState === 'created') {
@@ -137,7 +164,6 @@ export async function initWorkspace(cwd, objective = '') {
     }
   }
 
-  if (created.length === 0) notes.push('worklog: PLAN.md and INDEX.md already present')
   return {
     cwd,
     gitState,
@@ -595,8 +621,28 @@ export function setRunApproval(root, runId, decision) {
 }
 
 export function buildPanelState(root) {
-  const plan = planSummary(readTextFile(path.join(root, 'worklog', 'PLAN.md')))
-  const cards = indexRows(readTextFile(path.join(root, 'worklog', 'INDEX.md')))
+  const worklogPlan = readPlan(root)
+  const plan = {
+    objective: worklogPlan.objective,
+    milestone: worklogPlan.milestone,
+    active: 'none',
+    blocked: 'none',
+    next: worklogPlan.next
+  }
+  const items = listItems(root)
+  const cards = items.map((item) => ({
+    id: item.id,
+    title: item.title,
+    owner: item.owner,
+    status: item.status,
+    updated: item.updated,
+    next: item.next,
+    kind: item.kind
+  }))
+  const activeItems = items.filter((item) => item.status === 'in_progress' || item.status === 'in_review')
+  const blockedItems = items.filter((item) => item.status === 'blocked')
+  if (activeItems.length > 0) plan.active = activeItems.map((item) => item.id).join(', ')
+  if (blockedItems.length > 0) plan.blocked = blockedItems.map((item) => item.id).join(', ')
   const designs = []
   try {
     const dir = path.join(root, 'docs', 'design')
@@ -710,6 +756,13 @@ function readBody(req) {
   })
 }
 
+async function projectRootOf(ctx, exec) {
+  const cwd = exec?.agent?.session?.header?.cwd
+  if (typeof cwd !== 'string' || cwd.length === 0) return undefined
+  const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
+  return workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0 ? workspace.path : cwd
+}
+
 async function sessionProjectRoot(ctx, sessionId) {
   if (typeof sessionId !== 'string' || sessionId === '') return undefined
   try {
@@ -748,6 +801,82 @@ function renderArchitecture(value, args) {
     }]
   }
   return [{ type: 'text', text: JSON.stringify(value, null, 2) }]
+}
+
+function renderWorklog(value) {
+  if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
+    return [{ type: 'text', text: value.error }]
+  }
+  const plan = value?.plan ?? {}
+  const items = Array.isArray(value?.items) ? value.items : []
+  const counts = value?.counts ?? {}
+  const lines = [
+    `Objective: ${plan.objective || 'TODO'}`,
+    `Milestone: ${plan.milestone || 'TODO'}`,
+    `Next: ${plan.next || 'TODO'}`,
+    `Items: ${items.length} (${Object.entries(counts).map(([key, count]) => `${key} ${count}`).join(', ') || 'none'})`,
+    ''
+  ]
+  for (const item of items) {
+    lines.push(`- ${item.id} · ${item.status} · ${item.owner || 'unowned'} · ${item.title}`)
+    if (item.next) lines.push(`    next: ${item.next}`)
+  }
+  if (Array.isArray(value?.notes)) for (const note of value.notes) lines.push(`note: ${note}`)
+  return [{ type: 'text', text: lines.join(NL) }]
+}
+
+function renderDecision(value) {
+  if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
+    return [{ type: 'text', text: value.error }]
+  }
+  const entry = value?.decision
+  if (entry !== undefined) return [{ type: 'text', text: `Recorded: ${entry.at} ${entry.decision}` }]
+  const rows = Array.isArray(value?.decisions) ? value.decisions : []
+  if (rows.length === 0) return [{ type: 'text', text: 'No decisions recorded.' }]
+  return [{ type: 'text', text: rows.map((row) => `- ${String(row.at).slice(0, 10)} ${row.decision}${row.reason ? ` — ${row.reason}` : ''}`).join(NL) }]
+}
+
+function renderEvidence(value) {
+  if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
+    return [{ type: 'text', text: value.error }]
+  }
+  const entry = value?.evidence
+  if (entry !== undefined) return [{ type: 'text', text: `Recorded evidence: ${entry.claim}${entry.source ? ` (${entry.source})` : ''}` }]
+  const rows = Array.isArray(value?.evidence) ? value.evidence : []
+  if (rows.length === 0) return [{ type: 'text', text: 'No evidence recorded.' }]
+  return [{ type: 'text', text: rows.map((row) => `- ${row.claim}${row.source ? ` — ${row.source}` : ''}${row.strength ? ` [${row.strength}]` : ''}`).join(NL) }]
+}
+
+function renderDesign(value) {
+  if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
+    return [{ type: 'text', text: value.error }]
+  }
+  if (Array.isArray(value?.designs)) {
+    if (value.designs.length === 0) return [{ type: 'text', text: 'No design records.' }]
+    return [{ type: 'text', text: value.designs.map((d) => `- ${d.id} · ${d.status} · ${d.title} — ${d.question || 'no question yet'}`).join(NL) }]
+  }
+  const d = value ?? {}
+  return [{
+    type: 'text',
+    text: [
+      `Design ${d.id}: ${d.title}`,
+      `status: ${d.status}`,
+      `question: ${d.question || 'TODO'}`,
+      `hypotheses: ${(d.hypotheses ?? []).join(' | ') || '—'}`,
+      `metrics: ${(d.metrics ?? []).join(', ') || '—'}`,
+      `budget: ${d.budget || '—'}`,
+      `doc: ${d.doc}`
+    ].join(NL)
+  }]
+}
+
+function renderState(value) {
+  if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
+    return [{ type: 'text', text: value.error }]
+  }
+  const lines = [renderWorklog(value.worklog)[0]?.text ?? '']
+  lines.push('', `Runs: ${(value.runs ?? []).length}, designs: ${(value.designs ?? []).length}, architecture cards: ${(value.architectures ?? []).length}`)
+  return [{ type: 'text', text: lines.join(NL) }]
 }
 
 function renderInit(value) {
@@ -1120,7 +1249,190 @@ export function apply(ctx) {
     }
   })
 
+
+  const disposeWorklog = ctx.tools.register({
+    name: 'research_worklog',
+    description:
+      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; done belongs to the user, so an agent records it only with by="user".',
+    parameters: {
+      type: 'object',
+      properties: {
+        op: { type: 'string', enum: ['init', 'list', 'get', 'update', 'claim', 'gate', 'plan'] },
+        id: { type: 'string', description: 'Work item id, [A-Za-z0-9][A-Za-z0-9._-]{0,63}.' },
+        title: { type: 'string' },
+        owner: { type: 'string' },
+        status: { type: 'string', enum: ['todo', 'in_progress', 'in_review', 'blocked', 'done', 'canceled'] },
+        kind: { type: 'string', enum: ['gated', 'internal'] },
+        next: { type: 'string' },
+        blocked: { type: 'string' },
+        summary: { type: 'string' },
+        base: { type: 'string' },
+        head: { type: 'string' },
+        evidence: { type: 'array', items: { type: 'string' } },
+        checklist: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: { text: { type: 'string' }, done: { type: 'boolean' }, note: { type: 'string' } }
+          }
+        },
+        by: { type: 'string', description: 'Who records this; needed as "user" to set done.' },
+        objective: { type: 'string', description: 'op=plan: the project objective.' },
+        milestone: { type: 'string', description: 'op=plan: the current milestone.' },
+        milestones: { type: 'array', items: { type: 'string' }, description: 'op=plan: the milestone list.' }
+      },
+      required: ['op'],
+      additionalProperties: false
+    },
+    output: { schema: {}, render(_args, value) { return renderWorklog(value) } },
+    async execute(args, exec) {
+      const cwd = exec?.agent?.session?.header?.cwd
+      if (typeof cwd !== 'string' || cwd.length === 0) return { error: 'cannot resolve the project directory' }
+      const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
+      const root = workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0 ? workspace.path : cwd
+      const op = typeof args.op === 'string' ? args.op : ''
+      if (op === 'init') {
+        const imported = migrateLegacy(root)
+        if (!fs.existsSync(worklogDirs(root).planFile)) writePlan(root, { objective: args.objective })
+        renderViews(root)
+        return { ...worklogSummary(root), notes: imported.notes, migrated: imported.migrated }
+      }
+      if (op === 'list') return worklogSummary(root)
+      if (op === 'get') {
+        const item = readItem(root, args.id)
+        return item === undefined
+          ? { error: `no work item "${String(args.id)}"` }
+          : { ...item, card: item.kind === 'gated' ? itemCardPath(root, item.id) : undefined }
+      }
+      if (op === 'plan') return { plan: writePlan(root, { objective: args.objective, milestone: args.milestone, milestones: args.milestones, next: args.next }) }
+      if (op === 'claim') return claimItem(root, { id: args.id, owner: args.owner })
+      if (op === 'gate') {
+        const result = gateItem(root, args)
+        if (result.error === undefined) renderViews(root)
+        return result
+      }
+      if (op === 'update') {
+        const result = upsertItem(root, args)
+        return result
+      }
+      return { error: `Unknown op "${op}"; expected init, list, get, update, claim, gate or plan.` }
+    }
+  })
+
+  const disposeState = ctx.tools.register({
+    name: 'research_state',
+    description:
+      'Read the whole team state in one call: the worklog plan, work items with owners and status, decisions, evidence count, designs, experiments and architecture cards. Use it instead of parsing the worklog by hand; it returns the same data the Research sidebar shows.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    output: { schema: {}, render(_args, value) { return renderState(value) } },
+    async execute(_args, exec) {
+      const cwd = exec?.agent?.session?.header?.cwd
+      if (typeof cwd !== 'string' || cwd.length === 0) return { error: 'cannot resolve the project directory' }
+      const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
+      const root = workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0 ? workspace.path : cwd
+      const panel = buildPanelState(root)
+      return {
+        worklog: worklogSummary(root),
+        runs: panel.runs,
+        designs: panel.designs,
+        architectures: panel.architectures,
+        decisions: listDecisions(root, 5)
+      }
+    }
+  })
+
+  const disposeDecision = ctx.tools.register({
+    name: 'research_decision',
+    description: 'Append a dated decision to the project decision log (.research/decisions.jsonl) or list the recent ones. The PLAN view renders them; do not edit PLAN.md by hand.',
+    parameters: {
+      type: 'object',
+      properties: {
+        op: { type: 'string', enum: ['append', 'list'] },
+        decision: { type: 'string', description: 'append: what was decided.' },
+        reason: { type: 'string', description: 'append: why.' },
+        commit: { type: 'string', description: 'append: the commit that carries the decision.' },
+        by: { type: 'string' },
+        limit: { type: 'number', description: 'list: how many recent entries.' }
+      },
+      required: ['op'],
+      additionalProperties: false
+    },
+    output: { schema: {}, render(_args, value) { return renderDecision(value) } },
+    async execute(args, exec) {
+      const root = await projectRootOf(ctx, exec)
+      if (root === undefined) return { error: 'cannot resolve the project directory' }
+      if (args.op === 'list') return { decisions: listDecisions(root, typeof args.limit === 'number' ? args.limit : 20) }
+      if (args.op === 'append') return appendDecision(root, args)
+      return { error: 'op must be append or list' }
+    }
+  })
+
+  const disposeEvidence = ctx.tools.register({
+    name: 'research_evidence',
+    description: 'Record or list evidence claims for the paper and the worklog: claim, source, locator, strength. Stored in .research/evidence.jsonl and rendered to docs/evidence.md.',
+    parameters: {
+      type: 'object',
+      properties: {
+        op: { type: 'string', enum: ['append', 'list'] },
+        claim: { type: 'string' },
+        source: { type: 'string', description: 'Paper, dataset, run id or Zotero ref.' },
+        locator: { type: 'string', description: 'Page, section, table or path.' },
+        strength: { type: 'string', enum: ['strong', 'moderate', 'weak'] },
+        by: { type: 'string' },
+        limit: { type: 'number' }
+      },
+      required: ['op'],
+      additionalProperties: false
+    },
+    output: { schema: {}, render(_args, value) { return renderEvidence(value) } },
+    async execute(args, exec) {
+      const root = await projectRootOf(ctx, exec)
+      if (root === undefined) return { error: 'cannot resolve the project directory' }
+      if (args.op === 'list') return { evidence: listEvidence(root, typeof args.limit === 'number' ? args.limit : 40) }
+      if (args.op === 'append') return appendEvidence(root, args)
+      return { error: 'op must be append or list' }
+    }
+  })
+
+  const disposeDesign = ctx.tools.register({
+    name: 'research_design',
+    description: 'Create, update or list the machine fields of a design document: question, hypotheses, metrics, budget, status and doc path (defaults to docs/design/<id>.md, created with a "## Question" heading when missing). The prose stays in the markdown document.',
+    parameters: {
+      type: 'object',
+      properties: {
+        op: { type: 'string', enum: ['list', 'get', 'save'] },
+        id: { type: 'string' },
+        title: { type: 'string' },
+        question: { type: 'string' },
+        hypotheses: { type: 'array', items: { type: 'string' } },
+        metrics: { type: 'array', items: { type: 'string' } },
+        budget: { type: 'string' },
+        status: { type: 'string', enum: ['draft', 'approved', 'active', 'closed'] },
+        doc: { type: 'string' }
+      },
+      required: ['op'],
+      additionalProperties: false
+    },
+    output: { schema: {}, render(_args, value) { return renderDesign(value) } },
+    async execute(args, exec) {
+      const root = await projectRootOf(ctx, exec)
+      if (root === undefined) return { error: 'cannot resolve the project directory' }
+      if (args.op === 'list') return { designs: listDesigns(root) }
+      if (args.op === 'get') {
+        const design = readDesign(root, args.id)
+        return design === undefined ? { error: `no design "${String(args.id)}"` } : design
+      }
+      if (args.op === 'save') return saveDesign(root, args)
+      return { error: 'op must be list, get or save' }
+    }
+  })
+
   return () => {
+    disposeDesign()
+    disposeEvidence()
+    disposeDecision()
+    disposeState()
+    disposeWorklog()
     disposeExperiment()
     disposeArchitecture()
     disposePanel()

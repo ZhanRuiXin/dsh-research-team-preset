@@ -185,6 +185,8 @@ Le designer possède la carte de méthode, le builder la carte d’implémentati
 
 ## Worklog et coordination
 
+Le journal de travail est stocke en JSON sous `.research/worklog/` : `plan.json` (objectif, jalons, prochaine etape) et un `items/<id>.json` par element (titre, responsable, statut, kind, prochaine etape, blocage, preuves, checklist). `worklog/PLAN.md`, `worklog/INDEX.md` et `worklog/<id>.md` sont des vues generees ; on les lit et on les ecrit avec `research_worklog` (init, list, get, update, claim, gate, plan), les decisions, les preuves et les champs de conception avec `research_decision`, `research_evidence` et `research_design`, et `research_state` lit tout l'etat de l'equipe en un appel.
+
 Le preset ajoute un onglet « Recherche » a la barre laterale droite. Il repond a ce que fait l'equipe, ce qui la bloque et quelle est la prochaine etape : objectif et jalon depuis `worklog/PLAN.md`, elements actifs de `worklog/INDEX.md`, executions recentes, documents de conception et cartes d'architecture.
 
 A la porte, le responsable ecrit la checklist avec preuves, le resume d'execution, la plage de commits et l'etape suivante dans le fichier de carte, lance `research_scope_check` sur les chemins modifies, puis passe le statut a `in_review`. Le reviewer ecrit un PASS/FAIL avec preuves ; le Lead ne rapporte l'id de carte, le statut et les preuves qu'a la porte ou quand l'utilisateur doit agir. `done` appartient a l'acceptation de l'utilisateur ; `blocked` signifie que le travail ne peut pas continuer, `canceled` qu'il ne continuera pas.
@@ -211,6 +213,8 @@ Les changements destructifs ou risqués se font sur une branche nommée d'après
 Une branche n'est fusionnée qu'après l'acceptation de la carte, puis supprimée. Les artefacts générés (jeux de données, checkpoints, journaux, caches) restent hors du dépôt. Si le projet n'est pas un dépôt git, la revue s'appuie sur un instantané de hachages de fichiers et les preuves consignées sur la carte.
 
 ## Worklog
+
+Le journal de travail est stocke en JSON sous `.research/worklog/` : `plan.json` (objectif, jalons, prochaine etape) et un `items/<id>.json` par element (titre, responsable, statut, kind, prochaine etape, blocage, preuves, checklist). `worklog/PLAN.md`, `worklog/INDEX.md` et `worklog/<id>.md` sont des vues generees ; on les lit et on les ecrit avec `research_worklog` (init, list, get, update, claim, gate, plan), les decisions, les preuves et les champs de conception avec `research_decision`, `research_evidence` et `research_design`, et `research_state` lit tout l'etat de l'equipe en un appel.
 
 Le travail susceptible de s'étendre sur plusieurs sessions conserve un enregistrement petit et borné à côté du code. `worklog/PLAN.md` contient l'objectif, le jalon en cours, les cartes actives, les blocages et les décisions datées ; `worklog/INDEX.md` contient une ligne par carte active. Chaque carte reçoit `worklog/<task-id>.md` avec un bloc d'état courant en haut et de courtes entrées ajoutées en dessous.
 

@@ -185,6 +185,8 @@ El diseñador posee la tarjeta del método y el constructor la de implementació
 
 ## Registro de trabajo y coordinacion
 
+El registro de trabajo se guarda como JSON en `.research/worklog/`: `plan.json` con el objetivo, los hitos y el siguiente paso, y un `items/<id>.json` por elemento de trabajo (titulo, responsable, estado, kind, siguiente paso, bloqueo, evidencia, lista de comprobacion). `worklog/PLAN.md`, `worklog/INDEX.md` y `worklog/<id>.md` son vistas generadas; se leen y escriben con `research_worklog` (init, list, get, update, claim, gate, plan), las decisiones, la evidencia y los campos de diseno con `research_decision`, `research_evidence` y `research_design`, y `research_state` lee todo el estado del equipo en una llamada.
+
 El preset anade una pestana "Investigacion" a la barra lateral derecha. Responde que hace el equipo, donde esta bloqueado y cual es el siguiente paso: objetivo e hito desde `worklog/PLAN.md`, los elementos activos de `worklog/INDEX.md`, las ejecuciones recientes, los documentos de diseno y las tarjetas de arquitectura.
 
 En la puerta, el responsable escribe la lista con evidencia, el resumen de ejecucion, el rango de commits y el siguiente paso en el archivo de tarjeta, ejecuta `research_scope_check` sobre las rutas cambiadas y pone el estado en `in_review`. El reviewer escribe un PASS/FAIL con evidencia; el Lead informa id de tarjeta, estado y evidencia solo al llegar a la puerta o cuando el usuario debe actuar. `done` pertenece a la aceptacion del usuario; `blocked` significa que no se puede continuar y `canceled` que no se continuara.
@@ -211,6 +213,8 @@ Los cambios destructivos o de riesgo se hacen en una rama con el nombre del paso
 Una rama solo se fusiona después de que la tarjeta sea aceptada, y luego se elimina. Los artefactos generados, como conjuntos de datos, checkpoints, logs y cachés, quedan fuera del repositorio. Si el proyecto no es un repositorio git, la revisión recurre a una instantánea de hashes de archivos y a la evidencia registrada en la tarjeta.
 
 ## Worklog
+
+El registro de trabajo se guarda como JSON en `.research/worklog/`: `plan.json` con el objetivo, los hitos y el siguiente paso, y un `items/<id>.json` por elemento de trabajo (titulo, responsable, estado, kind, siguiente paso, bloqueo, evidencia, lista de comprobacion). `worklog/PLAN.md`, `worklog/INDEX.md` y `worklog/<id>.md` son vistas generadas; se leen y escriben con `research_worklog` (init, list, get, update, claim, gate, plan), las decisiones, la evidencia y los campos de diseno con `research_decision`, `research_evidence` y `research_design`, y `research_state` lee todo el estado del equipo en una llamada.
 
 El trabajo que puede abarcar varias sesiones mantiene un registro pequeño y acotado junto al código. `worklog/PLAN.md` contiene el objetivo, el hito actual, las tarjetas activas, los bloqueos y las decisiones fechadas; `worklog/INDEX.md` contiene una línea por tarjeta activa. Cada tarjeta recibe `worklog/<task-id>.md` con un bloque de estado actual arriba y entradas breves solo de adición debajo.
 

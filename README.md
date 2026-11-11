@@ -183,22 +183,19 @@ The experiment section lists runs newest first and shows how long each has been 
 
 ## Worklog and coordination
 
+The worklog is the record. Its machine state is JSON under `.research/worklog/`: `plan.json` and one `items/<id>.json` per work item. The tools write it — `research_worklog` (init, list, get, update, claim, gate, plan), `research_decision`, `research_evidence`, `research_design`, and `research_state` for one read of the whole team state — and `worklog/PLAN.md`, `worklog/INDEX.md` and `worklog/<id>.md` are generated views, so nobody edits them by hand.
+
+A work item carries an owner, a status (`todo`, `in_progress`, `in_review`, `blocked`, `done`, `canceled`), a next action, optional evidence and checklist items, and a kind: internal steps and gated deliverables. Claiming is `op=claim`, and it refuses to take over an item another owner holds. At a gate the owner records the checklist with evidence, the execution summary and the `base..head` range, and the item moves to `in_review`; the reviewer records PASS/FAIL; `done` stays the user's acceptance action.
+
 ```text
-User goal
-Lead:  research_project -> worklog card (checklist) only at user gates
-       -> INDEX row (owner, status=todo, next) + send_message
-Member: write owner + in_progress into the INDEX row and the card header -> work
-        -> write evidence, summary, base..head, next into the card file -> in_review
-Internal steps stay INDEX rows; only user gates get a card file
-Reviewer: independent PASS/FAIL with evidence in the card file
-Advisor: optional independent recommendation at key decisions or final review
-Lead:  scientific summary (claim, evidence, uncertainty) -> card id/status when a gate needs the user
-User:  accept -> done (agents can never set done)
+research_worklog op=init                 # plan.json + views
+research_worklog op=update kind=gated    # a gate that needs the user
+research_worklog op=claim                # take it as your role
+research_worklog op=gate                 # in_review with evidence
+research_state                           # the whole team state in one read
 ```
 
-The project worklog is the whole record: `PLAN.md` for the objective, milestones, active items, blockers and dated decisions; `INDEX.md` with one row per active work item; and one card file per gated item, opened with a Current state block. Only steps that need the user's review or acceptance get a card file - deliverable checkpoints, scope decisions, risky changes, final handoff - while internal steps stay index rows. A member claims work by writing its role and `in_progress` into the row and card header; a row that already names another owner is not claimed.
-
-At a gate the owner writes the checklist with evidence, the execution summary, the commit range and the next action into the card file, runs `research_scope_check` on the changed paths, and sets the status to `in_review`. The reviewer writes a PASS/FAIL verdict with evidence; the Lead reports card ids, status and evidence only when a gate is reached or the user must act. `done` belongs to the user's acceptance; `blocked` means the work cannot continue and `canceled` means it will not.
+The full discipline lives in the preset prompt and in `AGENTS.md` of the project.
 
 ## Git workflow
 

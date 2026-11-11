@@ -185,6 +185,8 @@ Lead が実行を承認し、runner は記録がなければ起動を拒否し�
 
 ## ワークログと協働
 
+作業ログは `.research/worklog/` に JSON で保存します。`plan.json` に目標・マイルストーン・次の一手、各作業項目に `items/<id>.json`（タイトル、担当、状態、kind、次の一手、ブロック、根拠、チェックリスト）。`worklog/PLAN.md`、`worklog/INDEX.md`、`worklog/<id>.md` は生成された表示にすぎません。読み書きは `research_worklog`（init、list、get、update、claim、gate、plan）、決定・根拠・設計項目は `research_decision`、`research_evidence`、`research_design`、全体状態は `research_state` を使います。
+
 プリセットは右サイドバーに「研究」タブを追加します。チームが今何をしているか、どこで止まっているか、次の一歩は何かを示します：`worklog/PLAN.md` の目的とマイルストーン、`worklog/INDEX.md` のアクティブな作業項目、最近の実行、設計ドキュメント、アーキテクチャカード。
 
 ゲートでは、担当者が証拠付きチェックリスト、実行サマリー、コミット範囲、次のアクションをカードファイルに書き、変更パスに `research_scope_check` を実行してから状態を `in_review` にします。reviewer は証拠付きの PASS/FAIL を書き、Lead はゲート到達時またはユーザーの判断が必要なときだけカード id、状態、証拠を報告します。`done` はユーザーの承認だけが設定できます。`blocked` は継続不可、`canceled` は今後進めないという意味です。
@@ -211,6 +213,8 @@ User:  accept -> done (agents can never set done)
 ブランチはカードが受け入れられた後にのみマージし、その後削除します。データセット、チェックポイント、ログ、キャッシュなどの生成物はリポジトリに入れません。git リポジトリでない場合は、ファイルハッシュのスナップショットとカードの証拠でレビューします。
 
 ## ワークログ
+
+作業ログは `.research/worklog/` に JSON で保存します。`plan.json` に目標・マイルストーン・次の一手、各作業項目に `items/<id>.json`（タイトル、担当、状態、kind、次の一手、ブロック、根拠、チェックリスト）。`worklog/PLAN.md`、`worklog/INDEX.md`、`worklog/<id>.md` は生成された表示にすぎません。読み書きは `research_worklog`（init、list、get、update、claim、gate、plan）、決定・根拠・設計項目は `research_decision`、`research_evidence`、`research_design`、全体状態は `research_state` を使います。
 
 セッションをまたぐ可能性のある作業は、コードの隣に小さく有界な記録を残します。`worklog/PLAN.md` には目的、現在のマイルストーン、アクティブなカード、ブロッカー、日付付きの決定を、`worklog/INDEX.md` にはアクティブなカード 1 件につき 1 行を置きます。各カードには `worklog/<task-id>.md` があり、先頭に現在の状態ブロック、その下に短い追記エントリを置きます。
 

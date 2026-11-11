@@ -185,6 +185,8 @@ O designer é dono do cartão de método e o builder do cartão de implementaç�
 
 ## Worklog e coordenacao
 
+O registro de trabalho fica em JSON sob `.research/worklog/`: `plan.json` com objetivo, marcos e proximo passo, e um `items/<id>.json` por item (titulo, responsavel, status, kind, proximo passo, bloqueio, evidencia, checklist). `worklog/PLAN.md`, `worklog/INDEX.md` e `worklog/<id>.md` sao visoes geradas; a leitura e escrita e feita com `research_worklog` (init, list, get, update, claim, gate, plan), decisoes, evidencia e campos de projeto com `research_decision`, `research_evidence` e `research_design`, e `research_state` le todo o estado da equipe em uma chamada.
+
 O preset adiciona uma aba "Pesquisa" a barra lateral direita. Ela responde o que a equipe esta fazendo, onde esta bloqueada e qual e o proximo passo: objetivo e marco de `worklog/PLAN.md`, itens ativos de `worklog/INDEX.md`, execucoes recentes, documentos de design e cartoes de arquitetura.
 
 No portao, o responsavel escreve a lista com evidencias, o resumo de execucao, o intervalo de commits e o proximo passo no arquivo de cartao, roda `research_scope_check` nos caminhos alterados e muda o status para `in_review`. O reviewer escreve um PASS/FAIL com evidencias; o Lead relata id do cartao, status e evidencias so ao chegar ao portao ou quando o usuario precisa agir. `done` pertence ao aceite do usuario; `blocked` significa que nao da para continuar, `canceled` que nao vai continuar.
@@ -211,6 +213,8 @@ Mudanças destrutivas ou de risco acontecem em uma branch nomeada pela etapa, po
 Uma branch só é mesclada depois que o cartão é aceito, e então é removida. Artefatos gerados, como conjuntos de dados, checkpoints, logs e caches, ficam fora do repositório. Se o projeto não for um repositório git, a revisão recorre a um snapshot de hashes de arquivos e às evidências registradas no cartão.
 
 ## Worklog
+
+O registro de trabalho fica em JSON sob `.research/worklog/`: `plan.json` com objetivo, marcos e proximo passo, e um `items/<id>.json` por item (titulo, responsavel, status, kind, proximo passo, bloqueio, evidencia, checklist). `worklog/PLAN.md`, `worklog/INDEX.md` e `worklog/<id>.md` sao visoes geradas; a leitura e escrita e feita com `research_worklog` (init, list, get, update, claim, gate, plan), decisoes, evidencia e campos de projeto com `research_decision`, `research_evidence` e `research_design`, e `research_state` le todo o estado da equipe em uma chamada.
 
 O trabalho que pode abranger várias sessões mantém um registro pequeno e limitado ao lado do código. `worklog/PLAN.md` contém o objetivo, o marco atual, os cartões ativos, os bloqueios e as decisões datadas; `worklog/INDEX.md` contém uma linha por cartão ativo. Cada cartão recebe `worklog/<task-id>.md` com um bloco de estado atual no topo e entradas curtas apenas de acréscimo abaixo.
 

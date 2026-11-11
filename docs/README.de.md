@@ -185,6 +185,8 @@ Der Designer besitzt die Methodenkarte, der Builder die Implementierungskarte; d
 
 ## Worklog und Zusammenarbeit
 
+Das Arbeitsprotokoll liegt als JSON unter `.research/worklog/`: `plan.json` mit Ziel, Meilensteinen und naechstem Schritt, ein `items/<id>.json` pro Arbeitsschritt (Titel, Eigentuemer, Status, kind, naechster Schritt, Blockade, Evidenz, Checkliste). `worklog/PLAN.md`, `worklog/INDEX.md` und `worklog/<id>.md` sind erzeugte Ansichten; gelesen und geschrieben wird mit `research_worklog` (init, list, get, update, claim, gate, plan), Entscheidungen, Evidenz und Designfelder mit `research_decision`, `research_evidence` und `research_design`, und `research_state` liest den gesamten Teamstand in einem Aufruf.
+
 Das Preset fuegt der rechten Seitenleiste einen Tab "Forschung" hinzu. Er beantwortet, was das Team gerade tut, wo es blockiert ist und was der naechste Schritt ist: Ziel und Meilenstein aus `worklog/PLAN.md`, die aktiven Arbeitseintraege aus `worklog/INDEX.md`, letzte Laeufe, die Designdokumente und die Architekturkarten.
 
 Am Gate schreibt der Verantwortliche die Checkliste mit Evidenz, die Ausfuehrungszusammenfassung, den Commit-Bereich und den naechsten Schritt in die Kartendatei, fuehrt `research_scope_check` auf den geaenderten Pfaden aus und setzt den Status auf `in_review`. Der Reviewer schreibt ein PASS/FAIL mit Evidenz; der Lead berichtet Karten-id, Status und Evidenz nur am Gate oder wenn die Person handeln muss. `done` gehoert allein der Abnahme durch die Person; `blocked` heisst nicht fortfahrbar, `canceled` heisst beendet.
@@ -211,6 +213,8 @@ Destruktive oder riskante Änderungen laufen auf einem nach dem Schritt benannte
 Ein Branch wird erst nach der Abnahme der Karte zusammengeführt und danach gelöscht. Generierte Artefakte wie Datensätze, Checkpoints, Logs und Caches bleiben außerhalb des Repositories. Ist das Projekt kein Git-Repository, stützt sich die Prüfung auf einen Dateihash-Snapshot und die auf der Karte festgehaltenen Belege.
 
 ## Worklog
+
+Das Arbeitsprotokoll liegt als JSON unter `.research/worklog/`: `plan.json` mit Ziel, Meilensteinen und naechstem Schritt, ein `items/<id>.json` pro Arbeitsschritt (Titel, Eigentuemer, Status, kind, naechster Schritt, Blockade, Evidenz, Checkliste). `worklog/PLAN.md`, `worklog/INDEX.md` und `worklog/<id>.md` sind erzeugte Ansichten; gelesen und geschrieben wird mit `research_worklog` (init, list, get, update, claim, gate, plan), Entscheidungen, Evidenz und Designfelder mit `research_decision`, `research_evidence` und `research_design`, und `research_state` liest den gesamten Teamstand in einem Aufruf.
 
 Arbeit, die Sitzungen überspannen kann, hält eine kleine, begrenzte Aufzeichnung neben dem Code. `worklog/PLAN.md` enthält Ziel, aktuellen Meilenstein, aktive Karten, Blocker und datierte Entscheidungen; `worklog/INDEX.md` enthält eine Zeile pro aktiver Karte. Jede Karte erhält `worklog/<task-id>.md` mit einem aktuellen Statusblock oben und kurzen, nur angehängten Einträgen darunter.
 

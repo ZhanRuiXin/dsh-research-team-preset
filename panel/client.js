@@ -925,7 +925,7 @@ window.__ModuleLoader__.load({
         title: '团队',
         action: null
       }, team.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前会话还没有队友。Lead 用带团队的模型启动后，这里会显示每位成员的运行状态。')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '还没有队友')
         : h('div', { key: 'grid', className: 'rtp-teamgrid' }, team.map((member) => {
             const on = String(member.status).toLowerCase() === 'running'
             const model = shortModel(member.model)
@@ -968,7 +968,7 @@ window.__ModuleLoader__.load({
         count: 0
       }, [
         architectures.length === 0
-          ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前项目暂无架构卡片。卡片由 research_architecture 维护，存储于 .research/architecture/。')
+          ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无架构卡片')
           : h('div', { key: 'body' }, [
               archChips,
               card.updatedAt
@@ -1027,7 +1027,7 @@ window.__ModuleLoader__.load({
         title: '工作项',
         count: cards.length === 0 ? 0 : cards.length
       }, cards.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前项目暂无工作项。工作项由 research_worklog 登记于 .research/worklog/。')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无工作项')
         : cards.map((entry) => h('div', { key: entry.id, className: 'rtp-row' }, [
             h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
             h('div', { key: 'main', className: 'rtp-rowmain' }, [
@@ -1067,7 +1067,7 @@ window.__ModuleLoader__.load({
         count: runs.length === 0 ? 0 : runs.length,
         action: approvalSelect
       }, runs.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前项目暂无实验记录。运行前由 research_experiment 登记，记录写入 runs/<line>/manifest.json。')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无实验记录')
         : h('div', { key: 'list', className: 'rtp-exp' }, runs.map((entry) => {
             const state = entry.state === undefined ? entry.status : entry.state
             const pending = state === 'awaiting_approval'
@@ -1112,7 +1112,7 @@ window.__ModuleLoader__.load({
         title: '设计',
         count: designs.length === 0 ? 0 : designs.length
       }, designs.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前项目暂无设计文档。设计文档位于 docs/design/。')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无设计文档')
         : designs.map((entry) => h('div', { key: entry.name, className: 'rtp-row' }, [
             h('div', { key: 'main', className: 'rtp-rowmain' }, [
               h('div', { key: 't', className: 'rtp-rowtitle' }, [

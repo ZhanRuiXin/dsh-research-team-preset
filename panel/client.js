@@ -319,6 +319,7 @@ window.__ModuleLoader__.load({
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-teamgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
+.rtp-teamgrid,.rtp-teamgrid *,.rtp-tip,.rtp-tip *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .rtp-mem:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
 .rtp-mem.is-lead{background:linear-gradient(180deg,var(--dsw-alias-bg-layer-2),var(--dsw-alias-bg-layer-1));border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 34%,transparent)}
 .rtp-mem.is-lead .rtp-avatar{color:var(--dsw-alias-brand-primary);border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 40%,transparent)}

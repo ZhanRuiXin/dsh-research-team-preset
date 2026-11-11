@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The sidebar list is now called work items and says it reads `worklog/INDEX.md`; task-board cards are documented as separate and are no longer implied to appear there.
+
 - The run manifest and the design `## Question` heading are now part of the admission and review gates, so the sidebar record is required rather than merely described.
 
 - The persona now states what the Research panel reads, so the team writes the run manifest and the worklog rows instead of assuming the panel fills itself.

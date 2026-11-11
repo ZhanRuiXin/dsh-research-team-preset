@@ -175,11 +175,11 @@ A run or long job that outlives the turn leaves its job or terminal handle, host
 
 ## Research sidebar
 
-The preset adds a Research tab to the right sidebar. It answers what the team is doing now, what is blocked, and what the next step is: the objective and milestone from `worklog/PLAN.md`, the active cards from `worklog/INDEX.md`, recent runs, the design documents, and the architecture cards.
+The preset adds a Research tab to the right sidebar. It answers what the team is doing now, what is blocked, and what the next step is: the objective and milestone from `worklog/PLAN.md`, the active work items from `worklog/INDEX.md` (the task board is separate and is not rendered here), recent runs, the design documents, and the architecture cards.
 
 Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the note you write is stored on the card as an annotation the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
 
-The panel ships as its own module under `panel/`, separate from the settings form, so it can be enabled or disabled on its own. It appears both as a left-rail entry and as a right-sidebar tab.
+The panel ships as its own module under `panel/`, separate from the settings form, so it can be enabled or disabled on its own. It appears as a right-sidebar tab in each conversation.
 
 The designer owns the method card and the builder owns the implementation card; the advisor reads both before reviewing a design or implementation decision, and the reviewer checks them at the results gate. Drag with the middle mouse button to pan the canvas, scroll to zoom, and drag a box over nodes to select them for an annotation.
 

@@ -174,11 +174,11 @@ Ein Lauf oder Langzeitjob, der den Turn überlebt, hinterlässt Job- oder Termin
 
 ## Forschungs-Seitenleiste
 
-Das Preset fügt der rechten Seitenleiste einen Tab „Forschung“ hinzu. Er beantwortet, was das Team gerade tut, wo es blockiert ist und was der nächste Schritt ist: Ziel und Meilenstein aus `worklog/PLAN.md`, die aktiven Karten aus `worklog/INDEX.md`, letzte Läufe, die Designdokumente und die Architekturkarten.
+Das Preset fügt der rechten Seitenleiste einen Tab „Forschung“ hinzu. Er beantwortet, was das Team gerade tut, wo es blockiert ist und was der nächste Schritt ist: Ziel und Meilenstein aus `worklog/PLAN.md`, die aktiven Arbeitseinträge aus `worklog/INDEX.md` (das Task-Board ist getrennt und wird hier nicht angezeigt), letzte Läufe, die Designdokumente und die Architekturkarten.
 
 Architekturkarten sind Knoten-Kanten-Diagramme als JSON unter `.research/architecture/`, eine Datei pro Karte. Der Agent liest und aktualisiert sie mit dem Werkzeug `research_architecture`, damit das Diagramm mit dem Design Schritt hält statt in einer Folie zu veralten. Eine Karte wird im Panel als SVG gerendert; ein Auswahlrahmen über Knoten wählt sie aus, und die Notiz, die du schreibst, wird als Anmerkung an der Karte gespeichert, die der Agent vor seiner Antwort liest. Der Tab registriert sich über `dsh-better-sidebar`, wenn dieses Plugin installiert ist, und sonst über die native rechte Seitenleiste.
 
-Das Panel ist ein eigenes Modul unter `panel/`, getrennt vom Einstellungsformular, und lässt sich einzeln aktivieren oder deaktivieren. Es erscheint sowohl als Eintrag in der linken Leiste als auch als Tab in der rechten Seitenleiste.
+Das Panel ist ein eigenes Modul unter `panel/`, getrennt vom Einstellungsformular, und lässt sich einzeln aktivieren oder deaktivieren. Es erscheint als Tab der rechten Seitenleiste in jeder Unterhaltung.
 
 Der Designer besitzt die Methodenkarte, der Builder die Implementierungskarte; der Advisor liest beide, bevor er eine Design- oder Implementierungsentscheidung prüft, und der Reviewer gleicht sie am Ergebnis-Gate ab. Mit der mittleren Maustaste ziehen verschiebt die Ansicht, das Rad zoomt, und ein Rahmen über Knoten wählt sie für eine Notiz aus.
 

@@ -816,10 +816,10 @@ window.__ModuleLoader__.load({
 
       const cardsSection = h(Section, {
         key: 'cards',
-        title: '卡片',
+        title: '工作项',
         count: cards.length === 0 ? 0 : cards.length
       }, cards.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '没有活动卡片。用 taskboard 建卡，或在 worklog/INDEX.md 里登记。')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '没有工作项。Lead 还没有在 worklog/INDEX.md 里登记活动卡片；团队任务在看板里，不在这里显示。')
         : cards.map((entry) => h('div', { key: entry.id, className: 'rtp-row' }, [
             h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
             h('div', { key: 'main', className: 'rtp-rowmain' }, [
@@ -919,7 +919,7 @@ window.__ModuleLoader__.load({
         ctx.effect(() => service.registerTab({
           id: 'research-team:panel',
           title: '研究',
-          description: '团队状态：架构卡片、任务、实验与设计文档',
+          description: '团队状态：架构、工作项、实验与设计文档',
           order: 40,
           single: true,
           component: (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })

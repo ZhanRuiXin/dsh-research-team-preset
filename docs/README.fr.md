@@ -174,11 +174,11 @@ Une exécution ou une tâche longue qui dépasse le tour laisse son identifiant 
 
 ## Barre latérale de recherche
 
-Le preset ajoute un onglet Recherche à la barre latérale droite. Il répond à ce que fait l'équipe, à ce qui bloque et à la prochaine étape : l'objectif et le jalon de `worklog/PLAN.md`, les cartes actives de `worklog/INDEX.md`, les exécutions récentes, les documents de conception et les cartes d'architecture.
+Le preset ajoute un onglet Recherche à la barre latérale droite. Il répond à ce que fait l'équipe, à ce qui bloque et à la prochaine étape : l'objectif et le jalon de `worklog/PLAN.md`, les éléments de travail actifs de `worklog/INDEX.md` (le tableau de tâches est séparé et n'apparaît pas ici), les exécutions récentes, les documents de conception et les cartes d'architecture.
 
 Les cartes d'architecture sont des diagrammes nœuds-liens stockés en JSON sous `.research/architecture/`, un fichier par carte. L'agent les lit et les met à jour avec l'outil `research_architecture`, afin que le diagramme suive la conception au lieu de dériver dans une diapositive. Une carte est rendue en SVG dans le panneau ; un cadre de sélection sur les nœuds les sélectionne, et la note que vous écrivez est enregistrée sur la carte comme annotation que l'agent lit avant de répondre. L'onglet s'enregistre via `dsh-better-sidebar` lorsque ce plugin est installé, sinon via la barre latérale droite native.
 
-Le panneau est un module à part sous `panel/`, séparé du formulaire de réglages, activable ou désactivable indépendamment. Il apparaît à la fois comme entrée de la barre de gauche et comme onglet de la barre latérale droite.
+Le panneau est un module à part sous `panel/`, séparé du formulaire de réglages, activable ou désactivable indépendamment. Il apparaît comme onglet de la barre latérale droite dans chaque conversation.
 
 Le designer possède la carte de méthode, le builder la carte d’implémentation ; l’advisor lit les deux avant de revoir une décision de conception ou d’implémentation, et le reviewer les vérifie à la porte des résultats. Faire glisser avec le bouton du milieu déplace la vue, la molette zoome, et un cadre sur les nœuds les sélectionne pour une annotation.
 

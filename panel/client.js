@@ -1144,7 +1144,7 @@ window.__ModuleLoader__.load({
         ]),
         h('div', { key: 'footer', className: 'rtp-footer' }, [
           h('span', { key: 'live', className: 'rtp-live' }),
-          h('span', { key: 'fresh' }, state === null ? '正在连接…' : `更新于 ${fresh} · 每 5 秒刷新`),
+          h('span', { key: 'fresh' }, state === null ? '正在连接…' : `更新于 ${fresh}`),
           h('span', { key: 'grow', className: 'rtp-grow' }),
           h('button', {
             key: 'refresh',

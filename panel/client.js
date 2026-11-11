@@ -231,6 +231,26 @@ window.__ModuleLoader__.load({
       return STATUS_LABELS[value] || String(status || '')
     }
 
+    const MEMBER_LABELS = {
+      running: '运行中',
+      inactive: '空闲',
+      provisioning: '启动中',
+      failed: '失败'
+    }
+
+    function memberLabel(status) {
+      const value = String(status ?? '').toLowerCase()
+      return MEMBER_LABELS[value] || '空闲'
+    }
+
+    function memberTone(status) {
+      const value = String(status ?? '').toLowerCase()
+      if (value === 'running') return 'var(--dsw-alias-state-success-primary)'
+      if (value === 'provisioning') return 'var(--dsw-alias-state-warn-primary)'
+      if (value === 'failed') return 'var(--dsw-alias-state-error-primary)'
+      return 'var(--dsw-alias-label-tertiary)'
+    }
+
     function formatElapsed(ms) {
       const value = Number(ms)
       if (!Number.isFinite(value) || value < 0) return ''
@@ -272,6 +292,10 @@ window.__ModuleLoader__.load({
 .rtp-id{flex:0 0 auto;font-size:13px;color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);letter-spacing:.02em}
 .rtp-rowmeta{margin-top:3px;font-size:13.5px;color:var(--dsw-alias-label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
+.rtp-avatar{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:22px;height:22px;margin-top:2px;border-radius:6px;font-size:12px;font-weight:600;text-transform:uppercase;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
+.rtp-membername{font-size:14.5px;font-weight:600;color:var(--dsw-alias-label-primary)}
+.rtp-rolechip{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;font-size:12.5px;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary)}
+.rtp-statelabel{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--dsw-alias-label-secondary)}
 .rtp-seeds{display:inline-flex;gap:3px;align-items:center;vertical-align:middle}
 .rtp-exp{max-height:304px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
 .rtp-exp::-webkit-scrollbar{width:8px}
@@ -732,6 +756,7 @@ window.__ModuleLoader__.load({
       const cards = (state && state.cards) || []
       const runs = (state && state.runs) || []
       const designs = (state && state.designs) || []
+      const team = (state && state.team) || []
       const experimentSettings = (state && state.experimentSettings) || { approval: 'required' }
       const waiting = cards.filter((entry) => /waiting|in_review|blocked/i.test(entry.status))
       const fresh = state === null ? '' : formatSince(state.fetchedAt || new Date().toISOString())
@@ -818,6 +843,34 @@ window.__ModuleLoader__.load({
             setSelectedNodes([])
           }
         }, [entry.title, h('span', { key: 'v', className: 'v' }, `v${entry.version}`)])))
+
+      const teamSection = h(Section, {
+        key: 'team',
+        title: '团队',
+        count: team.length === 0 ? 0 : team.length
+      }, team.length === 0
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, '当前会话还没有队友。Lead 用带团队的模型启动后，这里会显示每位成员的运行状态。')
+        : team.map((member) => h('div', { key: member.id || member.name, className: 'rtp-row' }, [
+            h('span', { key: 'avatar', className: 'rtp-avatar', style: { color: memberTone(member.status) } }, (member.name || '?').slice(0, 1)),
+            h('div', { key: 'main', className: 'rtp-rowmain' }, [
+              h('div', { key: 't', className: 'rtp-rowtitle' }, [
+                h('span', { key: 'n', className: 'rtp-membername' }, member.name || '未命名成员'),
+                h('span', { key: 'r', className: 'rtp-rolechip' }, member.role === 'lead' ? 'Lead' : '成员'),
+                member.model ? h('span', { key: 'm', className: 'rtp-id' }, member.model) : null
+              ]),
+              h('div', { key: 'meta', className: 'rtp-rowmeta' }, member.item === null || member.item === undefined
+                ? '未分配工作项'
+                : [
+                    `#${member.item.id}`,
+                    member.item.title,
+                    statusLabel(member.item.status)
+                  ].filter(Boolean).join(' · '))
+            ]),
+            h('span', { key: 'state', className: 'rtp-statelabel' }, [
+              h('span', { key: 'd', className: 'rtp-dot', style: { background: memberTone(member.status), marginTop: '0' } }),
+              memberLabel(member.status)
+            ])
+          ])))
 
       const archSection = h(Section, {
         key: 'arch',
@@ -981,7 +1034,7 @@ window.__ModuleLoader__.load({
             h('div', { key: 'b', className: 'rtp-skel', style: { width: '86%', height: '13px', marginTop: '12px' } }),
             h('div', { key: 'c', className: 'rtp-skel', style: { width: '64%', height: '10px', marginTop: '10px' } })
           ])
-        : [archSection, cardsSection, runsSection, designsSection]
+        : [teamSection, archSection, cardsSection, runsSection, designsSection]
 
       return h('div', { className: 'rtp-root' }, [
         header,

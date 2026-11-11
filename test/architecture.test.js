@@ -16,6 +16,7 @@ import {
   sanitizeCardId,
   saveArchitectureCard,
   setRunApproval,
+  teamRoster,
   writeExperimentSettings
 } from '../plugin/index.js'
 
@@ -182,6 +183,34 @@ test('experiment settings and run approval persist to disk', () => {
   assert.equal(stored.approval.by, 'user')
   assert.match(setRunApproval(root, '../escape', 'approved').error, /invalid run id/)
   assert.match(setRunApproval(root, 'missing', 'approved').error, /no manifest/)
+})
+
+test('teamRoster reports members and the work item each owns', () => {
+  const members = [
+    { id: 's-lead', name: 'lead', role: 'lead', status: 'running', model: 'deepseek/deepseek-v4.1-flash' },
+    { id: 's-builder', name: 'builder', role: 'teammate', status: 'inactive' }
+  ]
+  const ctx = {
+    agents: { get: (id) => (id === 's-1' ? { id: 's-1' } : undefined) },
+    agentTeams: { listMembers: (agent) => (agent.id === 's-1' ? members : []) }
+  }
+  const items = [
+    { id: 'task-3', title: '编码器脚手架', owner: 'builder', status: 'in_progress' },
+    { id: 'task-4', title: '基准生成器', owner: 'designer', status: 'todo' }
+  ]
+  const roster = teamRoster(ctx, 's-1', items)
+  assert.equal(roster.length, 2)
+  assert.deepEqual(roster[1], {
+    id: 's-builder',
+    name: 'builder',
+    role: 'teammate',
+    status: 'inactive',
+    description: '',
+    model: '',
+    item: { id: 'task-3', title: '编码器脚手架', status: 'in_progress' }
+  })
+  assert.equal(teamRoster(ctx, 'missing', items).length, 0)
+  assert.equal(teamRoster({}, 's-1', items).length, 0)
 })
 
 test('experiments move through the lifecycle through the tool functions', () => {

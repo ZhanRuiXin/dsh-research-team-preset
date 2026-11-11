@@ -6,6 +6,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 - Work items now follow a fixed status table (`todo -> in_progress -> in_review -> done`, with `blocked` and `canceled` as side states): `blocked` requires a reason, a gate requires at least one evidence entry or a noted checklist item, every move is kept in the item history, and the translated READMEs were updated to the JSON worklog.
 
+- The Research panel now opens with the live team roster: each member's name, role, model and running or idle state, plus the work item it owns, read from the host's team service on every refresh.
+
 - The Research panel copy reads formally: the header names the team, each empty state says what is missing and which tool writes the record, and the annotation, approval and refresh messages are complete sentences instead of shorthand.
 
 - The worklog is now a JSON store under `.research/worklog/` (`plan.json` and one `items/<id>.json` per item) with generated markdown views, and new tools own it: `research_worklog` (init, list, get, update, claim, gate, plan), `research_state`, `research_decision`, `research_evidence` and `research_design`. `research_workspace_init` imports a legacy markdown plan and index once, then regenerates the views.

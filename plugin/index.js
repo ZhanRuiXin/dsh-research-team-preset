@@ -623,7 +623,7 @@ export function setRunApproval(root, runId, decision) {
   return { ok: true }
 }
 
-export function buildPanelState(root) {
+export function buildPanelState(root, options = {}) {
   const worklogPlan = readPlan(root)
   const plan = {
     objective: worklogPlan.objective,
@@ -642,6 +642,8 @@ export function buildPanelState(root) {
     next: item.next,
     kind: item.kind
   }))
+  const team = typeof options.team === 'function' ? options.team(items) : []
+
   const activeItems = items.filter((item) => item.status === 'in_progress' || item.status === 'in_review')
   const blockedItems = items.filter((item) => item.status === 'blocked')
   if (activeItems.length > 0) plan.active = activeItems.map((item) => item.id).join(', ')
@@ -708,6 +710,7 @@ export function buildPanelState(root) {
   runs.sort((a, b) => String(b.startedAt || '').localeCompare(String(a.startedAt || '')))
   return {
     root,
+    team,
     worklog: plan,
     cards,
     runs: runs.slice(0, 40),
@@ -880,6 +883,30 @@ function renderState(value) {
   const lines = [renderWorklog(value.worklog)[0]?.text ?? '']
   lines.push('', `Runs: ${(value.runs ?? []).length}, designs: ${(value.designs ?? []).length}, architecture cards: ${(value.architectures ?? []).length}`)
   return [{ type: 'text', text: lines.join(NL) }]
+}
+
+export function teamRoster(ctx, sessionId, items) {
+  const list = Array.isArray(items) ? items : []
+  try {
+    const agent = typeof sessionId === 'string' && sessionId.length > 0 ? ctx?.agents?.get?.(sessionId) : undefined
+    if (agent === undefined || agent === null) return []
+    const members = ctx?.agentTeams?.listMembers?.(agent)
+    if (!Array.isArray(members)) return []
+    return members.map((member) => {
+      const open = list.find((item) => item.owner === member.name)
+      return {
+        id: typeof member.id === 'string' ? member.id : '',
+        name: typeof member.name === 'string' ? member.name : '',
+        role: member.role === 'lead' ? 'lead' : 'teammate',
+        status: typeof member.status === 'string' ? member.status : 'inactive',
+        description: typeof member.description === 'string' ? member.description : '',
+        model: typeof member.model === 'string' ? member.model : '',
+        item: open === undefined ? null : { id: open.id, title: open.title, status: open.status }
+      }
+    })
+  } catch {
+    return []
+  }
 }
 
 function renderInit(value) {
@@ -1065,7 +1092,8 @@ export function apply(ctx) {
           jsonResponse(res, 404, { ok: false, error: 'cannot resolve the project for this session' })
           return
         }
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
+        const state = buildPanelState(root, { team: (items) => teamRoster(ctx, sessionId, items) })
+        jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       if (req.method !== 'POST') {

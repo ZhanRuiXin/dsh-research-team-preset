@@ -172,6 +172,8 @@ Uma execução ou job longo que sobrevive ao turno deixa seu identificador de jo
 
 Os cartões de arquitetura são diagramas de nós e arestas armazenados como JSON em `.research/architecture/`, um arquivo por cartão. O agente os lê e atualiza com a ferramenta `research_architecture`, para que o diagrama acompanhe o design em vez de ficar desatualizado num slide. Um cartão é renderizado em SVG dentro do painel; arrastar uma caixa sobre os nós os seleciona, e a nota que você escreve é salva no cartão como anotação que o agente lê antes de responder. A aba se registra via `dsh-better-sidebar` quando esse plugin está instalado e, caso contrário, na barra lateral direita nativa.
 
+O painel também mostra a equipe em execução: nome, papel, modelo e estado (em execução ou ocioso) de cada membro, além do item de trabalho que ele possui.
+
 A secao de experimentos lista as execucoes da mais recente para a mais antiga e mostra ha quanto tempo rodam ou quanto tempo levaram. Cada execucao segue um ciclo de vida explicito (planejada, aguardando aprovacao, aprovada, em andamento, concluida, interrompida, falha ou rejeitada) conduzido pela ferramenta `research_experiment`: register grava a regra, as seeds e o orcamento, start recusa sem aprovacao e finish registra concluida, interrompida ou falha com o motivo. O cabecalho tem um seletor (exige aprovacao / automatica); uma execucao aguardando mostra aprovar e rejeitar, cuja resposta vai para o manifest, e a lista rola dentro da propria caixa.
 
 O painel é um módulo próprio em `panel/`, separado do formulário de configurações, e pode ser ativado ou desativado isoladamente. Ele aparece como aba da barra lateral direita em cada conversa.

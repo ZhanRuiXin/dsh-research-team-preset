@@ -247,7 +247,7 @@ window.__ModuleLoader__.load({
       const lines = []
       lines.push(member.role === 'lead'
         ? `Lead · ${memberLabel(member.status)}`
-        : `${member.name || '未命名成员'} · 成员 · ${memberLabel(member.status)}`)
+        : `${member.name || '未命名成员'} · ${memberLabel(member.status)}`)
       const item = member.item
       if (item !== null && item !== undefined) {
         const when = item.updated ? `（${formatSince(item.updated)}更新）` : ''
@@ -325,6 +325,14 @@ window.__ModuleLoader__.load({
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
+.rtp-archgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin-bottom:7px}
+.rtp-arch{display:flex;flex-direction:column;gap:3px;min-width:0;padding:7px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1);color:inherit;font:inherit;text-align:left;cursor:pointer}
+.rtp-arch:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
+.rtp-arch.on{border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 40%,transparent);background:var(--dsw-alias-bg-layer-2)}
+.rtp-archtitle{font-size:14px;font-weight:500;color:var(--dsw-alias-label-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rtp-archmeta{display:flex;align-items:center;gap:5px;min-width:0}
+.rtp-ver{font-family:var(--dsw-font-family-mono);font-size:11.5px;color:var(--dsw-alias-label-tertiary);flex:0 0 auto}
+.rtp-archsum{font-size:12px;color:var(--dsw-alias-label-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .rtp-root{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .rtp-root textarea,.rtp-root input,.rtp-id,.rtp-rowtitle,.rtp-rowmeta,.rtp-rowmain,.rtp-annot,.rtp-empty{-webkit-user-select:text;user-select:text}
 .rtp-mem:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
@@ -900,16 +908,23 @@ window.__ModuleLoader__.load({
             ])
       ])
 
-      const archChips = architectures.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-seg', style: { marginBottom: '2px' } },
+      const archChips = architectures.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' },
         architectures.map((entry) => h('button', {
           key: entry.id,
           type: 'button',
-          className: entry.id === (card && card.id) ? 'on' : '',
+          className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}`,
+          title: entry.title,
           onClick: () => {
             setSelectedCard(entry.id)
             setSelectedNodes([])
           }
-        }, [entry.title, h('span', { key: 'v', className: 'v' }, `v${entry.version}`)])))
+        }, [
+          h('span', { key: 't', className: 'rtp-archtitle' }, entry.title || entry.id),
+          h('span', { key: 'm', className: 'rtp-archmeta' }, [
+            h('span', { key: 'v', className: 'rtp-ver' }, `v${entry.version}`),
+            h('span', { key: 's', className: 'rtp-archsum' }, entry.summary || `${CARD_KIND_LABELS[entry.kind] || '架构'} · ${(entry.canvas && Array.isArray(entry.canvas.nodes) ? entry.canvas.nodes.length : 0)} 个节点`)
+          ].filter(Boolean))
+        ])))
 
       const teamOn = team.filter((member) => String(member.status).toLowerCase() === 'running').length
       const teamPill = (status) => {
@@ -959,7 +974,7 @@ window.__ModuleLoader__.load({
                 h('span', { key: 'ch' }, (member.name || '?').slice(0, 1)),
                 on ? h('span', { key: 'p', className: 'rtp-pulse' }) : null
               ].filter(Boolean)),
-              h('span', { key: 'nm', className: 'rtp-membername' }, member.name || '未命名成员'),
+              h('span', { key: 'nm', className: 'rtp-membername' }, member.role === 'lead' ? 'Lead' : member.name || '未命名成员'),
               h('span', { key: 'grow', style: { flex: '1 1 auto' } }),
               teamPill(member.status)
             ].filter(Boolean))
@@ -974,12 +989,6 @@ window.__ModuleLoader__.load({
           ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无架构卡片')
           : h('div', { key: 'body' }, [
               archChips,
-              card.updatedAt
-                ? h('div', {
-                    key: 'meta',
-                    style: { textAlign: 'right', padding: '6px 1px 0', fontSize: '12.5px', color: 'var(--dsw-alias-label-tertiary)' }
-                  }, formatSince(card.updatedAt))
-                : null,
               h(ArchitectureCanvas, {
                 key: 'canvas',
                 card,

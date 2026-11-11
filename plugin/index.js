@@ -344,6 +344,7 @@ export function normalizeArchitectureCard(input, previous) {
     id,
     title: shortText(input.title ?? previous?.title, 80) || id,
     kind: CARD_KINDS.includes(input.kind) ? input.kind : previous?.kind ?? 'method',
+    summary: shortText(input.summary ?? previous?.summary, 120) || '',
     version: (previous?.version ?? 0) + 1,
     updatedAt: new Date().toISOString(),
     canvas: {
@@ -1224,7 +1225,7 @@ export function apply(ctx) {
         id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
         card: {
           type: 'object',
-          description: 'Full card for op=save: id, title, kind (method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y,w,h}], edges [{from,to,label}], notes. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
+          description: 'Full card for op=save: id, title, kind (method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y,w,h}], edges [{from,to,label}], notes, and a one-line summary shown on the card tile. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
         },
         expectedVersion: { type: 'number', description: 'For op=save on an existing card, the version you read; a mismatch is rejected.' }
       },

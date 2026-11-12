@@ -4,7 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
-- Work items show their details in a hover card instead of expanding the row, so the panel keeps its layout.
+- Work items expand in place on click: the row grows to show the full title, next action, blocked reason, evidence and checklist, and collapses on a second click.
 
 - Architecture cards carry a project-defined `group`: a project decides its own decomposition (for example method, implementation, data or training) instead of a fixed method/implementation pair, and the panel draws one chip row per group, hiding the group label when there is only one.
 

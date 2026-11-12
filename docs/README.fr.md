@@ -178,7 +178,7 @@ La section des experiences liste les executions de la plus recente a la plus anc
 
 Le panneau est un module à part sous `panel/`, séparé du formulaire de réglages, activable ou désactivable indépendamment. Il apparaît comme onglet de la barre latérale droite dans chaque conversation.
 
-Le designer possède la carte de méthode, le builder la carte d’implémentation ; l’advisor lit les deux avant de revoir une décision de conception ou d’implémentation, et le reviewer les vérifie à la porte des résultats. Faire glisser avec le bouton du milieu déplace la vue, la molette zoome, et un cadre sur les nœuds les sélectionne pour une annotation.
+Le designer possède les cartes qui décrivent la méthode, le builder celles qui décrivent l’implémentation, dans les groupes que le projet définit lui-même ; l’advisor les lit avant de revoir une décision de conception ou d’implémentation, et le reviewer les vérifie à la porte des résultats. Faire glisser avec le bouton du milieu déplace la vue, le zoom se fait depuis la barre d’outils, et un cadre sur les nœuds les sélectionne pour une annotation.
 
 ## Worklog et coordination
 

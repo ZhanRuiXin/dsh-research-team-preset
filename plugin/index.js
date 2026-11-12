@@ -344,6 +344,7 @@ export function normalizeArchitectureCard(input, previous) {
     id,
     title: shortText(input.title ?? previous?.title, 80) || id,
     description: shortText(input.description ?? input.summary ?? previous?.description ?? previous?.summary, 400) || '',
+    group: shortText(input.group ?? previous?.group, 24) || '架构',
     kind: CARD_KINDS.includes(input.kind) ? input.kind : previous?.kind ?? 'method',
     archived: previous?.archived === true,
     archivedAt: typeof previous?.archivedAt === 'string' ? previous.archivedAt : '',
@@ -815,7 +816,7 @@ function renderArchitecture(value, args) {
     if (value.length === 0) return [{ type: 'text', text: 'No architecture cards yet.' }]
     return [{
       type: 'text',
-      text: value.map((card) => `${card.id} v${card.version}  ${card.title}${card.archived === true ? ' [archived]' : ''} (${card.nodes.length} nodes, ${card.notes.length} notes)`).join(NL)
+      text: value.map((card) => `${card.id} v${card.version}  [${card.group || '架构'}] ${card.title}${card.archived === true ? ' [archived]' : ''} (${card.nodes.length} nodes, ${card.notes.length} notes)`).join(NL)
     }]
   }
   if (value.removed === true) {
@@ -1247,7 +1248,7 @@ export function apply(ctx) {
   const disposeArchitecture = ctx.tools.register({
     name: 'research_architecture',
     description:
-      'Read or update the architecture cards shown in the Research sidebar: the method, model, experiment and pipeline diagrams of this project, stored as JSON under .research/architecture/<id>.json. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a short title shown on its chip and a description shown in the chip hover card; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
+      'Read or update the architecture cards shown in the Research sidebar: the diagrams of this project, stored as JSON under .research/architecture/<id>.json. A project names its own groups, one group per aspect it wants to show (for example method, implementation, data or training), and the panel draws one chip row per group; put every card in the group it belongs to. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a short title shown on its chip and a description shown in the chip hover card; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
     parameters: {
       type: 'object',
       properties: {
@@ -1255,7 +1256,7 @@ export function apply(ctx) {
         id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
         card: {
           type: 'object',
-          description: 'Full card for op=save: id, title (a short title, under 40 characters, shown on the sidebar chip), description (the detail shown in the chip hover card, a sentence or two), kind (method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y}], edges [{from,to,label}], and notes. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
+          description: 'Full card for op=save: id, title (a short title, under 40 characters, shown on the sidebar chip), description (the detail shown in the chip hover card, a sentence or two), group (the aspect this card belongs to, up to 24 characters, for example 方法, 实现, 数据 or 训练; a project defines its own), kind (an optional color hint: method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y}], edges [{from,to,label}], and notes. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
         },
         expectedVersion: { type: 'number', description: 'For op=save on an existing card, the version you read; a mismatch is rejected.' }
       },

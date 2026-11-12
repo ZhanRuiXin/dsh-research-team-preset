@@ -325,7 +325,8 @@ window.__ModuleLoader__.load({
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
-.rtp-archgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-width:100%}
+.rtp-archgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-width:100%;align-items:center}
+.rtp-archg{flex:0 0 100%;font-size:11.5px;line-height:1.4;color:var(--dsw-alias-label-tertiary);margin:2px 0 0}
 .rtp-arch{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;max-width:200px;height:26px;padding:0 11px;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden}
 .rtp-arch-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rtp-arch:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
@@ -920,20 +921,34 @@ window.__ModuleLoader__.load({
           archived ? `已归档「${archLabel(entry)}」。` : `已恢复「${archLabel(entry)}」。`
         )
       }
-      const archChips = visibleArch.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' }, [
-        ...visibleArch.map((entry) => h('button', {
-          key: entry.id,
-          type: 'button',
-          className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}`,
-          'aria-label': archBrief(entry).join('; '),
-          onClick: () => {
-            setSelectedCard(entry.id)
-            setSelectedNodes([])
-          },
-          onMouseEnter: (event) => openTip(event, archBrief(entry)),
-          onMouseLeave: () => setHover(null)
-        }, h('span', { key: 't', className: 'rtp-arch-t' }, archLabel(entry)))),
-      ])
+      const archGroups = () => {
+        const groups = new Map()
+        for (const entry of visibleArch) {
+          const name = String(entry.group || CARD_KIND_LABELS[entry.kind] || '架构')
+          const list = groups.get(name) || []
+          list.push(entry)
+          groups.set(name, list)
+        }
+        return Array.from(groups.entries())
+      }
+      const archGroupList = archGroups()
+      const showArchGroupNames = archGroupList.length > 1
+      const archChips = visibleArch.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' },
+        archGroupList.flatMap(([groupName, entries]) => [
+          showArchGroupNames ? h('span', { key: `group-${groupName}`, className: 'rtp-archg' }, groupName) : null,
+          ...entries.map((entry) => h('button', {
+            key: entry.id,
+            type: 'button',
+            className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}`,
+            'aria-label': archBrief(entry).join('; '),
+            onClick: () => {
+              setSelectedCard(entry.id)
+              setSelectedNodes([])
+            },
+            onMouseEnter: (event) => openTip(event, archBrief(entry)),
+            onMouseLeave: () => setHover(null)
+          }, h('span', { key: 't', className: 'rtp-arch-t' }, archLabel(entry))))
+        ].filter(Boolean)))
 
       const teamOn = team.filter((member) => String(member.status).toLowerCase() === 'running').length
       const teamPill = (status) => {

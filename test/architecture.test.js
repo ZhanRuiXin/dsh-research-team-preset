@@ -274,3 +274,32 @@ test('experiments move through the lifecycle through the tool functions', () => 
   assert.match(finishRun(root, { run: 'missing', state: 'completed' }).error, /no manifest/)
   assert.match(finishRun(root, { run: 'exp-1', state: 'nonsense' }).error, /must be completed, stopped or failed/)
 })
+
+test('architecture cards keep the group the project defines', () => {
+  const root = makeRoot()
+  const saved = saveArchitectureCard(root, {
+    id: 'train-flow',
+    title: '训练流程',
+    description: '从数据到损失的每一步',
+    group: '  训练  ',
+    nodes: [{ id: 'data', label: '数据', kind: 'input', x: 40, y: 40 }, { id: 'loss', label: '损失', kind: 'loss', x: 240, y: 40 }],
+    edges: [{ from: 'data', to: 'loss' }]
+  })
+  assert.equal(saved.group, '训练')
+  const listed = listArchitectureCards(root)
+  assert.equal(listed.find((card) => card.id === 'train-flow').group, '训练')
+
+  const plain = saveArchitectureCard(root, {
+    id: 'plain-flow',
+    nodes: [{ id: 'one', label: '一步' }]
+  })
+  assert.equal(plain.group, '架构')
+
+  const long = saveArchitectureCard(root, {
+    id: 'long-group',
+    group: 'x'.repeat(60),
+    nodes: [{ id: 'one', label: '一步' }]
+  })
+  assert.equal(long.group.length, 24)
+  assert.equal(long.group, 'x'.repeat(24))
+})

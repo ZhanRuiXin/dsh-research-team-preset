@@ -178,7 +178,7 @@ Der Versuchsbereich listet die Laeufe neueste zuerst und zeigt, wie lange ein La
 
 Das Panel ist ein eigenes Modul unter `panel/`, getrennt vom Einstellungsformular, und lässt sich einzeln aktivieren oder deaktivieren. Es erscheint als Tab der rechten Seitenleiste in jeder Unterhaltung.
 
-Der Designer besitzt die Methodenkarte, der Builder die Implementierungskarte; der Advisor liest beide, bevor er eine Design- oder Implementierungsentscheidung prüft, und der Reviewer gleicht sie am Ergebnis-Gate ab. Mit der mittleren Maustaste ziehen verschiebt die Ansicht, das Rad zoomt, und ein Rahmen über Knoten wählt sie für eine Notiz aus.
+Der Designer besitzt die Karten zur Methode, der Builder die Karten zur Implementierung, in den Gruppen, die das Projekt selbst festlegt; der Advisor liest sie, bevor er eine Design- oder Implementierungsentscheidung prüft, und der Reviewer gleicht sie am Ergebnis-Gate ab. Mit der mittleren Maustaste ziehen verschiebt die Ansicht, gezoomt wird über die Werkzeugleiste, und ein Rahmen über Knoten wählt sie für eine Notiz aus.
 
 ## Worklog und Zusammenarbeit
 

@@ -178,7 +178,7 @@ La seccion de experimentos lista las ejecuciones de la mas reciente a la mas ant
 
 El panel es un módulo propio en `panel/`, separado del formulario de ajustes, y se puede activar o desactivar por separado. Aparece como pestaña de la barra lateral derecha en cada conversación.
 
-El diseñador posee la tarjeta del método y el constructor la de implementación; el asesor lee ambas antes de revisar una decisión de diseño o implementación, y el revisor las contrasta en la puerta de resultados. Arrastra con el botón central para desplazar el lienzo, usa la rueda para acercar y arrastra un rectángulo sobre los nodos para seleccionarlos y anotar.
+El diseñador posee las tarjetas que describen el método y el constructor las de implementación, en los grupos que defina el propio proyecto; el asesor las lee antes de revisar una decisión de diseño o implementación, y el revisor las contrasta en la puerta de resultados. Arrastra con el botón central para desplazar el lienzo, usa la barra de herramientas para acercar y arrastra un rectángulo sobre los nodos para seleccionarlos y anotar.
 
 ## Registro de trabajo y coordinacion
 

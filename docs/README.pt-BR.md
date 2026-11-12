@@ -178,7 +178,7 @@ A secao de experimentos lista as execucoes da mais recente para a mais antiga e 
 
 O painel é um módulo próprio em `panel/`, separado do formulário de configurações, e pode ser ativado ou desativado isoladamente. Ele aparece como aba da barra lateral direita em cada conversa.
 
-O designer é dono do cartão de método e o builder do cartão de implementação; o advisor lê os dois antes de revisar uma decisão de design ou implementação, e o revisor os confere no portão de resultados. Arraste com o botão do meio para mover a tela, use a roda para ampliar e arraste uma caixa sobre os nós para selecioná-los e anotar.
+O designer é dono dos cartões que descrevem o método e o builder dos cartões que descrevem a implementação, nos grupos que o próprio projeto define; o advisor lê esses cartões antes de revisar uma decisão de design ou implementação, e o revisor os confere no portão de resultados. Arraste com o botão do meio para mover a tela, amplie pela barra de ferramentas e arraste uma caixa sobre os nós para selecioná-los e anotar.
 
 ## Worklog e coordenacao
 

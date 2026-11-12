@@ -383,7 +383,6 @@ window.__ModuleLoader__.load({
 .rtp-pill{display:inline-flex;align-items:center;gap:4px;height:23px;padding:0 7px;border-radius:6px;font-size:13px;background:color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-brand-primary) 32%,transparent);color:var(--dsw-alias-brand-primary)}
 .rtp-primary{height:29px;padding:0 12px;border:0;border-radius:7px;background:var(--dsw-alias-button-primary-fill);color:var(--dsw-alias-label-primary-foreground);font:inherit;font-size:14px;font-weight:500;cursor:pointer}
 .rtp-primary:disabled{opacity:.45;cursor:default}
-.rtp-footer{position:sticky;bottom:0;margin-top:14px;padding:9px 16px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dsw-alias-label-tertiary);border-top:.5px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-base) 88%,transparent);backdrop-filter:blur(8px)}
 .rtp-error{margin:10px 16px 0;padding:8px 10px;border-radius:8px;font-size:14px;color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 8%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-state-error-primary) 28%,transparent)}
 .rtp-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:64px;z-index:60;padding:7px 12px;border-radius:8px;font-size:14px;background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-primary);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2)}
 .rtp-skel{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--dsw-alias-bg-layer-2) 25%,var(--dsw-alias-bg-layer-3) 37%,var(--dsw-alias-bg-layer-2) 63%);background-size:400% 100%;animation:rtp-shine 1.2s ease-in-out infinite}
@@ -815,7 +814,6 @@ window.__ModuleLoader__.load({
       const team = (state && state.team) || []
       const experimentSettings = (state && state.experimentSettings) || { approval: 'required' }
       const waiting = cards.filter((entry) => /waiting|in_review|blocked/i.test(entry.status))
-      const fresh = state === null ? '' : formatSince(state.fetchedAt || new Date().toISOString())
 
       function toggleNode(id) {
         setSelectedNodes((current) => (current.indexOf(id) >= 0 ? current.filter((item) => item !== id) : [...current, id]))
@@ -1114,18 +1112,6 @@ window.__ModuleLoader__.load({
         }, [
           h('span', { key: 'arrow', className: 'rtp-tiparrow', style: { left: `${hover.arrow}px` } }),
           h('div', { key: 'lines', className: 'rtp-tipbody' }, hover.lines.map((line, index) => h('div', { key: `l${index}`, className: index === 0 ? 'rtp-tiptitle' : 'rtp-tipline' }, line)))
-        ]),
-        h('div', { key: 'footer', className: 'rtp-footer' }, [
-          h('span', { key: 'live', className: 'rtp-live' }),
-          h('span', { key: 'fresh' }, state === null ? '正在连接…' : `更新于 ${fresh}`),
-          h('span', { key: 'grow', className: 'rtp-grow' }),
-          h('button', {
-            key: 'refresh',
-            type: 'button',
-            className: 'rtp-ghost',
-            onClick: load,
-            title: (state && state.root) || ''
-          }, '刷新')
         ]),
         toast === ''
           ? null

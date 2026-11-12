@@ -12,7 +12,7 @@
 
 ## Descripción general
 
-Research Team Mode es un preset de agente de DSH para llevar a cabo investigacion de extremo a extremo en equipo en lugar de en un solo chat. El Lead planifica el trabajo, mantiene el registro del worklog (archivos de tarjeta para las puertas del usuario, filas del INDEX para los pasos internos), reparte trabajo, integra resultados y se comunica con el usuario. Ocho roles por defecto cubren asesoria, literatura y evidencia, obtencion de datos, diseno de experimentos, codigo, ejecuciones, revision independiente y redaccion del paper.
+Research Team Mode es un preset de agente de DSH para llevar a cabo investigacion de extremo a extremo en equipo en lugar de en un solo chat. El Lead planifica el trabajo, mantiene el registro del worklog (archivos de elementos de trabajo para las puertas del usuario, filas del INDEX para los pasos internos), reparte trabajo, integra resultados y se comunica con el usuario. Ocho roles por defecto cubren asesoria, literatura y evidencia, obtencion de datos, diseno de experimentos, codigo, ejecuciones, revision independiente y redaccion del paper.
 
 El modo está pensado para investigaciones que abarcan días o semanas, que necesitan evidencia trazable y que se benefician de límites de rol claros. No es un modo de preguntas y respuestas de una sola vez: el Lead crea solo los roles que una tarea necesita realmente.
 
@@ -21,7 +21,7 @@ El modo está pensado para investigaciones que abarcan días o semanas, que nece
 | | |
 | --- | --- |
 | **Roles predeterminados** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
-| **Flujo de trabajo** | Por puertas: los pasos internos son filas del indice del worklog, las puertas del usuario son archivos de tarjeta; crear, tomar, ejecutar, informar, revisar y aceptacion del usuario |
+| **Flujo de trabajo** | Por puertas: los pasos internos son filas del indice del worklog, las puertas del usuario son archivos de elementos de trabajo; crear, tomar, ejecutar, informar, revisar y aceptacion del usuario |
 | **Finalización** | `in_review` es la última parada del agente; solo el usuario puede mover una tarjeta a `done` |
 | **Enrutamiento de modelos** | Proveedor, modelo y esfuerzo de razonamiento por rol desde un formulario de ajustes de la página de Plugins |
 | **Git** | El agente lo inicializa al empezar el trabajo sustantivo; cambios destructivos en una rama; fusión solo tras la aceptación |

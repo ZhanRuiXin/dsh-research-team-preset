@@ -12,7 +12,7 @@
 
 ## Überblick
 
-Research Team Mode ist ein DSH-Agent-Preset, mit dem sich End-to-End-Forschung als Team statt in einem einzigen Chat betreiben laesst. Der Lead plant die Arbeit, fuehrt das Worklog-Register (Kartendateien fuer Nutzer-Gates, INDEX-Zeilen fuer interne Schritte), verteilt Arbeit, integriert Ergebnisse und kommuniziert mit der nutzenden Person. Acht Standardrollen decken Beratung, Literatur und Evidenz, Datenbeschaffung, Versuchsdesign, Code, Laeufe, unabhaengige Pruefung und das Schreiben des Papers ab.
+Research Team Mode ist ein DSH-Agent-Preset, mit dem sich End-to-End-Forschung als Team statt in einem einzigen Chat betreiben laesst. Der Lead plant die Arbeit, fuehrt das Worklog-Register (Work-Item-Dateien fuer Nutzer-Gates, INDEX-Zeilen fuer interne Schritte), verteilt Arbeit, integriert Ergebnisse und kommuniziert mit der nutzenden Person. Acht Standardrollen decken Beratung, Literatur und Evidenz, Datenbeschaffung, Versuchsdesign, Code, Laeufe, unabhaengige Pruefung und das Schreiben des Papers ab.
 
 Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt, nachvollziehbare Evidenz benötigt und von klaren Rollengrenzen profitiert. Er ist kein Modus für einmalige Fragen und Antworten: Der Lead erstellt nur die Rollen, die eine Aufgabe tatsächlich braucht.
 
@@ -21,7 +21,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 | | |
 | --- | --- |
 | **Standardrollen** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
-| **Workflow** | Gate-basiert: interne Schritte als Worklog-Indexzeilen, Nutzer-Gates als Kartendateien; erstellen, uebernehmen, ausfuehren, berichten, pruefen, Abnahme durch die nutzende Person |
+| **Workflow** | Gate-basiert: interne Schritte als Worklog-Indexzeilen, Nutzer-Gates als Work-Item-Dateien; erstellen, uebernehmen, ausfuehren, berichten, pruefen, Abnahme durch die nutzende Person |
 | **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann eine Karte auf `done` setzen |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
 | **Git** | Wird beim Start substanzieller Arbeit vom Agenten initialisiert; destruktive Änderungen auf einem Branch; Zusammenführung erst nach Abnahme |

@@ -12,7 +12,7 @@
 
 ## Aperçu
 
-Research Team Mode est un preset d'agent DSH pour mener une recherche de bout en bout en equipe plutot que dans un seul chat. Le Lead planifie le travail, tient le registre du worklog (fichiers de carte pour les portes utilisateur, lignes d'INDEX pour les etapes internes), repartit le travail, integre les resultats et communique avec l'utilisateur. Huit roles par defaut couvrent le conseil, la litterature et les preuves, l'acquisition de donnees, la conception d'experiences, le code, les executions, la revue independante et la redaction du paper.
+Research Team Mode est un preset d'agent DSH pour mener une recherche de bout en bout en equipe plutot que dans un seul chat. Le Lead planifie le travail, tient le registre du worklog (fichiers d'éléments de travail pour les portes utilisateur, lignes d'INDEX pour les etapes internes), repartit le travail, integre les resultats et communique avec l'utilisateur. Huit roles par defaut couvrent le conseil, la litterature et les preuves, l'acquisition de donnees, la conception d'experiences, le code, les executions, la revue independante et la redaction du paper.
 
 Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semaines, exigent des preuves traçables et bénéficient de frontières de rôles claires. Ce n'est pas un mode de questions-réponses en un seul échange : le Lead ne crée que les rôles dont une tâche a réellement besoin.
 
@@ -21,7 +21,7 @@ Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semai
 | | |
 | --- | --- |
 | **Rôles par défaut** | 8 : advisor, designer, researcher, data, builder, runner, reviewer, writer |
-| **Flux** | Par portes : etapes internes en lignes d'index du worklog, portes utilisateur en fichiers de carte ; creer, prendre, executer, rapporter, revoir, acceptation par l'utilisateur |
+| **Flux** | Par portes : etapes internes en lignes d'index du worklog, portes utilisateur en fichiers d'éléments de travail ; creer, prendre, executer, rapporter, revoir, acceptation par l'utilisateur |
 | **Achèvement** | `in_review` est le dernier arrêt de l'agent ; seul l'utilisateur peut déplacer une carte vers `done` |
 | **Routage des modèles** | Provider, model et effort de raisonnement par rôle, depuis un formulaire de réglages de la page Plugins |
 | **Git** | Initialisé par l'agent au début du travail substantiel ; changements destructifs sur une branche ; fusion après acceptation seulement |

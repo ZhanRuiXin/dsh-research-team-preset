@@ -20,6 +20,7 @@ import {
   teamRoster,
   writeExperimentSettings
 } from '../plugin/index.js'
+import { upsertItem, writePlan } from '../plugin/worklog.js'
 
 function makeRoot() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'research-team-arch-'))
@@ -302,4 +303,24 @@ test('architecture cards keep the group the project defines', () => {
   })
   assert.equal(long.group.length, 24)
   assert.equal(long.group, 'x'.repeat(24))
+})
+
+test('the panel summarises work items and counts the finished ones', () => {
+  const root = makeRoot()
+  writePlan(root, { objective: 'test objective', milestone: 'M1', next: 'write the panel' })
+  upsertItem(root, { id: 'alpha', title: 'Alpha', owner: 'lead', status: 'in_progress', next: 'do alpha' })
+  upsertItem(root, { id: 'beta', title: 'Beta', owner: 'builder', status: 'blocked', blocked: 'waiting for the data sample' })
+  upsertItem(root, { id: 'gamma', title: 'Gamma', owner: 'lead', status: 'done', by: 'user' })
+
+  const state = buildPanelState(root)
+  assert.equal(state.itemsTotal, 3)
+  assert.equal(state.finishedItems, 1)
+  const alpha = state.cards.find((entry) => entry.id === 'alpha')
+  assert.equal(alpha.status, 'in_progress')
+  assert.equal(alpha.next, 'do alpha')
+  const beta = state.cards.find((entry) => entry.id === 'beta')
+  assert.equal(beta.status, 'blocked')
+  assert.match(beta.blocked, /data sample/)
+  assert.equal(beta.checklistTotal, 0)
+  assert.equal(state.cards.find((entry) => entry.id === 'gamma').status, 'done')
 })

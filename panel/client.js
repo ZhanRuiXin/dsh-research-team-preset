@@ -363,7 +363,15 @@ window.__ModuleLoader__.load({
 .rtp-pill.warn{color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
 .rtp-pill.err{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 30%,transparent)}
 .rtp-seeds{display:inline-flex;gap:3px;align-items:center;vertical-align:middle}
-.rtp-exp{max-height:304px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
+ .rtp-items{max-height:320px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
+ .rtp-row.clickable{cursor:pointer}
+ .rtp-row.clickable:hover{background:var(--dsw-alias-interactive-bg-hover)}
+ .rtp-itemdetail{display:flex;flex-wrap:wrap;gap:4px 10px;padding:2px 0 2px 18px;font-size:13px;color:var(--dsw-alias-label-secondary);white-space:normal;overflow-wrap:anywhere}
+ .rtp-tag{padding:1px 7px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);border:1px solid var(--dsw-alias-border-l1)}
+ .rtp-tag.warn{color:var(--dsw-alias-state-warn);border-color:color-mix(in srgb,var(--dsw-alias-state-warn) 35%,transparent)}
+ .rtp-toggle{height:22px;padding:0 9px;border-radius:999px;border:1px solid var(--dsw-alias-border-l2);background:transparent;color:var(--dsw-alias-label-secondary);font-size:12px;cursor:pointer}
+ .rtp-toggle:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
+ .rtp-exp{max-height:304px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
 .rtp-exp::-webkit-scrollbar{width:8px}
 .rtp-exp::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l2);border-radius:8px}
 .rtp-exp::-webkit-scrollbar-track{background:transparent}
@@ -769,6 +777,8 @@ window.__ModuleLoader__.load({
       const [busy, setBusy] = React.useState(false)
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
+      const [showFinished, setShowFinished] = React.useState(false)
+      const [openItem, setOpenItem] = React.useState('')
       const rootRef = React.useRef(null)
 
       React.useEffect(() => { ensurePanelStyles() }, [])
@@ -1065,13 +1075,24 @@ window.__ModuleLoader__.load({
             ])
       ])
 
+      const finishedCount = Number(state && state.finishedItems) || 0
+      const visibleCards = cards.filter((entry) => showFinished || (entry.status !== 'done' && entry.status !== 'canceled'))
       const cardsSection = h(Section, {
         key: 'cards',
         title: '工作项',
-        count: cards.length === 0 ? 0 : cards.length
-      }, cards.length === 0
+        action: finishedCount === 0 ? undefined : h('button', {
+          key: 'finished',
+          type: 'button',
+          className: 'rtp-toggle',
+          onClick: () => setShowFinished(!showFinished)
+        }, showFinished ? '隐藏已完成' : `已完成 ${finishedCount}`)
+      }, visibleCards.length === 0
         ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无工作项')
-        : cards.map((entry) => h('div', { key: entry.id, className: 'rtp-row' }, [
+        : h('div', { key: 'list', className: 'rtp-items' }, visibleCards.map((entry) => h('div', {
+            key: entry.id,
+            className: 'rtp-row clickable',
+            onClick: () => setOpenItem(openItem === entry.id ? '' : entry.id)
+          }, [
             h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
             h('div', { key: 'main', className: 'rtp-rowmain' }, [
               h('div', { key: 't', className: 'rtp-rowtitle' }, [
@@ -1090,8 +1111,17 @@ window.__ModuleLoader__.load({
                   key: 'chip',
                   className: 'rtp-chip',
                   style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
-                }, statusLabel(entry.status))
-          ])))
+                }, statusLabel(entry.status)),
+            openItem === entry.id ? h('div', { key: 'detail', className: 'rtp-itemdetail' }, [
+              entry.kind ? h('span', { key: 'kind', className: 'rtp-tag' }, entry.kind === 'gated' ? '需要你验收' : '内部步骤') : null,
+              entry.blocked ? h('span', { key: 'blocked', className: 'rtp-tag warn' }, `阻塞：${entry.blocked}`) : null,
+              entry.next ? h('span', { key: 'next' }, `下一步：${entry.next}`) : null,
+              entry.evidenceCount || entry.checklistTotal
+                ? h('span', { key: 'ev' }, `证据 ${entry.evidenceCount || 0} 条 · 清单 ${entry.checklistDone || 0}/${entry.checklistTotal || 0}`)
+                : null,
+              entry.updated ? h('span', { key: 'up' }, `更新于 ${formatSince(entry.updated)}`) : null
+            ]) : null
+          ]))))
 
       const approvalSelect = h('select', {
         key: 'mode',

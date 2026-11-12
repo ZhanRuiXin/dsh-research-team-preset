@@ -658,14 +658,25 @@ export function buildPanelState(root, options = {}) {
     next: worklogPlan.next
   }
   const items = listItems(root)
-  const cards = items.map((item) => ({
+  const statusRank = { blocked: 0, in_review: 1, in_progress: 2, todo: 3, done: 4, canceled: 5 }
+  const ordered = [...items].sort((a, b) => {
+    const rank = (statusRank[a.status] ?? 9) - (statusRank[b.status] ?? 9)
+    return rank !== 0 ? rank : String(b.updated ?? '').localeCompare(String(a.updated ?? ''))
+  })
+  const finished = ordered.filter((item) => item.status === 'done' || item.status === 'canceled')
+  const cards = ordered.slice(0, 80).map((item) => ({
     id: item.id,
     title: item.title,
     owner: item.owner,
     status: item.status,
     updated: item.updated,
     next: item.next,
-    kind: item.kind
+    blocked: item.blocked,
+    summary: item.summary,
+    kind: item.kind,
+    evidenceCount: Array.isArray(item.evidence) ? item.evidence.length : 0,
+    checklistTotal: Array.isArray(item.checklist) ? item.checklist.length : 0,
+    checklistDone: Array.isArray(item.checklist) ? item.checklist.filter((entry) => entry.done === true).length : 0
   }))
   const team = typeof options.team === 'function' ? options.team(items) : []
 
@@ -738,6 +749,8 @@ export function buildPanelState(root, options = {}) {
     team,
     worklog: plan,
     cards,
+    itemsTotal: items.length,
+    finishedItems: finished.length,
     runs: runs.slice(0, 40),
     experimentSettings: settings,
     designs: designs.slice(0, 12),

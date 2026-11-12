@@ -316,8 +316,6 @@ function statusLabel(status) {
 .rtp-title{margin-top:0;font-size:18px;font-weight:600;line-height:1.4;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .rtp-sub{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 10px;font-size:14px;color:var(--dsw-alias-label-secondary)}
 .rtp-sub b{font-weight:500;color:var(--dsw-alias-label-primary)}
-.rtp-waitsee{margin-left:auto;flex-shrink:0;border:0;background:transparent;color:inherit;font:inherit;font-weight:600;cursor:pointer;padding:0 2px;text-decoration:underline;text-underline-offset:2px}
-.rtp-wait{margin-top:12px;display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;font-size:14px;line-height:1.45;color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 9%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
 .rtp-section{padding:14px 16px 2px}
 .rtp-sechead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
 .rtp-seclabel{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--dsw-alias-label-tertiary)}
@@ -791,7 +789,6 @@ function statusLabel(status) {
       const [hover, setHover] = React.useState(null)
       const [showFinished, setShowFinished] = React.useState(false)
       const [openItem, setOpenItem] = React.useState('')
-      const [onlyWaiting, setOnlyWaiting] = React.useState(false)
       const rootRef = React.useRef(null)
 
       React.useEffect(() => { ensurePanelStyles() }, [])
@@ -842,7 +839,6 @@ function statusLabel(status) {
       const runs = (state && state.runs) || []
       const team = (state && state.team) || []
       const experimentSettings = (state && state.experimentSettings) || { approval: 'required' }
-      const waiting = cards.filter((entry) => entry.status === 'in_review')
 
       function toggleNode(id) {
         setSelectedNodes((current) => (current.indexOf(id) >= 0 ? current.filter((item) => item !== id) : [...current, id]))
@@ -911,19 +907,7 @@ function statusLabel(status) {
         h('div', { key: 'sub', className: 'rtp-sub' }, [
           worklog.milestone ? h('span', { key: 'm' }, ['里程碑 ', h('b', { key: 'b' }, worklog.milestone)]) : null,
           worklog.next ? h('span', { key: 'n' }, ['下一步 ', h('b', { key: 'b' }, worklog.next)]) : null
-        ].filter(Boolean)),
-        waiting.length === 0
-          ? null
-          : h('div', { key: 'waiting', className: 'rtp-wait' }, [
-              h('span', { key: 'i' }, '◷'),
-              h('span', { key: 't' }, `待你验收 ${waiting.length} 项`),
-              h('button', {
-                key: 'see',
-                type: 'button',
-                className: 'rtp-waitsee',
-                onClick: () => setOnlyWaiting(!onlyWaiting)
-              }, onlyWaiting ? '查看全部' : '查看')
-            ])
+        ].filter(Boolean))
       ])
 
       const archLabel = (entry) => {
@@ -1095,7 +1079,7 @@ function statusLabel(status) {
       ])
 
       const finishedCount = Number(state && state.finishedItems) || 0
-      const visibleCards = cards.filter((entry) => (showFinished || !/^(done|canceled)$/.test(entry.status)) && (!(onlyWaiting && waiting.length > 0) || entry.status === 'in_review'))
+      const visibleCards = cards.filter((entry) => showFinished || !/^(done|canceled)$/.test(entry.status))
       const cardsSection = h(Section, {
         key: 'cards',
         title: '工作项',

@@ -354,7 +354,7 @@ window.__ModuleLoader__.load({
 @keyframes rtp-tip-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){.rtp-tip{animation:none}}
 .rtp-tiptitle{margin-bottom:3px;font-size:12.5px;font-weight:600;color:var(--dsw-alias-label-primary)}
-.rtp-tipline{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:232px}
+.rtp-tipline{white-space:normal;overflow-wrap:anywhere}
 .rtp-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:500;border:.5px solid transparent}
 .rtp-idle{flex:0 0 auto;width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-border-l3);margin-right:3px}
 .rtp-pill.on{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 30%,transparent)}
@@ -939,13 +939,25 @@ window.__ModuleLoader__.load({
           memberLabel(value)
         ].filter(Boolean))
       }
+      const estimateTipHeight = (lines, width) => {
+        const inner = Math.max(40, width - 20)
+        const unitsOf = (text) => {
+          let units = 0
+          for (const ch of String(text)) units += /[\u3000-\u9fff\uff00-\uffef]/.test(ch) ? 2 : 1
+          return units
+        }
+        const perLine = Math.max(10, inner / 6.4)
+        let linesCount = 0
+        lines.forEach((line) => { linesCount += Math.max(1, Math.ceil(unitsOf(line) / perLine)) })
+        return 16 + 18 + linesCount * 18.6 + 4
+      }
       const openTip = (event, lines) => {
         const rootEl = rootRef.current
         if (rootEl === null) return
         const rect = event.currentTarget.getBoundingClientRect()
-        const height = 104
         const box = rootEl.getBoundingClientRect()
         const width = Math.min(244, Math.max(160, box.width - 16))
+        const height = estimateTipHeight(lines, width)
         const scrollTop = rootEl.scrollTop || 0
         const anchor = rect.left - box.left + 21
         const left = Math.max(8, Math.min(anchor - 26, box.width - width - 8))

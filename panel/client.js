@@ -303,7 +303,7 @@ window.__ModuleLoader__.load({
 .rtp-header{position:relative;padding:16px 16px 13px;border-bottom:.5px solid var(--dsw-alias-border-l2);background:linear-gradient(180deg,color-mix(in srgb,var(--dsw-alias-bg-layer-1) 92%,transparent),transparent)}
 .rtp-eyebrow{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;letter-spacing:.12em;color:var(--dsw-alias-label-tertiary);text-transform:uppercase}
 .rtp-live{width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-success-primary) 18%,transparent)}
-.rtp-title{margin-top:8px;font-size:18px;font-weight:600;line-height:1.4;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rtp-title{margin-top:0;font-size:18px;font-weight:600;line-height:1.4;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .rtp-sub{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 10px;font-size:14px;color:var(--dsw-alias-label-secondary)}
 .rtp-sub b{font-weight:500;color:var(--dsw-alias-label-primary)}
 .rtp-wait{margin-top:12px;display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;font-size:14px;line-height:1.45;color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 9%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
@@ -332,6 +332,33 @@ window.__ModuleLoader__.load({
 .rtp-arch:focus-visible{outline:2px solid color-mix(in srgb,var(--dsw-alias-brand-primary) 55%,transparent);outline-offset:1px}
 .rtp-arch.on{border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-brand-primary) 14%,transparent);color:var(--dsw-alias-label-primary);font-weight:500}
 .rtp-arch.on::before{content:'';flex:0 0 auto;width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
+.rtp-arch.is-archived{opacity:.6;border-style:dashed;background:transparent}
+.rtp-dash{padding:20px 24px 28px}
+.rtp-dashhead{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.rtp-dashtitle{font-size:16px;font-weight:600}
+.rtp-dashsub{font-size:12.5px;color:var(--dsw-alias-label-tertiary)}
+.rtp-dashgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));gap:12px;align-items:start}
+.rtp-dashcard{display:flex;flex-direction:column;gap:7px;padding:12px 13px;border:1px solid var(--dsw-alias-border-l1);border-radius:10px;background:var(--dsw-alias-bg-layer-1);transition:border-color var(--ds-transition-duration) var(--ds-ease-in-out)}
+.rtp-dashcard:hover{border-color:var(--dsw-alias-border-l2)}
+.rtp-dashcard.is-idle{opacity:.62}
+.rtp-dashtop{display:flex;align-items:center;gap:7px}
+.rtp-dashname{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-dashidle{font-size:10.5px;line-height:16px;padding:0 6px;border-radius:999px;border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-tertiary);white-space:nowrap}
+.rtp-dashtime{margin-left:auto;font-size:11.5px;color:var(--dsw-alias-label-tertiary);white-space:nowrap}
+.rtp-dashobj{font-size:12.5px;line-height:1.5;color:var(--dsw-alias-label-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rtp-dashmeta{font-size:11.5px;color:var(--dsw-alias-label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-dashchips{display:flex;flex-wrap:wrap;gap:5px}
+.rtp-dashchip{font-size:11px;line-height:18px;padding:0 7px;border-radius:999px;border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);white-space:nowrap}
+.rtp-dashlist{display:flex;flex-direction:column;gap:3px;padding:6px 8px;border-radius:7px;background:var(--dsw-alias-bg-layer-2)}
+.rtp-dashrow{display:flex;gap:6px;font-size:11.5px;line-height:1.4;color:var(--dsw-alias-label-secondary);min-width:0}
+.rtp-dashrowtitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-dashfoot{display:flex;align-items:center;gap:8px;margin-top:1px}
+.rtp-dashfoottext{font-size:11.5px;color:var(--dsw-alias-label-tertiary);white-space:nowrap}
+.rtp-dashpath{margin-left:auto;font-size:11px;color:var(--dsw-alias-label-tertiary);direction:rtl;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;font-family:var(--dsw-font-family-mono)}
+.rtp-note{margin:0 0 7px;font-size:12.5px;color:var(--dsw-alias-label-tertiary)}
+.rtp-arch.is-archived.on{opacity:.8}
+.rtp-arch-more{border-style:dashed;color:var(--dsw-alias-label-tertiary);font-weight:400}
+.rtp-arch-more:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-interactive-bg-hover)}
 .rtp-root{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .rtp-root textarea,.rtp-root input,.rtp-id,.rtp-rowtitle,.rtp-rowmeta,.rtp-rowmain,.rtp-annot,.rtp-empty{-webkit-user-select:text;user-select:text}
 .rtp-mem:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
@@ -764,6 +791,7 @@ window.__ModuleLoader__.load({
       const [error, setError] = React.useState('')
       const [selectedCard, setSelectedCard] = React.useState('')
       const [selectedNodes, setSelectedNodes] = React.useState([])
+      const [showArchived, setShowArchived] = React.useState(false)
       const [busy, setBusy] = React.useState(false)
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
@@ -810,7 +838,10 @@ window.__ModuleLoader__.load({
       }, [toast])
 
       const architectures = (state && state.architectures) || []
-      const card = architectures.find((entry) => entry.id === selectedCard) || architectures[0]
+      const activeArch = architectures.filter((entry) => entry.archived !== true)
+      const retiredArch = architectures.filter((entry) => entry.archived === true)
+      const shownArch = showArchived ? [...activeArch, ...retiredArch] : activeArch
+      const card = architectures.find((entry) => entry.id === selectedCard) || shownArch[0] || architectures[0]
       const worklog = (state && state.worklog) || {}
       const cards = (state && state.cards) || []
       const runs = (state && state.runs) || []
@@ -881,10 +912,6 @@ window.__ModuleLoader__.load({
       }
 
       const header = h('div', { key: 'header', className: 'rtp-header' }, [
-        h('div', { key: 'eyebrow', className: 'rtp-eyebrow' }, [
-          h('span', { key: 'live', className: 'rtp-live' }),
-          h('span', { key: 'label' }, '研究团队')
-        ]),
         h('div', { key: 'objective', className: 'rtp-title' }, worklog.objective || '尚未设置研究目标'),
         h('div', { key: 'sub', className: 'rtp-sub' }, [
           worklog.milestone ? h('span', { key: 'm' }, ['里程碑 ', h('b', { key: 'b' }, worklog.milestone)]) : null,
@@ -913,11 +940,20 @@ window.__ModuleLoader__.load({
         lines.push(entry.description || entry.summary || CARD_KIND_LABELS[entry.kind] || '架构')
         return lines
       }
-      const archChips = architectures.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' },
-        architectures.map((entry) => h('button', {
+      const archiveCard = (entry, archived) => {
+        if (archived) setSelectedCard('')
+        else setSelectedCard(entry.id)
+        setSelectedNodes([])
+        void postPanel(
+          { op: 'archive', id: entry.id, archived },
+          archived ? `已归档「${archLabel(entry)}」，可在「已归档」中恢复。` : `已恢复「${archLabel(entry)}」。`
+        )
+      }
+      const archChips = shownArch.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' }, [
+        ...shownArch.map((entry) => h('button', {
           key: entry.id,
           type: 'button',
-          className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}`,
+          className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}${entry.archived === true ? ' is-archived' : ''}`,
           'aria-label': archBrief(entry).join('; '),
           onClick: () => {
             setSelectedCard(entry.id)
@@ -925,7 +961,17 @@ window.__ModuleLoader__.load({
           },
           onMouseEnter: (event) => openTip(event, archBrief(entry)),
           onMouseLeave: () => setHover(null)
-        }, h('span', { key: 't', className: 'rtp-arch-t' }, archLabel(entry)))))
+        }, h('span', { key: 't', className: 'rtp-arch-t' }, archLabel(entry)))),
+        retiredArch.length === 0
+          ? null
+          : h('button', {
+              key: 'more',
+              type: 'button',
+              className: 'rtp-arch rtp-arch-more',
+              title: showArchived ? '收起已归档的架构卡' : '显示已归档的架构卡',
+              onClick: () => setShowArchived((current) => !current)
+            }, showArchived ? '收起归档' : `已归档 ${retiredArch.length}`)
+      ])
 
       const teamOn = team.filter((member) => String(member.status).toLowerCase() === 'running').length
       const teamPill = (status) => {
@@ -998,12 +1044,24 @@ window.__ModuleLoader__.load({
       const archSection = h(Section, {
         key: 'arch',
         title: '架构',
-        count: 0
+        count: 0,
+        action: card === undefined
+          ? undefined
+          : h('button', {
+              key: 'archive',
+              type: 'button',
+              className: 'rtp-ghost',
+              title: card.archived === true ? '把这张架构卡放回面板' : '把这张架构卡移出面板，可随时恢复',
+              onClick: () => archiveCard(card, card.archived !== true)
+            }, card.archived === true ? '恢复' : '归档')
       }, [
         architectures.length === 0
           ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无架构卡片')
           : h('div', { key: 'body' }, [
               archChips,
+              card !== undefined && card.archived === true
+                ? h('div', { key: 'retired', className: 'rtp-note' }, '这张架构卡已归档，恢复后会回到切换列表。')
+                : null,
               h(ArchitectureCanvas, {
                 key: 'canvas',
                 card,
@@ -1142,6 +1200,106 @@ window.__ModuleLoader__.load({
       ])
     }
 
+    const DASHBOARD_ROUTE = '/api/dsh-research-team-dashboard'
+
+    function dashChip(label, color) {
+      return h('span', {
+        key: label,
+        className: 'rtp-dashchip',
+        style: color === '' ? null : {
+          color,
+          borderColor: 'color-mix(in srgb,currentColor 28%,transparent)',
+          background: 'color-mix(in srgb,currentColor 8%,transparent)'
+        }
+      }, label)
+    }
+
+    function DashboardCard({ project }) {
+      const counts = project.counts || {}
+      const experiments = project.experiments || {}
+      const architectures = project.architectures || {}
+      const chips = []
+      if ((counts.in_progress || 0) > 0) chips.push(dashChip(`进行 ${counts.in_progress}`, 'var(--dsw-alias-state-warn-primary)'))
+      if ((counts.in_review || 0) > 0) chips.push(dashChip(`待确认 ${counts.in_review}`, 'var(--dsw-alias-brand-primary)'))
+      if ((counts.blocked || 0) > 0) chips.push(dashChip(`阻塞 ${counts.blocked}`, 'var(--dsw-alias-state-error-primary)'))
+      if ((counts.todo || 0) > 0) chips.push(dashChip(`待办 ${counts.todo}`, ''))
+      if ((experiments.running || 0) > 0) chips.push(dashChip(`运行 ${experiments.running}`, 'var(--dsw-alias-state-success-primary)'))
+      if ((experiments.awaiting || 0) > 0) chips.push(dashChip(`待批准 ${experiments.awaiting}`, 'var(--dsw-alias-state-warn-primary)'))
+      if ((architectures.total || 0) > 0) {
+        chips.push(dashChip(`架构 ${architectures.total}${(architectures.archived || 0) > 0 ? `（归档 ${architectures.archived}）` : ''}`, ''))
+      }
+      const inReview = Array.isArray(project.inReview) ? project.inReview.slice(0, 2) : []
+      const updated = typeof project.updated === 'string' && project.updated !== '' ? formatSince(project.updated) : ''
+      return h('div', { key: project.id || project.path, className: `rtp-dashcard${project.initialized === true ? '' : ' is-idle'}` }, [
+        h('div', { key: 'top', className: 'rtp-dashtop' }, [
+          h('span', { key: 'name', className: 'rtp-dashname', title: project.path }, project.title),
+          project.initialized === true ? null : h('span', { key: 'idle', className: 'rtp-dashidle' }, '未初始化'),
+          h('span', { key: 'time', className: 'rtp-dashtime' }, updated)
+        ]),
+        h('div', { key: 'obj', className: 'rtp-dashobj' }, project.objective === '' ? '还没有写研究目标' : project.objective),
+        project.milestone === '' && project.next === '' ? null : h('div', { key: 'meta', className: 'rtp-dashmeta' }, [
+          project.milestone === '' ? null : h('span', { key: 'm' }, `里程碑 ${project.milestone}`),
+          project.milestone === '' || project.next === '' ? null : h('span', { key: 'sep' }, ' · '),
+          project.next === '' ? null : h('span', { key: 'n' }, `下一步 ${project.next}`)
+        ]),
+        chips.length === 0 ? null : h('div', { key: 'chips', className: 'rtp-dashchips' }, chips),
+        inReview.length === 0 ? null : h('div', { key: 'review', className: 'rtp-dashlist' }, inReview.map((item) => h('div', { key: item.id, className: 'rtp-dashrow', title: item.title }, [
+          h('span', { key: 'id', className: 'rtp-id' }, `#${item.id}`),
+          h('span', { key: 't', className: 'rtp-dashrowtitle' }, item.title)
+        ]))),
+        h('div', { key: 'foot', className: 'rtp-dashfoot' }, [
+          h('span', { key: 'exp', className: 'rtp-dashfoottext' }, `实验 ${experiments.total || 0}`),
+          h('span', { key: 'path', className: 'rtp-dashpath', title: project.path }, project.path)
+        ])
+      ])
+    }
+
+    function DashboardPage() {
+      const [projects, setProjects] = React.useState(null)
+      const [error, setError] = React.useState('')
+
+      const load = React.useCallback(async () => {
+        try {
+          const response = await fetch(DASHBOARD_ROUTE, { headers: { accept: 'application/json' } })
+          const payload = await response.json()
+          if (!response.ok || payload?.ok !== true) throw new Error(payload?.error || `HTTP ${response.status}`)
+          setProjects(Array.isArray(payload.projects) ? payload.projects : [])
+          setError('')
+        } catch (failure) {
+          setError(failure instanceof Error ? failure.message : String(failure))
+        }
+      }, [])
+
+      React.useEffect(() => {
+        load()
+        const timer = setInterval(() => {
+          if (!document.hidden) load()
+        }, 10000)
+        return () => clearInterval(timer)
+      }, [load])
+
+      const list = projects ?? []
+      const header = h('div', { key: 'head', className: 'rtp-dashhead' }, [
+        h('div', { key: 't', className: 'rtp-dashtitle' }, '看板'),
+        h('div', { key: 's', className: 'rtp-dashsub' }, projects === null ? '读取中…' : `${list.length} 个项目 · 每 10 秒刷新`),
+        h('span', { key: 'g', style: { flex: '1 1 auto' } }),
+        h('button', { key: 'r', type: 'button', className: 'rtp-ghost', onClick: () => load() }, '刷新')
+      ])
+      const body = projects === null
+        ? h('div', { key: 'skel', className: 'rtp-dashgrid' }, [0, 1, 2].map((index) => h('div', { key: index, className: 'rtp-dashcard' }, [
+            h('div', { key: 'a', className: 'rtp-skel', style: { width: '52%', height: '12px' } }),
+            h('div', { key: 'b', className: 'rtp-skel', style: { width: '84%', height: '9px', marginTop: '10px' } })
+          ])))
+        : list.length === 0
+          ? h('div', { key: 'empty', className: 'rtp-empty' }, '还没有已注册的项目')
+          : h('div', { key: 'grid', className: 'rtp-dashgrid' }, list.map((project) => h(DashboardCard, { key: project.id || project.path, project })))
+      return h('div', { className: 'rtp-root rtp-dash' }, [
+        header,
+        error === '' ? null : h('div', { key: 'error', className: 'rtp-error' }, error),
+        body
+      ])
+    }
+
     function apply(ctx) {
       const sessionIdOf = (props) => {
         const value = props || {}
@@ -1161,7 +1319,7 @@ window.__ModuleLoader__.load({
         registeredFor = service
         ctx.effect(() => service.registerTab({
           id: 'research-team:panel',
-          title: '研究',
+          title: '研究面板',
           description: '团队状态：架构、工作项与实验',
           order: 40,
           single: true,
@@ -1185,7 +1343,30 @@ window.__ModuleLoader__.load({
       ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab.title',
         key: 'research-team#panel'
-      }, () => '研究'))
+      }, () => '研究面板'))
+
+      const DashboardIcon = () => h('svg', {
+        width: 16,
+        height: 16,
+        viewBox: '0 0 16 16',
+        fill: 'none',
+        'aria-hidden': 'true'
+      }, [
+        h('rect', { key: 'a', x: 1.6, y: 1.6, width: 5.4, height: 5.4, rx: 1.4, stroke: 'currentColor', strokeWidth: 1.3 }),
+        h('rect', { key: 'b', x: 9, y: 1.6, width: 5.4, height: 5.4, rx: 1.4, stroke: 'currentColor', strokeWidth: 1.3 }),
+        h('rect', { key: 'c', x: 1.6, y: 9, width: 5.4, height: 5.4, rx: 1.4, stroke: 'currentColor', strokeWidth: 1.3 }),
+        h('rect', { key: 'd', x: 9, y: 9, width: 5.4, height: 5.4, rx: 1.4, stroke: 'currentColor', strokeWidth: 1.3 })
+      ])
+      ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
+        name: 'sidebar.panellist',
+        id: 'research-team-dashboard',
+        order: 41,
+        label: () => '看板'
+      }, DashboardIcon))
+      ctx.slots.inject('main', () => ctx.slots.register({
+        name: 'main',
+        key: 'research-team-dashboard'
+      }, () => h(DashboardPage)))
     }
 
 

@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Added a cross-project 看板 page in the left rail: one card per registered project with its objective, work-item counts, experiments, architecture cards and last update, served by a new dashboard route.
+
 - The sidebar drops the design-document list: architecture chips show the card title and a hover card shows the version and description, and the team tiles use the registered member names, lead included.
 
 - Architecture cards carry two text fields, a short `title` for the sidebar chip and a `description` for its hover card; `summary` is still accepted as an alias so older cards keep rendering.

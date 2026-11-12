@@ -326,7 +326,7 @@ window.__ModuleLoader__.load({
 .rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-archgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-width:100%}
-.rtp-arch{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;max-width:240px;height:26px;padding:0 11px;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden}
+.rtp-arch{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;max-width:200px;height:26px;padding:0 11px;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden}
 .rtp-arch-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rtp-arch:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
 .rtp-arch:focus-visible{outline:2px solid color-mix(in srgb,var(--dsw-alias-brand-primary) 55%,transparent);outline-offset:1px}
@@ -898,10 +898,20 @@ window.__ModuleLoader__.load({
             ])
       ])
 
+      const archLabel = (entry) => {
+        if (entry.label) return entry.label
+        const title = entry.title || entry.id
+        const colon = title.search(/[:：]/)
+        const head = colon > 0 ? title.slice(0, colon).trim() : ''
+        if (head !== '' && head.length <= 16) return head
+        return Array.from(title).slice(0, 12).join('') + '…'
+      }
       const archBrief = (entry) => {
-        const lines = [`${entry.title || entry.id} · v${entry.version}`]
-        if (entry.summary) lines.push(entry.summary)
-        else lines.push(CARD_KIND_LABELS[entry.kind] || '架构')
+        const label = archLabel(entry)
+        const lines = [`${label} · v${entry.version}`]
+        const title = entry.title || entry.id
+        if (title !== label) lines.push(`标题：${title}`)
+        lines.push(entry.summary || CARD_KIND_LABELS[entry.kind] || '架构')
         return lines
       }
       const archChips = architectures.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' },
@@ -916,7 +926,7 @@ window.__ModuleLoader__.load({
           },
           onMouseEnter: (event) => openTip(event, archBrief(entry)),
           onMouseLeave: () => setHover(null)
-        }, h('span', { key: 't', className: 'rtp-arch-t' }, entry.title || entry.id))))
+        }, h('span', { key: 't', className: 'rtp-arch-t' }, archLabel(entry)))))
 
       const teamOn = team.filter((member) => String(member.status).toLowerCase() === 'running').length
       const teamPill = (status) => {

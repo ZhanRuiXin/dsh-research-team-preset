@@ -315,14 +315,13 @@ window.__ModuleLoader__.load({
 .rtp-ghost{height:27px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-tertiary);font:inherit;font-size:13.5px;cursor:pointer}
 .rtp-ghost:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
 .rtp-empty{padding:18px 12px;border:.5px dashed var(--dsw-alias-border-l2);border-radius:10px;text-align:center;font-size:14px;line-height:1.6;color:var(--dsw-alias-label-tertiary);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 60%,transparent)}
-.rtp-row{display:flex;align-items:flex-start;gap:10px;padding:8px 9px;margin:0 -9px;border-radius:8px;border:.5px solid transparent;cursor:default}
-.rtp-row:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l1)}
+.rtp-row{display:flex;align-items:flex-start;gap:9px;padding:9px 10px;margin:0 0 6px;border-radius:10px;border:.5px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);cursor:pointer}
+.rtp-row:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
 .rtp-dot{flex:0 0 auto;width:6px;height:6px;margin-top:7px;border-radius:50%}
 .rtp-rowmain{min-width:0;flex:1}
 .rtp-rowtitle{display:flex;align-items:baseline;gap:6px;font-size:15px;line-height:1.35;color:var(--dsw-alias-label-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rtp-id{flex:0 0 auto;font-size:13px;color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);letter-spacing:.02em}
 .rtp-rowmeta{margin-top:3px;font-size:13.5px;line-height:1.45;color:var(--dsw-alias-label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rtp-row{ cursor:pointer }
 .rtp-row.open .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;flex-wrap:wrap;overflow-wrap:anywhere}
 .rtp-row.open{flex-wrap:wrap}
 .rtp-row.open .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
@@ -1098,8 +1097,20 @@ window.__ModuleLoader__.load({
             h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
             h('div', { key: 'main', className: 'rtp-rowmain' }, [
               h('div', { key: 't', className: 'rtp-rowtitle' }, entry.title),
-              h('div', { key: 'm', className: 'rtp-rowmeta' },
-                [h('span', { key: 'id', className: 'rtp-id' }, entry.id), entry.owner ? `@${entry.owner}` : '', entry.next ? `下一步 ${entry.next}` : '', entry.updated ? formatSince(entry.updated) : ''].filter(Boolean).join(' · '))
+              h('div', { key: 'm', className: 'rtp-rowmeta' }, [
+                h('span', { key: 'id', className: 'rtp-id' }, entry.id),
+                entry.owner ? ` · @${entry.owner}` : '',
+                entry.next ? ` · 下一步 ${entry.next}` : '',
+                entry.updated ? ` · ${formatSince(entry.updated)}` : ''
+              ]),
+              openItem === entry.id ? h('div', { key: 'extra', className: 'rtp-itemextra' }, [
+                entry.kind ? h('span', { key: 'k' }, entry.kind === 'gated' ? '需要你验收 · ' : '内部步骤 · ') : null,
+                entry.blocked ? h('span', { key: 'b', style: { color: 'var(--dsw-alias-state-warn-primary)' } }, `阻塞：${entry.blocked} · `) : null,
+                entry.evidenceCount || entry.checklistTotal
+                  ? h('span', { key: 'e' }, `证据 ${entry.evidenceCount || 0} 条 · 清单 ${entry.checklistDone || 0}/${entry.checklistTotal || 0} · `)
+                  : null,
+                h('span', { key: 'u' }, entry.updated ? `更新于 ${formatSince(entry.updated)}` : '')
+              ]) : null
             ]),
             entry.status === 'in_review'
               ? h('span', { key: 'decide', style: { display: 'flex', gap: '5px' } }, [
@@ -1111,14 +1122,6 @@ window.__ModuleLoader__.load({
                   className: 'rtp-chip',
                   style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
                 }, statusLabel(entry.status)),
-            openItem === entry.id ? h('div', { key: 'extra', className: 'rtp-itemextra', style: { flexBasis: '100%' } }, [
-              entry.kind ? h('span', { key: 'k' }, entry.kind === 'gated' ? '需要你验收 · ' : '内部步骤 · ') : null,
-              entry.blocked ? h('span', { key: 'b', style: { color: 'var(--dsw-alias-state-warn-primary)' } }, `阻塞：${entry.blocked} · `) : null,
-              entry.evidenceCount || entry.checklistTotal
-                ? h('span', { key: 'e' }, `证据 ${entry.evidenceCount || 0} 条 · 清单 ${entry.checklistDone || 0}/${entry.checklistTotal || 0} · `)
-                : null,
-              h('span', { key: 'u' }, entry.updated ? `更新于 ${formatSince(entry.updated)}` : '')
-            ]) : null
           ]))))
 
       const approvalSelect = h('select', {

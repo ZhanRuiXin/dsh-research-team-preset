@@ -740,7 +740,7 @@ window.__ModuleLoader__.load({
         ]),
         h('div', { key: 'tools', className: 'rtp-tools' }, [
           h('button', { key: 'out', type: 'button', title: '缩小', onClick: () => zoomTo((auto.w / box.w) * 0.85) }, '−'),
-          h('button', { key: 'pct', type: 'button', title: '中键拖动平移，滚轮缩放，双击适应窗口', onClick: () => setView(null), style: { width: '42px', fontSize: '13px' } }, `${zoom}%`),
+          h('button', { key: 'pct', type: 'button', title: '中键拖动平移，工具栏缩放，双击适应窗口', onClick: () => setView(null), style: { width: '42px', fontSize: '13px' } }, `${zoom}%`),
           h('button', { key: 'in', type: 'button', title: '放大', onClick: () => zoomTo((auto.w / box.w) * 1.15) }, '+')
         ])
       ])

@@ -648,6 +648,8 @@ window.__ModuleLoader__.load({
             props.onToggle(node.id)
           },
           onPointerDown: (event) => event.stopPropagation(),
+          onMouseEnter: (event) => props.onNodeHover(event, [node.label, `${KIND_LABELS[node.kind] || node.kind || '模块'} · ${node.id}`]),
+          onMouseLeave: () => props.onNodeHoverEnd(),
           style: { cursor: 'pointer' }
         }, [
           h('defs', { key: 'clipdef' }, [
@@ -684,7 +686,6 @@ window.__ModuleLoader__.load({
                 }, lines[1])
               : null
           ]),
-          h('title', { key: 'tip' }, `${KIND_LABELS[node.kind] || node.kind || '模块'} · ${node.id}`)
         ])
       })
 
@@ -1025,6 +1026,8 @@ window.__ModuleLoader__.load({
                 card,
                 selected: selectedNodes,
                 onToggle: toggleNode,
+                onNodeHover: (event, lines) => openTip(event, lines),
+                onNodeHoverEnd: () => setHover(null),
                 onMarquee: (ids) => setSelectedNodes((current) => Array.from(new Set([...current, ...ids]))),
                 onClear: () => setSelectedNodes([])
               }),

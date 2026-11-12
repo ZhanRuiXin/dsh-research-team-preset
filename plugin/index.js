@@ -2,20 +2,20 @@
  * Research-team helpers.
  *
  * 1. `research_project` — resolve the calling session's DSH project
- *    (workspaceId, title, path), because a worklog card must land in the right
+ *    (workspaceId, title, path), because a work item must land in the right
  *    project and workspace ids are random.
  * 2. An English coordination-ledger section registered at this preset's
- *    scope: the worklog files are the record.
- *    read or written.
+ *    scope: the worklog store under `.research/worklog/` is the record, and
+ *    the rendered `worklog/` views are what a human reads.
  * 3. `research_workspace_init` — idempotent durable-tracking bootstrap for a
- *    workspace: create `worklog/PLAN.md` and `worklog/INDEX.md` when missing,
- *    and initialize a git repository when the workspace is not already inside
- *    one. The agent decides when to call it; it writes at the registered
+ *    workspace: seed `.research/worklog/` and render `worklog/PLAN.md` and
+ *    `worklog/INDEX.md` when missing, and initialize a git repository when the
+ *    workspace is not already inside one. The agent decides when to call it; it writes at the registered
  *    project root so every session on the project shares one worklog, never
  *    creates a nested repository, and never commits.
  * 4. `research_scope_check` — compare a role's changed files (explicit paths or
  *    a `git diff`) with that role's default write envelope, so an out-of-scope
- *    handoff fails before the card reaches review.
+ *    handoff fails before the work item reaches review.
  */
 
 import { execFile } from 'node:child_process'
@@ -112,7 +112,7 @@ function oneLine(value) {
  *   workspace has none.
  *
  * @param {string} cwd - workspace directory to initialize.
- * @param {string} [objective] - one-line goal seeded into PLAN.md.
+ * @param {string} [objective] - one-line goal seeded into .research/worklog/plan.json.
  * @returns {Promise<object>} `{ cwd, gitState, repoRoot, created, notes }`.
  */
 export async function initWorkspace(cwd, objective = '') {
@@ -181,7 +181,7 @@ export async function initWorkspace(cwd, objective = '') {
 /**
  * Default write envelope per standard role. `null` means unrestricted (the
  * Lead). A project may narrow or extend an envelope in AGENTS.md or on the
- * card; this table is the default the check falls back to.
+ * work item; this table is the default the check falls back to.
  */
 export const WRITE_ENVELOPES = Object.freeze({
   advisor: Object.freeze([]),
@@ -262,7 +262,7 @@ function renderScope(value) {
     ? 'Envelope: unrestricted'
     : `Envelope: ${Array.isArray(envelope) && envelope.length > 0 ? envelope.join(', ') : '(none — read-only)'}`)
   for (const file of Array.isArray(value?.violations) ? value.violations : []) {
-    lines.push(`- outside envelope: ${file} — move it to its owning role, or record an approved exception on the card before the handoff`)
+    lines.push(`- outside envelope: ${file} — move it to its owning role, or record an approved exception on the work item before the handoff`)
   }
   if (value?.ok === true) lines.push('Every changed file is inside the envelope.')
   return [{ type: 'text', text: lines.join(NL) }]
@@ -1248,7 +1248,7 @@ export function apply(ctx) {
   const disposeArchitecture = ctx.tools.register({
     name: 'research_architecture',
     description:
-      'Read or update the architecture cards shown in the Research sidebar: the diagrams of this project, stored as JSON under .research/architecture/<id>.json. A project names its own groups, one group per aspect it wants to show (for example method, implementation, data or training), and the panel draws one chip row per group; put every card in the group it belongs to. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a short title shown on its chip and a description shown in the chip hover card; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
+      'Read or update the architecture cards shown in the Research sidebar: the diagrams of this project, stored as JSON under .research/architecture/<id>.json. A project names its own groups, one group per aspect it wants to show (for example method, implementation, data or training), and the panel draws one chip row per group; put every card in the group it belongs to. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a short title shown on its chip and a description shown in the chip hover card; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and quote them into the conversation composer; when the point should stay with the card, record it in `notes` with op=save, and read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
     parameters: {
       type: 'object',
       properties: {

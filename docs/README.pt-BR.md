@@ -170,7 +170,7 @@ Uma execução ou job longo que sobrevive ao turno deixa seu identificador de jo
 
 ## Barra lateral de pesquisa
 
-Os cartões de arquitetura são diagramas de nós e arestas armazenados como JSON em `.research/architecture/`, um arquivo por cartão. O agente os lê e atualiza com a ferramenta `research_architecture`, para que o diagrama acompanhe o design em vez de ficar desatualizado num slide. Um cartão é renderizado em SVG dentro do painel; arrastar uma caixa sobre os nós os seleciona, e a nota que você escreve é salva no cartão como anotação que o agente lê antes de responder. A aba se registra via `dsh-better-sidebar` quando esse plugin está instalado e, caso contrário, na barra lateral direita nativa.
+Os cartões de arquitetura são diagramas de nós e arestas armazenados como JSON em `.research/architecture/`, um arquivo por cartão. O agente os lê e atualiza com a ferramenta `research_architecture`, para que o diagrama acompanhe o design em vez de ficar desatualizado num slide. Um cartão é renderizado em SVG dentro do painel; arrastar uma caixa sobre os nós os seleciona, e a seleção pode ser citada na conversa; o que vale guardar é salvo no cartão como nota que o agente lê antes de responder. A aba se registra via `dsh-better-sidebar` quando esse plugin está instalado e, caso contrário, na barra lateral direita nativa.
 
 O painel também mostra a equipe em execução: nome, papel, modelo e estado (em execução ou ocioso) de cada membro, além do item de trabalho que ele possui.
 

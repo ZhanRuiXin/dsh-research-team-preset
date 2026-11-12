@@ -22,7 +22,7 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | --- | --- |
 | **Default roles** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Gate-based: every piece of work is a work item; only steps that need your review carry a card view; create, claim, execute, report, review, user acceptance |
-| **Completion** | `in_review` is the agent's last stop; only the user can move a card to `done` |
+| **Completion** | `in_review` is the agent's last stop; only the user can move a work item to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
 | **Worklog** | `.research/worklog/` JSON store with generated `PLAN.md`, `INDEX.md` and card views; resume reads `research_state` first |
@@ -152,7 +152,7 @@ Each role writes only inside its own envelope. The advisor and the reviewer writ
 
 The envelope is a contract rather than a preference: a change that belongs to another role is reported to that owner instead of written by the wrong member. The advisor and the reviewer are spawned read-only, so a review reports what must change instead of changing it; any teammate that genuinely needs to write outside its envelope gets an explicit exception from the Lead, recorded on the card before the work starts. Every other role inherits the Lead's sandbox permission, so a teammate is never more restricted than the Lead unless its role requires it.
 
-Before a card moves to in_review, the owning member or the Lead runs `research_scope_check` with the role and either the changed paths or the base and head commits. A violation is fixed by moving the change to its owning role, or by recording the exception the Lead approved; never by widening the envelope mid-card. A project can narrow or extend an envelope in `AGENTS.md` or on the card, and the card wins for that step so a later session reads the same rule.
+Before a work item moves to in_review, the owning member or the Lead runs `research_scope_check` with the role and either the changed paths or the base and head commits. A violation is fixed by moving the change to its owning role, or by recording the exception the Lead approved; never by widening the envelope mid-card. A project can narrow or extend an envelope in `AGENTS.md` or on the card, and the card wins for that step so a later session reads the same rule.
 
 ## Experiment admission
 
@@ -174,7 +174,7 @@ A run or long job that outlives the turn leaves its job or terminal handle, host
 
 The preset adds a Research tab to the right sidebar. It answers what the team is doing now, what is blocked, and what the next step is: the objective and milestone from `worklog/PLAN.md`, the active work items from `worklog/INDEX.md`, recent runs and the architecture cards.
 
-Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the note you write is stored on the card as an annotation the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
+Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the selection can be quoted into the conversation; anything worth keeping is stored on the card as a note the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
 
 The panel ships as its own module under `panel/`, separate from the settings form, so it can be enabled or disabled on its own. It appears as a right-sidebar tab in each conversation.
 

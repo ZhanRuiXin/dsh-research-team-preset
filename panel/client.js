@@ -325,10 +325,13 @@ window.__ModuleLoader__.load({
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
-.rtp-archgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px;max-width:100%}
-.rtp-arch{flex:0 1 auto;min-width:0;max-width:100%;height:27px;padding:0 10px;border-radius:8px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);font:inherit;font-size:13.5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-archgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-width:100%}
+.rtp-arch{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;max-width:240px;height:26px;padding:0 11px;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden}
+.rtp-arch-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rtp-arch:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
-.rtp-arch.on{color:var(--dsw-alias-label-primary);font-weight:500;border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 40%,transparent);background:var(--dsw-alias-bg-layer-2)}
+.rtp-arch:focus-visible{outline:2px solid color-mix(in srgb,var(--dsw-alias-brand-primary) 55%,transparent);outline-offset:1px}
+.rtp-arch.on{border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-brand-primary) 14%,transparent);color:var(--dsw-alias-label-primary);font-weight:500}
+.rtp-arch.on::before{content:'';flex:0 0 auto;width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
 .rtp-root{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .rtp-root textarea,.rtp-root input,.rtp-id,.rtp-rowtitle,.rtp-rowmeta,.rtp-rowmain,.rtp-annot,.rtp-empty{-webkit-user-select:text;user-select:text}
 .rtp-mem:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
@@ -913,7 +916,7 @@ window.__ModuleLoader__.load({
           },
           onMouseEnter: (event) => openTip(event, archBrief(entry)),
           onMouseLeave: () => setHover(null)
-        }, entry.title || entry.id)))
+        }, h('span', { key: 't', className: 'rtp-arch-t' }, entry.title || entry.id))))
 
       const teamOn = team.filter((member) => String(member.status).toLowerCase() === 'running').length
       const teamPill = (status) => {

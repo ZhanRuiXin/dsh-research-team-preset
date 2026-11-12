@@ -332,10 +332,6 @@ window.__ModuleLoader__.load({
 .rtp-arch:focus-visible{outline:2px solid color-mix(in srgb,var(--dsw-alias-brand-primary) 55%,transparent);outline-offset:1px}
 .rtp-arch.on{border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-brand-primary) 14%,transparent);color:var(--dsw-alias-label-primary);font-weight:500}
 .rtp-arch.on::before{content:'';flex:0 0 auto;width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
-.rtp-arch.is-archived{opacity:.6;border-style:dashed;background:transparent}.rtp-note{margin:0 0 7px;font-size:12.5px;color:var(--dsw-alias-label-tertiary)}
-.rtp-arch.is-archived.on{opacity:.8}
-.rtp-arch-more{border-style:dashed;color:var(--dsw-alias-label-tertiary);font-weight:400}
-.rtp-arch-more:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-interactive-bg-hover)}
 .rtp-root{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .rtp-root textarea,.rtp-root input,.rtp-id,.rtp-rowtitle,.rtp-rowmeta,.rtp-rowmain,.rtp-annot,.rtp-empty{-webkit-user-select:text;user-select:text}
 .rtp-mem:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
@@ -768,7 +764,6 @@ window.__ModuleLoader__.load({
       const [error, setError] = React.useState('')
       const [selectedCard, setSelectedCard] = React.useState('')
       const [selectedNodes, setSelectedNodes] = React.useState([])
-      const [showArchived, setShowArchived] = React.useState(false)
       const [busy, setBusy] = React.useState(false)
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
@@ -815,10 +810,8 @@ window.__ModuleLoader__.load({
       }, [toast])
 
       const architectures = (state && state.architectures) || []
-      const activeArch = architectures.filter((entry) => entry.archived !== true)
-      const retiredArch = architectures.filter((entry) => entry.archived === true)
-      const shownArch = showArchived ? [...activeArch, ...retiredArch] : activeArch
-      const card = architectures.find((entry) => entry.id === selectedCard) || shownArch[0] || architectures[0]
+      const visibleArch = architectures.filter((entry) => entry.archived !== true)
+      const card = visibleArch.find((entry) => entry.id === selectedCard) || visibleArch[0]
       const worklog = (state && state.worklog) || {}
       const cards = (state && state.cards) || []
       const runs = (state && state.runs) || []
@@ -923,14 +916,14 @@ window.__ModuleLoader__.load({
         setSelectedNodes([])
         void postPanel(
           { op: 'archive', id: entry.id, archived },
-          archived ? `已归档「${archLabel(entry)}」，可在「已归档」中恢复。` : `已恢复「${archLabel(entry)}」。`
+          archived ? `已归档「${archLabel(entry)}」。` : `已恢复「${archLabel(entry)}」。`
         )
       }
-      const archChips = shownArch.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' }, [
-        ...shownArch.map((entry) => h('button', {
+      const archChips = visibleArch.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' }, [
+        ...visibleArch.map((entry) => h('button', {
           key: entry.id,
           type: 'button',
-          className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}${entry.archived === true ? ' is-archived' : ''}`,
+          className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}`,
           'aria-label': archBrief(entry).join('; '),
           onClick: () => {
             setSelectedCard(entry.id)
@@ -939,15 +932,6 @@ window.__ModuleLoader__.load({
           onMouseEnter: (event) => openTip(event, archBrief(entry)),
           onMouseLeave: () => setHover(null)
         }, h('span', { key: 't', className: 'rtp-arch-t' }, archLabel(entry)))),
-        retiredArch.length === 0
-          ? null
-          : h('button', {
-              key: 'more',
-              type: 'button',
-              className: 'rtp-arch rtp-arch-more',
-              title: showArchived ? '收起已归档的架构卡' : '显示已归档的架构卡',
-              onClick: () => setShowArchived((current) => !current)
-            }, showArchived ? '收起归档' : `已归档 ${retiredArch.length}`)
       ])
 
       const teamOn = team.filter((member) => String(member.status).toLowerCase() === 'running').length
@@ -1028,17 +1012,14 @@ window.__ModuleLoader__.load({
               key: 'archive',
               type: 'button',
               className: 'rtp-ghost',
-              title: card.archived === true ? '把这张架构卡放回面板' : '把这张架构卡移出面板，可随时恢复',
-              onClick: () => archiveCard(card, card.archived !== true)
-            }, card.archived === true ? '恢复' : '归档')
+              title: '把这张架构卡移出面板，可用 research_architecture 的 restore 操作恢复',
+              onClick: () => archiveCard(card, true)
+            }, '归档')
       }, [
-        architectures.length === 0
+        visibleArch.length === 0
           ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无架构卡片')
           : h('div', { key: 'body' }, [
               archChips,
-              card !== undefined && card.archived === true
-                ? h('div', { key: 'retired', className: 'rtp-note' }, '这张架构卡已归档，恢复后会回到切换列表。')
-                : null,
               h(ArchitectureCanvas, {
                 key: 'canvas',
                 card,

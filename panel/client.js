@@ -226,7 +226,17 @@ window.__ModuleLoader__.load({
       canceled: '已取消'
     }
 
-    function statusLabel(status) {
+    /* One line of detail shown only when a work item row is expanded. */
+function entryExtra(entry) {
+  return [
+    entry.kind === 'gated' ? '需要你验收' : entry.kind === 'internal' ? '内部步骤' : '',
+    entry.blocked ? `阻塞：${entry.blocked}` : '',
+    entry.evidenceCount ? `证据 ${entry.evidenceCount} 条` : '',
+    entry.checklistTotal ? `清单 ${entry.checklistDone || 0}/${entry.checklistTotal}` : ''
+  ].filter(Boolean).join(' · ')
+}
+
+function statusLabel(status) {
       const value = String(status ?? '').toLowerCase()
       return STATUS_LABELS[value] || String(status || '')
     }
@@ -1103,14 +1113,9 @@ window.__ModuleLoader__.load({
                 entry.next ? ` · 下一步 ${entry.next}` : '',
                 entry.updated ? ` · ${formatSince(entry.updated)}` : ''
               ]),
-              openItem === entry.id ? h('div', { key: 'extra', className: 'rtp-itemextra' }, [
-                entry.kind ? h('span', { key: 'k' }, entry.kind === 'gated' ? '需要你验收 · ' : '内部步骤 · ') : null,
-                entry.blocked ? h('span', { key: 'b', style: { color: 'var(--dsw-alias-state-warn-primary)' } }, `阻塞：${entry.blocked} · `) : null,
-                entry.evidenceCount || entry.checklistTotal
-                  ? h('span', { key: 'e' }, `证据 ${entry.evidenceCount || 0} 条 · 清单 ${entry.checklistDone || 0}/${entry.checklistTotal || 0} · `)
-                  : null,
-                h('span', { key: 'u' }, entry.updated ? `更新于 ${formatSince(entry.updated)}` : '')
-              ]) : null
+              openItem === entry.id && entryExtra(entry) !== ''
+                ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry))
+                : null
             ]),
             entry.status === 'in_review'
               ? h('span', { key: 'decide', style: { display: 'flex', gap: '5px' } }, [

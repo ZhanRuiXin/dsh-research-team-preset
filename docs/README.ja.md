@@ -22,7 +22,7 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 | --- | --- |
 | **既定の役割** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **ワークフロー** | ゲート方式：内部ステップはワークログのインデックス行、ユーザーゲートは作業項目ファイル。作成、引き受け、実行、報告、レビュー、ユーザー承認 |
-| **完了** | `in_review` がエージェントの最終地点。カードを `done` に移動できるのはユーザーだけ |
+| **完了** | `in_review` がエージェントの最終地点。作業項目を `done` に移動できるのはユーザーだけ |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
 | **Git** | 実質的な作業の開始時にエージェントが初期化。破壊的な変更はブランチで行い、受け入れ後にのみマージ |
 | **Worklog** | `.research/worklog/` の JSON ストア。`PLAN.md` と `INDEX.md` は生成されたビュー。再開時はまず `research_state` |
@@ -337,7 +337,7 @@ $DSH_HOME/research-team-settings.json
 
 ### タスクワークログのツールが見つからない
 
-ワークログの項目は「研究」サイドバーに `worklog/INDEX.md` から表示されます
+「研究パネル」は `.research/worklog/items/` の作業項目を表示します。完了した項目は「完了」トグルに入ります。登録・更新は `research_worklog` で行います。
 
 ### `spawn_teammate_with_model` が利用できない
 
@@ -367,6 +367,6 @@ MIT。[LICENSE](../LICENSE) を参照してください。
 
 ## 謝辞
 
-ワークログの項目は「研究」サイドバーに `worklog/INDEX.md` から表示されます
+「研究パネル」は `.research/worklog/items/` の作業項目を表示します。完了した項目は「完了」トグルに入ります。登録・更新は `research_worklog` で行います。
 
 コントリビューションと内部開発のメモは [DEVELOPMENT.md](../DEVELOPMENT.md) にあります。

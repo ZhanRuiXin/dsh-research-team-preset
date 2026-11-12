@@ -22,7 +22,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 | --- | --- |
 | **Standardrollen** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Gate-basiert: interne Schritte als Worklog-Indexzeilen, Nutzer-Gates als Work-Item-Dateien; erstellen, uebernehmen, ausfuehren, berichten, pruefen, Abnahme durch die nutzende Person |
-| **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann eine Karte auf `done` setzen |
+| **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann ein Arbeitselement auf `done` setzen |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
 | **Git** | Wird beim Start substanzieller Arbeit vom Agenten initialisiert; destruktive Änderungen auf einem Branch; Zusammenführung erst nach Abnahme |
 | **Worklog** | JSON-Speicher in `.research/worklog/`; `PLAN.md` und `INDEX.md` sind generierte Ansichten; beim Wiederaufnehmen zuerst `research_state` |
@@ -339,7 +339,7 @@ Zwei weitere Ursachen betreffen nicht die Einstellungsdatei:
 
 ### Worklog-Eintraege fehlen
 
-Worklog-Eintraege zeigt die Seitenleiste "Forschung" aus `worklog/INDEX.md`
+Das Panel „Forschung“ listet die aktiven Arbeitselemente aus `.research/worklog/items/`; abgeschlossene Elemente liegen hinter dem Schalter „Abgeschlossen“. Registrieren oder aktualisieren Sie sie mit `research_worklog`.
 
 ### `spawn_teammate_with_model` ist nicht verfügbar
 
@@ -369,6 +369,5 @@ MIT. Siehe [LICENSE](../LICENSE).
 
 ## Danksagungen
 
-Worklog-Eintraege zeigt die Seitenleiste "Forschung" aus `worklog/INDEX.md`
 
 Beiträge und interne Entwicklungsnotizen stehen in [DEVELOPMENT.md](../DEVELOPMENT.md).

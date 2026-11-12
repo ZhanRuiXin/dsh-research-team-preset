@@ -22,7 +22,7 @@ Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semai
 | --- | --- |
 | **Rôles par défaut** | 8 : advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Flux** | Par portes : etapes internes en lignes d'index du worklog, portes utilisateur en fichiers d'éléments de travail ; creer, prendre, executer, rapporter, revoir, acceptation par l'utilisateur |
-| **Achèvement** | `in_review` est le dernier arrêt de l'agent ; seul l'utilisateur peut déplacer une carte vers `done` |
+| **Achèvement** | `in_review` est le dernier arrêt de l'agent ; seul l'utilisateur peut déplacer un élément de travail vers `done` |
 | **Routage des modèles** | Provider, model et effort de raisonnement par rôle, depuis un formulaire de réglages de la page Plugins |
 | **Git** | Initialisé par l'agent au début du travail substantiel ; changements destructifs sur une branche ; fusion après acceptation seulement |
 | **Worklog** | Stockage JSON dans `.research/worklog/` ; `PLAN.md` et `INDEX.md` sont des vues générées ; à la reprise, d’abord `research_state` |
@@ -339,7 +339,7 @@ Deux autres causes ne concernent pas le fichier de réglages :
 
 ### Les outils du worklog des tâches sont absents
 
-La barre laterale « Recherche » affiche les entrees de `worklog/INDEX.md`
+Le panneau « Recherche » liste les éléments de travail actifs de `.research/worklog/items/` ; les éléments terminés restent derrière le bouton « Terminés ». Enregistrez-les ou mettez-les à jour avec `research_worklog`.
 
 ### `spawn_teammate_with_model` est indisponible
 
@@ -369,6 +369,5 @@ MIT. Voir [LICENSE](../LICENSE).
 
 ## Remerciements
 
-La barre laterale « Recherche » affiche les entrees de `worklog/INDEX.md`
 
 Les notes de contribution et de développement interne se trouvent dans [DEVELOPMENT.md](../DEVELOPMENT.md).

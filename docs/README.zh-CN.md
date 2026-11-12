@@ -22,7 +22,7 @@ Research Team Mode 是一个 DSH agent preset，用于以团队而非单个聊�
 | --- | --- |
 | **默认角色** | 8 个：advisor、designer、researcher、data、builder、runner、reviewer、writer |
 | **工作流** | 关卡制：内部步骤是工作日志索引行，用户关卡是工作项文件；建卡、认领、执行、报告、复核、用户验收 |
-| **完成** | `in_review` 是 agent 的最后一站；只有用户才能把卡片移到 `done` |
+| **完成** | `in_review` 是 agent 的最后一站；只有用户才能把工作项移到 `done` |
 | **模型路由** | 通过「插件」页的设置表单，按角色配置 provider、model 和推理强度 |
 | **Git** | 实质性工作开始时由 agent 初始化；破坏性改动走分支；验收通过后才合并 |
 | **工作日志** | `.research/worklog/` 下的 JSON 存储；`PLAN.md` 与 `INDEX.md` 是生成视图；恢复时先读 `research_state` |
@@ -168,7 +168,7 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 ## 研究侧栏
 
-预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行和架构卡片。
+预设会在右侧边栏新增一个「研究面板」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：目标与里程碑来自 `.research/worklog/plan.json`，活动工作项来自 `.research/worklog/items/`（已完成项在「已完成」开关之后），还有实验（生命周期与审批状态）、按项目自定义分组展示的架构卡片，以及当前团队成员。工作项一行可点击展开，查看类型、下一步、阻塞原因、证据与清单。
 
 架构卡片是以 JSON 形式存放在 `.research/architecture/` 下的节点-连线图，一张卡片一个文件。智能体通过 `research_architecture` 工具读取和更新它们，因此图会与设计保持同步，而不是散落在幻灯片里。卡片在面板内以 SVG 渲染；在节点上拖出选框即可选中，选中后可以把这段选择引用到会话里；值得保留的提问会作为备注写回卡片，智能体在回答前会读取它。安装了 `dsh-better-sidebar` 时标签页通过它注册，否则回退到原生右侧边栏。
 
@@ -186,7 +186,6 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 状态迁移遵循固定表（`todo → in_progress → in_review → done`），`blocked` 与 `canceled` 是旁路状态；`blocked` 必须写明原因，进入 `in_review` 至少要有一条证据，每次迁移都记录在该项的历史里。
 
-预设会在右侧边栏新增一个「研究」标签页。它回答团队现在在做什么、卡在哪里、下一步是什么：`worklog/PLAN.md` 中的目标与里程碑、`worklog/INDEX.md` 中的活动工作项、最近的运行和架构卡片。
 
 到达关卡时，负责人在工作项文件里写入带证据的清单、执行摘要、提交范围和下一步，对改动路径运行 `research_scope_check`，再把状态设为 `in_review`。reviewer 写入带证据的 PASS/FAIL 结论；Lead 只在到达关卡或需要用户行动时报告卡片 id、状态和证据。`done` 只属于用户的验收动作；`blocked` 表示无法继续，`canceled` 表示不再继续。
 
@@ -205,7 +204,6 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 
 ## Git 工作流
 
-可能跨会话的工作记录在 `.research/worklog/` 的 JSON 存储里：`plan.json` 存目标、里程碑、下一步与决策，`items/<id>.json` 一项一个文件。`PLAN.md`、`INDEX.md` 与卡片视图由工具生成，不要手工编辑。
 
 破坏性或风险较高的改动在按步骤命名的分支上进行，例如 `task/<title>+<id>`（有用户关卡的工作用卡片，内部工作用团队任务），不直接改默认分支。卡片或团队任务记录 base 和 head 提交，reviewer 以 `git diff <base>..<head>` 作为代码审查的依据，并仍然复跑验收检查。
 
@@ -213,7 +211,6 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 
 ## 工作日志
 
-会话只是一次对话，不是项目本身：`.research/worklog/`、git 与架构卡片承载工作；聊天、团队与后台任务只存在于当前会话。恢复项目时先调用 `research_state`，再读相关项与证据。
 
 恢复时先调用 `research_state`，再按需 `research_worklog op=get` 读目标项与最新证据。视图只是给人看的镜像，以 JSON 为准。
 
@@ -345,7 +342,7 @@ $DSH_HOME/research-team-settings.json
 
 ### 任务工作日志工具缺失
 
-工作日志条目显示在「研究」侧栏里，来自 `worklog/INDEX.md`
+「研究面板」显示 `.research/worklog/items/` 里的活动工作项，已完成的项在工作项区的「已完成」开关之后；用 `research_worklog` 登记或更新。
 
 ### `spawn_teammate_with_model` 不可用
 
@@ -375,6 +372,6 @@ MIT。参见 [LICENSE](../LICENSE)。
 
 ## 致谢
 
-工作日志条目显示在「研究」侧栏里，来自 `worklog/INDEX.md`
+「研究面板」显示 `.research/worklog/items/` 里的活动工作项，已完成的项在工作项区的「已完成」开关之后；用 `research_worklog` 登记或更新。
 
 贡献与内部开发说明见 [DEVELOPMENT.md](../DEVELOPMENT.md)。

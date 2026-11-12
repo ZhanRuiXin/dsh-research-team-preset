@@ -22,7 +22,7 @@ Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 �
 | --- | --- |
 | **기본 역할** | 8개: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **워크플로** | 게이트 기반: 내부 단계는 작업 로그 색인 행, 사용자 게이트는 작업 항목 파일; 생성, 인수, 실행, 보고, 검토, 사용자 승인 |
-| **완료** | `in_review`가 에이전트의 마지막 지점입니다. 사용자만 카드를 `done`으로 옮길 수 있습니다 |
+| **완료** | `in_review`가 에이전트의 마지막 지점입니다. 사용자만 작업 항목을 `done`으로 옮길 수 있습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
 | **Git** | 실질적 작업이 시작될 때 에이전트가 초기화. 파괴적 변경은 브랜치에서 진행하고 수락 후에만 병합 |
 | **Worklog** | `.research/worklog/`의 JSON 저장소. `PLAN.md`와 `INDEX.md`는 생성된 보기. 재개 시 먼저 `research_state` |
@@ -207,7 +207,6 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 
 ## 워크로그
 
-세션은 대화이지 프로젝트가 아닙니다. `.research/worklog/`, git, 아키텍처 카드가 작업을 보존하고 채팅·팀·백그라운드 작업은 세션과 함께 사라집니다. 재개 시 먼저 `research_state`를 호출하고 항목과 증거를 읽으십시오.
 
 재개 시 먼저 `research_state`, 그다음 `research_worklog op=get`으로 항목과 최신 증거를 읽습니다. 보기는 거울일 뿐이며 원본은 JSON입니다.
 
@@ -341,7 +340,7 @@ $DSH_HOME/research-team-settings.json
 
 ### 작업 작업 로그 도구가 없음
 
-작업 로그 항목은 "연구" 사이드바에 `worklog/INDEX.md`에서 표시됩니다
+"연구 패널"은 `.research/worklog/items/`의 작업 항목을 표시합니다. 완료된 항목은 "완료" 토글 뒤에 있습니다. 등록과 갱신은 `research_worklog`로 합니다.
 
 ### `spawn_teammate_with_model`을 사용할 수 없음
 
@@ -371,6 +370,6 @@ MIT. [LICENSE](../LICENSE)를 참고하십시오.
 
 ## 감사의 글
 
-작업 로그 항목은 "연구" 사이드바에 `worklog/INDEX.md`에서 표시됩니다
+"연구 패널"은 `.research/worklog/items/`의 작업 항목을 표시합니다. 완료된 항목은 "완료" 토글 뒤에 있습니다. 등록과 갱신은 `research_worklog`로 합니다.
 
 기여와 내부 개발 노트는 [DEVELOPMENT.md](../DEVELOPMENT.md)에 있습니다.

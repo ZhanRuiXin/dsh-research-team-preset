@@ -22,7 +22,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊�
 | --- | --- |
 | **預設角色** | 8 名：advisor、designer、researcher、data、builder、runner、reviewer、writer |
 | **工作流** | 關卡制：內部步驟是工作日誌索引列，使用者關卡是工作項檔；建卡、認領、執行、回報、複核、使用者驗收 |
-| **完成** | `in_review` 是 agent 的最後一站；只有使用者能把卡片移到 `done` |
+| **完成** | `in_review` 是 agent 的最後一站；只有使用者能把工作項移到 `done` |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
 | **Git** | 實質性工作開始時由 agent 初始化；破壞性改動走分支；驗收通過後才合併 |
 | **工作日誌** | `.research/worklog/` 下的 JSON 儲存；`PLAN.md` 與 `INDEX.md` 是產生視圖；恢復時先讀 `research_state` |
@@ -162,13 +162,12 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
 
-可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
 
 跨回合仍在執行的實驗或長任務，要在工作項檔案或 PLAN 裡留下任務或終端控制代碼、主機、開始時間、預計完成時間和它服務的決策規則。恢復時先確認存活；控制代碼已消失的執行標記為孤兒，核對產物後交給使用者決定採用、重新啟動還是停止，絕不能悄悄重跑一遍。由已不存在工作階段持有的卡片，回報給使用者重新開啟，絕不接管。
 
 ## 研究側欄
 
-預設會在右側邊欄新增一個「研究」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 的目標與里程碑、`worklog/INDEX.md` 的活動工作項、最近的執行與架構卡片。
+預設會在右側邊欄新增一個「研究面板」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：目標與里程碑來自 `.research/worklog/plan.json`，作用中的工作項來自 `.research/worklog/items/`（已完成項目在「已完成」開關之後），還有實驗（生命週期與審批狀態）、依專案自訂分組顯示的架構卡片，以及目前團隊成員。工作項一列可點擊展開，查看類型、下一步、阻塞原因、證據與清單。
 
 架構卡片是以 JSON 形式存放在 `.research/architecture/` 下的節點-連線圖，一張卡片一個檔案。代理透過 `research_architecture` 工具讀取與更新它們，因此圖會與設計保持同步，而不是散落在簡報裡。卡片在面板內以 SVG 呈現；在節點上拖出選取框即可選取，選取後可以把這段選擇引用到會話裡；值得保留的提問會作為備註寫回卡片，代理在回答前會先讀取它。安裝了 `dsh-better-sidebar` 時標籤頁透過它註冊，否則回退到原生右側邊欄。
 
@@ -182,11 +181,9 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 ## 工作日誌與協作
 
-可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
 
 狀態轉移遵循固定表（`todo → in_progress → in_review → done`），`blocked` 與 `canceled` 是旁路狀態；`blocked` 必須寫明原因，進入 `in_review` 至少要有一條證據，每次轉移都記錄在該項的歷史裡。
 
-預設會在右側邊欄新增一個「研究」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：`worklog/PLAN.md` 的目標與里程碑、`worklog/INDEX.md` 的活動工作項、最近的執行與架構卡片。
 
 到達關卡時，負責人在工作項檔寫入帶證據的清單、執行摘要、提交範圍與下一步，對改動路徑執行 `research_scope_check`，再把狀態設為 `in_review`。reviewer 寫入帶證據的 PASS/FAIL 結論；Lead 只在到達關卡或需要使用者行動時回報卡片 id、狀態與證據。`done` 只屬於使用者的驗收動作；`blocked` 表示無法繼續，`canceled` 表示不再繼續。
 
@@ -205,7 +202,6 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 
 ## Git 工作流程
 
-可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
 
 破壞性或風險較高的改動在依步驟命名的分支上進行，例如 `task/<title>+<id>`（有使用者關卡的工作用卡片，內部工作用團隊任務），不直接改預設分支。卡片或團隊任務記錄 base 與 head 提交，reviewer 以 `git diff <base>..<head>` 作為程式碼審查依據，並仍會重跑驗收檢查。
 
@@ -213,7 +209,6 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 
 ## 工作日誌
 
-可能跨會話的工作記錄在 `.research/worklog/` 的 JSON 儲存裡：`plan.json` 存目標、里程碑、下一步與決策，`items/<id>.json` 一項一個檔案。`PLAN.md`、`INDEX.md` 與卡片視圖由工具產生，不要手動編輯。
 
 恢復時先呼叫 `research_state`，再視需要 `research_worklog op=get` 讀目標項與最新證據。視圖只是給人看的鏡像，以 JSON 為準。
 
@@ -343,7 +338,7 @@ $DSH_HOME/research-team-settings.json
 
 ### 缺少任務工作日誌工具
 
-工作日誌條目顯示在「研究」側欄裡，來自 `worklog/INDEX.md`
+「研究面板」顯示 `.research/worklog/items/` 裡的作用中工作項，已完成的項目在工作項區的「已完成」開關之後；用 `research_worklog` 登記或更新。
 
 ### `spawn_teammate_with_model` 無法使用
 
@@ -373,6 +368,6 @@ MIT。參見 [LICENSE](../LICENSE)。
 
 ## 致謝
 
-工作日誌條目顯示在「研究」側欄裡，來自 `worklog/INDEX.md`
+「研究面板」顯示 `.research/worklog/items/` 裡的作用中工作項，已完成的項目在工作項區的「已完成」開關之後；用 `research_worklog` 登記或更新。
 
 貢獻與內部開發說明見 [DEVELOPMENT.md](../DEVELOPMENT.md)。

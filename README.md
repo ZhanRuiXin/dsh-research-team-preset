@@ -25,7 +25,7 @@ The mode is built for research that spans days or weeks, needs traceable evidenc
 | **Completion** | `in_review` is the agent's last stop; only the user can move a work item to `done` |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
-| **Worklog** | `.research/worklog/` JSON store with generated `PLAN.md`, `INDEX.md` and card views; resume reads `research_state` first |
+| **Worklog** | `.research/worklog/` JSON store with generated `PLAN.md` and `INDEX.md` views; resume reads `research_state` first |
 | **Continuity** | One store per project at its root; a resumed session calls `research_state` and reads the one item it needs; the store and git carry state across sessions |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
 
@@ -346,7 +346,7 @@ Two other causes are not about the settings file:
 
 Enable [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) in the same profile and restart. The installer does not prompt for it.
 
-### A worklog card is missing from the sidebar
+### A work item is missing from the sidebar
 
 The Research panel lists `worklog/INDEX.md` rows. Add or update the row in `INDEX.md` (id, title, owner, status, updated, next) and the panel picks it up within five seconds.
 

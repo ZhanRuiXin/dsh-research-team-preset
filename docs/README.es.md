@@ -22,7 +22,7 @@ El modo está pensado para investigaciones que abarcan días o semanas, que nece
 | --- | --- |
 | **Roles predeterminados** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Flujo de trabajo** | Por puertas: los pasos internos son filas del indice del worklog, las puertas del usuario son archivos de elementos de trabajo; crear, tomar, ejecutar, informar, revisar y aceptacion del usuario |
-| **Finalización** | `in_review` es la última parada del agente; solo el usuario puede mover una tarjeta a `done` |
+| **Finalización** | `in_review` es la última parada del agente; solo el usuario puede mover un elemento de trabajo a `done` |
 | **Enrutamiento de modelos** | Proveedor, modelo y esfuerzo de razonamiento por rol desde un formulario de ajustes de la página de Plugins |
 | **Git** | El agente lo inicializa al empezar el trabajo sustantivo; cambios destructivos en una rama; fusión solo tras la aceptación |
 | **Worklog** | Almacén JSON en `.research/worklog/`; `PLAN.md` e `INDEX.md` son vistas generadas; al reanudar, primero `research_state` |
@@ -339,7 +339,7 @@ Otras dos causas no tienen que ver con el archivo de ajustes:
 
 ### Faltan las herramientas del worklog de tareas
 
-La barra lateral "Investigacion" muestra las entradas de `worklog/INDEX.md`
+El panel «Investigación» lista los elementos de trabajo activos de `.research/worklog/items/`; los terminados están detrás del interruptor «Finalizados». Regístralos o actualízalos con `research_worklog`.
 
 ### `spawn_teammate_with_model` no está disponible
 
@@ -369,6 +369,5 @@ MIT. Consulta [LICENSE](../LICENSE).
 
 ## Agradecimientos
 
-La barra lateral "Investigacion" muestra las entradas de `worklog/INDEX.md`
 
 Las notas de contribución y desarrollo interno están en [DEVELOPMENT.md](../DEVELOPMENT.md).

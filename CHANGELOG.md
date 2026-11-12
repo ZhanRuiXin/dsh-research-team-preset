@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Work items show their details in a hover card instead of expanding the row, so the panel keeps its layout.
+
 - Architecture cards carry a project-defined `group`: a project decides its own decomposition (for example method, implementation, data or training) instead of a fixed method/implementation pair, and the panel draws one chip row per group, hiding the group label when there is only one.
 
 - The sidebar drops the design-document list: architecture chips show the card title and a hover card shows the version and description, and the team tiles use the registered member names, lead included.

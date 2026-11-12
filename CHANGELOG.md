@@ -1,8 +1,51 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.1.1.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.0.
 
-## Unreleased
+## 0.2.0 — 2026-11-12
+
+- Work items expand in place on click: the row grows to show the full title, next action, blocked reason, evidence and checklist, and collapses on a second click.
+
+- Architecture cards carry a project-defined `group`: a project decides its own decomposition (for example method, implementation, data or training) instead of a fixed method/implementation pair, and the panel draws one chip row per group, hiding the group label when there is only one.
+
+- The sidebar drops the design-document list: architecture chips show the card title and a hover card shows the version and description, and the team tiles use the registered member names, lead included.
+
+- Architecture cards carry two text fields, a short `title` for the sidebar chip and a `description` for its hover card; `summary` is still accepted as an alias so older cards keep rendering.
+
+- The Research panel quotes an architecture selection into the conversation composer instead of carrying its own textarea, and the architecture canvas no longer zooms with the wheel.
+
+- The Research panel gives every `in_review` work item 确认完成 and 退回 buttons: acceptance is the user's click, and the worklog tool now refuses `status: done` from the model.
+
+- Work items now follow a fixed status table (`todo -> in_progress -> in_review -> done`, with `blocked` and `canceled` as side states): `blocked` requires a reason, a gate requires at least one evidence entry or a noted checklist item, every move is kept in the item history, and the translated READMEs were updated to the JSON worklog.
+
+- The Research panel now opens with the live team roster, laid out as a compact two-column grid instead of one full row per member: the avatar shows the member's initial, a pulsing dot marks a running member, and each tile carries the name, a Lead accent, and a status pill (运行中 / 空闲 / 启动中 / 失败); hovering a tile opens a small card with what that member is doing — its current work item, that item's status and next step, when it was last updated, and the model — and the section header counts running members.
+
+- The Research panel copy reads formally: the header names the team, each empty state says what is missing and which tool writes the record, and the annotation, approval and refresh messages are complete sentences instead of shorthand.
+
+- The worklog is now a JSON store under `.research/worklog/` (`plan.json` and one `items/<id>.json` per item) with generated markdown views, and new tools own it: `research_worklog` (init, list, get, update, claim, gate, plan), `research_state`, `research_decision`, `research_evidence` and `research_design`. `research_workspace_init` imports a legacy markdown plan and index once, then regenerates the views.
+
+- Experiments follow an explicit lifecycle (planned, awaiting approval, approved, running, completed, stopped, failed, rejected) driven by the new `research_experiment` tool (register, start, finish) instead of hand-edited manifests. The section also gained an approval switch (requires approval / auto), per-run approve and reject buttons that write into the run's manifest, elapsed or total run time, newest-first ordering, completed runs, and an internal scrollbar when the list grows.
+
+- The team records everything in its own worklog: `worklog/PLAN.md`, `worklog/INDEX.md` and one card file per gated item are the only ledger, the injected worklog protocol and and the persona coordination section were rewritten for it; the optional integrations list now names only Zotero and Mnemon, and the `presetId` wiring was removed from the README and the eleven translations.
+
+- The sidebar list is now called work items and says it reads `worklog/INDEX.md`; task-board cards are documented as separate and are no longer implied to appear there.
+
+- The run manifest and the design `## Question` heading are now part of the admission and review gates, so the sidebar record is required rather than merely described.
+
+- The persona now states what the Research panel reads, so the team writes the run manifest and the worklog rows instead of assuming the panel fills itself.
+
+- Architecture cards centre the boxes that share a column, so a vertical flow reads as one centred column instead of a left-aligned staircase.
+
+- Architecture node boxes size themselves from their labels: one line if it fits, two if it must wrap, so a card no longer leaves an empty half or clips a word.
+
+- Architecture labels wrap on the measured text width instead of a character count, so a mixed Latin/CJK label no longer leaves one stray character on the second line.
+
+- Research sidebar: a Research entry in the left rail and a right-side tab show the objective, active cards, runs, design documents and architecture cards, registering through `dsh-better-sidebar` when present and the native sidebar otherwise; architecture cards live in `.research/architecture/`, render as SVG, support box-selection annotations, and are edited by the agent through the new `research_architecture` tool. The panel ships as its own module under `panel/`, independent of the settings form.
+- Architecture cards are owned by the role that realizes them (designer: method, builder: implementation), the advisor reads them before a review and the reviewer checks them at the results gate; the canvas pans with the middle mouse button and no longer selects text while dragging a selection box.
+- The panel is registered only in the session sidebar (the better-sidebar tab when that plugin is present, otherwise the native right-pane tab); it no longer adds a left-rail entry or a main-panel view.
+- The Research tab waits for the better-sidebar service instead of probing once, so after a restart it loads without toggling the module off and on.
+- Canvas fixes: node labels wrap by measured glyph width and are clipped to their box, a left click on a card node toggles its selection instead of starting a marquee, a left click on empty space clears the selection, and cards are drawn left to right on a 520x300 canvas.
+- The Research panel got a visual pass: a token-based stylesheet with light and dark support, a fitted architecture view that fills the column, landscape architecture cards laid out left to right, seed progress on runs, and a compose card for annotations.
 
 - Answers obey the ask: the Lead keeps the user's questions as the contract for the turn, delivers the requested survey, extension list, or decision before any research program, walks each question in the reply, and says plainly when one cannot be answered yet.
 - Long turns are not silent: after about ten minutes of tool work without a user-visible answer, the Lead sends a short interim answer (what is settled, what is still being gathered, when the next answer comes) so the user can redirect before the compute is spent.

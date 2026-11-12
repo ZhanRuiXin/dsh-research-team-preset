@@ -14,7 +14,7 @@ dsh-research-team-preset/
 ├── cordis.patch.yml          # Preset declaration: persona, tool rows, settings row
 ├── package.json
 ├── plugin/
-│   ├── index.js              # research_project, research_workspace_init, research_scope_check, board protocol
+│   ├── index.js              # research_project, research_workspace_init, research_scope_check, worklog protocol
 │   ├── modeled-teammates.js  # spawn_teammate_with_model, research_team_routes, permission handling
 │   ├── settings-file.js
 │   └── settings-store.js
@@ -40,13 +40,15 @@ This repository is a local DSH bundle with no build step for the host code. The 
 
 ```bash
 node --check settings/index.js
+node --check panel/index.js
+node --check panel/client.js
 node --check plugin/index.js
 node --check plugin/modeled-teammates.js
 node --check client/index.js
 npm test
 ```
 
-`npm test` runs the four test files: spawn routing and permission inheritance, write-envelope scope checks, worklog scaffolding, and settings-route mounting.
+`npm test` runs the six test files: spawn routing and permission inheritance, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, and settings-route mounting.
 
 Parse `cordis.patch.yml` with the `yaml` package after stripping `!!js` tags, and confirm the persona prefix contains every required section. Keep the 12 READMEs structurally in sync (same `## ` and `### ` headings in each).
 
@@ -60,10 +62,10 @@ Config.listConfigs name=@deepseek-ai/dsh-agent-preset   # include:preset-researc
 new session -> Research Team Mode
 list_agents                              # roles can be created
 research_project                         # returns the current workspaceId
-taskboard_list                           # matches the GUI board
+research_architecture op=list            # cards render in the Research sidebar
 research_scope_check                     # envelope check on a card handoff
 ```
 
 ## Versioning
 
-Semantic versioning. The current release is **0.1.1**; see [CHANGELOG.md](CHANGELOG.md). Releases are tagged from `main` as `vX.Y.Z` and published to npm as `dsh-research-team-preset`.
+Semantic versioning. The current release is **0.2.0**; see [CHANGELOG.md](CHANGELOG.md). Releases are tagged from `main` as `vX.Y.Z` and published to npm as `dsh-research-team-preset`.

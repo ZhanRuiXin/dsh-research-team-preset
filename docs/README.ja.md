@@ -4,7 +4,7 @@
 
 **1 つのセッションを、小規模で連携の取れた研究チームに変える DSH エージェントプリセット。**
 
-**バージョン 0.1.1** · **更新 2026-11-10**
+**バージョン 0.2.0** · **更新 2026-11-12**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <strong>日本語</strong> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -12,7 +12,7 @@
 
 ## 概要
 
-Research Team Mode は、単一のチャットではなくチームとしてエンドツーエンドの研究を進めるための DSH エージェントプリセットです。Lead が作業を計画し、2 つの台帳（ユーザーゲート用のボードカード、内部ステップ用のチームタスク）を維持し、作業を割り当て、結果を統合し、ユーザーと対話します。8 名の既定スペシャリストが、顧問レビュー、文献と証拠、データ取得、実験設計、コード、実行、独立レビュー、論文執筆を担当します。
+Research Team Mode は、単一のチャットではなくチームとしてエンドツーエンドの研究を進めるための DSH エージェントプリセットです。Lead が作業を計画し、ワークログの記録（ユーザーゲート用の作業項目ファイル、内部ステップ用の INDEX 行）を維持し、作業を割り当て、結果を統合し、ユーザーと対話します。8 名の既定スペシャリストが、顧問レビュー、文献と証拠、データ取得、実験設計、コード、実行、独立レビュー、論文執筆を担当します。
 
 このモードは、数日から数週間にわたる研究、追跡可能な証拠を必要とする研究、明確な役割の境界が有効な研究のために作られています。単発の Q&A モードではありません。Lead は、タスクが実際に必要とする役割だけを作成します。
 
@@ -21,11 +21,11 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 | | |
 | --- | --- |
 | **既定の役割** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
-| **ワークフロー** | ゲート方式：内部ステップは `team_task_*`、ユーザーゲートはボード。作成、claim、実行、報告、レビュー、ユーザーによる受け入れ |
-| **完了** | `in_review` がエージェントの最終地点。カードを `done` に移動できるのはユーザーだけ |
+| **ワークフロー** | ゲート方式：内部ステップはワークログのインデックス行、ユーザーゲートは作業項目ファイル。作成、引き受け、実行、報告、レビュー、ユーザー承認 |
+| **完了** | `in_review` がエージェントの最終地点。作業項目を `done` に移動できるのはユーザーだけ |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
 | **Git** | 実質的な作業の開始時にエージェントが初期化。破壊的な変更はブランチで行い、受け入れ後にのみマージ |
-| **Worklog** | `worklog/PLAN.md` + `INDEX.md` + ゲート対象カードごとに 1 つの有界ファイル。再開時は PLAN と INDEX を先に読む |
+| **Worklog** | `.research/worklog/` の JSON ストア。`PLAN.md` と `INDEX.md` は生成されたビュー。再開時はまず `research_state` |
 | **ランタイム** | PTC（`run_code` + 生成 SDK）。メンバーごとにサブエージェント 1 層 |
 
 ## 対象となるユーザー
@@ -41,7 +41,7 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 
 Lead の返答は科学的なコミュニケーションであり、ステータス配信ではない。まず主張または結果を示し、その根拠（run id、データセット、不確実性とサンプルサイズを含む指標、出典）を続け、次に何が不確かなのか、最後にあなたが決めるべきことを述べる。各文は、観測された事実・推論・仮説・未解決の問いのいずれかとして明示され、方法はあなたが追跡し学び続けられる程度に説明される。
 
-内部の仕組みは内部に留める。エージェント間の引き継ぎ、再試行、ツールのエラー、ボードの記帳、チームが作業中に得た知見は、結果の読み方を変える場合や意思決定を妨げる場合を除いて転送されない。メンバーの報告はそのまま貼るのではなく、主張・根拠・限界に翻訳される。
+内部の仕組みは内部に留める。エージェント間の引き継ぎ、再試行、ツールのエラー、ワークログの記帳、チームが作業中に得た知見は、結果の読み方を変える場合や意思決定を妨げる場合を除いて転送されない。メンバーの報告はそのまま貼るのではなく、主張・根拠・限界に翻訳される。
 
 分業は明示されている。あなたが科学的方向を定め証拠を判断し、チームが検索・実装・実験・検証の負荷を担う。
 
@@ -53,21 +53,18 @@ Lead の返答は科学的なコミュニケーションであり、ステータ
 
 ## 要件
 
-Research Team Mode は**プロファイルレベルの DSH バンドル**です。このバンドルは、自身が利用するプロファイルバンドルをインストールも有効化もしません。DSH のパッケージインストーラーが扱うのは npm 依存関係であり、機能バンドルではありません。まず同じプロファイルで依存関係を有効化してください。
-
 | 機能 | Provider | 備考 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` を基準に開発。他のリリースでも動作する可能性はありますが保証はありません |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent`、`team_task_*`、および Team サービスを提供 |
+| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` と Team サービスを提供。本プリセットは作業をワークログに記録し、チームタスクには記録しません |
 | PTC ランタイム | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) と [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH ベースの一部。`run_code` を有効化 |
 
 **任意の連携プラグイン。** これらは他者が開発したプラグインです。本プリセットはこれらに依存せず、インストールもしません。チームと連携させたい場合にのみ追加します:
 
-- **タスクボード**（[`dsh-taskboard`](https://github.com/cloader/dsh-taskboard)）——`taskboard_*`、ユーザー向けカード、受け入れチェックリスト、`presetId=research-team` の実行セッションを提供します。無い場合、worklog（`PLAN.md`、`INDEX.md`、カードごとのファイル）が永続的な記録になります。
 - **Zotero**（`dsh-zotero`）——共有ライブラリのツール（`zotero_*`）と paper-fetch の取り込み経路を提供します。無い場合、文献作業は Semantic Scholar、arXiv、Web を使い、証拠表は主張・出典・位置を記録し続けます。
 - **Mnemon**（`dsh-mnemon`）——セッションをまたぐ永続ノート（`mnemon_*`）を提供します。無い場合、worklog と `CHANGELOG.md` が継続性を担います。
 
-依存関係が欠けていてもモードは部分的に読み込まれますが、チームツール、ボード、設定ページのいずれかが利用できなくなります。プラグインマネージャーはこれらのバンドルを促したり、自動でリンクしたりすることはありません。
+依存関係が欠けていてもモードは部分的に読み込まれますが、チームツール、ワークログ、設定ページのいずれかが利用できなくなります。プラグインマネージャーはこれらのバンドルを促したり、自動でリンクしたりすることはありません。
 
 ## インストール
 
@@ -75,46 +72,43 @@ Research Team Mode は**プロファイルレベルの DSH バンドル**です�
 
 ### DSH のプラグインページからインストール
 
-1. **必須バンドルを有効化**します: 対象プロファイルで Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness)。上記の任意の連携プラグインは今からでも後からでも追加できます。
 2. **設定 → プラグイン** を開き、**追加** をクリックします。
-3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.1.1`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
+3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.2.0`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
 4. **DSH を再起動します。** プリセット行とバンドルのクライアント側は起動時に読み込まれます。
 5. **同じプロファイルでバンドルが有効になっていることを確認**し、**新しいセッションを開いて** モード選択で **Research Team Mode** を選びます。
 
 ### コマンドラインからインストール
 
 ```text
-dsh plugin add dsh-research-team-preset@0.1.1
+dsh plugin add dsh-research-team-preset@0.2.0
 ```
 
 レジストリではなくソースを固定する場合:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
 ```
-
-タスクボードの実行セッションでは `presetId=research-team` を付けたカードを作成し、同じ persona とツールで実行します。
 
 > このモードはプロファイル単位のバンドルです。あるプロファイルにインストールしても別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件を繰り返してください。
 
 ## 初回実行
 
-実際の作業を始める前に、Lead に環境とボードの確認を依頼してください:
+実際の作業を始める前に、Lead に環境とワークログの確認を依頼してください:
 
 ```text
-list_agents        # create only the roles the task needs
-research_project   # resolve the current project/workspaceId
-taskboard_list     # check existing cards in this project
+list_agents                    # create only the roles the task needs
+research_project               # resolve the current project root
+research_workspace_init        # seed .research/worklog/ and render the views if missing
 ```
 
 典型的な最初のタスク:
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
-Lead: research_project -> taskboard_create only at user gates -> team_task_create -> send_message
-Members: team_task_update (claim) -> work -> complete + send_message; gated steps also claim the card
+Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message
+Members: research_worklog op=claim -> work -> research_worklog op=gate (evidence, next) + send_message
 Reviewer: independent PASS/FAIL with evidence
-Lead: summarize -> user acceptance (done)
+Lead: summarize -> user acceptance (research_worklog op=update, by="user")
 ```
 
 ## 既定チーム
@@ -130,11 +124,11 @@ Lead: summarize -> user acceptance (done)
 | `reviewer` | 文献ノート、コード、結果、論文の主張／引用の独立した検証。ブロッキングとなる証拠を伴う PASS/FAIL |
 | `writer` | LaTeX 論文ドラフト：本文、節、表、キャプション、引用、図のコード。実験の実行やコード／モデルの変更は行いません |
 
-Lead は、目標の明確化、分解、ボード管理、割り当て、統合、要約、最終成果物の組み立て、納品を担います。メンバーは範囲を限定したサブタスクのためにサブエージェントを 1 層だけ使えますが、チームメイトを作成することはできません。 Lead は自身のツール呼び出しを抑え、短い進捗報告で足りることに追加のツール実行を重ねず、深い作業は担当メンバーに任せます。
+Lead は、目標の明確化、分解、ワークログ管理、割り当て、統合、要約、最終成果物の組み立て、納品を担います。メンバーは範囲を限定したサブタスクのためにサブエージェントを 1 層だけ使えますが、チームメイトを作成することはできません。 Lead は自身のツール呼び出しを抑え、短い進捗報告で足りることに追加のツール実行を重ねず、深い作業は担当メンバーに任せます。
 
 ### 共有 Zotero ライブラリ
 
-researcher は、ユーザーの Zotero ライブラリをチームの共有文献ソースとして扱います。公開 Web を検索する前に、既存のコレクションとアイテムを検索し、添付済みの PDF と注釈の該当箇所を再利用します。不足している論文は、正式版（version of record）のみを PDF 付きでインポートし、プロジェクトのコレクションに整理します。インポートは DOI とタイトルで重複を排除し、ユーザーのタグとコレクションには手を加えず、`zotero://` のアイテム参照を証拠表とボードカードに記録します。これにより、すべてのチームメイトが同じ論文を読み、reviewer は同じページを抜き打ちで確認できます。全文がペイウォールの内側にある場合やメタデータしかない場合、researcher はリンクを記録し、代替品をインポートするのではなく、証拠をメタデータのみとしてマークします。
+researcher は、ユーザーの Zotero ライブラリをチームの共有文献ソースとして扱います。公開 Web を検索する前に、既存のコレクションとアイテムを検索し、添付済みの PDF と注釈の該当箇所を再利用します。不足している論文は、正式版（version of record）のみを PDF 付きでインポートし、プロジェクトのコレクションに整理します。インポートは DOI とタイトルで重複を排除し、ユーザーのタグとコレクションには手を加えず、`zotero://` のアイテム参照を証拠表とワークログカードに記録します。これにより、すべてのチームメイトが同じ論文を読み、reviewer は同じページを抜き打ちで確認できます。全文がペイウォールの内側にある場合やメタデータしかない場合、researcher はリンクを記録し、代替品をインポートするのではなく、証拠をメタデータのみとしてマークします。
 
 ### アドバイザリー・レビュー
 
@@ -166,32 +160,44 @@ Lead が実行を承認し、runner は記録がなければ起動を拒否し�
 
 ## セッションの継続性
 
-セッションは会話であり、プロジェクトそのものではない。作業を運ぶのはワークログ、ボード、git であり、チャット、チーム、バックグラウンドジョブはセッションとともに消える。`worklog/PLAN.md` が既にあるプロジェクトでは、最初の実質的な作業の前に PLAN と INDEX、続いて対象カードの現在状態ブロックを読み、それから計画を立てるか計算資源を使う。
+セッションをまたぐ仕事は `.research/worklog/` の JSON に保存します：`plan.json` に目標・マイルストーン・次の一手・決定、項目ごとに `items/<id>.json`。`PLAN.md`・`INDEX.md`・カードはツールが生成するもので、手で編集しません。
 
-ワークログは `research_project` が返すプロジェクトルートに置き、セッションのサブディレクトリには置かない。プロジェクト上の全セッションが一つの PLAN と INDEX を共有する。PLAN、INDEX、カードファイル、ボード、git、メモリは永続的だが、`team_task_*` の項目、チームメイトとの会話、バックグラウンドジョブはそのセッションにしか存在しない。後のセッションが知る必要のあることは、セッション終了前に PLAN かカードファイルへ書く。
+セッションは会話であり、プロジェクトそのものではありません。`.research/worklog/`、git、アーキテクチャカードが仕事を保持し、チャット・チーム・バックグラウンドジョブはセッションとともに消えます。再開時はまず `research_state` を呼びます。
 
-ターンを超えて続く実行や長時間ジョブは、ジョブやターミナルのハンドル、ホスト、開始時刻、完了見込み、それが支える決定規則をカードファイルか PLAN に残す。再開時はまず生存を確認し、ハンドルが消えていれば孤児として扱い、成果物を突き合わせたうえで採用・再起動・停止をユーザーに諮る。同じ作業を黙って二度走らせない。既に存在しないセッションが保持するカードは、引き継がずユーザーに再オープンを求める。
+ターンを超えて続く実行や長時間ジョブは、ジョブやターミナルのハンドル、ホスト、開始時刻、完了見込み、それが支える決定規則を作業項目ファイルか PLAN に残す。再開時はまず生存を確認し、ハンドルが消えていれば孤児として扱い、成果物を突き合わせたうえで採用・再起動・停止をユーザーに諮る。同じ作業を黙って二度走らせない。既に存在しないセッションが保持するカードは、引き継がずユーザーに再オープンを求める。
 
-## タスクボードのワークフロー
+## リサーチサイドバー
+
+アーキテクチャカードは `.research/architecture/` に JSON で保存されるノードとエッジの図で、1 枚につき 1 ファイルです。エージェントは `research_architecture` ツールで読み書きするため、図はスライドの中ではなく設計と同期したままになります。カードはパネル内で SVG として描画され、ノードの上をドラッグして範囲選択でき、選択したノードは会話に引用でき、残すべき内容はカードのメモとして保存され、エージェントは回答前にそれを読みます。`dsh-better-sidebar` がインストールされていればそれ経由で、なければネイティブの右サイドバーに登録されます。
+
+パネルは稼働中のチームも表示します。各メンバーの名前・役割・モデル・状態（実行中または待機中）と、そのメンバーが担当する作業項目です。
+
+実験セクションは実行を新しい順に並べ、実行中なら経過時間、完了なら所要時間を表示します。各実行は明確なライフサイクル（登録済み、承認待ち、承認済み、実行中、完了、停止、失敗、却下）を持ち、`research_experiment` ツールが進めます。register は判断ルール・seed・予算を書き、start は未承認なら拒否し、finish は完了・停止・失敗を理由とともに記録します。見出しには切り替え（承認が必要 / 自動承認）があり、承認待ちの実行は承認・却下ボタンを表示して結果を manifest に書き込み、リストは枠内でスクロールします。
+
+パネルは `panel/` 配下の独立したモジュールで、設定ページとは別に単独で有効化・無効化できます。各会話の右サイドバーのタブとして表示されます。
+
+方法を説明するカードはデザイナーが、実装を説明するカードはビルダーが所有し、どのグループに分けるかはプロジェクト自身が決めます。アドバイザーは設計・実装の判断をレビューする前にこれらのカードを読み、レビュアーは結果ゲートで照合します。中ボタンのドラッグでキャンバスを移動し、ツールバーで拡大し、ノード上をドラッグして範囲選択して注記できます。
+
+## ワークログと協働
+
+状態遷移は固定表に従います（`todo → in_progress → in_review → done`）。`blocked` と `canceled` は側状態です。`blocked` には理由が必要で、ゲートには証拠が 1 件以上必要で、各遷移は項目の履歴に残ります。
+
+ゲートでは、担当者が証拠付きチェックリスト、実行サマリー、コミット範囲、次のアクションを作業項目ファイルに書き、変更パスに `research_scope_check` を実行してから状態を `in_review` にします。reviewer は証拠付きの PASS/FAIL を書き、Lead はゲート到達時またはユーザーの判断が必要なときだけカード id、状態、証拠を報告します。`done` はユーザーの承認だけが設定できます。`blocked` は継続不可、`canceled` は今後進めないという意味です。
 
 ```text
 User goal
-Lead:  research_project -> taskboard_create only at user gates (checklist, presetId=research-team)
-       -> team_task_create (owner, blocked_by, write scopes) -> send_message
-Member: team_task_update (claim) -> work -> team_task_update (complete) + send_message
-Internal steps and member handoffs stay off the board; only user gates get cards
-At a user gate: taskboard_get -> taskboard_move in_progress -> checklist/report -> in_review
-Reviewer: independent PASS/FAIL with evidence on gated cards
+Lead:  research_project -> research_state
+       -> research_worklog op=update (status=todo, next) + send_message
+Member: research_worklog op=claim -> work
+        -> research_worklog op=gate (evidence, summary, base..head, next)
+Internal steps stay index rows; only items waiting for the user get a card view
+Reviewer: independent PASS/FAIL with evidence
 Advisor: optional independent recommendation at key decisions or final review
-Lead:  summarize -> report card ids/status/evidence/risks to the user
-User:  accept in the GUI -> done (agents can never move a card to done)
+Lead:  scientific summary (claim, evidence, uncertainty) -> item id/status when a gate needs the user
+User:  accept -> research_worklog op=update with by="user" (agents can never do that)
 ```
 
-ユーザーの確認や受け入れが必要なステップだけがボードのカードになります。成果物のチェックポイント、ユーザーが承認すべきスコープ判断、リスクの高い変更、最終引き渡しが対象です。内部ステップ、自己承認したサブタスク、メンバー間の引き継ぎは `team_task_*` で追跡し、ボードには載せません。ゲートに達したら、成果物・証拠・レビュー判定はカードに残します。チームメンバー間のやり取りは英語で行い、ユーザー向けの返信、カード、成果物はユーザーの言語に合わせます。 ユーザーの判断や不足情報が必要なときは、Lead が `ask_user_question` で直接尋ね、カードに待機状態を残しません。回答がタイムアウトしたら、Lead はアドバイザーに独立した助言を求め、記録してから作業を進めます。
-
 ## Git ワークフロー
-
-このモードは実質的な作業の開始時に耐久記録を初期化し、その要求が本当の作業か単純な質問かはエージェントが判断します。ワークスペースがまだリポジトリ内にない場合、エージェントは `research_workspace_init` を呼び、`worklog/PLAN.md` と `worklog/INDEX.md` を作成して `git init` を実行します。ネストしたリポジトリは作成せず、足場をコミットすることもありません。
 
 破壊的またはリスクの高い変更は、既定ブランチを直接編集せず、ステップ名のブランチ（例 `task/<title>+<id>`。ゲート対象の作業はカード、内部作業はチームタスク）で行います。カードまたはチームタスクには base と head のコミットを記録し、reviewer は `git diff <base>..<head>` をコードレビューの根拠とし、受け入れチェックも再実行します。
 
@@ -199,9 +205,7 @@ User:  accept in the GUI -> done (agents can never move a card to done)
 
 ## ワークログ
 
-セッションをまたぐ可能性のある作業は、コードの隣に小さく有界な記録を残します。`worklog/PLAN.md` には目的、現在のマイルストーン、アクティブなカード、ブロッカー、日付付きの決定を、`worklog/INDEX.md` にはアクティブなカード 1 件につき 1 行を置きます。各カードには `worklog/<task-id>.md` があり、先頭に現在の状態ブロック、その下に短い追記エントリを置きます。
-
-再開時、エージェントはまず PLAN と INDEX を読み、次に対象カードの状態ブロックと末尾だけを読みます。ファイル全体やディレクトリ全体は読みません。PLAN は約 100 行、カードファイルは約 200 行に保ち、完了したカードは索引から外します。3 種類のファイルの簡潔なテンプレートはプリセットの persona にあり、どのセッションもこのリポジトリを読まずに作成・更新できます。
+再開時はまず `research_state`、次に `research_worklog op=get` で項目と最新の証拠を読みます。ビューは鏡像で、正は JSON です。
 
 ## チームモデルプロファイル
 
@@ -298,7 +302,6 @@ $DSH_HOME/research-team-settings.json
 ## 仕組み
 
 - **プリセット**: `cordis.patch.yml` がペルソナ、ツール行、modeled-teammates サブモジュール、トップレベルの設定行を宣言します。
-- **タスクボードのプロンプト**: `plugin/index.js` がプリセットスコープに英語のプロトコル節（`plugin:dsh-taskboard`）を登録し、現在のワークスペースを解決する `research_project` を提供します。
 - **役割ごとのルーティング**: `plugin/modeled-teammates.js` が `subagents.startActivation` を `AsyncLocalStorage` でラップし、`spawn_teammate_with_model` の呼び出しに限って `agentOptions` を注入します。公式の Agent Teams パッケージには手を加えません。 Cordis はサービスをトレース可能なプロキシとして返すため、ラッパーはメソッドの同一性ではなく自身のプロパティ記述子を検証します。
 - **設定**: `settings/index.js` がプロファイルの JSON ファイルを読み書きし、`GET/POST /api/dsh-research-team-settings` を提供します。`client/index.js` は `plugins.row.config` を通じて Plugins ページのプロファイルエディターを登録します。
 - **更新**: `plugin/settings-store.js` がメモリ内スナップショットを保持し、読み取りと spawn のたびにアクティブなプロファイルを解決します。読み取りに失敗した場合は最後に正常だったスナップショットを保持します。
@@ -332,11 +335,9 @@ $DSH_HOME/research-team-settings.json
 
 ### チームツールが見つからない
 
-同じプロファイルで [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) を有効化し、再起動してください。インストーラーはこれを促しません。
+### タスクワークログのツールが見つからない
 
-### タスクボードのツールが見つからない
-
-同じプロファイルで [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) を有効化し、再起動してください。
+「研究パネル」は `.research/worklog/items/` の作業項目を表示します。完了した項目は「完了」トグルに入ります。登録・更新は `research_worklog` で行います。
 
 ### `spawn_teammate_with_model` が利用できない
 
@@ -366,6 +367,6 @@ MIT。[LICENSE](../LICENSE) を参照してください。
 
 ## 謝辞
 
-[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) と [Cordis](https://github.com/cordiverse/cordis) の上に構築されています。タスクボード連携は [`dsh-taskboard`](https://github.com/cloader/dsh-taskboard) プラグインを使用し、チームツールは公式の Agent Teams プロファイルバンドルから提供されます。プラグインの作者と、実際の研究プロジェクトでこのモードを試してくれるすべての人に感謝します。
+「研究パネル」は `.research/worklog/items/` の作業項目を表示します。完了した項目は「完了」トグルに入ります。登録・更新は `research_worklog` で行います。
 
 コントリビューションと内部開発のメモは [DEVELOPMENT.md](../DEVELOPMENT.md) にあります。

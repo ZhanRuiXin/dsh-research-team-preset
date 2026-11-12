@@ -535,9 +535,10 @@ window.__ModuleLoader__.load({
         : h(SettingsPage, { ...(props || {}), loadCatalog })))
     }
 
+
     exports.apply = apply
-    exports.inject = ['slots', 'remote', 'remote.session']
     exports.name = 'research-team-settings-client'
+    exports.inject = ["slots", "remote", "remote.session"]
     return module.exports
   }
 })

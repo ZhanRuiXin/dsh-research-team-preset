@@ -75,6 +75,16 @@ test('the plugin registers research_scope_check and reports a failing handoff', 
       async resolveByPath() {
         return undefined
       }
+    },
+    agents: {
+      get() {
+        return undefined
+      }
+    },
+    webServer: {
+      register() {
+        return () => {}
+      }
     }
   }
   apply(ctx)

@@ -48,7 +48,7 @@ node --check client/index.js
 npm test
 ```
 
-`npm test` runs the seven test files: spawn routing and permission inheritance, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, and settings-route mounting.
+`npm test` runs the six test files: spawn routing and permission inheritance, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, and settings-route mounting.
 
 Parse `cordis.patch.yml` with the `yaml` package after stripping `!!js` tags, and confirm the persona prefix contains every required section. Keep the 12 READMEs structurally in sync (same `## ` and `### ` headings in each).
 

@@ -345,8 +345,6 @@ export function normalizeArchitectureCard(input, previous) {
     title: shortText(input.title ?? previous?.title, 80) || id,
     description: shortText(input.description ?? input.summary ?? previous?.description ?? previous?.summary, 400) || '',
     kind: CARD_KINDS.includes(input.kind) ? input.kind : previous?.kind ?? 'method',
-    archived: previous?.archived === true,
-    archivedAt: typeof previous?.archivedAt === 'string' ? previous.archivedAt : '',
     version: (previous?.version ?? 0) + 1,
     updatedAt: new Date().toISOString(),
     canvas: {
@@ -357,25 +355,6 @@ export function normalizeArchitectureCard(input, previous) {
     edges,
     notes
   }
-}
-
-export function setArchitectureArchived(root, id, archived) {
-  const clean = sanitizeCardId(id)
-  if (clean === undefined) return { error: 'id must match [a-z0-9][a-z0-9_-]{0,63}' }
-  const card = readArchitectureCard(root, clean)
-  if (card === undefined) return { error: `No architecture card "${clean}".` }
-  const next = {
-    ...card,
-    archived: archived === true,
-    archivedAt: archived === true ? new Date().toISOString() : ''
-  }
-  const dir = architectureDir(root)
-  fs.mkdirSync(dir, { recursive: true })
-  const file = path.join(dir, `${clean}.json`)
-  const tmp = `${file}.tmp`
-  fs.writeFileSync(tmp, `${JSON.stringify(next, null, 2)}\n`)
-  fs.renameSync(tmp, file)
-  return { id: clean, archived: next.archived, card: next }
 }
 
 export function readArchitectureCard(root, id) {
@@ -744,87 +723,6 @@ export function buildPanelState(root, options = {}) {
   }
 }
 
-function dashboardUpdated(value, candidate) {
-  if (typeof candidate !== 'string' || candidate.length === 0) return value
-  return candidate > value ? candidate : value
-}
-
-export function dashboardProject(root, workspace) {
-  const plan = readPlan(root) ?? {}
-  const items = listItems(root)
-  const settings = readExperimentSettings(root)
-  const architectures = listArchitectureCards(root)
-  const counts = { todo: 0, in_progress: 0, in_review: 0, blocked: 0, done: 0, canceled: 0 }
-  let updated = typeof plan.updatedAt === 'string' ? plan.updatedAt : ''
-  const inReview = []
-  for (const item of items) {
-    if (counts[item.status] !== undefined) counts[item.status] += 1
-    updated = dashboardUpdated(updated, item.updated)
-    if (item.status === 'in_review') {
-      inReview.push({ id: item.id, title: item.title, owner: item.owner, updated: item.updated })
-    }
-  }
-  const experiments = { running: 0, awaiting: 0, total: 0, latest: '' }
-  try {
-    const dir = path.join(root, 'runs')
-    for (const name of fs.readdirSync(dir)) {
-      const manifestPath = path.join(dir, name, 'manifest.json')
-      const manifest = readTextFile(manifestPath)
-      let parsed = {}
-      if (manifest !== '') {
-        try {
-          parsed = JSON.parse(manifest)
-        } catch {}
-      }
-      const state = deriveRunState(parsed, settings)
-      experiments.total += 1
-      if (state === 'running') experiments.running += 1
-      if (state === 'awaiting_approval') experiments.awaiting += 1
-      updated = dashboardUpdated(updated, typeof parsed.finishedAt === 'string' ? parsed.finishedAt : parsed.startedAt)
-      if (experiments.latest === '' || (typeof parsed.startedAt === 'string' && parsed.startedAt > experiments.latest)) {
-        experiments.latest = typeof parsed.startedAt === 'string' ? parsed.startedAt : ''
-      }
-    }
-  } catch {}
-  let archived = 0
-  for (const card of architectures) {
-    if (card.archived === true) archived += 1
-    updated = dashboardUpdated(updated, card.updatedAt)
-  }
-  const initialized = plan.objective !== '' || items.length > 0 || architectures.length > 0
-  return {
-    id: typeof workspace?.id === 'string' ? workspace.id : '',
-    title: typeof workspace?.title === 'string' && workspace.title.length > 0 ? workspace.title : path.basename(root),
-    path: root,
-    initialized,
-    objective: plan.objective,
-    milestone: plan.milestone,
-    next: plan.next,
-    counts,
-    inReview,
-    experiments,
-    architectures: { total: architectures.length, archived },
-    updated
-  }
-}
-
-export async function buildDashboardState(ctx) {
-  let workspaces = []
-  try {
-    workspaces = typeof ctx?.workspaceRegistry?.list === 'function' ? ctx.workspaceRegistry.list() : []
-  } catch {}
-  const projects = []
-  for (const workspace of Array.isArray(workspaces) ? workspaces : []) {
-    const root = typeof workspace?.path === 'string' && workspace.path.length > 0 ? workspace.path : ''
-    if (root === '') continue
-    try {
-      projects.push(dashboardProject(root, workspace))
-    } catch {}
-  }
-  projects.sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')))
-  return { projects }
-}
-
 function jsonResponse(res, status, value) {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
   res.end(JSON.stringify(value))
@@ -896,7 +794,7 @@ function renderArchitecture(value, args) {
     if (value.length === 0) return [{ type: 'text', text: 'No architecture cards yet.' }]
     return [{
       type: 'text',
-      text: value.map((card) => `${card.id} v${card.version}  ${card.title}${card.archived === true ? ' [archived]' : ''} (${card.nodes.length} nodes, ${card.notes.length} notes)`).join(NL)
+      text: value.map((card) => `${card.id} v${card.version}  ${card.title} (${card.nodes.length} nodes, ${card.notes.length} notes)`).join(NL)
     }]
   }
   if (value.removed === true) {
@@ -1258,15 +1156,6 @@ export function apply(ctx) {
         jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
         return
       }
-      if (body?.op === 'archive') {
-        const result = setArchitectureArchived(root, body.id, body.archived === true)
-        if (result.error !== undefined) {
-          jsonResponse(res, 404, { ok: false, error: result.error })
-          return
-        }
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root, { team: (items) => teamRoster(ctx, sessionId, items) }) })
-        return
-      }
       const card = readArchitectureCard(root, body?.id)
       if (body?.op === 'item') {
         const decision = decideItem(root, { id: body.itemId, decision: body.decision, reason: body.reason })
@@ -1325,38 +1214,14 @@ export function apply(ctx) {
     if (!message.includes(`webserver: duplicate exact route "${panelRoute}"`)) throw error
   }
 
-  const dashboardRoute = '/api/dsh-research-team-dashboard'
-  const dashboardHandler = async (req, res) => {
-    try {
-      if (!trustedRequest(req)) {
-        jsonResponse(res, 403, { ok: false, error: 'dashboard requests must come from the local GUI' })
-        return
-      }
-      if (req.method !== 'GET') {
-        jsonResponse(res, 405, { ok: false, error: 'method not allowed' })
-        return
-      }
-      jsonResponse(res, 200, { ok: true, ...(await buildDashboardState(ctx)) })
-    } catch (error) {
-      jsonResponse(res, 500, { ok: false, error: error instanceof Error ? error.message : String(error) })
-    }
-  }
-  let disposeDashboard = () => {}
-  try {
-    disposeDashboard = ctx.webServer.register({ kind: 'exact', path: dashboardRoute, handler: dashboardHandler })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    if (!message.includes(`webserver: duplicate exact route "${dashboardRoute}"`)) throw error
-  }
-
   const disposeArchitecture = ctx.tools.register({
     name: 'research_architecture',
     description:
-      'Read or update the architecture cards shown in the Research sidebar: the method, model, experiment and pipeline diagrams of this project, stored as JSON under .research/architecture/<id>.json. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates and an optional one-line summary shown on its tile; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
+      'Read or update the architecture cards shown in the Research sidebar: the method, model, experiment and pipeline diagrams of this project, stored as JSON under .research/architecture/<id>.json. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete. A card is a node/edge graph with absolute coordinates and an optional one-line summary shown on its tile; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
     parameters: {
       type: 'object',
       properties: {
-        op: { type: 'string', enum: ['list', 'get', 'save', 'remove', 'archive', 'restore'] },
+        op: { type: 'string', enum: ['list', 'get', 'save', 'remove'] },
         id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
         card: {
           type: 'object',
@@ -1397,10 +1262,7 @@ export function apply(ctx) {
       if (op === 'save') {
         return saveArchitectureCard(root, args.card, args.expectedVersion)
       }
-      if (op === 'archive' || op === 'restore') {
-        return setArchitectureArchived(root, args.id, op === 'archive')
-      }
-      return { error: `Unknown op "${op}"; expected list, get, save, remove, archive or restore.` }
+      return { error: `Unknown op "${op}"; expected list, get, save or remove.` }
     }
   })
 
@@ -1640,7 +1502,6 @@ export function apply(ctx) {
     disposeExperiment()
     disposeArchitecture()
     disposePanel()
-    disposeDashboard()
     disposeScope()
     disposeInit()
     disposeTool()

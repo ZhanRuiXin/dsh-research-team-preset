@@ -4,7 +4,7 @@
 
 **1 つのセッションを、小規模で連携の取れた研究チームに変える DSH エージェントプリセット。**
 
-**バージョン 0.1.1** · **更新 2026-11-10**
+**バージョン 0.2.0** · **更新 2026-11-12**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <strong>日本語</strong> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -73,20 +73,20 @@ Lead の返答は科学的なコミュニケーションであり、ステータ
 ### DSH のプラグインページからインストール
 
 2. **設定 → プラグイン** を開き、**追加** をクリックします。
-3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.1.1`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
+3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.2.0`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
 4. **DSH を再起動します。** プリセット行とバンドルのクライアント側は起動時に読み込まれます。
 5. **同じプロファイルでバンドルが有効になっていることを確認**し、**新しいセッションを開いて** モード選択で **Research Team Mode** を選びます。
 
 ### コマンドラインからインストール
 
 ```text
-dsh plugin add dsh-research-team-preset@0.1.1
+dsh plugin add dsh-research-team-preset@0.2.0
 ```
 
 レジストリではなくソースを固定する場合:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
 ```
 
 > このモードはプロファイル単位のバンドルです。あるプロファイルにインストールしても別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件を繰り返してください。

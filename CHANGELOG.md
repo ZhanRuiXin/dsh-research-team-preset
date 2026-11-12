@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.1.1.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.0.
 
-## Unreleased
+## 0.2.0 — 2026-11-12
 
 - Work items expand in place on click: the row grows to show the full title, next action, blocked reason, evidence and checklist, and collapses on a second click.
 

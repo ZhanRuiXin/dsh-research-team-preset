@@ -4,7 +4,7 @@
 
 **DSH agent preset, превращающий одну сессию в небольшую слаженную исследовательскую команду.**
 
-**Версия 0.1.1** · **Обновлено 2026-11-10**
+**Версия 0.2.0** · **Обновлено 2026-11-12**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <strong>Русский</strong> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -73,20 +73,20 @@ Research Team Mode - это пресет агента DSH для сквозно�
 ### Установка со страницы плагинов DSH
 
 2. Откройте **Настройки → Плагины** и нажмите **Добавить**.
-3. Вставьте источник установки: `dsh-research-team-preset@0.1.1` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.1.1` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
+3. Вставьте источник установки: `dsh-research-team-preset@0.2.0` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
 4. **Перезапустите DSH.** Строки пресета и клиентская часть бандла загружаются при старте.
 5. **Убедитесь, что бандл включён** в том же профиле, затем **откройте новую сессию** и выберите **Research Team Mode** в выборе режима.
 
 ### Установка из командной строки
 
 ```text
-dsh plugin add dsh-research-team-preset@0.1.1
+dsh plugin add dsh-research-team-preset@0.2.0
 ```
 
 Чтобы закрепить исходный код вместо реестра:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.1.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
 ```
 
 > Режим является бандлом уровня профиля: установка в одном профиле не включает его в другом. Повторите установку и предварительные условия для каждого профиля.

@@ -853,8 +853,7 @@ window.__ModuleLoader__.load({
 
       function quoteSelection() {
         if (card === undefined || selectedNodes.length === 0) return
-        const title = card.title || card.id
-        const text = `架构「${title}」（${card.id}，v${card.version}）\n节点：${selectedNodes.join('、')}`
+        const text = `Architecture: ${card.id} (v${card.version})\nNodes: ${selectedNodes.join(', ')}`
         try {
           const actx = pluginCtx !== null && typeof pluginCtx.sessions?.scope === 'function' ? pluginCtx.sessions.scope(sessionId) : undefined
           const conversation = actx !== undefined && typeof actx.get === 'function' ? actx.get('conversation') : undefined

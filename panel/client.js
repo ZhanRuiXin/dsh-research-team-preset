@@ -314,8 +314,6 @@ function statusLabel(status) {
 .rtp-eyebrow{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;letter-spacing:.12em;color:var(--dsw-alias-label-tertiary);text-transform:uppercase}
 .rtp-live{width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-success-primary) 18%,transparent)}
 .rtp-title{margin-top:0;font-size:18px;font-weight:600;line-height:1.4;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rtp-sub{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 10px;font-size:14px;color:var(--dsw-alias-label-secondary)}
-.rtp-sub b{font-weight:500;color:var(--dsw-alias-label-primary)}
 .rtp-section{padding:14px 16px 2px}
 .rtp-sechead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
 .rtp-seclabel{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--dsw-alias-label-tertiary)}
@@ -903,11 +901,7 @@ function statusLabel(status) {
       }
 
       const header = h('div', { key: 'header', className: 'rtp-header' }, [
-        h('div', { key: 'objective', className: 'rtp-title' }, worklog.objective || '尚未设置研究目标'),
-        h('div', { key: 'sub', className: 'rtp-sub' }, [
-          worklog.milestone ? h('span', { key: 'm' }, ['里程碑 ', h('b', { key: 'b' }, worklog.milestone)]) : null,
-          worklog.next ? h('span', { key: 'n' }, ['下一步 ', h('b', { key: 'b' }, worklog.next)]) : null
-        ].filter(Boolean))
+        h('div', { key: 'objective', className: 'rtp-title' }, worklog.objective || '尚未设置研究目标')
       ])
 
       const archLabel = (entry) => {

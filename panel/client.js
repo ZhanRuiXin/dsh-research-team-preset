@@ -899,7 +899,6 @@ window.__ModuleLoader__.load({
       ])
 
       const archLabel = (entry) => {
-        if (entry.label) return entry.label
         const title = entry.title || entry.id
         const colon = title.search(/[:：]/)
         const head = colon > 0 ? title.slice(0, colon).trim() : ''
@@ -911,7 +910,7 @@ window.__ModuleLoader__.load({
         const lines = [`${label} · v${entry.version}`]
         const title = entry.title || entry.id
         if (title !== label) lines.push(`标题：${title}`)
-        lines.push(entry.summary || CARD_KIND_LABELS[entry.kind] || '架构')
+        lines.push(entry.description || entry.summary || CARD_KIND_LABELS[entry.kind] || '架构')
         return lines
       }
       const archChips = architectures.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' },

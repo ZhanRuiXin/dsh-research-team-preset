@@ -51,7 +51,7 @@ test('normalizeArchitectureCard clamps geometry and drops dangling edges', () =>
   const card = normalizeArchitectureCard({
     id: 'method',
     title: 'Method',
-    label: '方法总览',
+    description: '方法总览',
     canvas: { width: 99999, height: 10 },
     nodes: [
       { id: 'input', label: 'vitals', x: -50, y: 10, w: 1, h: 9999 },
@@ -65,7 +65,7 @@ test('normalizeArchitectureCard clamps geometry and drops dangling edges', () =>
 
   assert.equal(card.id, 'method')
   assert.equal(card.version, 1)
-  assert.equal(card.label, '方法总览')
+  assert.equal(card.description, '方法总览')
   assert.equal(card.canvas.width, 4000)
   assert.equal(card.canvas.height, 200)
   assert.equal(card.nodes[0].x, 0)

@@ -4,7 +4,9 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
-- The sidebar drops the design-document list: architecture labels are brief titles with a hover card for the version and summary, and the team tiles use the registered member names, lead included.
+- The sidebar drops the design-document list: architecture chips show the card title and a hover card shows the version and description, and the team tiles use the registered member names, lead included.
+
+- Architecture cards carry two text fields, a short `title` for the sidebar chip and a `description` for its hover card; `summary` is still accepted as an alias so older cards keep rendering.
 
 - The Research panel quotes an architecture selection into the conversation composer instead of carrying its own textarea, and the architecture canvas no longer zooms with the wheel.
 

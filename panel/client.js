@@ -303,7 +303,7 @@ window.__ModuleLoader__.load({
 .rtp-header{position:relative;padding:16px 16px 13px;border-bottom:.5px solid var(--dsw-alias-border-l2);background:linear-gradient(180deg,color-mix(in srgb,var(--dsw-alias-bg-layer-1) 92%,transparent),transparent)}
 .rtp-eyebrow{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;letter-spacing:.12em;color:var(--dsw-alias-label-tertiary);text-transform:uppercase}
 .rtp-live{width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-success-primary) 18%,transparent)}
-.rtp-title{margin-top:8px;font-size:18px;font-weight:600;line-height:1.4;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rtp-title{margin-top:0;font-size:18px;font-weight:600;line-height:1.4;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .rtp-sub{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 10px;font-size:14px;color:var(--dsw-alias-label-secondary)}
 .rtp-sub b{font-weight:500;color:var(--dsw-alias-label-primary)}
 .rtp-wait{margin-top:12px;display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;font-size:14px;line-height:1.45;color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 9%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
@@ -332,6 +332,10 @@ window.__ModuleLoader__.load({
 .rtp-arch:focus-visible{outline:2px solid color-mix(in srgb,var(--dsw-alias-brand-primary) 55%,transparent);outline-offset:1px}
 .rtp-arch.on{border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-brand-primary) 14%,transparent);color:var(--dsw-alias-label-primary);font-weight:500}
 .rtp-arch.on::before{content:'';flex:0 0 auto;width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
+.rtp-arch.is-archived{opacity:.6;border-style:dashed;background:transparent}.rtp-note{margin:0 0 7px;font-size:12.5px;color:var(--dsw-alias-label-tertiary)}
+.rtp-arch.is-archived.on{opacity:.8}
+.rtp-arch-more{border-style:dashed;color:var(--dsw-alias-label-tertiary);font-weight:400}
+.rtp-arch-more:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-interactive-bg-hover)}
 .rtp-root{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .rtp-root textarea,.rtp-root input,.rtp-id,.rtp-rowtitle,.rtp-rowmeta,.rtp-rowmain,.rtp-annot,.rtp-empty{-webkit-user-select:text;user-select:text}
 .rtp-mem:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
@@ -764,6 +768,7 @@ window.__ModuleLoader__.load({
       const [error, setError] = React.useState('')
       const [selectedCard, setSelectedCard] = React.useState('')
       const [selectedNodes, setSelectedNodes] = React.useState([])
+      const [showArchived, setShowArchived] = React.useState(false)
       const [busy, setBusy] = React.useState(false)
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
@@ -810,7 +815,10 @@ window.__ModuleLoader__.load({
       }, [toast])
 
       const architectures = (state && state.architectures) || []
-      const card = architectures.find((entry) => entry.id === selectedCard) || architectures[0]
+      const activeArch = architectures.filter((entry) => entry.archived !== true)
+      const retiredArch = architectures.filter((entry) => entry.archived === true)
+      const shownArch = showArchived ? [...activeArch, ...retiredArch] : activeArch
+      const card = architectures.find((entry) => entry.id === selectedCard) || shownArch[0] || architectures[0]
       const worklog = (state && state.worklog) || {}
       const cards = (state && state.cards) || []
       const runs = (state && state.runs) || []
@@ -881,10 +889,6 @@ window.__ModuleLoader__.load({
       }
 
       const header = h('div', { key: 'header', className: 'rtp-header' }, [
-        h('div', { key: 'eyebrow', className: 'rtp-eyebrow' }, [
-          h('span', { key: 'live', className: 'rtp-live' }),
-          h('span', { key: 'label' }, '研究团队')
-        ]),
         h('div', { key: 'objective', className: 'rtp-title' }, worklog.objective || '尚未设置研究目标'),
         h('div', { key: 'sub', className: 'rtp-sub' }, [
           worklog.milestone ? h('span', { key: 'm' }, ['里程碑 ', h('b', { key: 'b' }, worklog.milestone)]) : null,
@@ -913,11 +917,20 @@ window.__ModuleLoader__.load({
         lines.push(entry.description || entry.summary || CARD_KIND_LABELS[entry.kind] || '架构')
         return lines
       }
-      const archChips = architectures.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' },
-        architectures.map((entry) => h('button', {
+      const archiveCard = (entry, archived) => {
+        if (archived) setSelectedCard('')
+        else setSelectedCard(entry.id)
+        setSelectedNodes([])
+        void postPanel(
+          { op: 'archive', id: entry.id, archived },
+          archived ? `已归档「${archLabel(entry)}」，可在「已归档」中恢复。` : `已恢复「${archLabel(entry)}」。`
+        )
+      }
+      const archChips = shownArch.length === 0 ? null : h('div', { key: 'seg', className: 'rtp-archgrid' }, [
+        ...shownArch.map((entry) => h('button', {
           key: entry.id,
           type: 'button',
-          className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}`,
+          className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}${entry.archived === true ? ' is-archived' : ''}`,
           'aria-label': archBrief(entry).join('; '),
           onClick: () => {
             setSelectedCard(entry.id)
@@ -925,7 +938,17 @@ window.__ModuleLoader__.load({
           },
           onMouseEnter: (event) => openTip(event, archBrief(entry)),
           onMouseLeave: () => setHover(null)
-        }, h('span', { key: 't', className: 'rtp-arch-t' }, archLabel(entry)))))
+        }, h('span', { key: 't', className: 'rtp-arch-t' }, archLabel(entry)))),
+        retiredArch.length === 0
+          ? null
+          : h('button', {
+              key: 'more',
+              type: 'button',
+              className: 'rtp-arch rtp-arch-more',
+              title: showArchived ? '收起已归档的架构卡' : '显示已归档的架构卡',
+              onClick: () => setShowArchived((current) => !current)
+            }, showArchived ? '收起归档' : `已归档 ${retiredArch.length}`)
+      ])
 
       const teamOn = team.filter((member) => String(member.status).toLowerCase() === 'running').length
       const teamPill = (status) => {
@@ -998,12 +1021,24 @@ window.__ModuleLoader__.load({
       const archSection = h(Section, {
         key: 'arch',
         title: '架构',
-        count: 0
+        count: 0,
+        action: card === undefined
+          ? undefined
+          : h('button', {
+              key: 'archive',
+              type: 'button',
+              className: 'rtp-ghost',
+              title: card.archived === true ? '把这张架构卡放回面板' : '把这张架构卡移出面板，可随时恢复',
+              onClick: () => archiveCard(card, card.archived !== true)
+            }, card.archived === true ? '恢复' : '归档')
       }, [
         architectures.length === 0
           ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无架构卡片')
           : h('div', { key: 'body' }, [
               archChips,
+              card !== undefined && card.archived === true
+                ? h('div', { key: 'retired', className: 'rtp-note' }, '这张架构卡已归档，恢复后会回到切换列表。')
+                : null,
               h(ArchitectureCanvas, {
                 key: 'canvas',
                 card,
@@ -1161,7 +1196,7 @@ window.__ModuleLoader__.load({
         registeredFor = service
         ctx.effect(() => service.registerTab({
           id: 'research-team:panel',
-          title: '研究',
+          title: '研究面板',
           description: '团队状态：架构、工作项与实验',
           order: 40,
           single: true,
@@ -1185,7 +1220,8 @@ window.__ModuleLoader__.load({
       ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab.title',
         key: 'research-team#panel'
-      }, () => '研究'))
+      }, () => '研究面板'))
+
     }
 
 

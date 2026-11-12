@@ -345,6 +345,8 @@ export function normalizeArchitectureCard(input, previous) {
     title: shortText(input.title ?? previous?.title, 80) || id,
     description: shortText(input.description ?? input.summary ?? previous?.description ?? previous?.summary, 400) || '',
     kind: CARD_KINDS.includes(input.kind) ? input.kind : previous?.kind ?? 'method',
+    archived: previous?.archived === true,
+    archivedAt: typeof previous?.archivedAt === 'string' ? previous.archivedAt : '',
     version: (previous?.version ?? 0) + 1,
     updatedAt: new Date().toISOString(),
     canvas: {
@@ -355,6 +357,25 @@ export function normalizeArchitectureCard(input, previous) {
     edges,
     notes
   }
+}
+
+export function setArchitectureArchived(root, id, archived) {
+  const clean = sanitizeCardId(id)
+  if (clean === undefined) return { error: 'id must match [a-z0-9][a-z0-9_-]{0,63}' }
+  const card = readArchitectureCard(root, clean)
+  if (card === undefined) return { error: `No architecture card "${clean}".` }
+  const next = {
+    ...card,
+    archived: archived === true,
+    archivedAt: archived === true ? new Date().toISOString() : ''
+  }
+  const dir = architectureDir(root)
+  fs.mkdirSync(dir, { recursive: true })
+  const file = path.join(dir, `${clean}.json`)
+  const tmp = `${file}.tmp`
+  fs.writeFileSync(tmp, `${JSON.stringify(next, null, 2)}\n`)
+  fs.renameSync(tmp, file)
+  return { id: clean, archived: next.archived, card: next }
 }
 
 export function readArchitectureCard(root, id) {
@@ -794,7 +815,7 @@ function renderArchitecture(value, args) {
     if (value.length === 0) return [{ type: 'text', text: 'No architecture cards yet.' }]
     return [{
       type: 'text',
-      text: value.map((card) => `${card.id} v${card.version}  ${card.title} (${card.nodes.length} nodes, ${card.notes.length} notes)`).join(NL)
+      text: value.map((card) => `${card.id} v${card.version}  ${card.title}${card.archived === true ? ' [archived]' : ''} (${card.nodes.length} nodes, ${card.notes.length} notes)`).join(NL)
     }]
   }
   if (value.removed === true) {
@@ -1156,6 +1177,15 @@ export function apply(ctx) {
         jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
         return
       }
+      if (body?.op === 'archive') {
+        const result = setArchitectureArchived(root, body.id, body.archived === true)
+        if (result.error !== undefined) {
+          jsonResponse(res, 404, { ok: false, error: result.error })
+          return
+        }
+        jsonResponse(res, 200, { ok: true, ...buildPanelState(root, { team: (items) => teamRoster(ctx, sessionId, items) }) })
+        return
+      }
       const card = readArchitectureCard(root, body?.id)
       if (body?.op === 'item') {
         const decision = decideItem(root, { id: body.itemId, decision: body.decision, reason: body.reason })
@@ -1217,11 +1247,11 @@ export function apply(ctx) {
   const disposeArchitecture = ctx.tools.register({
     name: 'research_architecture',
     description:
-      'Read or update the architecture cards shown in the Research sidebar: the method, model, experiment and pipeline diagrams of this project, stored as JSON under .research/architecture/<id>.json. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete. A card is a node/edge graph with absolute coordinates and an optional one-line summary shown on its tile; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
+      'Read or update the architecture cards shown in the Research sidebar: the method, model, experiment and pipeline diagrams of this project, stored as JSON under .research/architecture/<id>.json. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates and an optional one-line summary shown on its tile; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. The user can select nodes in the sidebar and leave an annotation; that annotation arrives as a note on the card, so read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
     parameters: {
       type: 'object',
       properties: {
-        op: { type: 'string', enum: ['list', 'get', 'save', 'remove'] },
+        op: { type: 'string', enum: ['list', 'get', 'save', 'remove', 'archive', 'restore'] },
         id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
         card: {
           type: 'object',
@@ -1262,7 +1292,10 @@ export function apply(ctx) {
       if (op === 'save') {
         return saveArchitectureCard(root, args.card, args.expectedVersion)
       }
-      return { error: `Unknown op "${op}"; expected list, get, save or remove.` }
+      if (op === 'archive' || op === 'restore') {
+        return setArchitectureArchived(root, args.id, op === 'archive')
+      }
+      return { error: `Unknown op "${op}"; expected list, get, save, remove, archive or restore.` }
     }
   })
 

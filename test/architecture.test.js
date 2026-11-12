@@ -15,6 +15,7 @@ import {
   readExperimentSettings,
   sanitizeCardId,
   saveArchitectureCard,
+  setArchitectureArchived,
   setRunApproval,
   teamRoster,
   writeExperimentSettings
@@ -108,6 +109,32 @@ test('saveArchitectureCard versions, rejects a stale write and round-trips', () 
   const stale = saveArchitectureCard(root, { ...stored, nodes: stored.nodes }, 1)
   assert.match(stale.error, /version conflict/)
   assert.equal(readArchitectureCard(root, 'method').version, 2)
+})
+
+test('setArchitectureArchived retires a card, keeps it readable and restores it', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'research-team-archive-'))
+  const saved = saveArchitectureCard(root, {
+    id: 'pipeline',
+    title: 'Pipeline',
+    nodes: [{ id: 'n1', label: 'input', x: 20, y: 40 }]
+  })
+  assert.equal(saved.archived, false)
+
+  const retired = setArchitectureArchived(root, saved.id, true)
+  assert.equal(retired.archived, true)
+  assert.equal(readArchitectureCard(root, saved.id).archived, true)
+  assert.equal(listArchitectureCards(root)[0].archived, true)
+
+  // saving the card again must not drop the archive flag
+  const touched = saveArchitectureCard(root, { ...readArchitectureCard(root, saved.id), description: 'kept' })
+  assert.equal(touched.archived, true)
+
+  const restored = setArchitectureArchived(root, saved.id, false)
+  assert.equal(restored.archived, false)
+  assert.equal(readArchitectureCard(root, saved.id).archived, false)
+
+  assert.match(setArchitectureArchived(root, 'missing', true).error, /No architecture card/)
+  assert.match(setArchitectureArchived(root, '../escape', true).error, /id must match/)
 })
 
 test('buildPanelState reads the worklog, design docs and architecture cards', () => {

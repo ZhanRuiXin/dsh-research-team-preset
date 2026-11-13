@@ -244,9 +244,18 @@ test('teamRoster reports the Lead and continuable children with their work item'
       rootOf: () => ({ id: 's-1' }),
       listDescendants: async () => ([
         { id: 's-builder', path: 'builder', label: 'implementation', mode: 'continuable' },
+        { id: 's-legacy-0', mode: 'continuable' },
         { id: 's-broken', kind: 'diagnostic', reason: 'corrupt', mode: 'continuable' },
         { id: 's-oneshot', mode: 'one-shot', label: 'probe' }
       ])
+    },
+    sessionQuery: {
+      observeSession: async () => ({
+        events: [
+          { type: 'team/member', data: { version: 2, member: { id: 's-legacy-0', name: 'data', description: 'Dataset audit', provider: 'spawn', context: 'fresh', phase: 'active' } } },
+          { type: 'team/member', data: { version: 2, member: { id: 's-legacy-1', name: 'researcher', description: 'Literature search', provider: 'spawn', context: 'fresh', phase: 'active' } } }
+        ]
+      })
     }
   }
   const items = [
@@ -254,7 +263,7 @@ test('teamRoster reports the Lead and continuable children with their work item'
     { id: 'task-4', title: '基准生成器', owner: 'designer', status: 'todo' }
   ]
   const roster = await teamRoster(ctx, 's-1', items)
-  assert.equal(roster.length, 2)
+  assert.equal(roster.length, 4)
   assert.equal(roster[0].name, 'lead')
   assert.equal(roster[0].role, 'lead')
   assert.equal(roster[0].status, 'running')
@@ -271,6 +280,12 @@ test('teamRoster reports the Lead and continuable children with their work item'
     modelSource: 'unknown',
     item: { id: 'task-3', title: '编码器脚手架', status: 'in_progress', updated: undefined, next: undefined }
   })
+  assert.equal(roster[2].name, 'data')
+  assert.equal(roster[2].legacy, true)
+  assert.equal(roster[2].description, 'Dataset audit')
+  assert.equal(roster[3].name, 'researcher')
+  assert.equal(roster[3].legacy, true)
+  assert.equal(roster[3].description, 'Literature search')
   assert.equal((await teamRoster(ctx, 'missing', items)).length, 0)
   assert.equal((await teamRoster({}, 's-1', items)).length, 0)
 })

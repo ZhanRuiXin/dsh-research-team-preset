@@ -4,6 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Recovers teammate names for sessions created before the agent-team rework: when the subagent catalog has no name, the panel reads the session's `team/member` records, shows the historical name and description, tags the row as a legacy member in its detail card, and adds members that are missing from the subagent tree.
 - Adapts to the DSH agent-team rework: a teammate is now a continuable subagent child, `spawn_teammate_with_model` starts one through `subagents.startActivation`, the panel roster reads the Lead's subagent tree (`listDescendants`) instead of a Team member list, and the docs name `@deepseek-ai/dsh-agent-team`.
 
 - Experiments expand in place on click, the same way work items do: a run opens its question, hypothesis, decision rule, reason and timing, and collapses on a second click.

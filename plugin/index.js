@@ -49,11 +49,12 @@ import { modelForRole } from './settings-store.js'
 
 export const name = 'research-project'
 
-export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents', 'subagents']
+export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents', 'subagents', 'sessionQuery']
 
 const execFileAsync = promisify(execFile)
 
 const NL = String.fromCharCode(10)
+const TEAM_MEMBER_EVENT = 'team/member'
 
 const PLAN_TEMPLATE = (objective) => `# PLAN
 
@@ -961,6 +962,43 @@ function rosterRow(ctx, id, name, role, items) {
   }
 }
 
+
+/** Shorten a session id for display when a child never got a name. */
+export function shortSessionId(id) {
+  if (typeof id !== 'string') return ''
+  return id.length > 10 ? id.slice(0, 8) + '…' : id
+}
+
+/** Recover the historical Team roster a session recorded before teammates became subagents. */
+export async function legacyTeamMembers(ctx, sessionId) {
+  const query = ctx?.sessionQuery
+  if (query === undefined || query === null || typeof query.observeSession !== 'function') return new Map()
+  if (typeof sessionId !== 'string' || sessionId === '') return new Map()
+  let observation
+  try { observation = await query.observeSession(sessionId) } catch { return new Map() }
+  const members = new Map()
+  try {
+    for (const event of Array.isArray(observation?.events) ? observation.events : []) {
+      if (event === null || typeof event !== 'object' || event.type !== TEAM_MEMBER_EVENT) continue
+      const member = event.data?.member
+      if (member === null || typeof member !== 'object') continue
+      if (typeof member.id !== 'string' || member.id === '') continue
+      if (typeof member.name !== 'string' || member.name === '') continue
+      members.set(member.id, {
+        name: member.name,
+        description: typeof member.description === 'string' ? member.description : '',
+        phase: typeof member.phase === 'string' ? member.phase : 'active'
+      })
+    }
+  } finally {
+    try {
+      if (typeof observation?.[Symbol.dispose] === 'function') observation[Symbol.dispose]()
+      else if (typeof observation?.dispose === 'function') observation.dispose()
+    } catch {}
+  }
+  return members
+}
+
 /**
  * Read the live team from the subagent tree. Since DSH 0.2.2 a teammate is a
  * continuable child of the Lead, so the roster is the Lead plus every
@@ -978,6 +1016,7 @@ export async function teamRoster(ctx, sessionId, items) {
       ? AbortSignal.timeout(4000)
       : undefined
     const entries = await service.listDescendants(root.id, signal)
+    const legacy = await legacyTeamMembers(ctx, sessionId)
     const lead = rosterRow(ctx, root.id, 'lead', 'lead', items)
     lead.description = 'root agent'
     const rows = [lead]
@@ -987,9 +1026,24 @@ export async function teamRoster(ctx, sessionId, items) {
       if (entry.kind === 'diagnostic' || entry.mode !== 'continuable') continue
       if (typeof entry.id !== 'string' || entry.id === '' || seen.has(entry.id)) continue
       seen.add(entry.id)
-      const name = typeof entry.path === 'string' && entry.path !== '' ? entry.path : entry.id
+      const historical = legacy.get(entry.id)
+      const name = historical !== undefined
+        ? historical.name
+        : typeof entry.path === 'string' && entry.path !== '' ? entry.path : shortSessionId(entry.id)
       const row = rosterRow(ctx, entry.id, name, 'teammate', items)
-      row.description = typeof entry.label === 'string' ? entry.label : ''
+      row.description = historical !== undefined && historical.description !== ''
+        ? historical.description
+        : typeof entry.label === 'string' ? entry.label : ''
+      if (historical !== undefined) { row.legacy = true; legacy.delete(entry.id) }
+      rows.push(row)
+    }
+    for (const [id, member] of legacy) {
+      if (seen.has(id)) continue
+      seen.add(id)
+      const row = rosterRow(ctx, id, member.name, 'teammate', items)
+      row.status = member.phase === 'failed' ? 'failed' : member.phase === 'provisioning' ? 'provisioning' : row.status
+      row.description = member.description
+      row.legacy = true
       rows.push(row)
     }
     return rows

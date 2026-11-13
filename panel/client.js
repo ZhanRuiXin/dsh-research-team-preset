@@ -267,6 +267,7 @@ function statusLabel(status) {
       } else {
         lines.push('未分配工作项')
       }
+      if (member.legacy === true) lines.push('旧版成员：名册来自会话早期的 team/member 记录')
       const model = shortModel(member.model)
       if (model !== '') {
         const suffix = member.effort ? `（${member.effort}）` : ''

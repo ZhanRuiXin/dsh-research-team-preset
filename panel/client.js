@@ -427,6 +427,23 @@ function statusLabel(status) {
         h('span', { key: `s${index}`, className: index < done ? 'rtp-seed on' : 'rtp-seed' }))
     }
 
+    function PanelIcon(props) {
+      const size = props && props.size ? props.size : 15
+      return h('svg', {
+        width: size,
+        height: size,
+        viewBox: '0 0 16 16',
+        fill: 'none',
+        'aria-hidden': 'true',
+        style: { display: 'inline-block', verticalAlign: 'middle', flex: '0 0 auto' }
+      }, [
+        h('path', { key: 'e', d: 'M4.6 5.1 8 8l3.4-2.9M8 8v2.4', stroke: 'currentColor', strokeWidth: 1.4, strokeLinecap: 'round', strokeLinejoin: 'round' }),
+        h('circle', { key: 'a', cx: 4.6, cy: 4.2, r: 1.7, stroke: 'currentColor', strokeWidth: 1.4 }),
+        h('circle', { key: 'b', cx: 11.4, cy: 4.2, r: 1.7, stroke: 'currentColor', strokeWidth: 1.4 }),
+        h('circle', { key: 'c', cx: 8, cy: 12.2, r: 1.7, stroke: 'currentColor', strokeWidth: 1.4 })
+      ])
+    }
+
     function Section(props) {
       return h('section', { className: 'rtp-section' }, [
         h('div', { key: 'head', className: 'rtp-sechead' }, [
@@ -1237,6 +1254,7 @@ function statusLabel(status) {
           id: 'research-team:panel',
           title: '研究面板',
           description: '团队状态：架构、工作项与实验',
+          icon: h(PanelIcon, { size: 15 }),
           order: 40,
           single: true,
           component: (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })
@@ -1259,7 +1277,10 @@ function statusLabel(status) {
       ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab.title',
         key: 'research-team#panel'
-      }, () => '研究面板'))
+      }, () => h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '6px' } }, [
+        h(PanelIcon, { key: 'i', size: 15 }),
+        '研究面板'
+      ])))
 
     }
 

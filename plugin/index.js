@@ -1195,6 +1195,7 @@ export function apply(ctx) {
     },
     async execute(_args, exec) {
       await ensureTeamMode(ctx, exec?.agent)
+      await ensureTeamMode(ctx, exec?.agent)
       const cwd = exec?.agent?.session?.header?.cwd
       if (typeof cwd !== 'string' || cwd.length === 0) {
         return { error: 'Cannot determine the session working directory; workspaceId was not resolved. Ask the user to confirm the project.' }
@@ -1232,6 +1233,7 @@ export function apply(ctx) {
       }
     },
     async execute(args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const cwd = exec?.agent?.session?.header?.cwd
       if (typeof cwd !== 'string' || cwd.length === 0) {
         return { error: 'Cannot determine the session working directory; the workspace was not initialized.' }
@@ -1290,6 +1292,7 @@ export function apply(ctx) {
       }
     },
     async execute(args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const role = typeof args.role === 'string' ? args.role : ''
       const cwd = exec?.agent?.session?.header?.cwd
       if (typeof cwd !== 'string' || cwd.length === 0) {
@@ -1325,6 +1328,10 @@ export function apply(ctx) {
       }
       const url = new URL(req.url ?? '/', 'http://localhost')
       const sessionId = req.method === 'GET' ? url.searchParams.get('session') : undefined
+      if (typeof sessionId === 'string' && typeof ctx.agents?.get === 'function') {
+        const sessionAgent = ctx.agents.get(sessionId)
+        if (sessionAgent !== undefined) void ensureTeamMode(ctx, sessionAgent)
+      }
       if (req.method === 'GET') {
         const root = await sessionProjectRoot(ctx, sessionId)
         if (root === undefined) {
@@ -1461,6 +1468,7 @@ export function apply(ctx) {
       }
     },
     async execute(args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const cwd = exec?.agent?.session?.header?.cwd
       if (typeof cwd !== 'string' || cwd.length === 0) {
         return { error: 'Cannot determine the session working directory; no card was read or written.' }
@@ -1519,6 +1527,7 @@ export function apply(ctx) {
       }
     },
     async execute(args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const cwd = exec?.agent?.session?.header?.cwd
       if (typeof cwd !== 'string' || cwd.length === 0) return { error: 'cannot resolve the project directory' }
       const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
@@ -1574,6 +1583,7 @@ export function apply(ctx) {
     },
     output: { schema: {}, render(_args, value) { return renderWorklog(value) } },
     async execute(args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const cwd = exec?.agent?.session?.header?.cwd
       if (typeof cwd !== 'string' || cwd.length === 0) return { error: 'cannot resolve the project directory' }
       const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
@@ -1617,6 +1627,7 @@ export function apply(ctx) {
     parameters: { type: 'object', properties: {}, additionalProperties: false },
     output: { schema: {}, render(_args, value) { return renderState(value) } },
     async execute(_args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const cwd = exec?.agent?.session?.header?.cwd
       if (typeof cwd !== 'string' || cwd.length === 0) return { error: 'cannot resolve the project directory' }
       const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
@@ -1650,6 +1661,7 @@ export function apply(ctx) {
     },
     output: { schema: {}, render(_args, value) { return renderDecision(value) } },
     async execute(args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const root = await projectRootOf(ctx, exec)
       if (root === undefined) return { error: 'cannot resolve the project directory' }
       if (args.op === 'list') return { decisions: listDecisions(root, typeof args.limit === 'number' ? args.limit : 20) }
@@ -1677,6 +1689,7 @@ export function apply(ctx) {
     },
     output: { schema: {}, render(_args, value) { return renderEvidence(value) } },
     async execute(args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const root = await projectRootOf(ctx, exec)
       if (root === undefined) return { error: 'cannot resolve the project directory' }
       if (args.op === 'list') return { evidence: listEvidence(root, typeof args.limit === 'number' ? args.limit : 40) }
@@ -1706,6 +1719,7 @@ export function apply(ctx) {
     },
     output: { schema: {}, render(_args, value) { return renderDesign(value) } },
     async execute(args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const root = await projectRootOf(ctx, exec)
       if (root === undefined) return { error: 'cannot resolve the project directory' }
       if (args.op === 'list') return { designs: listDesigns(root) }

@@ -45,7 +45,7 @@ import {
   worklogSummary,
   writePlan
 } from './worklog.js'
-import { modelForRole } from './settings-store.js'
+import { matchRoleName, modelForRole } from './settings-store.js'
 
 export const name = 'research-project'
 
@@ -963,6 +963,24 @@ function rosterRow(ctx, id, name, role, items) {
 }
 
 
+
+/** Read the teammates this preset recorded under a project. */
+export function readTeamMembers(root) {
+  const ids = new Set()
+  try {
+    const file = path.join(String(root), '.research', 'team', 'members.jsonl')
+    if (fs.existsSync(file) === false) return ids
+    for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/u)) {
+      if (line.trim() === '') continue
+      try {
+        const row = JSON.parse(line)
+        if (row !== null && typeof row === 'object' && typeof row.id === 'string' && row.id !== '') ids.add(row.id)
+      } catch {}
+    }
+  } catch {}
+  return ids
+}
+
 /** Shorten a session id for display when a child never got a name. */
 export function shortSessionId(id) {
   if (typeof id !== 'string') return ''
@@ -1004,7 +1022,7 @@ export async function legacyTeamMembers(ctx, sessionId) {
  * continuable child of the Lead, so the roster is the Lead plus every
  * continuable descendant; the team service no longer stores members itself.
  */
-export async function teamRoster(ctx, sessionId, items) {
+export async function teamRoster(ctx, sessionId, items, root) {
   try {
     const agent = typeof sessionId === 'string' && sessionId.length > 0 ? ctx?.agents?.get?.(sessionId) : undefined
     if (agent === undefined || agent === null) return []
@@ -1017,6 +1035,7 @@ export async function teamRoster(ctx, sessionId, items) {
       : undefined
     const entries = await service.listDescendants(root.id, signal)
     const legacy = await legacyTeamMembers(ctx, sessionId)
+    const tracked = readTeamMembers(root)
     const lead = rosterRow(ctx, root.id, 'lead', 'lead', items)
     lead.description = 'root agent'
     const rows = [lead]
@@ -1027,9 +1046,14 @@ export async function teamRoster(ctx, sessionId, items) {
       if (typeof entry.id !== 'string' || entry.id === '' || seen.has(entry.id)) continue
       seen.add(entry.id)
       const historical = legacy.get(entry.id)
-      const name = historical !== undefined
-        ? historical.name
-        : typeof entry.path === 'string' && entry.path !== '' ? entry.path : shortSessionId(entry.id)
+      const path = typeof entry.path === 'string' && entry.path !== '' ? entry.path : ''
+      const name = historical !== undefined ? historical.name : path !== '' ? path : shortSessionId(entry.id)
+      // A teammate is a direct, named child of the Lead. Children that only
+      // descend further, and subagents other plugins create, are not team
+      // members: keep the recorded spawns and role-named children.
+      const direct = path !== '' && path.includes('/') === false
+      const usable = historical !== undefined || (direct && (tracked.has(entry.id) || matchRoleName(name) !== undefined))
+      if (usable === false) continue
       const row = rosterRow(ctx, entry.id, name, 'teammate', items)
       row.description = historical !== undefined && historical.description !== ''
         ? historical.description
@@ -1055,7 +1079,7 @@ export async function teamRoster(ctx, sessionId, items) {
 /** Build one panel payload, including the live team for this session. */
 async function panelState(ctx, root, sessionId) {
   const state = buildPanelState(root)
-  state.team = await teamRoster(ctx, sessionId, state.cards)
+  state.team = await teamRoster(ctx, sessionId, state.cards, root)
   return state
 }
 

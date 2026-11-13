@@ -22,15 +22,39 @@
  */
 
 import { AsyncLocalStorage } from 'node:async_hooks'
+import fs from 'node:fs'
+import path from 'node:path'
 import { ROLE_NAMES, matchRoleName, modelForRole } from './settings-store.js'
 import { readRouteTable } from './settings-file.js'
 
 export const name = 'research-modeled-teammates'
 
-export const inject = ['tools', 'subagents', 'agents']
+export const inject = ['tools', 'subagents', 'agents', 'workspaceRegistry']
 
 const modeledSpawn = new AsyncLocalStorage()
 const patches = new WeakMap()
+
+/**
+ * Record a teammate the preset started, so the panel can tell its own team
+ * apart from subagents other plugins create under the same Lead.
+ */
+async function rememberTeammate(ctx, agent, sessionId, name) {
+  if (typeof sessionId !== 'string' || sessionId === '') return
+  try {
+    const cwd = agent?.session?.header?.cwd
+    if (typeof cwd !== 'string' || cwd === '') return
+    let root = cwd
+    try {
+      const workspace = await ctx.workspaceRegistry?.resolveByPath?.(cwd)
+      if (workspace !== undefined && typeof workspace?.path === 'string' && workspace.path !== '') root = workspace.path
+    } catch {}
+    const dir = path.join(root, '.research', 'team')
+    fs.mkdirSync(dir, { recursive: true })
+    const row = { id: sessionId, name: typeof name === 'string' ? name : '', at: new Date().toISOString() }
+    fs.appendFileSync(path.join(dir, 'members.jsonl'), JSON.stringify(row) + '\n')
+  } catch {}
+}
+
 
 /** Roles whose teammate session runs read-only unless the Lead asks otherwise. */
 const READ_ONLY_ROLES = new Set(['advisor', 'reviewer'])
@@ -496,6 +520,7 @@ export function apply(ctx, config = {}) {
         status: live?.status === 'running' ? 'running' : 'provisioning',
         model: typeof live?.options?.model === 'string' ? live.options.model : requestedModel?.model
       }
+      await rememberTeammate(ctx, agent, sessionId, memberName)
       const inherited = leadModeOf(ctx, agent)
       const permission = permissionFor(resolved.role, args.permission, inherited)
       const permissionResult = await applyPermission(ctx, sessionId, permission, signal, readOnlySessions)

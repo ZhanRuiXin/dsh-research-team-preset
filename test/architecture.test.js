@@ -245,6 +245,9 @@ test('teamRoster reports the Lead and continuable children with their work item'
       listDescendants: async () => ([
         { id: 's-builder', path: 'builder', label: 'implementation', mode: 'continuable' },
         { id: 's-legacy-0', mode: 'continuable' },
+        { id: 's-custom', path: 'elha-r-advisor', label: 'custom teammate', mode: 'continuable' },
+        { id: 's-nested', path: 'builder/checker', label: 'nested probe', mode: 'continuable' },
+        { id: 's-mnemom', path: 'mnemom-run-v1-1150abcdef', label: 'mnemom run', mode: 'continuable' },
         { id: 's-broken', kind: 'diagnostic', reason: 'corrupt', mode: 'continuable' },
         { id: 's-oneshot', mode: 'one-shot', label: 'probe' }
       ])
@@ -262,8 +265,11 @@ test('teamRoster reports the Lead and continuable children with their work item'
     { id: 'task-3', title: '编码器脚手架', owner: 'builder', status: 'in_progress' },
     { id: 'task-4', title: '基准生成器', owner: 'designer', status: 'todo' }
   ]
-  const roster = await teamRoster(ctx, 's-1', items)
-  assert.equal(roster.length, 4)
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'research-team-roster-'))
+  fs.mkdirSync(path.join(root, '.research', 'team'), { recursive: true })
+  fs.writeFileSync(path.join(root, '.research', 'team', 'members.jsonl'), `${JSON.stringify({ id: 's-custom', name: 'elha-r-advisor' })}\n`)
+  const roster = await teamRoster(ctx, 's-1', items, root)
+  assert.equal(roster.length, 5)
   assert.equal(roster[0].name, 'lead')
   assert.equal(roster[0].role, 'lead')
   assert.equal(roster[0].status, 'running')
@@ -283,9 +289,14 @@ test('teamRoster reports the Lead and continuable children with their work item'
   assert.equal(roster[2].name, 'data')
   assert.equal(roster[2].legacy, true)
   assert.equal(roster[2].description, 'Dataset audit')
-  assert.equal(roster[3].name, 'researcher')
-  assert.equal(roster[3].legacy, true)
-  assert.equal(roster[3].description, 'Literature search')
+  assert.equal(roster[3].name, 'elha-r-advisor')
+  assert.equal(roster[3].legacy, undefined)
+  assert.equal(roster[3].description, 'custom teammate')
+  assert.equal(roster[4].name, 'researcher')
+  assert.equal(roster[4].legacy, true)
+  assert.equal(roster[4].description, 'Literature search')
+  assert.equal(roster.some((row) => row.name.includes('mnemom')), false)
+  assert.equal(roster.some((row) => row.name.includes('/')), false)
   assert.equal((await teamRoster(ctx, 'missing', items)).length, 0)
   assert.equal((await teamRoster({}, 's-1', items)).length, 0)
 })

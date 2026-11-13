@@ -4,6 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The team section lists only the preset's teammates: standard-role children, children recorded under `.research/team/members.jsonl` when `spawn_teammate_with_model` starts them, and legacy roster members; subagents other plugins create under the same Lead and nested children of teammates are excluded.
 - Recovers teammate names for sessions created before the agent-team rework: when the subagent catalog has no name, the panel reads the session's `team/member` records, shows the historical name and description, tags the row as a legacy member in its detail card, and adds members that are missing from the subagent tree.
 - Adapts to the DSH agent-team rework: a teammate is now a continuable subagent child, `spawn_teammate_with_model` starts one through `subagents.startActivation`, the panel roster reads the Lead's subagent tree (`listDescendants`) instead of a Team member list, and the docs name `@deepseek-ai/dsh-agent-team`.
 

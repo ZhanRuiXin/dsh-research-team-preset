@@ -1291,13 +1291,13 @@ function statusLabel(status) {
         name: 'sidebar.right.pane.tab',
         key: 'research-team#panel'
       }, (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })))
+      /* The chip already draws the descriptor icon through better-sidebar; a second
+         icon plus text overflows a narrow chip and the close button overlaps it, so
+         the native fallback title stays plain text and lets the host ellipsize. */
       ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab.title',
         key: 'research-team#panel'
-      }, () => h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '6px' } }, [
-        h(PanelIcon, { key: 'i', size: 15 }),
-        '研究面板'
-      ])))
+      }, () => '研究面板'))
 
     }
 

@@ -437,10 +437,10 @@ function statusLabel(status) {
         'aria-hidden': 'true',
         style: { display: 'inline-block', verticalAlign: 'middle', flex: '0 0 auto' }
       }, [
-        h('path', { key: 'e', d: 'M4.6 5.1 8 8l3.4-2.9M8 8v2.4', stroke: 'currentColor', strokeWidth: 1.4, strokeLinecap: 'round', strokeLinejoin: 'round' }),
-        h('circle', { key: 'a', cx: 4.6, cy: 4.2, r: 1.7, stroke: 'currentColor', strokeWidth: 1.4 }),
-        h('circle', { key: 'b', cx: 11.4, cy: 4.2, r: 1.7, stroke: 'currentColor', strokeWidth: 1.4 }),
-        h('circle', { key: 'c', cx: 8, cy: 12.2, r: 1.7, stroke: 'currentColor', strokeWidth: 1.4 })
+        h('rect', { key: 'r', x: 2.1, y: 3.1, width: 11.8, height: 9.8, rx: 2, stroke: 'currentColor', strokeWidth: 1.3 }),
+        h('path', { key: 'd', d: 'M6.2 3.4v9.2', stroke: 'currentColor', strokeWidth: 1.3 }),
+        h('path', { key: 'l1', d: 'M8.3 6.3h4.6', stroke: 'currentColor', strokeWidth: 1.3, strokeLinecap: 'round' }),
+        h('path', { key: 'l2', d: 'M8.3 9.1h3.2', stroke: 'currentColor', strokeWidth: 1.3, strokeLinecap: 'round' })
       ])
     }
 

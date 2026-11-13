@@ -2,9 +2,8 @@
  * Optional modeled-teammate submodule (toggleable).
  *
  * The host Agent Teams tool `spawn_teammate` creates a child through
- * `ctx.agentTeams.spawnTeammate`, which calls `ctx.subagents.startActivation`
- * without per-child `agentOptions`; the child therefore inherits the Lead's
- * provider/model/reasoning effort.
+ * `ctx.subagents.startActivation` with no per-child `agentOptions`; a child
+ * started that way inherits the Lead's provider, model and reasoning effort.
  *
  * This module adds `spawn_teammate_with_model` and, only for the duration of
  * that tool's team spawn, injects `request.agentOptions` into
@@ -23,15 +22,59 @@
  */
 
 import { AsyncLocalStorage } from 'node:async_hooks'
+import fs from 'node:fs'
+import path from 'node:path'
 import { ROLE_NAMES, matchRoleName, modelForRole } from './settings-store.js'
 import { readRouteTable } from './settings-file.js'
 
 export const name = 'research-modeled-teammates'
 
-export const inject = ['tools', 'subagents', 'agentTeams', 'agents']
+export const inject = ['tools', 'subagents', 'agents', 'workspaceRegistry']
 
 const modeledSpawn = new AsyncLocalStorage()
 const patches = new WeakMap()
+
+/**
+ * Normalize a requested teammate name to the host rule: 1-32 lower-case
+ * letters, digits or hyphens, starting with a letter, never the reserved
+ * `lead`. Returns undefined when nothing valid remains, so the host can
+ * allocate `agent-N` instead of rejecting the spawn.
+ */
+function teammateSlug(value) {
+  if (typeof value !== 'string') return undefined
+  const slug = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/^[^a-z]+/, '')
+    .slice(0, 32)
+    .replace(/-+$/, '')
+  if (slug.length === 0 || slug === 'lead') return undefined
+  return slug
+}
+
+/**
+ * Record a teammate the preset started, so the panel can tell its own team
+ * apart from subagents other plugins create under the same Lead.
+ */
+async function rememberTeammate(ctx, agent, sessionId, name) {
+  if (typeof sessionId !== 'string' || sessionId === '') return
+  try {
+    const cwd = agent?.session?.header?.cwd
+    if (typeof cwd !== 'string' || cwd === '') return
+    let root = cwd
+    try {
+      const workspace = await ctx.workspaceRegistry?.resolveByPath?.(cwd)
+      if (workspace !== undefined && typeof workspace?.path === 'string' && workspace.path !== '') root = workspace.path
+    } catch {}
+    const dir = path.join(root, '.research', 'team')
+    fs.mkdirSync(dir, { recursive: true })
+    const row = { id: sessionId, name: typeof name === 'string' ? name : '', at: new Date().toISOString() }
+    fs.appendFileSync(path.join(dir, 'members.jsonl'), JSON.stringify(row) + '\n')
+  } catch {}
+}
+
 
 /** Roles whose teammate session runs read-only unless the Lead asks otherwise. */
 const READ_ONLY_ROLES = new Set(['advisor', 'reviewer'])
@@ -165,20 +208,20 @@ function patchStartActivation(service) {
   const wrapped = function (spec) {
     const store = modeledSpawn.getStore()
     if (store !== undefined && spec !== null && typeof spec === 'object' && spec.delivery === 'parent') {
-      const parent = spec.request === undefined ? undefined : spec.request.parent
+      const nested = spec.request !== null && typeof spec.request === 'object' ? spec.request : undefined
+      const parent = nested === undefined ? spec.parent : nested.parent
       const sameParent = parent === store.caller ||
         (parent !== undefined && store.caller !== undefined && parent.id !== undefined && parent.id === store.caller.id)
       if (sameParent) {
-        return original.call(this, {
-          ...spec,
-          request: {
-            ...spec.request,
-            agentOptions: {
-              ...(spec.request.agentOptions === undefined ? {} : spec.request.agentOptions),
-              ...store.agentOptions
-            }
-          }
-        })
+        const holder = nested === undefined ? spec : nested
+        const merged = {
+          ...(holder.agentOptions === undefined ? {} : holder.agentOptions),
+          ...store.agentOptions
+        }
+        const next = nested === undefined
+          ? { ...spec, agentOptions: merged }
+          : { ...spec, request: { ...nested, agentOptions: merged } }
+        return original.call(this, next)
       }
     }
     return original.apply(this, arguments)
@@ -422,7 +465,7 @@ export function apply(ctx, config = {}) {
     parameters: {
       type: 'object',
       properties: {
-        name: { type: 'string', description: 'Unique lower-kebab-case teammate name; include the role, e.g. "advisor" or "ELHA-R advisor".' },
+        name: { type: 'string', description: 'Unique teammate name; include the role, e.g. "advisor" or "ELHA-R advisor". The host keeps lower-case letters, digits and hyphens, so other characters are folded into hyphens.' },
         description: { type: 'string', description: 'Short description of the delegated responsibility.' },
         prompt: { type: 'string', description: 'Complete initial task for the teammate.' },
         context: { type: 'string', enum: ['fresh', 'fork'], description: 'Start mode; defaults to fresh.' },
@@ -466,22 +509,39 @@ export function apply(ctx, config = {}) {
         ? resolveConfiguredRoute(args.name)
         : { role: matchRoleName(args.name), route: explicit, source: 'explicit' }
       const requestedModel = resolved.route
+      const slug = teammateSlug(args.name)
       const provider = context === 'fork' ? forkProvider : freshProvider
       const signal = exec.signal === undefined ? new AbortController().signal : exec.signal
       const spawn = () =>
-        ctx.agentTeams.spawnTeammate(agent, {
-          name: args.name,
-          description: args.description,
-          prompt: [{ type: 'text', text: args.prompt }],
-          context,
+        ctx.subagents.startActivation({
           provider,
-          signal
+          label: args.description,
+          ...(slug === undefined ? {} : { name: slug }),
+          prompt: [{ type: 'text', text: args.prompt }],
+          parent: agent,
+          signal,
+          delivery: 'parent'
         })
-      const member = requestedModel === undefined
+      const started = requestedModel === undefined
         ? await spawn()
         : await modeledSpawn.run({ caller: agent, agentOptions: requestedModel }, spawn)
-      const view = member !== null && typeof member === 'object' && member.member !== undefined ? member.member : member
-      const sessionId = view !== null && typeof view === 'object' && typeof view.id === 'string' ? view.id : undefined
+      const sessionId = started !== null && typeof started === 'object'
+        ? (typeof started.childId === 'string' ? started.childId : typeof started.id === 'string' ? started.id : undefined)
+        : undefined
+      const memberName = started !== null && typeof started === 'object' && typeof started.name === 'string'
+        ? started.name
+        : slug ?? args.name
+      let live
+      if (sessionId !== undefined) {
+        try { live = ctx.agents.get(sessionId) } catch { live = undefined }
+      }
+      const member = {
+        id: sessionId,
+        name: memberName,
+        status: live?.status === 'running' ? 'running' : 'provisioning',
+        model: typeof live?.options?.model === 'string' ? live.options.model : requestedModel?.model
+      }
+      await rememberTeammate(ctx, agent, sessionId, memberName)
       const inherited = leadModeOf(ctx, agent)
       const permission = permissionFor(resolved.role, args.permission, inherited)
       const permissionResult = await applyPermission(ctx, sessionId, permission, signal, readOnlySessions)

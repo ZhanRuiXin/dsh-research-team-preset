@@ -4,7 +4,7 @@
 
 **一個把單一工作階段變成小型、協同研究團隊的 DSH agent preset。**
 
-**版本 0.2.0** · **更新 2026-11-12**
+**版本 0.2.1** · **更新 2026-11-13**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <strong>繁體中文</strong> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -56,7 +56,7 @@ Lead 的回覆是科學性溝通，而不是狀態播報：先給結論或結果
 | 能力 | 提供者 | 備註 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 以 `0.2.1-rc.5` 為開發基準；其他版本可能可用但不保證 |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服務；本 preset 把工作記錄在工作日誌，而不是團隊任務 |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | 在子智慧體樹內共用任務 DAG 與變更等待；隊友是可繼續的子智慧體，本預設把工作記錄在自己的工作日誌裡；本 preset 把工作記錄在工作日誌，而不是團隊任務 |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 與 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | 屬於 DSH 基礎的一部分；啟用 `run_code` |
 
 **可選聯動外掛。** 這些是他人開發的外掛；本 preset 不依賴它們，也不會安裝它們，安裝只為與團隊聯動：
@@ -73,20 +73,20 @@ Lead 的回覆是科學性溝通，而不是狀態播報：先給結論或結果
 ### 從 DSH 外掛頁面安裝
 
 2. 開啟 **設定 → 外掛**，點擊 **新增**。
-3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.2.0`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.2.1`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重新啟動 DSH。** preset 列與 bundle 的用戶端部分在啟動時載入。
 5. **確認 bundle 在同一個 profile 中已啟用**，然後**開啟新工作階段**，在模式選擇器中選擇 **Research Team Mode**。
 
 ### 從命令列安裝
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.0
+dsh plugin add dsh-research-team-preset@0.2.1
 ```
 
 若要固定原始碼而不是從 registry 安裝：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
 ```
 
 > 此模式是 profile 層級的 bundle：在一個 profile 中安裝不會在另一個 profile 中啟用。每個 profile 都要重複安裝與前置步驟。
@@ -234,7 +234,7 @@ Plugins → dsh-research-team-preset → research-team-settings → Configure
 - **Model**：一個下拉選單，包含所有 provider 的模型，並有不可點擊的 provider 群組標題。選擇模型會同時設定 provider 與 model。
 - **Reasoning effort**：第二個下拉選單，列出所選模型宣告支援的推理強度，外加一個模型預設選項。
 
-模型留空表示「沿用 Lead 的路由」；強度留空表示「使用模型預設值」。`spawn_teammate_with_model` 在省略 `model` 時會讀取所選配置中各角色的預設值；明確指定 `model` 則會覆寫。單純的 `spawn_teammate` 一律沿用 Lead。
+模型留空表示「沿用 Lead 的路由」；強度留空表示「使用模型預設值」。`spawn_teammate_with_model` 在省略 `model` 時會讀取所選配置中各角色的預設值；明確指定 `model` 則會覆寫。單純的 `subagent` 一律沿用 Lead。
 
 建議的能力層級，僅作為起點而非規則：
 
@@ -326,7 +326,7 @@ $DSH_HOME/research-team-settings.json
 
 先看 spawn 結果裡第一行上方的文字。套用了設定或明確路由時會印出 `requested=<provider>/<model> effort=<effort>`；沒有匹配到路由時會印出 `requested=inherit (Lead route)` 並附一條 `note:`。`note:` 裡點名某個角色，表示作用中的設定檔裡該角色沒有填 provider/model；提示名字不是標準角色，表示隊友名字裡沒有出現角色詞。
 
-另外兩種原因與設定檔無關。一是 Lead 呼叫了普通的 `spawn_teammate`，它永遠繼承 Lead；persona 已要求 Lead 使用 modeled 工具並且不要傳 `model`，也不要因為不確定名字就退回。二是儲存設定時所處的 `DSH_HOME` 與執行中的 host 讀取的不是同一個，可以對比 `research_team_routes` 印出的 `settings file:` 與 `echo $DSH_HOME`。
+另外兩種原因與設定檔無關。一是 Lead 使用了普通的委派工具，它永遠繼承 Lead；persona 已要求 Lead 使用 modeled 工具並且不要傳 `model`，也不要因為不確定名字就退回。二是儲存設定時所處的 `DSH_HOME` 與執行中的 host 讀取的不是同一個，可以對比 `research_team_routes` 印出的 `settings file:` 與 `echo $DSH_HOME`。
 
 ### Plugins 中沒有出現設定頁面
 
@@ -342,7 +342,7 @@ $DSH_HOME/research-team-settings.json
 
 ### `spawn_teammate_with_model` 無法使用
 
-此子模組包裝了一個內部 subagent 服務。DSH 升級可能改變啟動形態。請檢查失敗訊息；若包裝無法安裝，請設定 `research-modeled-teammates.enabled: false`、重新啟動，並改用單純的 `spawn_teammate`。
+此子模組包裝了一個內部 subagent 服務。DSH 升級可能改變啟動形態。請檢查失敗訊息；若包裝無法安裝，請設定 `research-modeled-teammates.enabled: false`、重新啟動，並改用設定裡的委派工具。
 
 ### 未列出 preset
 

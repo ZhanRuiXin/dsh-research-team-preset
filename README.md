@@ -4,7 +4,7 @@
 
 **A DSH agent preset that turns one session into a small, coordinated research team.**
 
-**Version 0.2.0** · **Updated 2026-11-12**
+**Version 0.2.1** · **Updated 2026-11-13**
 
 <p align="center"><strong>English</strong> · <a href="docs/README.zh-CN.md">简体中文</a> · <a href="docs/README.zh-TW.md">繁體中文</a> · <a href="docs/README.ja.md">日本語</a> · <a href="docs/README.ko.md">한국어</a> · <a href="docs/README.de.md">Deutsch</a> · <a href="docs/README.fr.md">Français</a> · <a href="docs/README.es.md">Español</a> · <a href="docs/README.pt-BR.md">Português (Brasil)</a> · <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.ar.md">العربية</a> · <a href="docs/README.hi.md">हिन्दी</a></p>
 
@@ -59,7 +59,7 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 | Capability | Provider | Notes |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, and the Team services; the preset records work in its own worklog |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Shares the task DAG and change waits across a subagent tree; teammates are continuable subagent children, and the preset records work in its own worklog; the preset records work in its own worklog |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
 
 **Optional integrations.** These are plugins by other authors. The preset runs without them and installs nothing; add one only to link the team with it:
@@ -75,22 +75,22 @@ This preset ships as a DSH bundle and is published on npm as `dsh-research-team-
 
 ### Install from the DSH plugins page
 
-1. **Enable the required bundles** in the target profile: Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). The optional integrations above can be added now or later.
+1. **Enable the required bundles** in the target profile: Agent Teams [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness). The optional integrations above can be added now or later.
 2. Open **Settings → Plugins** and click **Add**.
-3. Paste the install spec: `dsh-research-team-preset@0.2.0` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
+3. Paste the install spec: `dsh-research-team-preset@0.2.1` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
 4. **Restart DSH.** Preset rows and the client half of the bundle load at startup.
 5. **Check the bundle is enabled** in the same profile, then **open a new session** and select **Research Team Mode** in the mode selector.
 
 ### Install from the CLI
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.0
+dsh plugin add dsh-research-team-preset@0.2.1
 ```
 
 To pin the source instead of the registry:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
 ```
 
 > The mode is a profile-level bundle: installing it in one profile does not enable it in another. Repeat the install and prerequisite steps per profile.
@@ -172,13 +172,13 @@ A run or long job that outlives the turn leaves its job or terminal handle, host
 
 ## Research sidebar
 
-The preset adds a Research panel tab to the right sidebar. It answers what the team is doing now, what is blocked, and what comes next: the objective from the plan, the active work items from the JSON store (finished ones sit behind a 已完成 toggle), the runs with their lifecycle and approval state, the architecture cards in their project-defined groups, and the live team. Click a work item to expand the row: the full title, next action, blocked reason, evidence and checklist come into view, and clicking it again collapses it.
+The preset adds a Research panel tab to the right sidebar. It answers what the team is doing now, what is blocked, and what comes next: the objective from the plan, the active work items from the JSON store (finished ones sit behind a 已完成 toggle), the runs with their lifecycle and approval state (a directory under `runs/` only counts once it carries a `manifest.json`), the architecture cards in their project-defined groups, and the live team. Click a work item or an experiment to expand the row: an item opens its full title, next action, blocked reason, evidence and checklist; a run opens its question, hypothesis, decision rule, reason and timing. Clicking it again collapses it.
 
 Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the selection can be quoted into the conversation; anything worth keeping is stored on the card as a note the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
 
 The panel ships as its own module under `panel/`, separate from the settings form, so it can be enabled or disabled on its own. It appears as a right-sidebar tab in each conversation.
 
-The team section lists every member of the running team, with the Lead first: name, role, model and whether the member is running, idle, starting or failed, plus the work item it owns. It reads the live team from the host, so it is a running-state view rather than a log.
+The team section lists every member of the running team, with the Lead first: name, role, model and whether the member is running, idle, starting or failed, plus the work item it owns. It reads the live team from the Lead's subagent tree, so it is a running-state view rather than a log; when an older session created its teammates before subagents carried names, the panel recovers their names from the session's `team/member` records instead of showing session ids. It lists the preset's own teammates: standard-role names, children recorded when `spawn_teammate_with_model` started them, and legacy roster members. Subagents other plugins create under the same Lead are not shown.
 
 The designer owns the cards that describe the method and the builder owns the cards that describe the implementation, in whatever groups the project defines; the advisor reads them before reviewing a design or implementation decision, and the reviewer checks them at the results gate. Drag with the middle mouse button to pan the canvas, zoom from the toolbar, and drag a box over nodes to select them for an annotation.
 The experiment section lists runs newest first and shows how long each has been going or how long it took. Every run follows one explicit lifecycle (planned, awaiting approval, approved, running, completed, stopped, failed or rejected), and the agent drives it with the `research_experiment` tool: register writes the decision rule, seeds and budget; start refuses until the user approves or the project mode is automatic; finish records completed, stopped or failed with a reason. The section header carries an approval switch (requires approval / auto), a run waiting for approval shows approve and reject buttons that write into its manifest, and the list scrolls inside its own box once it grows.
@@ -235,7 +235,7 @@ Each profile has one row per default member:
 - **Model**: one dropdown containing every provider's models, with non-clickable provider group headers. Selecting a model sets both provider and model.
 - **Reasoning effort**: a second dropdown with the selected model's advertised efforts, plus a model-default option.
 
-An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. Plain `spawn_teammate` always inherits the Lead.
+An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. A named child started without `model` inherits the Lead route.
 
 Route lookup happens at spawn time and reads `$DSH_HOME/research-team-settings.json` directly before falling back to the in-process store, so a session opened before the Plugins page was ever saved still resolves the configured routes. A teammate name resolves to a role when it contains the role as a whole word (`advisor`, `ELHA-R advisor`, `advisor-hi`); a name with no standard role inherits the Lead route, and the tool result carries a `diagnostics` note saying which role was matched and why nothing was configured. The Lead can call `research_team_routes` to read the configured table instead of guessing provider and model names.
 
@@ -333,7 +333,7 @@ Check the spawn result printed above the member's first message. It reads `reque
 
 Two other causes are not about the settings file:
 
-- the Lead called plain `spawn_teammate` instead of `spawn_teammate_with_model`, which always inherits the Lead. The persona tells the Lead to pass no `model` to the modeled tool and never to fall back because it is unsure about names;
+- the Lead used a plain delegation tool instead of `spawn_teammate_with_model`, which bypasses the per-role route. The persona tells the Lead to pass no `model` to the modeled tool and never to fall back because it is unsure about names;
 - the settings row was saved under a different `DSH_HOME` than the running host reads. Compare the `settings file:` line printed by `research_team_routes` with `echo $DSH_HOME`.
 
 ### The settings page does not appear in Plugins
@@ -344,7 +344,7 @@ Two other causes are not about the settings file:
 
 ### Team tools are missing
 
-Enable [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) in the same profile and restart. The installer does not prompt for it.
+Enable [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) in the same profile and restart. The installer does not prompt for it.
 
 ### A work item is missing from the sidebar
 
@@ -352,7 +352,7 @@ The Research panel lists `worklog/INDEX.md` rows. Add or update the row in `INDE
 
 ### `spawn_teammate_with_model` is unavailable
 
-The submodule wraps an internal subagent service. A DSH upgrade can change the activation shape. Check the failure text; if the wrapper cannot install, set `research-modeled-teammates.enabled: false`, restart, and use plain `spawn_teammate`.
+The submodule wraps an internal subagent service. A DSH upgrade can change the activation shape. Check the failure text; if the wrapper cannot install, set `research-modeled-teammates.enabled: false`, restart, and use the profile's delegation tool.
 
 ### The preset is not listed
 

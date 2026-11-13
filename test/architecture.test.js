@@ -197,6 +197,22 @@ test('buildPanelState reads experiment approval, elapsed time and newest-first o
   assert.equal(state.runs[1].elapsedMs, 2 * 60 * 60 * 1000)
 })
 
+test('buildPanelState only lists directories that carry a run manifest', () => {
+  const root = makeRoot()
+  const runs = path.join(root, 'runs')
+  fs.mkdirSync(runs, { recursive: true })
+  fs.writeFileSync(path.join(runs, '.gitignore'), '*.log\n')
+  fs.mkdirSync(path.join(runs, 'blocked'), { recursive: true })
+  fs.mkdirSync(path.join(runs, 'reviewer', 'notes'), { recursive: true })
+  fs.writeFileSync(path.join(runs, 'notes.txt'), 'scratch\n')
+  fs.mkdirSync(path.join(runs, 'exp-ok'), { recursive: true })
+  fs.writeFileSync(path.join(runs, 'exp-ok', 'manifest.json'), JSON.stringify({ status: 'planned' }))
+
+  const state = buildPanelState(root)
+  assert.equal(state.runs.length, 1)
+  assert.equal(state.runs[0].name, 'exp-ok')
+})
+
 test('experiment settings and run approval persist to disk', () => {
   const root = makeRoot()
   fs.mkdirSync(path.join(root, 'runs', 'exp-1'), { recursive: true })
@@ -215,34 +231,74 @@ test('experiment settings and run approval persist to disk', () => {
   assert.match(setRunApproval(root, 'missing', 'approved').error, /no manifest/)
 })
 
-test('teamRoster reports members and the work item each owns', () => {
-  const members = [
-    { id: 's-lead', name: 'lead', role: 'lead', status: 'running', model: 'deepseek/deepseek-v4.1-flash' },
-    { id: 's-builder', name: 'builder', role: 'teammate', status: 'inactive' }
-  ]
+test('teamRoster reports the Lead and continuable children with their work item', async () => {
   const ctx = {
-    agents: { get: (id) => (id === 's-1' ? { id: 's-1' } : undefined) },
-    agentTeams: { listMembers: (agent) => (agent.id === 's-1' ? members : []) }
+    agents: {
+      get: (id) => (id === 's-1'
+        ? { id: 's-1', status: 'running', options: { model: 'deepseek/deepseek-v4.1-flash', reasoningEffort: 'high' } }
+        : id === 's-builder'
+          ? { id: 's-builder', status: 'inactive' }
+          : undefined)
+    },
+    subagents: {
+      rootOf: () => ({ id: 's-1' }),
+      listDescendants: async () => ([
+        { id: 's-builder', path: 'builder', label: 'implementation', mode: 'continuable' },
+        { id: 's-legacy-0', mode: 'continuable' },
+        { id: 's-custom', path: 'elha-r-advisor', label: 'custom teammate', mode: 'continuable' },
+        { id: 's-nested', path: 'builder/checker', label: 'nested probe', mode: 'continuable' },
+        { id: 's-mnemom', path: 'mnemom-run-v1-1150abcdef', label: 'mnemom run', mode: 'continuable' },
+        { id: 's-broken', kind: 'diagnostic', reason: 'corrupt', mode: 'continuable' },
+        { id: 's-oneshot', mode: 'one-shot', label: 'probe' }
+      ])
+    },
+    sessionQuery: {
+      observeSession: async () => ({
+        events: [
+          { type: 'team/member', data: { version: 2, member: { id: 's-legacy-0', name: 'data', description: 'Dataset audit', provider: 'spawn', context: 'fresh', phase: 'active' } } },
+          { type: 'team/member', data: { version: 2, member: { id: 's-legacy-1', name: 'researcher', description: 'Literature search', provider: 'spawn', context: 'fresh', phase: 'active' } } }
+        ]
+      })
+    }
   }
   const items = [
     { id: 'task-3', title: '编码器脚手架', owner: 'builder', status: 'in_progress' },
     { id: 'task-4', title: '基准生成器', owner: 'designer', status: 'todo' }
   ]
-  const roster = teamRoster(ctx, 's-1', items)
-  assert.equal(roster.length, 2)
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'research-team-roster-'))
+  fs.mkdirSync(path.join(root, '.research', 'team'), { recursive: true })
+  fs.writeFileSync(path.join(root, '.research', 'team', 'members.jsonl'), `${JSON.stringify({ id: 's-custom', name: 'elha-r-advisor' })}\n`)
+  const roster = await teamRoster(ctx, 's-1', items, root)
+  assert.equal(roster.length, 5)
+  assert.equal(roster[0].name, 'lead')
+  assert.equal(roster[0].role, 'lead')
+  assert.equal(roster[0].status, 'running')
+  assert.equal(roster[0].model, 'deepseek/deepseek-v4.1-flash')
+  assert.equal(roster[0].effort, 'high')
   assert.deepEqual(roster[1], {
     id: 's-builder',
     name: 'builder',
     role: 'teammate',
     status: 'inactive',
-    description: '',
+    description: 'implementation',
     model: '',
     effort: '',
     modelSource: 'unknown',
     item: { id: 'task-3', title: '编码器脚手架', status: 'in_progress', updated: undefined, next: undefined }
   })
-  assert.equal(teamRoster(ctx, 'missing', items).length, 0)
-  assert.equal(teamRoster({}, 's-1', items).length, 0)
+  assert.equal(roster[2].name, 'data')
+  assert.equal(roster[2].legacy, true)
+  assert.equal(roster[2].description, 'Dataset audit')
+  assert.equal(roster[3].name, 'elha-r-advisor')
+  assert.equal(roster[3].legacy, undefined)
+  assert.equal(roster[3].description, 'custom teammate')
+  assert.equal(roster[4].name, 'researcher')
+  assert.equal(roster[4].legacy, true)
+  assert.equal(roster[4].description, 'Literature search')
+  assert.equal(roster.some((row) => row.name.includes('mnemom')), false)
+  assert.equal(roster.some((row) => row.name.includes('/')), false)
+  assert.equal((await teamRoster(ctx, 'missing', items)).length, 0)
+  assert.equal((await teamRoster({}, 's-1', items)).length, 0)
 })
 
 test('experiments move through the lifecycle through the tool functions', () => {

@@ -45,15 +45,16 @@ import {
   worklogSummary,
   writePlan
 } from './worklog.js'
-import { modelForRole } from './settings-store.js'
+import { matchRoleName, modelForRole } from './settings-store.js'
 
 export const name = 'research-project'
 
-export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents', 'agentTeams']
+export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents', 'subagents', 'sessionQuery']
 
 const execFileAsync = promisify(execFile)
 
 const NL = String.fromCharCode(10)
+const TEAM_MEMBER_EVENT = 'team/member'
 
 const PLAN_TEMPLATE = (objective) => `# PLAN
 
@@ -702,15 +703,19 @@ export function buildPanelState(root, options = {}) {
   const runs = []
   try {
     const dir = path.join(root, 'runs')
-    for (const name of fs.readdirSync(dir)) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      // Only a directory holding a manifest is an experiment line. Loose files,
+      // dotfiles and side directories belong to the project, not to a run.
+      if (!entry.isDirectory() || entry.name.startsWith('.')) continue
+      const name = entry.name
       const manifestPath = path.join(dir, name, 'manifest.json')
       const manifest = readTextFile(manifestPath)
+      if (manifest === '') continue
       let parsed = {}
-      if (manifest !== '') {
-        try {
-          parsed = JSON.parse(manifest)
-        } catch {}
-      }
+      try {
+        parsed = JSON.parse(manifest)
+      } catch { continue }
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) continue
       let modified = 0
       try {
         modified = fs.statSync(manifestPath).mtimeMs
@@ -728,11 +733,16 @@ export function buildPanelState(root, options = {}) {
       } else {
         approval = settings.approval === 'auto' ? 'auto' : 'pending'
       }
+      const text = (value, limit) => (typeof value === 'string' ? value.slice(0, limit) : '')
       runs.push({
         name,
         status,
         state,
-        reason: typeof parsed.reason === 'string' ? parsed.reason : '',
+        reason: text(parsed.reason, 300),
+        question: text(parsed.question, 300),
+        hypothesis: text(parsed.hypothesis, 300),
+        decisionRule: text(parsed.decisionRule, 300),
+        evidence: text(parsed.evidence, 300),
         seeds: typeof parsed.seeds === 'string' ? parsed.seeds : '',
         budget: typeof parsed.budget === 'string' ? parsed.budget : '',
         startedAt: Number.isNaN(startedAt) ? '' : new Date(startedAt).toISOString(),
@@ -923,51 +933,154 @@ function renderState(value) {
   return [{ type: 'text', text: lines.join(NL) }]
 }
 
-export function teamRoster(ctx, sessionId, items) {
+function rosterRow(ctx, id, name, role, items) {
   const list = Array.isArray(items) ? items : []
+  const open = list.find((item) => item.owner === name)
+  let live
+  if (typeof id === 'string' && id !== '') {
+    try { live = ctx?.agents?.get?.(id) } catch { live = undefined }
+  }
+  const liveModel = typeof live?.options?.model === 'string' ? live.options.model : ''
+  const liveEffortValue = live?.options?.reasoningEffort ?? live?.options?.effort
+  const liveEffort = typeof liveEffortValue === 'string' ? liveEffortValue : ''
+  const configured = role === 'teammate' ? modelForRole(name) : undefined
+  const model = liveModel !== ''
+    ? liveModel
+    : configured !== undefined ? `${configured.provider}/${configured.model}` : ''
+  const effort = liveEffort !== '' ? liveEffort : configured?.reasoningEffort ?? ''
+  const source = liveModel !== '' ? 'live' : model !== '' ? 'configured' : 'unknown'
+  return {
+    id: typeof id === 'string' ? id : '',
+    name,
+    role,
+    status: live?.status === 'running' ? 'running' : 'inactive',
+    description: '',
+    model,
+    effort,
+    modelSource: source,
+    item: open === undefined ? null : { id: open.id, title: open.title, status: open.status, updated: open.updated, next: open.next }
+  }
+}
+
+
+
+/** Read the teammates this preset recorded under a project. */
+export function readTeamMembers(root) {
+  const ids = new Set()
+  try {
+    const file = path.join(String(root), '.research', 'team', 'members.jsonl')
+    if (fs.existsSync(file) === false) return ids
+    for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/u)) {
+      if (line.trim() === '') continue
+      try {
+        const row = JSON.parse(line)
+        if (row !== null && typeof row === 'object' && typeof row.id === 'string' && row.id !== '') ids.add(row.id)
+      } catch {}
+    }
+  } catch {}
+  return ids
+}
+
+/** Shorten a session id for display when a child never got a name. */
+export function shortSessionId(id) {
+  if (typeof id !== 'string') return ''
+  return id.length > 10 ? id.slice(0, 8) + '…' : id
+}
+
+/** Recover the historical Team roster a session recorded before teammates became subagents. */
+export async function legacyTeamMembers(ctx, sessionId) {
+  const query = ctx?.sessionQuery
+  if (query === undefined || query === null || typeof query.observeSession !== 'function') return new Map()
+  if (typeof sessionId !== 'string' || sessionId === '') return new Map()
+  let observation
+  try { observation = await query.observeSession(sessionId) } catch { return new Map() }
+  const members = new Map()
+  try {
+    for (const event of Array.isArray(observation?.events) ? observation.events : []) {
+      if (event === null || typeof event !== 'object' || event.type !== TEAM_MEMBER_EVENT) continue
+      const member = event.data?.member
+      if (member === null || typeof member !== 'object') continue
+      if (typeof member.id !== 'string' || member.id === '') continue
+      if (typeof member.name !== 'string' || member.name === '') continue
+      members.set(member.id, {
+        name: member.name,
+        description: typeof member.description === 'string' ? member.description : '',
+        phase: typeof member.phase === 'string' ? member.phase : 'active'
+      })
+    }
+  } finally {
+    try {
+      if (typeof observation?.[Symbol.dispose] === 'function') observation[Symbol.dispose]()
+      else if (typeof observation?.dispose === 'function') observation.dispose()
+    } catch {}
+  }
+  return members
+}
+
+/**
+ * Read the live team from the subagent tree. Since DSH 0.2.2 a teammate is a
+ * continuable child of the Lead, so the roster is the Lead plus every
+ * continuable descendant; the team service no longer stores members itself.
+ */
+export async function teamRoster(ctx, sessionId, items, root) {
   try {
     const agent = typeof sessionId === 'string' && sessionId.length > 0 ? ctx?.agents?.get?.(sessionId) : undefined
     if (agent === undefined || agent === null) return []
-    const members = ctx?.agentTeams?.listMembers?.(agent)
-    if (!Array.isArray(members)) return []
-    const seen = new Set()
-    return members.filter((member) => {
-      const key = typeof member.id === 'string' && member.id !== '' ? member.id : `name:${member.name}`
-      if (seen.has(key)) return false
-      seen.add(key)
-      return true
-    }).map((member) => {
-      const open = list.find((item) => item.owner === member.name)
-      let live
-      if (typeof member.id === 'string') {
-        try { live = ctx?.agents?.get?.(member.id) } catch { live = undefined }
-      }
-      const liveModel = typeof live?.options?.model === 'string' ? live.options.model : ''
-      const liveEffortValue = live?.options?.reasoningEffort ?? live?.options?.effort
-      const liveEffort = typeof liveEffortValue === 'string' ? liveEffortValue : ''
-      const configured = modelForRole(member.name)
-      const model = liveModel !== ''
-        ? liveModel
-        : member.role === 'lead' && typeof member.model === 'string'
-          ? member.model
-          : configured !== undefined ? `${configured.provider}/${configured.model}` : ''
-      const effort = liveEffort !== '' ? liveEffort : configured?.reasoningEffort ?? ''
-      const source = liveModel !== '' || (member.role === 'lead' && model !== '') ? 'live' : model !== '' ? 'configured' : 'unknown'
-      return {
-        id: typeof member.id === 'string' ? member.id : '',
-        name: typeof member.name === 'string' ? member.name : '',
-        role: member.role === 'lead' ? 'lead' : 'teammate',
-        status: typeof member.status === 'string' ? member.status : 'inactive',
-        description: typeof member.description === 'string' ? member.description : '',
-        model,
-        effort,
-        modelSource: source,
-        item: open === undefined ? null : { id: open.id, title: open.title, status: open.status, updated: open.updated, next: open.next }
-      }
-    })
+    const service = ctx?.subagents
+    if (service === undefined || typeof service.rootOf !== 'function' || typeof service.listDescendants !== 'function') return []
+    const root = service.rootOf(agent)
+    if (root === undefined || root === null || typeof root.id !== 'string') return []
+    const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+      ? AbortSignal.timeout(4000)
+      : undefined
+    const entries = await service.listDescendants(root.id, signal)
+    const legacy = await legacyTeamMembers(ctx, sessionId)
+    const tracked = readTeamMembers(root)
+    const lead = rosterRow(ctx, root.id, 'lead', 'lead', items)
+    lead.description = 'root agent'
+    const rows = [lead]
+    const seen = new Set([lead.id])
+    for (const entry of Array.isArray(entries) ? entries : []) {
+      if (entry === null || typeof entry !== 'object') continue
+      if (entry.kind === 'diagnostic' || entry.mode !== 'continuable') continue
+      if (typeof entry.id !== 'string' || entry.id === '' || seen.has(entry.id)) continue
+      seen.add(entry.id)
+      const historical = legacy.get(entry.id)
+      const path = typeof entry.path === 'string' && entry.path !== '' ? entry.path : ''
+      const name = historical !== undefined ? historical.name : path !== '' ? path : shortSessionId(entry.id)
+      // A teammate is a direct, named child of the Lead. Children that only
+      // descend further, and subagents other plugins create, are not team
+      // members: keep the recorded spawns and role-named children.
+      const direct = path !== '' && path.includes('/') === false
+      const usable = historical !== undefined || (direct && (tracked.has(entry.id) || matchRoleName(name) !== undefined))
+      if (usable === false) continue
+      const row = rosterRow(ctx, entry.id, name, 'teammate', items)
+      row.description = historical !== undefined && historical.description !== ''
+        ? historical.description
+        : typeof entry.label === 'string' ? entry.label : ''
+      if (historical !== undefined) { row.legacy = true; legacy.delete(entry.id) }
+      rows.push(row)
+    }
+    for (const [id, member] of legacy) {
+      if (seen.has(id)) continue
+      seen.add(id)
+      const row = rosterRow(ctx, id, member.name, 'teammate', items)
+      row.status = member.phase === 'failed' ? 'failed' : member.phase === 'provisioning' ? 'provisioning' : row.status
+      row.description = member.description
+      row.legacy = true
+      rows.push(row)
+    }
+    return rows
   } catch {
     return []
   }
+}
+
+/** Build one panel payload, including the live team for this session. */
+async function panelState(ctx, root, sessionId) {
+  const state = buildPanelState(root)
+  state.team = await teamRoster(ctx, sessionId, state.cards, root)
+  return state
 }
 
 function renderInit(value) {
@@ -1153,7 +1266,7 @@ export function apply(ctx) {
           jsonResponse(res, 404, { ok: false, error: 'cannot resolve the project for this session' })
           return
         }
-        const state = buildPanelState(root, { team: (items) => teamRoster(ctx, sessionId, items) })
+        const state = await panelState(ctx, root, sessionId)
         jsonResponse(res, 200, { ok: true, ...state })
         return
       }
@@ -1174,7 +1287,7 @@ export function apply(ctx) {
           return
         }
         writeExperimentSettings(root, { approval: mode })
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       if (body?.op === 'approve') {
@@ -1188,7 +1301,7 @@ export function apply(ctx) {
           jsonResponse(res, 409, { ok: false, error: result.error })
           return
         }
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       if (body?.op === 'archive') {
@@ -1197,14 +1310,14 @@ export function apply(ctx) {
           jsonResponse(res, 404, { ok: false, error: result.error })
           return
         }
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root, { team: (items) => teamRoster(ctx, sessionId, items) }) })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       const card = readArchitectureCard(root, body?.id)
       if (body?.op === 'item') {
         const decision = decideItem(root, { id: body.itemId, decision: body.decision, reason: body.reason })
         if (decision.error !== undefined) { jsonResponse(res, 400, { error: decision.error }); return }
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root, { team: (items) => teamRoster(ctx, sessionId, items) }) })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       if (body?.op === 'annotate') {
@@ -1261,7 +1374,7 @@ export function apply(ctx) {
   const disposeArchitecture = ctx.tools.register({
     name: 'research_architecture',
     description:
-      'Read or update the architecture cards shown in the Research sidebar: the diagrams of this project, stored as JSON under .research/architecture/<id>.json. A project names its own groups, one group per aspect it wants to show (for example method, implementation, data or training), and the panel draws one chip row per group; put every card in the group it belongs to. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a short title shown on its chip and a description shown in the chip hover card; before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and quote them into the conversation composer; when the point should stay with the card, record it in `notes` with op=save, and read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
+      'Read or update the architecture cards shown in the Research sidebar: the diagrams of this project, stored as JSON under .research/architecture/<id>.json. A project names its own groups, one group per aspect it wants to show (for example method, implementation, data or training), and the panel draws one chip row per group; put every card in the group it belongs to. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a specific short title shown on its chip and a description shown in the chip hover card, and it already sits in its group row, so do not repeat the group name as a prefix (write 分析路径, not 实现：分析路径); before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and quote them into the conversation composer; when the point should stay with the card, record it in `notes` with op=save, and read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
     parameters: {
       type: 'object',
       properties: {
@@ -1269,7 +1382,7 @@ export function apply(ctx) {
         id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
         card: {
           type: 'object',
-          description: 'Full card for op=save: id, title (a short title, under 40 characters, shown on the sidebar chip), description (the detail shown in the chip hover card, a sentence or two), group (the aspect this card belongs to, up to 24 characters, for example 方法, 实现, 数据 or 训练; a project defines its own), kind (an optional color hint: method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y}], edges [{from,to,label}], and notes. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
+          description: 'Full card for op=save: id, title (a specific short title, under 40 characters, shown on the sidebar chip; the chip already sits in its group row, so do not prefix it with the group name), description (the detail shown in the chip hover card, a sentence or two), group (the aspect this card belongs to, up to 24 characters, for example 方法, 实现, 数据 or 训练; a project defines its own), kind (an optional color hint: method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y}], edges [{from,to,label}], and notes. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
         },
         expectedVersion: { type: 'number', description: 'For op=save on an existing card, the version you read; a mismatch is rejected.' }
       },

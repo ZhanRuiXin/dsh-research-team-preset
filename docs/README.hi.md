@@ -4,7 +4,7 @@
 
 **एक DSH एजेंट प्रीसेट जो एक सत्र को एक छोटी, समन्वित शोध टीम में बदलता है।**
 
-**संस्करण 0.2.0** · **अद्यतन 2026-11-12**
+**संस्करण 0.2.1** · **अद्यतन 2026-11-13**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <strong>हिन्दी</strong></p>
 
@@ -56,7 +56,7 @@ Lead के उत्तर वैज्ञानिक संचार हो�
 | क्षमता | प्रदाता | नोट्स |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` के विरुद्ध विकसित; अन्य रिलीज़ काम कर सकते हैं, परंतु गारंटी नहीं है |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` और Team सेवाएँ देता है; यह preset अपना काम वर्कलॉग में लिखता है, टीम टास्क में नहीं |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | `send_message`, `wait_agent`, `interrupt_agent` और Team सेवाएँ देता है; यह preset अपना काम वर्कलॉग में लिखता है, टीम टास्क में नहीं |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) और [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH बेस का हिस्सा; `run_code` सक्षम करता है |
 
 **वैकल्पिक एकीकरण।** ये अन्य लेखकों के प्लगइन हैं। प्रीसेट इनके बिना चलता है और इन्हें इंस्टॉल नहीं करता; केवल टीम को जोड़ने के लिए इनमें से एक जोड़ें:
@@ -73,20 +73,20 @@ Lead के उत्तर वैज्ञानिक संचार हो�
 ### DSH प्लगइन पृष्ठ से इंस्टॉल करें
 
 2. **सेटिंग्स → प्लगइन** खोलें और **जोड़ें** पर क्लिक करें।
-3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.2.0`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
+3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.2.1`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
 4. **DSH को पुनः आरंभ करें।** प्रीसेट पंक्तियाँ और बंडल का क्लाइंट भाग स्टार्टअप पर लोड होते हैं।
 5. **उसी प्रोफ़ाइल में बंडल सक्षम होने की पुष्टि करें**, फिर **नया सत्र खोलें** और मोड चयनकर्ता में **Research Team Mode** चुनें।
 
 ### कमांड लाइन से इंस्टॉल करें
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.0
+dsh plugin add dsh-research-team-preset@0.2.1
 ```
 
 रजिस्ट्री के बजाय स्रोत पिन करने के लिए:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
 ```
 
 > यह मोड प्रोफ़ाइल-स्तरीय बंडल है: एक प्रोफ़ाइल में इंस्टॉल करने से वह दूसरे में सक्षम नहीं होता। प्रत्येक प्रोफ़ाइल के लिए इंस्टॉल और पूर्वापेक्षाएँ दोहराएँ।
@@ -233,7 +233,7 @@ Plugins → dsh-research-team-preset → research-team-settings → Configure
 - **Model**: एक ड्रॉपडाउन जिसमें प्रत्येक provider के models होते हैं, साथ में क्लिक न किए जा सकने वाले provider समूह शीर्षक। मॉडल चुनने से provider और model दोनों सेट होते हैं।
 - **Reasoning effort**: दूसरा ड्रॉपडाउन जिसमें चयनित मॉडल के घोषित reasoning efforts होते हैं, साथ में एक model-default विकल्प।
 
-खाली model का अर्थ है "Lead का रूट इनहेरिट करें"; खाली effort का अर्थ है "मॉडल डिफ़ॉल्ट का उपयोग करें"। जब `model` छोड़ा जाता है तो `spawn_teammate_with_model` चयनित प्रोफ़ाइल का प्रति-भूमिका डिफ़ॉल्ट पढ़ता है; स्पष्ट `model` उसे ओवरराइड करता है। सादा `spawn_teammate` सदैव Lead को इनहेरिट करता है।
+खाली model का अर्थ है "Lead का रूट इनहेरिट करें"; खाली effort का अर्थ है "मॉडल डिफ़ॉल्ट का उपयोग करें"। जब `model` छोड़ा जाता है तो `spawn_teammate_with_model` चयनित प्रोफ़ाइल का प्रति-भूमिका डिफ़ॉल्ट पढ़ता है; स्पष्ट `model` उसे ओवरराइड करता है। सादा `subagent` सदैव Lead को इनहेरिट करता है।
 
 सुझाए गए क्षमता स्तर, शुरुआती बिंदु के रूप में, नियम के रूप में नहीं:
 
@@ -327,7 +327,7 @@ $DSH_HOME/research-team-settings.json
 
 दो अन्य कारण सेटिंग्स फ़ाइल से संबंधित नहीं हैं:
 
-- Lead ने modeled टूल के बजाय साधारण `spawn_teammate` कॉल किया, जो हमेशा Lead को विरासत में लेता है। persona Lead से कहती है कि modeled टूल को कोई `model` न दे और नामों को लेकर अनिश्चित होने पर कभी फ़ॉलबैक न करे;
+- Lead ने modeled टूल के बजाय साधारण `subagent` कॉल किया, जो हमेशा Lead को विरासत में लेता है। persona Lead से कहती है कि modeled टूल को कोई `model` न दे और नामों को लेकर अनिश्चित होने पर कभी फ़ॉलबैक न करे;
 
 - सेटिंग्स पंक्ति किसी दूसरे `DSH_HOME` के अंतर्गत सहेजी गई थी, जिसे चल रहा host नहीं पढ़ता। `research_team_routes` द्वारा छपी `settings file:` पंक्ति की तुलना `echo $DSH_HOME` से करें।
 
@@ -345,7 +345,7 @@ $DSH_HOME/research-team-settings.json
 
 ### `spawn_teammate_with_model` उपलब्ध नहीं है
 
-submodule एक आंतरिक subagent सेवा को लपेटता है। DSH अपग्रेड activation का आकार बदल सकता है। विफलता का पाठ जाँचें; यदि wrapper इंस्टॉल नहीं हो सकता, तो `research-modeled-teammates.enabled: false` सेट करें, पुनः प्रारंभ करें, और सादा `spawn_teammate` उपयोग करें।
+submodule एक आंतरिक subagent सेवा को लपेटता है। DSH अपग्रेड activation का आकार बदल सकता है। विफलता का पाठ जाँचें; यदि wrapper इंस्टॉल नहीं हो सकता, तो `research-modeled-teammates.enabled: false` सेट करें, पुनः प्रारंभ करें, और सादा `subagent` उपयोग करें।
 
 ### प्रीसेट सूचीबद्ध नहीं है
 

@@ -4,7 +4,7 @@
 
 **하나의 세션을 작고 긴밀하게 협력하는 연구 팀으로 바꾸는 DSH 에이전트 프리셋입니다.**
 
-**버전 0.2.0** · **업데이트 2026-11-12**
+**버전 0.2.1** · **업데이트 2026-11-13**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <strong>한국어</strong> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -56,7 +56,7 @@ Lead의 답변은 상태 피드가 아니라 과학적 커뮤니케이션이다.
 | 기능 | 제공자 | 비고 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` 기준으로 개발되었습니다. 다른 릴리스에서도 동작할 수 있지만 보장되지는 않습니다 |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다. 이 프리셋은 작업을 작업 로그에 기록하고 팀 작업에는 기록하지 않습니다 |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | `send_message`, `wait_agent`, `interrupt_agent`와 Team 서비스를 제공합니다. 이 프리셋은 작업을 작업 로그에 기록하고 팀 작업에는 기록하지 않습니다 |
 | PTC 런타임 | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 및 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH 기본 구성의 일부이며 `run_code`를 활성화합니다 |
 
 **선택적 연동 플러그인.** 다른 제작자가 만든 플러그인입니다. 이 프리셋은 이들 없이도 동작하며 설치하지도 않습니다. 팀과 연동하려는 경우에만 추가하세요:
@@ -73,20 +73,20 @@ Lead의 답변은 상태 피드가 아니라 과학적 커뮤니케이션이다.
 ### DSH 플러그인 페이지에서 설치
 
 2. **설정 → 플러그인**을 열고 **추가**를 클릭합니다.
-3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.2.0`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
+3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.2.1`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
 4. **DSH를 재시작합니다.** 프리셋 행과 번들의 클라이언트 부분은 시작 시 로드됩니다.
 5. **같은 프로필에서 번들이 활성화되어 있는지 확인**한 뒤, **새 세션을 열고** 모드 선택기에서 **Research Team Mode**를 선택합니다.
 
 ### 명령줄에서 설치
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.0
+dsh plugin add dsh-research-team-preset@0.2.1
 ```
 
 레지스트리 대신 소스를 고정하려면:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
 ```
 
 > 이 모드는 프로필 수준 번들입니다. 한 프로필에 설치해도 다른 프로필에서는 활성화되지 않습니다. 프로필마다 설치와 사전 요구사항을 반복하세요.
@@ -232,7 +232,7 @@ Plugins → dsh-research-team-preset → research-team-settings → Configure
 - **모델**: 모든 제공자의 모델을 담은 하나의 드롭다운이며, 클릭할 수 없는 제공자 그룹 헤더가 있습니다. 모델을 선택하면 provider와 model이 함께 설정됩니다.
 - **추론 강도**: 선택한 모델이 공개하는 추론 강도 목록과 모델 기본값 옵션이 있는 두 번째 드롭다운입니다.
 
-빈 모델은 "Lead의 라우트 상속"을, 빈 강도는 "모델 기본값 사용"을 의미합니다. `spawn_teammate_with_model`은 `model`을 생략하면 선택한 프로필의 역할별 기본값을 읽으며, 명시적 `model`은 이를 덮어씁니다. 일반 `spawn_teammate`는 항상 Lead를 상속합니다.
+빈 모델은 "Lead의 라우트 상속"을, 빈 강도는 "모델 기본값 사용"을 의미합니다. `spawn_teammate_with_model`은 `model`을 생략하면 선택한 프로필의 역할별 기본값을 읽으며, 명시적 `model`은 이를 덮어씁니다. 일반 `subagent`는 항상 Lead를 상속합니다.
 
 권장 역량 등급은 규칙이 아니라 출발점입니다:
 
@@ -326,7 +326,7 @@ $DSH_HOME/research-team-settings.json
 
 설정 파일과 무관한 원인이 두 가지 더 있다.
 
-- Lead가 modeled 도구 대신 일반 `spawn_teammate`를 호출한 경우. 이는 항상 Lead를 상속한다. persona는 Lead에게 modeled 도구에 `model`을 넘기지 말고 이름이 불확실하다고 폴백하지 말라고 요구한다.
+- Lead가 modeled 도구 대신 일반 `subagent`를 호출한 경우. 이는 항상 Lead를 상속한다. persona는 Lead에게 modeled 도구에 `model`을 넘기지 말고 이름이 불확실하다고 폴백하지 말라고 요구한다.
 
 - 설정 행이 실행 중인 호스트가 읽는 것과 다른 `DSH_HOME` 아래 저장된 경우. `research_team_routes`가 출력하는 `settings file:` 줄과 `echo $DSH_HOME`을 비교한다.
 
@@ -344,7 +344,7 @@ $DSH_HOME/research-team-settings.json
 
 ### `spawn_teammate_with_model`을 사용할 수 없음
 
-이 하위 모듈은 내부 하위 에이전트 서비스를 감쌉니다. DSH 업그레이드로 활성화 형태가 바뀔 수 있습니다. 실패 메시지를 확인하고, 래퍼를 설치할 수 없으면 `research-modeled-teammates.enabled: false`로 설정하고 재시작한 뒤 일반 `spawn_teammate`를 사용하십시오.
+이 하위 모듈은 내부 하위 에이전트 서비스를 감쌉니다. DSH 업그레이드로 활성화 형태가 바뀔 수 있습니다. 실패 메시지를 확인하고, 래퍼를 설치할 수 없으면 `research-modeled-teammates.enabled: false`로 설정하고 재시작한 뒤 일반 `subagent`를 사용하십시오.
 
 ### 프리셋이 목록에 없음
 

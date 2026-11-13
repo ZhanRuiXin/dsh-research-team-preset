@@ -4,7 +4,7 @@
 
 **一个 DSH agent preset，把一次会话变成一个小型、协同工作的研究团队。**
 
-**版本 0.2.0** · **更新 2026-11-12**
+**版本 0.2.1** · **更新 2026-11-13**
 
 <p align="center"><a href="../README.md">English</a> · <strong>简体中文</strong> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -56,7 +56,7 @@ Lead 的回复是科学性沟通，而不是状态播报：先给结论或结果
 | 能力 | 提供方 | 说明 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | 基于 `0.2.1-rc.5` 开发；其他版本可能可用，但不保证 |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | 提供 `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` 以及 Team 服务；本预设把工作记录在工作日志里，而不是团队任务中 |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | 在子智能体树内共享任务 DAG 与变更等待；队友是可继续的子智能体，本预设把工作记录在自己的工作日志里；本预设把工作记录在工作日志里，而不是团队任务中 |
 | PTC 运行时 | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) 和 [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH 基础组件的一部分；用于启用 `run_code` |
 
 **可选联动插件。** 这些是他人开发的插件；本 preset 不依赖它们，也不会安装它们，安装只为与团队联动：
@@ -73,20 +73,20 @@ Lead 的回复是科学性沟通，而不是状态播报：先给结论或结果
 ### 从 DSH 插件页面安装
 
 2. 打开 **设置 → 插件**，点击 **添加**。
-3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.2.0`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.2.1`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重启 DSH。** preset 行与 bundle 的客户端部分在启动时加载。
 5. **确认 bundle 在同一 profile 中已启用**，然后**新建会话**，在模式选择器中选择 **Research Team Mode**。
 
 ### 从命令行安装
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.0
+dsh plugin add dsh-research-team-preset@0.2.1
 ```
 
 若要固定源码而不是从 registry 安装：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
 ```
 
 > 该模式是 profile 级 bundle：在一个 profile 中安装不会在另一个 profile 中启用。每个 profile 都要重复安装与前置步骤。
@@ -236,7 +236,7 @@ Plugins → dsh-research-team-preset → research-team-settings → Configure
 - **Model**：一个下拉框，包含所有 provider 的模型，provider 分组标题不可点击。选择一个模型会同时设置 provider 和 model。
 - **Reasoning effort**：第二个下拉框，包含所选模型声明的推理强度，外加一个「模型默认」选项。
 
-空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取选中配置中该角色的默认值；显式传入的 `model` 会覆盖它。直接调用 `spawn_teammate` 始终继承 Lead。
+空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取选中配置中该角色的默认值；显式传入的 `model` 会覆盖它。不传 `model` 启动的具名子成员继承 Lead 路由。
 
 路由在 spawn 时解析，先直接读 `$DSH_HOME/research-team-settings.json`，读不到才退回进程内的快照，因此即使会话是在「插件」页首次保存之前打开的，也能取到已配置的路由。队友名字里出现完整角色词（`advisor`、`ELHA-R advisor`、`advisor-hi`）就会匹配到该角色；名字里没有标准角色时该队友继承 Lead 路由，工具结果会带一条 `diagnostics` 说明匹配到哪个角色、为什么没有配置。Lead 可以调用 `research_team_routes` 查看当前配置表，不必猜 provider 和 model 名称。
 
@@ -330,7 +330,7 @@ $DSH_HOME/research-team-settings.json
 
 先看 spawn 结果里第一行上方的文字。应用了配置或显式路由时会打印 `requested=<provider>/<model> effort=<effort>`；没有匹配到路由时会打印 `requested=inherit (Lead route)` 并附一条 `note:`。`note:` 里点名某个角色，说明活动配置里该角色没有填 provider/model；提示名字不是标准角色，说明队友名字里没有出现角色词。
 
-另外两种原因与配置文件无关。一是 Lead 调用了普通的 `spawn_teammate`，它永远继承 Lead；persona 已要求 Lead 使用 modeled 工具并且不要传 `model`，也不要因为不确定名字就退回。二是保存设置时所处的 `DSH_HOME` 与运行中的 host 读取的不是同一个，可以对比 `research_team_routes` 打印的 `settings file:` 与 `echo $DSH_HOME`。
+另外两种原因与配置文件无关。一是 Lead 使用了普通的委派工具，它永远继承 Lead；persona 已要求 Lead 使用 modeled 工具并且不要传 `model`，也不要因为不确定名字就退回。二是保存设置时所处的 `DSH_HOME` 与运行中的 host 读取的不是同一个，可以对比 `research_team_routes` 打印的 `settings file:` 与 `echo $DSH_HOME`。
 
 ### 设置页没有出现在「插件」中
 
@@ -346,7 +346,7 @@ $DSH_HOME/research-team-settings.json
 
 ### `spawn_teammate_with_model` 不可用
 
-该子模块包装了一个内部 subagent 服务。DSH 升级可能改变激活结构。检查失败信息；如果包装器无法安装，请设置 `research-modeled-teammates.enabled: false`，重启，并使用普通的 `spawn_teammate`。
+该子模块包装了一个内部 subagent 服务。DSH 升级可能改变激活结构。检查失败信息；如果包装器无法安装，请设置 `research-modeled-teammates.enabled: false`，重启，并使用配置里的委派工具。
 
 ### 预设未列出
 

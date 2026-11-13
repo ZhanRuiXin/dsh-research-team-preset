@@ -4,7 +4,7 @@
 
 **Un preset de agente de DSH que convierte una sesión en un pequeño equipo de investigación coordinado.**
 
-**Versión 0.2.0** · **Actualizado 2026-11-12**
+**Versión 0.2.1** · **Actualizado 2026-11-13**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <strong>Español</strong> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -56,7 +56,7 @@ Un resultado negativo previo limita el método, los datos y el presupuesto que l
 | Capacidad | Proveedor | Notas |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Desarrollado contra `0.2.1-rc.5`; otras versiones pueden funcionar, pero no están garantizadas |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Proporciona `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` y los servicios de Team; el preset registra su trabajo en el worklog, no en tareas de equipo |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Proporciona `send_message`, `wait_agent`, `interrupt_agent` y los servicios de Team; el preset registra su trabajo en el worklog, no en tareas de equipo |
 | Runtime PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) y [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Forma parte de la base de DSH; habilita `run_code` |
 
 **Integraciones opcionales.** Estos plugins son de otros autores. El preset funciona sin ellos y no instala ninguno; añade uno solo para enlazar el equipo con él:
@@ -73,20 +73,20 @@ Este preset se distribuye como bundle DSH y se publica en npm como `dsh-research
 ### Instalar desde la página de Plugins de DSH
 
 2. Abre **Ajustes → Plugins** y haz clic en **Añadir**.
-3. Pega el origen de instalación: `dsh-research-team-preset@0.2.0` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
+3. Pega el origen de instalación: `dsh-research-team-preset@0.2.1` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
 4. **Reinicia DSH.** Las filas del preset y la mitad cliente del bundle se cargan al iniciar.
 5. **Comprueba que el bundle está habilitado** en el mismo perfil, luego **abre una sesión nueva** y elige **Research Team Mode** en el selector de modo.
 
 ### Instalar desde la línea de comandos
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.0
+dsh plugin add dsh-research-team-preset@0.2.1
 ```
 
 Para fijar el código fuente en lugar del registro:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
 ```
 
 > El modo es un bundle a nivel de perfil: instalarlo en un perfil no lo habilita en otro. Repite la instalación y los prerrequisitos en cada perfil.
@@ -231,7 +231,7 @@ Cada perfil tiene una fila por miembro predeterminado:
 - **Modelo**: un desplegable que contiene los modelos de todos los proveedores, con encabezados de grupo de proveedores no clicables. Al seleccionar un modelo se establecen a la vez el proveedor y el modelo.
 - **Esfuerzo de razonamiento**: un segundo desplegable con los esfuerzos anunciados del modelo seleccionado, más una opción de valor predeterminado del modelo.
 
-Un modelo vacío significa «heredar la ruta del Lead»; un esfuerzo vacío significa «usar el valor predeterminado del modelo». `spawn_teammate_with_model` lee el valor predeterminado por rol del perfil seleccionado cuando se omite `model`; un `model` explícito lo anula. El `spawn_teammate` simple siempre hereda del Lead.
+Un modelo vacío significa «heredar la ruta del Lead»; un esfuerzo vacío significa «usar el valor predeterminado del modelo». `spawn_teammate_with_model` lee el valor predeterminado por rol del perfil seleccionado cuando se omite `model`; un `model` explícito lo anula. El `subagent` simple siempre hereda del Lead.
 
 Niveles de capacidad sugeridos, como punto de partida y no como regla:
 
@@ -325,7 +325,7 @@ Mira la salida del spawn que aparece sobre el primer mensaje del miembro. Muestr
 
 Otras dos causas no tienen que ver con el archivo de ajustes:
 
-- el Lead llamó a `spawn_teammate` simple en lugar de `spawn_teammate_with_model`, que siempre hereda del Lead. La persona indica al Lead que no pase `model` a la herramienta modeled y que nunca vuelva atrás por dudas sobre nombres;
+- el Lead llamó a `subagent` simple en lugar de `spawn_teammate_with_model`, que siempre hereda del Lead. La persona indica al Lead que no pase `model` a la herramienta modeled y que nunca vuelva atrás por dudas sobre nombres;
 
 - la fila de ajustes se guardó bajo un `DSH_HOME` distinto del que lee el host en ejecución. Compara la línea `settings file:` que imprime `research_team_routes` con `echo $DSH_HOME`.
 
@@ -343,7 +343,7 @@ El panel «Investigación» lista los elementos de trabajo activos de `.research
 
 ### `spawn_teammate_with_model` no está disponible
 
-El submódulo envuelve un servicio interno de subagentes. Una actualización de DSH puede cambiar la forma de la activación. Revisa el texto del fallo; si el envoltorio no se puede instalar, establece `research-modeled-teammates.enabled: false`, reinicia y usa el `spawn_teammate` simple.
+El submódulo envuelve un servicio interno de subagentes. Una actualización de DSH puede cambiar la forma de la activación. Revisa el texto del fallo; si el envoltorio no se puede instalar, establece `research-modeled-teammates.enabled: false`, reinicia y usa el `subagent` simple.
 
 ### El preset no aparece en la lista
 

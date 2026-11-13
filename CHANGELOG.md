@@ -1,6 +1,22 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.0.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.1.
+
+## 0.2.1 — 2026-11-13
+
+- The team section lists only the preset's teammates: standard-role children, children recorded under `.research/team/members.jsonl` when `spawn_teammate_with_model` starts them, and legacy roster members; subagents other plugins create under the same Lead and nested children of teammates are excluded.
+- Recovers teammate names for sessions created before the agent-team rework: when the subagent catalog has no name, the panel reads the session's `team/member` records, shows the historical name and description, tags the row as a legacy member in its detail card, and adds members that are missing from the subagent tree.
+- Adapts to the DSH agent-team rework: a teammate is now a continuable subagent child, `spawn_teammate_with_model` starts one through `subagents.startActivation`, the panel roster reads the Lead's subagent tree (`listDescendants`) instead of a Team member list, and the docs name `@deepseek-ai/dsh-agent-team`.
+
+- Experiments expand in place on click, the same way work items do: a run opens its question, hypothesis, decision rule, reason and timing, and collapses on a second click.
+
+- Only a directory under `runs/` with a readable `manifest.json` counts as a run line, so stray files and side directories no longer appear as 已登记 experiments.
+
+- The team status pill drops its absolutely-positioned pulse dot, which escaped to the panel corner; the pill text already carries the state.
+
+- The Research panel tab carries an icon in the sidebar and the plugin list, and the preset ships `icon.svg` artwork.
+
+- Architecture chip labels derive from the specific part of a card title: a card titled `实现：分析路径` now shows 分析路径 instead of 实现.
 
 ## 0.2.0 — 2026-11-12
 

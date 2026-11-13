@@ -267,6 +267,7 @@ function statusLabel(status) {
       } else {
         lines.push('未分配工作项')
       }
+      if (member.legacy === true) lines.push('旧版成员：名册来自会话早期的 team/member 记录')
       const model = shortModel(member.model)
       if (model !== '') {
         const suffix = member.effort ? `（${member.effort}）` : ''
@@ -425,6 +426,23 @@ function statusLabel(status) {
       const total = Math.min(Number(match[2]), 12)
       return Array.from({ length: total }, (_, index) =>
         h('span', { key: `s${index}`, className: index < done ? 'rtp-seed on' : 'rtp-seed' }))
+    }
+
+    function PanelIcon(props) {
+      const size = props && props.size ? props.size : 15
+      return h('svg', {
+        width: size,
+        height: size,
+        viewBox: '0 0 16 16',
+        fill: 'none',
+        'aria-hidden': 'true',
+        style: { display: 'inline-block', verticalAlign: 'middle', flex: '0 0 auto' }
+      }, [
+        h('rect', { key: 'r', x: 2.1, y: 3.1, width: 11.8, height: 9.8, rx: 2, stroke: 'currentColor', strokeWidth: 1.3 }),
+        h('path', { key: 'd', d: 'M6.2 3.4v9.2', stroke: 'currentColor', strokeWidth: 1.3 }),
+        h('path', { key: 'l1', d: 'M8.3 6.3h4.6', stroke: 'currentColor', strokeWidth: 1.3, strokeLinecap: 'round' }),
+        h('path', { key: 'l2', d: 'M8.3 9.1h3.2', stroke: 'currentColor', strokeWidth: 1.3, strokeLinecap: 'round' })
+      ])
     }
 
     function Section(props) {
@@ -787,6 +805,7 @@ function statusLabel(status) {
       const [hover, setHover] = React.useState(null)
       const [showFinished, setShowFinished] = React.useState(false)
       const [openItem, setOpenItem] = React.useState('')
+      const [openRun, setOpenRun] = React.useState('')
       const rootRef = React.useRef(null)
 
       React.useEffect(() => { ensurePanelStyles() }, [])
@@ -905,11 +924,30 @@ function statusLabel(status) {
       ])
 
       const archLabel = (entry) => {
-        const title = entry.title || entry.id
-        const colon = title.search(/[:：]/)
-        const head = colon > 0 ? title.slice(0, colon).trim() : ''
-        if (head !== '' && head.length <= 16) return head
-        return Array.from(title).slice(0, 12).join('') + '…'
+        const title = String(entry.title || entry.id || '').trim()
+        if (title === '') return String(entry.id || '架构')
+        const chars = (text) => Array.from(text)
+        let label = title
+        // The chip already sits in its group row, so a leading "实现：" adds no
+        // information and made every card in the group look identical. Drop it
+        // and keep the specific part of the title.
+        const report = String(entry.group || '').trim()
+        const strip = (prefix) => {
+          if (prefix === '') return ''
+          const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          return label.replace(new RegExp(`^${escaped}\\s*[:：·|/-]\\s*`), '')
+        }
+        const withoutGroup = strip(report)
+        if (withoutGroup !== '' && withoutGroup !== label) label = withoutGroup
+        else {
+          const parts = label.split(/[:：]/)
+          if (parts.length > 1 && parts[0].trim() !== '' && chars(parts[0].trim()).length <= 8) {
+            const rest = parts.slice(1).join('：').trim()
+            if (rest !== '') label = rest
+          }
+        }
+        label = label.trim() || title
+        return chars(label).length <= 14 ? label : `${chars(label).slice(0, 14).join('')}…`
       }
       const archBrief = (entry) => {
         const label = archLabel(entry)
@@ -964,10 +1002,9 @@ function statusLabel(status) {
         if (value === 'inactive') {
           return h('span', { key: 'pill', className: 'rtp-idle', title: '空闲' })
         }
-        return h('span', { key: 'pill', className: `rtp-pill ${tone}` }, [
-          value === 'running' ? h('span', { key: 'd', className: 'rtp-pulse' }) : null,
-          memberLabel(value)
-        ].filter(Boolean))
+        // The running state is already in the label; a pulse drawn inside the pill
+        // used to escape to the panel corner because the pill is not positioned.
+        return h('span', { key: 'pill', className: `rtp-pill ${tone}` }, memberLabel(value))
       }
       const estimateTipHeight = (lines, width) => {
         const inner = Math.max(40, width - 20)
@@ -1145,19 +1182,35 @@ function statusLabel(status) {
               state === 'stopped' || state === 'failed' ? entry.reason || '' : '',
               entry.approval === 'approved' && state !== 'approved' ? '已批准' : entry.approval === 'rejected' ? '已拒绝' : ''
             ].filter(Boolean).join(' · ')
-            return h('div', { key: entry.name, className: 'rtp-row' }, [
+            const open = openRun === entry.name
+            return h('div', {
+              key: entry.name,
+              className: open ? 'rtp-row open' : 'rtp-row',
+              onClick: () => setOpenRun(open ? '' : entry.name)
+            }, [
               h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(state) } }),
               h('div', { key: 'main', className: 'rtp-rowmain' }, [
                 h('div', { key: 't', className: 'rtp-rowtitle' }, [
                   h('span', { key: 'name', style: { fontFamily: 'var(--dsw-font-family-mono)', fontSize: '14px' } }, entry.name),
                   seedDots(entry.seeds) === null ? null : h('span', { key: 'seeds', className: 'rtp-seeds' }, seedDots(entry.seeds))
                 ]),
-                h('div', { key: 'm', className: 'rtp-rowmeta' }, meta)
+                h('div', { key: 'm', className: 'rtp-rowmeta' }, meta),
+                open ? h('div', { key: 'x', className: 'rtp-itemextra' }, [
+                  entry.question ? h('div', { key: 'q' }, `问题：${entry.question}`) : null,
+                  entry.hypothesis ? h('div', { key: 'h' }, `假设：${entry.hypothesis}`) : null,
+                  entry.decisionRule ? h('div', { key: 'd' }, `判定：${entry.decisionRule}`) : null,
+                  entry.reason ? h('div', { key: 'r' }, `原因：${entry.reason}`) : null,
+                  entry.evidence ? h('div', { key: 'e' }, `证据：${entry.evidence}`) : null,
+                  h('div', { key: 'a' }, [
+                    entry.startedAt ? `开始 ${entry.startedAt.slice(0, 16).replace('T', ' ')}` : '',
+                    entry.finishedAt ? ` · 结束 ${entry.finishedAt.slice(0, 16).replace('T', ' ')}` : ''
+                  ].join(''))
+                ]) : null
               ]),
               pending
                 ? h('div', { key: 'act', style: { display: 'flex', gap: '6px', flexShrink: 0 } }, [
-                    h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: () => decideRun(entry.name, 'approved') }, '批准'),
-                    h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: () => decideRun(entry.name, 'rejected') }, '拒绝')
+                    h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideRun(entry.name, 'approved') } }, '批准'),
+                    h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideRun(entry.name, 'rejected') } }, '拒绝')
                   ])
                 : h('span', {
                     key: 'chip',
@@ -1217,8 +1270,9 @@ function statusLabel(status) {
         registeredFor = service
         ctx.effect(() => service.registerTab({
           id: 'research-team:panel',
-          title: '研究面板',
+          title: '科研',
           description: '团队状态：架构、工作项与实验',
+          icon: (size) => h(PanelIcon, { size: size || 15 }),
           order: 40,
           single: true,
           component: (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })
@@ -1238,10 +1292,13 @@ function statusLabel(status) {
         name: 'sidebar.right.pane.tab',
         key: 'research-team#panel'
       }, (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })))
+      /* The chip already draws the descriptor icon through better-sidebar; a second
+         icon plus text overflows a narrow chip and the close button overlaps it, so
+         the native fallback title stays plain text and lets the host ellipsize. */
       ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab.title',
         key: 'research-team#panel'
-      }, () => '研究面板'))
+      }, () => '科研'))
 
     }
 

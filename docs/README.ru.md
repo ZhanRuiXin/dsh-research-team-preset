@@ -4,7 +4,7 @@
 
 **DSH agent preset, превращающий одну сессию в небольшую слаженную исследовательскую команду.**
 
-**Версия 0.2.0** · **Обновлено 2026-11-12**
+**Версия 0.2.1** · **Обновлено 2026-11-13**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <strong>Русский</strong> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -56,7 +56,7 @@ Research Team Mode - это пресет агента DSH для сквозно�
 | Возможность | Провайдер | Примечания |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Разработано для `0.2.1-rc.5`; другие версии могут работать, но не гарантируются |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Даёт `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` и сервисы Team; пресет пишет работу в worklog, а не в командные задачи |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Даёт `send_message`, `wait_agent`, `interrupt_agent` и сервисы Team; пресет пишет работу в worklog, а не в командные задачи |
 | Среда PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) и [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Входит в базовый DSH; включает `run_code` |
 
 **Необязательные интеграции.** Это плагины других авторов. Пресет работает без них и ничего не устанавливает; добавьте плагин только чтобы связать команду с ним:
@@ -73,20 +73,20 @@ Research Team Mode - это пресет агента DSH для сквозно�
 ### Установка со страницы плагинов DSH
 
 2. Откройте **Настройки → Плагины** и нажмите **Добавить**.
-3. Вставьте источник установки: `dsh-research-team-preset@0.2.0` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
+3. Вставьте источник установки: `dsh-research-team-preset@0.2.1` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
 4. **Перезапустите DSH.** Строки пресета и клиентская часть бандла загружаются при старте.
 5. **Убедитесь, что бандл включён** в том же профиле, затем **откройте новую сессию** и выберите **Research Team Mode** в выборе режима.
 
 ### Установка из командной строки
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.0
+dsh plugin add dsh-research-team-preset@0.2.1
 ```
 
 Чтобы закрепить исходный код вместо реестра:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
 ```
 
 > Режим является бандлом уровня профиля: установка в одном профиле не включает его в другом. Повторите установку и предварительные условия для каждого профиля.
@@ -229,7 +229,7 @@ Plugins → dsh-research-team-preset → research-team-settings → Configure
 - **Model**: один выпадающий список со всеми моделями всех провайдеров и некликабельными заголовками групп провайдеров. Выбор модели задаёт и провайдера, и модель.
 - **Reasoning effort**: второй выпадающий список с заявленными усилиями выбранной модели плюс вариант «по умолчанию модели».
 
-Пустая модель означает «наследовать маршрут Lead»; пустое усилие означает «использовать значение модели по умолчанию». `spawn_teammate_with_model` читает значение роли по умолчанию из выбранного профиля, если `model` не указан; явный `model` его переопределяет. Простой `spawn_teammate` всегда наследует Lead.
+Пустая модель означает «наследовать маршрут Lead»; пустое усилие означает «использовать значение модели по умолчанию». `spawn_teammate_with_model` читает значение роли по умолчанию из выбранного профиля, если `model` не указан; явный `model` его переопределяет. Простой `subagent` всегда наследует Lead.
 
 Рекомендуемые уровни возможностей — отправная точка, а не правило:
 
@@ -323,7 +323,7 @@ $DSH_HOME/research-team-settings.json
 
 Ещё две причины не связаны с файлом настроек:
 
-- Lead вызвал обычный `spawn_teammate` вместо `spawn_teammate_with_model`, который всегда наследует Lead. Персона требует, чтобы Lead не передавал `model` в modeled-инструмент и никогда не откатывался из-за неуверенности в именах;
+- Lead вызвал обычный `subagent` вместо `spawn_teammate_with_model`, который всегда наследует Lead. Персона требует, чтобы Lead не передавал `model` в modeled-инструмент и никогда не откатывался из-за неуверенности в именах;
 
 - строка настроек сохранена под другим `DSH_HOME`, чем тот, который читает работающий хост. Сравните строку `settings file:`, выводимую `research_team_routes`, с `echo $DSH_HOME`.
 
@@ -341,7 +341,7 @@ $DSH_HOME/research-team-settings.json
 
 ### `spawn_teammate_with_model` недоступен
 
-Подмодуль оборачивает внутренний сервис subagent. Обновление DSH может изменить форму активации. Проверьте текст ошибки; если обёртка не может установиться, задайте `research-modeled-teammates.enabled: false`, перезапустите и используйте простой `spawn_teammate`.
+Подмодуль оборачивает внутренний сервис subagent. Обновление DSH может изменить форму активации. Проверьте текст ошибки; если обёртка не может установиться, задайте `research-modeled-teammates.enabled: false`, перезапустите и используйте простой `subagent`.
 
 ### Preset не отображается в списке
 

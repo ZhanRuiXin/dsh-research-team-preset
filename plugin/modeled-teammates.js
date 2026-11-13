@@ -35,6 +35,26 @@ const modeledSpawn = new AsyncLocalStorage()
 const patches = new WeakMap()
 
 /**
+ * Normalize a requested teammate name to the host rule: 1-32 lower-case
+ * letters, digits or hyphens, starting with a letter, never the reserved
+ * `lead`. Returns undefined when nothing valid remains, so the host can
+ * allocate `agent-N` instead of rejecting the spawn.
+ */
+function teammateSlug(value) {
+  if (typeof value !== 'string') return undefined
+  const slug = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/^[^a-z]+/, '')
+    .slice(0, 32)
+    .replace(/-+$/, '')
+  if (slug.length === 0 || slug === 'lead') return undefined
+  return slug
+}
+
+/**
  * Record a teammate the preset started, so the panel can tell its own team
  * apart from subagents other plugins create under the same Lead.
  */
@@ -445,7 +465,7 @@ export function apply(ctx, config = {}) {
     parameters: {
       type: 'object',
       properties: {
-        name: { type: 'string', description: 'Unique lower-kebab-case teammate name; include the role, e.g. "advisor" or "ELHA-R advisor".' },
+        name: { type: 'string', description: 'Unique teammate name; include the role, e.g. "advisor" or "ELHA-R advisor". The host keeps lower-case letters, digits and hyphens, so other characters are folded into hyphens.' },
         description: { type: 'string', description: 'Short description of the delegated responsibility.' },
         prompt: { type: 'string', description: 'Complete initial task for the teammate.' },
         context: { type: 'string', enum: ['fresh', 'fork'], description: 'Start mode; defaults to fresh.' },
@@ -489,13 +509,14 @@ export function apply(ctx, config = {}) {
         ? resolveConfiguredRoute(args.name)
         : { role: matchRoleName(args.name), route: explicit, source: 'explicit' }
       const requestedModel = resolved.route
+      const slug = teammateSlug(args.name)
       const provider = context === 'fork' ? forkProvider : freshProvider
       const signal = exec.signal === undefined ? new AbortController().signal : exec.signal
       const spawn = () =>
         ctx.subagents.startActivation({
           provider,
           label: args.description,
-          ...(typeof args.name === 'string' && args.name !== '' ? { name: args.name } : {}),
+          ...(slug === undefined ? {} : { name: slug }),
           prompt: [{ type: 'text', text: args.prompt }],
           parent: agent,
           signal,
@@ -509,7 +530,7 @@ export function apply(ctx, config = {}) {
         : undefined
       const memberName = started !== null && typeof started === 'object' && typeof started.name === 'string'
         ? started.name
-        : args.name
+        : slug ?? args.name
       let live
       if (sessionId !== undefined) {
         try { live = ctx.agents.get(sessionId) } catch { live = undefined }

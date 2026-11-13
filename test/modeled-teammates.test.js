@@ -130,6 +130,19 @@ test('a modeled spawn resolves the file route and injects agentOptions', async (
   assert.equal(result.member.model, 'gpt-6-astra')
   assert.equal(activations.length, 1)
   assert.deepEqual(activations[0].agentOptions, ROUTES.advisor)
+  assert.equal(activations[0].name, 'elha-r-advisor')
+  assert.equal(result.member.name, 'elha-r-advisor')
+})
+
+test('a reserved or unusable name falls back to the host default', async () => {
+  writeSettingsFile(v2File())
+  const { tools, activations } = fakeContext()
+  const result = await tools.spawn_teammate_with_model.execute(
+    { name: 'Lead', description: 'Reserved name', prompt: 'Go.' },
+    { agent }
+  )
+  assert.equal('name' in activations[0], false)
+  assert.equal(result.member.name, 'agent-1')
 })
 
 test('an explicit model overrides the configured route', async () => {

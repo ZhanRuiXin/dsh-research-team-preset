@@ -1269,7 +1269,7 @@ function statusLabel(status) {
         registeredFor = service
         ctx.effect(() => service.registerTab({
           id: 'research-team:panel',
-          title: '研究面板',
+          title: '科研',
           description: '团队状态：架构、工作项与实验',
           icon: (size) => h(PanelIcon, { size: size || 15 }),
           order: 40,
@@ -1297,7 +1297,7 @@ function statusLabel(status) {
       ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab.title',
         key: 'research-team#panel'
-      }, () => '研究面板'))
+      }, () => '科研'))
 
     }
 

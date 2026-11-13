@@ -28,7 +28,7 @@ function baseCtx(teams, handlers) {
   const tools = {}
   const agent = {
     id: 's1',
-    session: { header: { agentPreset: 'research-team', origin: 'startup' }, append() {} }
+    session: { header: { agentPreset: 'research-team', origin: 'startup', cwd: process.cwd() }, append() {} }
   }
   const ctx = {
     systemPrompt: { section() { return () => {} } },
@@ -100,4 +100,23 @@ test('the spawn tool turns team collaboration on before it activates', async () 
   )
   assert.deepEqual(teams.calls, [{ id: 's1', value: true }])
   assert.equal(result.member.id, 'child-1')
+})
+
+test('selecting the preset after creation turns team collaboration on', async () => {
+  const teams = makeTeams()
+  const handlers = new Map()
+  const { ctx } = baseCtx(teams, handlers)
+  applyPanel(ctx)
+  handlers.get('agent-preset/selected')('s1', 'research-team')
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  assert.deepEqual(teams.calls, [{ id: 's1', value: true }])
+})
+
+test('the first research_project call enables team collaboration as well', async () => {
+  const teams = makeTeams()
+  const handlers = new Map()
+  const { ctx, tools, agent } = baseCtx(teams, handlers)
+  applyPanel(ctx)
+  await tools.research_project.execute({}, { agent })
+  assert.deepEqual(teams.calls, [{ id: 's1', value: true }])
 })

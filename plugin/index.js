@@ -1131,14 +1131,42 @@ export function apply(ctx) {
   // The host shows the team tools only while the root session's Team selection
   // is on. Turn it on when a Research Team session starts, so creating a
   // teammate never depends on a manual toggle, and again before every spawn.
-  const disposeTeamMode = typeof ctx.on === 'function'
+  const enableTeamFor = (agent) => {
+    if (agent === undefined || agent === null) return
+    if (agent.session?.header?.origin === 'subagent') return
+    void ensureTeamMode(ctx, agent)
+  }
+
+  const disposeTeamModeCreated = typeof ctx.on === 'function'
     ? ctx.on('agent/created', ({ agent } = {}) => {
-        if (agent === undefined || agent === null) return
-        if (agent.session?.header?.origin === 'subagent') return
-        if (agent.session?.header?.agentPreset !== RESEARCH_PRESET_ID) return
-        void ensureTeamMode(ctx, agent)
+        if (agent?.session?.header?.agentPreset !== RESEARCH_PRESET_ID) return
+        enableTeamFor(agent)
       }, { global: true })
     : () => {}
+
+  // A session can start under another preset and select this one a moment
+  // later; the header keeps the creation-time preset, so the selection event is
+  // the authority here. Retry briefly because the agent may not be registered
+  // yet when the event fires.
+  const disposeTeamModeSelected = typeof ctx.on === 'function'
+    ? ctx.on('agent-preset/selected', (sessionId, agentPreset) => {
+        if (agentPreset !== RESEARCH_PRESET_ID || typeof ctx.agents?.get !== 'function') return
+        const attempt = (left) => {
+          const agent = ctx.agents.get(sessionId)
+          if (agent !== undefined) {
+            enableTeamFor(agent)
+            return
+          }
+          if (left > 0) setTimeout(() => attempt(left - 1), 50)
+        }
+        attempt(20)
+      }, { global: true })
+    : () => {}
+
+  const disposeTeamMode = () => {
+    disposeTeamModeCreated()
+    disposeTeamModeSelected()
+  }
 
   const disposeTool = ctx.tools.register({
     name: 'research_project',
@@ -1166,6 +1194,7 @@ export function apply(ctx) {
       }
     },
     async execute(_args, exec) {
+      await ensureTeamMode(ctx, exec?.agent)
       const cwd = exec?.agent?.session?.header?.cwd
       if (typeof cwd !== 'string' || cwd.length === 0) {
         return { error: 'Cannot determine the session working directory; workspaceId was not resolved. Ask the user to confirm the project.' }

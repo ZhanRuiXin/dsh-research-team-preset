@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Reconciles the host's Agent Teams policy with the worklog: `team_task_*` remains an optional internal board, while gates, evidence, decisions, run manifests and user acceptance stay in `.research/worklog/` and `runs/`.
+
 - A session started with the preset turns Team collaboration on itself, so the Lead can create and message teammates without the user setting the 智能体团队协作 toggle first; `spawn_teammate_with_model` also re-checks it before every spawn.
 
 ## 0.2.1 — 2026-11-13

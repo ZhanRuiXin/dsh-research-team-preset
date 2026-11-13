@@ -197,6 +197,8 @@ research_worklog op=gate                 # in_review with evidence
 research_state                           # the whole team state in one read
 ```
 
+When Team collaboration is on, the host also injects its own Agent Teams policy, which names `team_task_*` as the shared-task board. The record stays here: use team tasks only for internal assignments that do not need a durable record, and keep gates, evidence, decisions, run manifests and user acceptance in `.research/worklog/` and `runs/`. A completed team task never stands in for a worklog gate.
+
 The full discipline lives in the preset prompt and in `AGENTS.md` of the project.
 
 ## Git workflow

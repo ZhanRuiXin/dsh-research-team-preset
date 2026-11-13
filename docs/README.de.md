@@ -103,6 +103,8 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 
 Eine typische erste Aufgabe:
 
+Mit eingeschalteter Team-Zusammenarbeit injiziert der Host zusätzlich seine eigene Agent-Teams-Richtlinie, die `team_task_*` als gemeinsames Aufgabenboard nennt. Der Nachweis bleibt hier: Team-Aufgaben dienen nur kurzfristigen internen Zuweisungen ohne dauerhafte Aufzeichnung; Gates, Evidenz, Entscheidungen, Lauf-Manifeste und Nutzerabnahme liegen in `.research/worklog/` und `runs/`. Eine abgeschlossene Team-Aufgabe ersetzt kein Gate im Worklog.
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

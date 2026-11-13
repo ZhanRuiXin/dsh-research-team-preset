@@ -103,6 +103,8 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 
 일반적인 첫 작업:
 
+팀 협업이 켜져 있으면 호스트는 자체 Agent Teams 정책도 주입하며 거기서 `team_task_*` 를 공유 작업 보드라고 부른다. 기록은 여기에 남는다: 팀 작업은 지속적 기록이 필요 없는 내부 할당에만 쓰고, 게이트·증거·결정·실행 매니페스트·사용자 수용은 `.research/worklog/` 와 `runs/` 에 둔다. 완료된 팀 작업이 worklog 게이트를 대신하지는 않는다.
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

@@ -103,6 +103,8 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 
 Una primera tarea típica:
 
+Con la colaboración de equipo activada, el host también inyecta su propia política de Agent Teams, que llama a `team_task_*` el tablero de tareas compartido. El registro se queda aquí: usa las tareas de equipo solo para encargos internos que no necesitan registro duradero, y mantén las puertas, la evidencia, las decisiones, los manifiestos de ejecución y la aceptación del usuario en `.research/worklog/` y `runs/`. Una tarea de equipo completada nunca sustituye una puerta del worklog.
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

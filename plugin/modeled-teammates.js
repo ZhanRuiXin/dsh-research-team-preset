@@ -25,6 +25,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import fs from 'node:fs'
 import path from 'node:path'
 import { ROLE_NAMES, matchRoleName, modelForRole } from './settings-store.js'
+import { ensureTeamMode } from './index.js'
 import { readRouteTable } from './settings-file.js'
 
 export const name = 'research-modeled-teammates'
@@ -503,6 +504,7 @@ export function apply(ctx, config = {}) {
       if (agent === undefined) {
         throw new Error('spawn_teammate_with_model requires a calling agent')
       }
+      await ensureTeamMode(ctx, agent)
       const context = args.context === 'fork' ? 'fork' : 'fresh'
       const explicit = args.model === undefined ? undefined : readModel(args)
       const resolved = explicit === undefined

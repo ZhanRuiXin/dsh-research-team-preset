@@ -1097,12 +1097,48 @@ function renderInit(value) {
   return [{ type: 'text', text: lines.join(NL) }]
 }
 
+/** Preset id this bundle declares, used to scope automatic Team mode. */
+const RESEARCH_PRESET_ID = 'research-team'
+
+/**
+ * Turn on Team collaboration for a root session. Teammates are continuable
+ * subagent children, but the host exposes the team tools and guidance only
+ * while the root session's Team selection is on, so a session started with
+ * the toggle off cannot create or message teammates. The service is optional:
+ * when the Agent Teams bundle is absent this is a no-op.
+ */
+export async function ensureTeamMode(ctx, agent) {
+  if (agent === undefined || agent === null) return false
+  const teams = typeof ctx.get === 'function' ? ctx.get('agentTeams', false) : undefined
+  if (teams === undefined || teams === null) return false
+  if (typeof teams.isEnabled !== 'function' || typeof teams.setEnabled !== 'function') return false
+  try {
+    if (teams.isEnabled(agent) === true) return true
+    await teams.setEnabled(agent, true)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function apply(ctx) {
   const disposeSection = ctx.systemPrompt.section({
     name: 'plugin:dsh-research-team-worklog',
     order: 180,
     text: WORKLOG_PROTOCOL_EN
   })
+
+  // The host shows the team tools only while the root session's Team selection
+  // is on. Turn it on when a Research Team session starts, so creating a
+  // teammate never depends on a manual toggle, and again before every spawn.
+  const disposeTeamMode = typeof ctx.on === 'function'
+    ? ctx.on('agent/created', ({ agent } = {}) => {
+        if (agent === undefined || agent === null) return
+        if (agent.session?.header?.origin === 'subagent') return
+        if (agent.session?.header?.agentPreset !== RESEARCH_PRESET_ID) return
+        void ensureTeamMode(ctx, agent)
+      }, { global: true })
+    : () => {}
 
   const disposeTool = ctx.tools.register({
     name: 'research_project',
@@ -1654,6 +1690,7 @@ export function apply(ctx) {
   })
 
   return () => {
+    disposeTeamMode()
     disposeDesign()
     disposeEvidence()
     disposeDecision()

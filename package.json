@@ -24,7 +24,7 @@
     }
   },
   "scripts": {
-    "test": "node --test test/modeled-teammates.test.js test/workspace-init.test.js test/scope-check.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js"
+    "test": "node --test test/modeled-teammates.test.js test/workspace-init.test.js test/scope-check.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js test/team-mode.test.js"
   },
   "repository": {
     "type": "git",

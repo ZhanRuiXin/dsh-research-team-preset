@@ -2,6 +2,10 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.1.
 
+## Unreleased
+
+- A session started with the preset turns Team collaboration on itself, so the Lead can create and message teammates without the user setting the 智能体团队协作 toggle first; `spawn_teammate_with_model` also re-checks it before every spawn.
+
 ## 0.2.1 — 2026-11-13
 
 - The team section lists only the preset's teammates: standard-role children, children recorded under `.research/team/members.jsonl` when `spawn_teammate_with_model` starts them, and legacy roster members; subagents other plugins create under the same Lead and nested children of teammates are excluded.

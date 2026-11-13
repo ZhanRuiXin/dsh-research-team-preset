@@ -59,7 +59,7 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 | Capability | Provider | Notes |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
-| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Shares the task DAG and change waits across a subagent tree; teammates are continuable subagent children, and the preset records work in its own worklog; the preset records work in its own worklog |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Shares the task DAG and change waits across a subagent tree; teammates are continuable subagent children, and the preset records work in its own worklog. A session started with this preset enables Team collaboration itself, so the 智能体团队协作 toggle does not have to be set by hand. |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
 
 **Optional integrations.** These are plugins by other authors. The preset runs without them and installs nothing; add one only to link the team with it:

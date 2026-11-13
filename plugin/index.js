@@ -1139,7 +1139,9 @@ export function apply(ctx) {
 
   const disposeTeamModeCreated = typeof ctx.on === 'function'
     ? ctx.on('agent/created', ({ agent } = {}) => {
-        if (agent?.session?.header?.agentPreset !== RESEARCH_PRESET_ID) return
+        // Every opened session in this profile gets Team collaboration on,
+        // including old workspaces whose session header still names the preset
+        // they were created with. Subagents inherit their root's selection.
         enableTeamFor(agent)
       }, { global: true })
     : () => {}

@@ -78,16 +78,18 @@ test('a Research Team session turns team collaboration on', async () => {
   assert.deepEqual(teams.calls, [{ id: 's1', value: true }])
 })
 
-test('other presets and subagent sessions are left alone', async () => {
+test('every opened session turns it on while subagent sessions are left alone', async () => {
   const teams = makeTeams()
   const handlers = new Map()
   const { ctx } = baseCtx(teams, handlers)
   applyPanel(ctx)
   const handler = handlers.get('agent/created')
   handler({ agent: { id: 'other', session: { header: { agentPreset: 'plain', origin: 'startup' } } } })
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  assert.deepEqual(teams.calls, [{ id: 'other', value: true }])
   handler({ agent: { id: 'child', session: { header: { agentPreset: 'research-team', origin: 'subagent' } } } })
   await new Promise((resolve) => setTimeout(resolve, 0))
-  assert.deepEqual(teams.calls, [])
+  assert.deepEqual(teams.calls, [{ id: 'other', value: true }])
 })
 
 test('the spawn tool turns team collaboration on before it activates', async () => {

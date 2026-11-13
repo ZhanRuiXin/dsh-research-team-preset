@@ -702,15 +702,19 @@ export function buildPanelState(root, options = {}) {
   const runs = []
   try {
     const dir = path.join(root, 'runs')
-    for (const name of fs.readdirSync(dir)) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      // Only a directory holding a manifest is an experiment line. Loose files,
+      // dotfiles and side directories belong to the project, not to a run.
+      if (!entry.isDirectory() || entry.name.startsWith('.')) continue
+      const name = entry.name
       const manifestPath = path.join(dir, name, 'manifest.json')
       const manifest = readTextFile(manifestPath)
+      if (manifest === '') continue
       let parsed = {}
-      if (manifest !== '') {
-        try {
-          parsed = JSON.parse(manifest)
-        } catch {}
-      }
+      try {
+        parsed = JSON.parse(manifest)
+      } catch { continue }
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) continue
       let modified = 0
       try {
         modified = fs.statSync(manifestPath).mtimeMs

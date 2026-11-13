@@ -197,6 +197,22 @@ test('buildPanelState reads experiment approval, elapsed time and newest-first o
   assert.equal(state.runs[1].elapsedMs, 2 * 60 * 60 * 1000)
 })
 
+test('buildPanelState only lists directories that carry a run manifest', () => {
+  const root = makeRoot()
+  const runs = path.join(root, 'runs')
+  fs.mkdirSync(runs, { recursive: true })
+  fs.writeFileSync(path.join(runs, '.gitignore'), '*.log\n')
+  fs.mkdirSync(path.join(runs, 'blocked'), { recursive: true })
+  fs.mkdirSync(path.join(runs, 'reviewer', 'notes'), { recursive: true })
+  fs.writeFileSync(path.join(runs, 'notes.txt'), 'scratch\n')
+  fs.mkdirSync(path.join(runs, 'exp-ok'), { recursive: true })
+  fs.writeFileSync(path.join(runs, 'exp-ok', 'manifest.json'), JSON.stringify({ status: 'planned' }))
+
+  const state = buildPanelState(root)
+  assert.equal(state.runs.length, 1)
+  assert.equal(state.runs[0].name, 'exp-ok')
+})
+
 test('experiment settings and run approval persist to disk', () => {
   const root = makeRoot()
   fs.mkdirSync(path.join(root, 'runs', 'exp-1'), { recursive: true })

@@ -905,11 +905,30 @@ function statusLabel(status) {
       ])
 
       const archLabel = (entry) => {
-        const title = entry.title || entry.id
-        const colon = title.search(/[:：]/)
-        const head = colon > 0 ? title.slice(0, colon).trim() : ''
-        if (head !== '' && head.length <= 16) return head
-        return Array.from(title).slice(0, 12).join('') + '…'
+        const title = String(entry.title || entry.id || '').trim()
+        if (title === '') return String(entry.id || '架构')
+        const chars = (text) => Array.from(text)
+        let label = title
+        // The chip already sits in its group row, so a leading "实现：" adds no
+        // information and made every card in the group look identical. Drop it
+        // and keep the specific part of the title.
+        const report = String(entry.group || '').trim()
+        const strip = (prefix) => {
+          if (prefix === '') return ''
+          const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          return label.replace(new RegExp(`^${escaped}\\s*[:：·|/-]\\s*`), '')
+        }
+        const withoutGroup = strip(report)
+        if (withoutGroup !== '' && withoutGroup !== label) label = withoutGroup
+        else {
+          const parts = label.split(/[:：]/)
+          if (parts.length > 1 && parts[0].trim() !== '' && chars(parts[0].trim()).length <= 8) {
+            const rest = parts.slice(1).join('：').trim()
+            if (rest !== '') label = rest
+          }
+        }
+        label = label.trim() || title
+        return chars(label).length <= 14 ? label : `${chars(label).slice(0, 14).join('')}…`
       }
       const archBrief = (entry) => {
         const label = archLabel(entry)

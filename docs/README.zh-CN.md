@@ -4,7 +4,7 @@
 
 **一个 DSH agent preset，把一次会话变成一个小型、协同工作的研究团队。**
 
-**版本 0.2.0** · **更新 2026-11-12**
+**版本 0.2.1** · **更新 2026-11-13**
 
 <p align="center"><a href="../README.md">English</a> · <strong>简体中文</strong> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -73,20 +73,20 @@ Lead 的回复是科学性沟通，而不是状态播报：先给结论或结果
 ### 从 DSH 插件页面安装
 
 2. 打开 **设置 → 插件**，点击 **添加**。
-3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.2.0`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.2.1`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重启 DSH。** preset 行与 bundle 的客户端部分在启动时加载。
 5. **确认 bundle 在同一 profile 中已启用**，然后**新建会话**，在模式选择器中选择 **Research Team Mode**。
 
 ### 从命令行安装
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.0
+dsh plugin add dsh-research-team-preset@0.2.1
 ```
 
 若要固定源码而不是从 registry 安装：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
 ```
 
 > 该模式是 profile 级 bundle：在一个 profile 中安装不会在另一个 profile 中启用。每个 profile 都要重复安装与前置步骤。

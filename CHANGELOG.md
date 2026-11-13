@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.0.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.1.
 
-## Unreleased
+## 0.2.1 — 2026-11-13
 
 - The team section lists only the preset's teammates: standard-role children, children recorded under `.research/team/members.jsonl` when `spawn_teammate_with_model` starts them, and legacy roster members; subagents other plugins create under the same Lead and nested children of teammates are excluded.
 - Recovers teammate names for sessions created before the agent-team rework: when the subagent catalog has no name, the panel reads the session's `team/member` records, shows the historical name and description, tags the row as a legacy member in its detail card, and adds members that are missing from the subagent tree.

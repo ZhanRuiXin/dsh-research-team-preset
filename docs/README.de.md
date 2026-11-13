@@ -4,7 +4,7 @@
 
 **Ein DSH-Agent-Preset, das eine Sitzung in ein kleines, koordiniertes Forschungsteam verwandelt.**
 
-**Version 0.2.0** · **Aktualisiert 2026-11-12**
+**Version 0.2.1** · **Aktualisiert 2026-11-13**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <strong>Deutsch</strong> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -73,20 +73,20 @@ Dieses Preset wird als DSH-Bundle ausgeliefert und ist auf npm als `dsh-research
 ### Installation über die DSH-Plugins-Seite
 
 2. Öffnen Sie **Einstellungen → Plugins** und klicken Sie auf **Hinzufügen**.
-3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.2.0` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
+3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.2.1` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
 4. **Starten Sie DSH neu.** Preset-Zeilen und die Client-Hälfte des Bundles werden beim Start geladen.
 5. **Prüfen Sie, dass das Bundle im selben Profil aktiviert ist**, öffnen Sie dann **eine neue Sitzung** und wählen Sie **Research Team Mode** in der Modusauswahl.
 
 ### Installation über die Kommandozeile
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.0
+dsh plugin add dsh-research-team-preset@0.2.1
 ```
 
 Um stattdessen die Quelle zu pinnen statt den Registrierungsserver:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
 ```
 
 > Der Modus ist ein profilweites Bundle: Die Installation in einem Profil aktiviert ihn nicht in einem anderen. Wiederholen Sie Installation und Voraussetzungen für jedes Profil.

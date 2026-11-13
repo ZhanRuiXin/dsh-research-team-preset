@@ -964,10 +964,9 @@ function statusLabel(status) {
         if (value === 'inactive') {
           return h('span', { key: 'pill', className: 'rtp-idle', title: '空闲' })
         }
-        return h('span', { key: 'pill', className: `rtp-pill ${tone}` }, [
-          value === 'running' ? h('span', { key: 'd', className: 'rtp-pulse' }) : null,
-          memberLabel(value)
-        ].filter(Boolean))
+        // The running state is already in the label; a pulse drawn inside the pill
+        // used to escape to the panel corner because the pill is not positioned.
+        return h('span', { key: 'pill', className: `rtp-pill ${tone}` }, memberLabel(value))
       }
       const estimateTipHeight = (lines, width) => {
         const inner = Math.max(40, width - 20)

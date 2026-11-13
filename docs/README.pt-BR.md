@@ -58,7 +58,7 @@ O Research Team Mode é um **bundle DSH de nível de perfil**. O bundle não ins
 | Capacidade | Provedor | Observações |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Desenvolvido com base em `0.2.1-rc.5`; outras versões podem funcionar, mas não são garantidas |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Fornece `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` e os servicos de Team; o preset registra o trabalho no worklog, nao em tarefas de equipe |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Fornece `send_message`, `wait_agent`, `interrupt_agent` e os servicos de Team; o preset registra o trabalho no worklog, nao em tarefas de equipe |
 | Runtime PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) e [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Parte da base do DSH; habilita `run_code` |
 
 **Integrações opcionais.** Esses plugins são de outros autores. O preset funciona sem eles e não instala nenhum; adicione um apenas para ligar a equipe a ele:
@@ -231,7 +231,7 @@ Cada perfil tem uma linha por membro padrão:
 - **Modelo**: um menu suspenso que contém os modelos de todos os provedores, com cabeçalhos de grupo de provedor não clicáveis. Selecionar um modelo define provedor e modelo ao mesmo tempo.
 - **Esforço de raciocínio**: um segundo menu suspenso com os esforços oferecidos pelo modelo selecionado, além de uma opção de padrão do modelo.
 
-Um modelo vazio significa “herdar a rota do Lead”; um esforço vazio significa “usar o padrão do modelo”. `spawn_teammate_with_model` lê o padrão por função do perfil selecionado quando `model` é omitido; um `model` explícito tem precedência. O `spawn_teammate` simples sempre herda do Lead.
+Um modelo vazio significa “herdar a rota do Lead”; um esforço vazio significa “usar o padrão do modelo”. `spawn_teammate_with_model` lê o padrão por função do perfil selecionado quando `model` é omitido; um `model` explícito tem precedência. O `subagent` simples sempre herda do Lead.
 
 Níveis de capacidade sugeridos, como ponto de partida e não como regra:
 
@@ -325,7 +325,7 @@ Veja a saída do spawn impressa acima da primeira mensagem do membro. Ela mostra
 
 Outras duas causas não têm a ver com o arquivo de configurações:
 
-- o Lead chamou o `spawn_teammate` simples em vez do `spawn_teammate_with_model`, que sempre herda do Lead. A persona diz ao Lead para não passar `model` à ferramenta modeled e nunca recuar por incerteza sobre nomes;
+- o Lead chamou o `subagent` simples em vez do `spawn_teammate_with_model`, que sempre herda do Lead. A persona diz ao Lead para não passar `model` à ferramenta modeled e nunca recuar por incerteza sobre nomes;
 
 - a linha de configurações foi salva sob um `DSH_HOME` diferente do que o host em execução lê. Compare a linha `settings file:` impressa por `research_team_routes` com `echo $DSH_HOME`.
 
@@ -343,7 +343,7 @@ O painel "Pesquisa" lista os itens de trabalho ativos de `.research/worklog/item
 
 ### `spawn_teammate_with_model` está indisponível
 
-O submódulo envolve um serviço interno de subagente. Uma atualização do DSH pode mudar o formato da ativação. Verifique o texto da falha; se o wrapper não conseguir ser instalado, defina `research-modeled-teammates.enabled: false`, reinicie e use o `spawn_teammate` simples.
+O submódulo envolve um serviço interno de subagente. Uma atualização do DSH pode mudar o formato da ativação. Verifique o texto da falha; se o wrapper não conseguir ser instalado, defina `research-modeled-teammates.enabled: false`, reinicie e use o `subagent` simples.
 
 ### O preset não aparece na lista
 

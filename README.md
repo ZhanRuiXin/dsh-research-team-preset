@@ -59,7 +59,7 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 | Capability | Provider | Notes |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Provides `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent`, and the Team services; the preset records work in its own worklog |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Shares the task DAG and change waits across a subagent tree; teammates are continuable subagent children, and the preset records work in its own worklog; the preset records work in its own worklog |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
 
 **Optional integrations.** These are plugins by other authors. The preset runs without them and installs nothing; add one only to link the team with it:
@@ -75,7 +75,7 @@ This preset ships as a DSH bundle and is published on npm as `dsh-research-team-
 
 ### Install from the DSH plugins page
 
-1. **Enable the required bundles** in the target profile: Agent Teams [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness). The optional integrations above can be added now or later.
+1. **Enable the required bundles** in the target profile: Agent Teams [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness). The optional integrations above can be added now or later.
 2. Open **Settings → Plugins** and click **Add**.
 3. Paste the install spec: `dsh-research-team-preset@0.2.0` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.0` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
 4. **Restart DSH.** Preset rows and the client half of the bundle load at startup.
@@ -235,7 +235,7 @@ Each profile has one row per default member:
 - **Model**: one dropdown containing every provider's models, with non-clickable provider group headers. Selecting a model sets both provider and model.
 - **Reasoning effort**: a second dropdown with the selected model's advertised efforts, plus a model-default option.
 
-An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. Plain `spawn_teammate` always inherits the Lead.
+An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. A named child started without `model` inherits the Lead route.
 
 Route lookup happens at spawn time and reads `$DSH_HOME/research-team-settings.json` directly before falling back to the in-process store, so a session opened before the Plugins page was ever saved still resolves the configured routes. A teammate name resolves to a role when it contains the role as a whole word (`advisor`, `ELHA-R advisor`, `advisor-hi`); a name with no standard role inherits the Lead route, and the tool result carries a `diagnostics` note saying which role was matched and why nothing was configured. The Lead can call `research_team_routes` to read the configured table instead of guessing provider and model names.
 
@@ -333,7 +333,7 @@ Check the spawn result printed above the member's first message. It reads `reque
 
 Two other causes are not about the settings file:
 
-- the Lead called plain `spawn_teammate` instead of `spawn_teammate_with_model`, which always inherits the Lead. The persona tells the Lead to pass no `model` to the modeled tool and never to fall back because it is unsure about names;
+- the Lead used a plain delegation tool instead of `spawn_teammate_with_model`, which bypasses the per-role route. The persona tells the Lead to pass no `model` to the modeled tool and never to fall back because it is unsure about names;
 - the settings row was saved under a different `DSH_HOME` than the running host reads. Compare the `settings file:` line printed by `research_team_routes` with `echo $DSH_HOME`.
 
 ### The settings page does not appear in Plugins
@@ -344,7 +344,7 @@ Two other causes are not about the settings file:
 
 ### Team tools are missing
 
-Enable [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) in the same profile and restart. The installer does not prompt for it.
+Enable [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) in the same profile and restart. The installer does not prompt for it.
 
 ### A work item is missing from the sidebar
 
@@ -352,7 +352,7 @@ The Research panel lists `worklog/INDEX.md` rows. Add or update the row in `INDE
 
 ### `spawn_teammate_with_model` is unavailable
 
-The submodule wraps an internal subagent service. A DSH upgrade can change the activation shape. Check the failure text; if the wrapper cannot install, set `research-modeled-teammates.enabled: false`, restart, and use plain `spawn_teammate`.
+The submodule wraps an internal subagent service. A DSH upgrade can change the activation shape. Check the failure text; if the wrapper cannot install, set `research-modeled-teammates.enabled: false`, restart, and use the profile's delegation tool.
 
 ### The preset is not listed
 

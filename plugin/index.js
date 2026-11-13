@@ -49,7 +49,7 @@ import { modelForRole } from './settings-store.js'
 
 export const name = 'research-project'
 
-export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents', 'agentTeams']
+export const inject = ['tools', 'workspaceRegistry', 'systemPrompt', 'webServer', 'agents', 'subagents']
 
 const execFileAsync = promisify(execFile)
 
@@ -932,51 +932,77 @@ function renderState(value) {
   return [{ type: 'text', text: lines.join(NL) }]
 }
 
-export function teamRoster(ctx, sessionId, items) {
+function rosterRow(ctx, id, name, role, items) {
   const list = Array.isArray(items) ? items : []
+  const open = list.find((item) => item.owner === name)
+  let live
+  if (typeof id === 'string' && id !== '') {
+    try { live = ctx?.agents?.get?.(id) } catch { live = undefined }
+  }
+  const liveModel = typeof live?.options?.model === 'string' ? live.options.model : ''
+  const liveEffortValue = live?.options?.reasoningEffort ?? live?.options?.effort
+  const liveEffort = typeof liveEffortValue === 'string' ? liveEffortValue : ''
+  const configured = role === 'teammate' ? modelForRole(name) : undefined
+  const model = liveModel !== ''
+    ? liveModel
+    : configured !== undefined ? `${configured.provider}/${configured.model}` : ''
+  const effort = liveEffort !== '' ? liveEffort : configured?.reasoningEffort ?? ''
+  const source = liveModel !== '' ? 'live' : model !== '' ? 'configured' : 'unknown'
+  return {
+    id: typeof id === 'string' ? id : '',
+    name,
+    role,
+    status: live?.status === 'running' ? 'running' : 'inactive',
+    description: '',
+    model,
+    effort,
+    modelSource: source,
+    item: open === undefined ? null : { id: open.id, title: open.title, status: open.status, updated: open.updated, next: open.next }
+  }
+}
+
+/**
+ * Read the live team from the subagent tree. Since DSH 0.2.2 a teammate is a
+ * continuable child of the Lead, so the roster is the Lead plus every
+ * continuable descendant; the team service no longer stores members itself.
+ */
+export async function teamRoster(ctx, sessionId, items) {
   try {
     const agent = typeof sessionId === 'string' && sessionId.length > 0 ? ctx?.agents?.get?.(sessionId) : undefined
     if (agent === undefined || agent === null) return []
-    const members = ctx?.agentTeams?.listMembers?.(agent)
-    if (!Array.isArray(members)) return []
-    const seen = new Set()
-    return members.filter((member) => {
-      const key = typeof member.id === 'string' && member.id !== '' ? member.id : `name:${member.name}`
-      if (seen.has(key)) return false
-      seen.add(key)
-      return true
-    }).map((member) => {
-      const open = list.find((item) => item.owner === member.name)
-      let live
-      if (typeof member.id === 'string') {
-        try { live = ctx?.agents?.get?.(member.id) } catch { live = undefined }
-      }
-      const liveModel = typeof live?.options?.model === 'string' ? live.options.model : ''
-      const liveEffortValue = live?.options?.reasoningEffort ?? live?.options?.effort
-      const liveEffort = typeof liveEffortValue === 'string' ? liveEffortValue : ''
-      const configured = modelForRole(member.name)
-      const model = liveModel !== ''
-        ? liveModel
-        : member.role === 'lead' && typeof member.model === 'string'
-          ? member.model
-          : configured !== undefined ? `${configured.provider}/${configured.model}` : ''
-      const effort = liveEffort !== '' ? liveEffort : configured?.reasoningEffort ?? ''
-      const source = liveModel !== '' || (member.role === 'lead' && model !== '') ? 'live' : model !== '' ? 'configured' : 'unknown'
-      return {
-        id: typeof member.id === 'string' ? member.id : '',
-        name: typeof member.name === 'string' ? member.name : '',
-        role: member.role === 'lead' ? 'lead' : 'teammate',
-        status: typeof member.status === 'string' ? member.status : 'inactive',
-        description: typeof member.description === 'string' ? member.description : '',
-        model,
-        effort,
-        modelSource: source,
-        item: open === undefined ? null : { id: open.id, title: open.title, status: open.status, updated: open.updated, next: open.next }
-      }
-    })
+    const service = ctx?.subagents
+    if (service === undefined || typeof service.rootOf !== 'function' || typeof service.listDescendants !== 'function') return []
+    const root = service.rootOf(agent)
+    if (root === undefined || root === null || typeof root.id !== 'string') return []
+    const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+      ? AbortSignal.timeout(4000)
+      : undefined
+    const entries = await service.listDescendants(root.id, signal)
+    const lead = rosterRow(ctx, root.id, 'lead', 'lead', items)
+    lead.description = 'root agent'
+    const rows = [lead]
+    const seen = new Set([lead.id])
+    for (const entry of Array.isArray(entries) ? entries : []) {
+      if (entry === null || typeof entry !== 'object') continue
+      if (entry.kind === 'diagnostic' || entry.mode !== 'continuable') continue
+      if (typeof entry.id !== 'string' || entry.id === '' || seen.has(entry.id)) continue
+      seen.add(entry.id)
+      const name = typeof entry.path === 'string' && entry.path !== '' ? entry.path : entry.id
+      const row = rosterRow(ctx, entry.id, name, 'teammate', items)
+      row.description = typeof entry.label === 'string' ? entry.label : ''
+      rows.push(row)
+    }
+    return rows
   } catch {
     return []
   }
+}
+
+/** Build one panel payload, including the live team for this session. */
+async function panelState(ctx, root, sessionId) {
+  const state = buildPanelState(root)
+  state.team = await teamRoster(ctx, sessionId, state.cards)
+  return state
 }
 
 function renderInit(value) {
@@ -1162,7 +1188,7 @@ export function apply(ctx) {
           jsonResponse(res, 404, { ok: false, error: 'cannot resolve the project for this session' })
           return
         }
-        const state = buildPanelState(root, { team: (items) => teamRoster(ctx, sessionId, items) })
+        const state = await panelState(ctx, root, sessionId)
         jsonResponse(res, 200, { ok: true, ...state })
         return
       }
@@ -1183,7 +1209,7 @@ export function apply(ctx) {
           return
         }
         writeExperimentSettings(root, { approval: mode })
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       if (body?.op === 'approve') {
@@ -1197,7 +1223,7 @@ export function apply(ctx) {
           jsonResponse(res, 409, { ok: false, error: result.error })
           return
         }
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root) })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       if (body?.op === 'archive') {
@@ -1206,14 +1232,14 @@ export function apply(ctx) {
           jsonResponse(res, 404, { ok: false, error: result.error })
           return
         }
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root, { team: (items) => teamRoster(ctx, sessionId, items) }) })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       const card = readArchitectureCard(root, body?.id)
       if (body?.op === 'item') {
         const decision = decideItem(root, { id: body.itemId, decision: body.decision, reason: body.reason })
         if (decision.error !== undefined) { jsonResponse(res, 400, { error: decision.error }); return }
-        jsonResponse(res, 200, { ok: true, ...buildPanelState(root, { team: (items) => teamRoster(ctx, sessionId, items) }) })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       if (body?.op === 'annotate') {

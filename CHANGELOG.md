@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Adapts to the DSH agent-team rework: a teammate is now a continuable subagent child, `spawn_teammate_with_model` starts one through `subagents.startActivation`, the panel roster reads the Lead's subagent tree (`listDescendants`) instead of a Team member list, and the docs name `@deepseek-ai/dsh-agent-team`.
+
 - Experiments expand in place on click, the same way work items do: a run opens its question, hypothesis, decision rule, reason and timing, and collapses on a second click.
 
 - Only a directory under `runs/` with a readable `manifest.json` counts as a run line, so stray files and side directories no longer appear as 已登记 experiments.

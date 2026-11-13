@@ -56,7 +56,7 @@ Un resultado negativo previo limita el método, los datos y el presupuesto que l
 | Capacidad | Proveedor | Notas |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Desarrollado contra `0.2.1-rc.5`; otras versiones pueden funcionar, pero no están garantizadas |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Proporciona `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` y los servicios de Team; el preset registra su trabajo en el worklog, no en tareas de equipo |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Proporciona `send_message`, `wait_agent`, `interrupt_agent` y los servicios de Team; el preset registra su trabajo en el worklog, no en tareas de equipo |
 | Runtime PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) y [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Forma parte de la base de DSH; habilita `run_code` |
 
 **Integraciones opcionales.** Estos plugins son de otros autores. El preset funciona sin ellos y no instala ninguno; añade uno solo para enlazar el equipo con él:
@@ -231,7 +231,7 @@ Cada perfil tiene una fila por miembro predeterminado:
 - **Modelo**: un desplegable que contiene los modelos de todos los proveedores, con encabezados de grupo de proveedores no clicables. Al seleccionar un modelo se establecen a la vez el proveedor y el modelo.
 - **Esfuerzo de razonamiento**: un segundo desplegable con los esfuerzos anunciados del modelo seleccionado, más una opción de valor predeterminado del modelo.
 
-Un modelo vacío significa «heredar la ruta del Lead»; un esfuerzo vacío significa «usar el valor predeterminado del modelo». `spawn_teammate_with_model` lee el valor predeterminado por rol del perfil seleccionado cuando se omite `model`; un `model` explícito lo anula. El `spawn_teammate` simple siempre hereda del Lead.
+Un modelo vacío significa «heredar la ruta del Lead»; un esfuerzo vacío significa «usar el valor predeterminado del modelo». `spawn_teammate_with_model` lee el valor predeterminado por rol del perfil seleccionado cuando se omite `model`; un `model` explícito lo anula. El `subagent` simple siempre hereda del Lead.
 
 Niveles de capacidad sugeridos, como punto de partida y no como regla:
 
@@ -325,7 +325,7 @@ Mira la salida del spawn que aparece sobre el primer mensaje del miembro. Muestr
 
 Otras dos causas no tienen que ver con el archivo de ajustes:
 
-- el Lead llamó a `spawn_teammate` simple en lugar de `spawn_teammate_with_model`, que siempre hereda del Lead. La persona indica al Lead que no pase `model` a la herramienta modeled y que nunca vuelva atrás por dudas sobre nombres;
+- el Lead llamó a `subagent` simple en lugar de `spawn_teammate_with_model`, que siempre hereda del Lead. La persona indica al Lead que no pase `model` a la herramienta modeled y que nunca vuelva atrás por dudas sobre nombres;
 
 - la fila de ajustes se guardó bajo un `DSH_HOME` distinto del que lee el host en ejecución. Compara la línea `settings file:` que imprime `research_team_routes` con `echo $DSH_HOME`.
 
@@ -343,7 +343,7 @@ El panel «Investigación» lista los elementos de trabajo activos de `.research
 
 ### `spawn_teammate_with_model` no está disponible
 
-El submódulo envuelve un servicio interno de subagentes. Una actualización de DSH puede cambiar la forma de la activación. Revisa el texto del fallo; si el envoltorio no se puede instalar, establece `research-modeled-teammates.enabled: false`, reinicia y usa el `spawn_teammate` simple.
+El submódulo envuelve un servicio interno de subagentes. Una actualización de DSH puede cambiar la forma de la activación. Revisa el texto del fallo; si el envoltorio no se puede instalar, establece `research-modeled-teammates.enabled: false`, reinicia y usa el `subagent` simple.
 
 ### El preset no aparece en la lista
 

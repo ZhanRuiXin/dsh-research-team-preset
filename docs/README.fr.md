@@ -56,7 +56,7 @@ Un résultat négatif antérieur contraint la méthode, les données et le budge
 | Capacité | Fourni par | Remarques |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Développé contre `0.2.1-rc.5` ; d'autres versions peuvent fonctionner mais ne sont pas garanties |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Fournit `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` et les services Team ; le preset consigne son travail dans le worklog, pas dans les taches d'equipe |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Fournit `send_message`, `wait_agent`, `interrupt_agent` et les services Team ; le preset consigne son travail dans le worklog, pas dans les taches d'equipe |
 | Runtime PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) et [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Fait partie de la base DSH ; active `run_code` |
 
 **Intégrations facultatives.** Ces plugins sont écrits par d’autres auteurs. Le preset fonctionne sans eux et n’en installe aucun ; ajoutez-en un seulement pour relier l’équipe à lui :
@@ -231,7 +231,7 @@ Chaque profil comporte une ligne par membre par défaut :
 - **Model** : une liste déroulante contenant les modèles de tous les providers, avec des en-têtes de groupe de providers non cliquables. Sélectionner un modèle définit à la fois le provider et le modèle.
 - **Reasoning effort** : une seconde liste déroulante avec les efforts annoncés pour le modèle sélectionné, plus une option de valeur par défaut du modèle.
 
-Un modèle vide signifie « hériter de la route du Lead » ; un effort vide signifie « utiliser la valeur par défaut du modèle ». `spawn_teammate_with_model` lit la valeur par défaut par rôle du profil sélectionné lorsque `model` est omis ; un `model` explicite la remplace. Le simple `spawn_teammate` hérite toujours du Lead.
+Un modèle vide signifie « hériter de la route du Lead » ; un effort vide signifie « utiliser la valeur par défaut du modèle ». `spawn_teammate_with_model` lit la valeur par défaut par rôle du profil sélectionné lorsque `model` est omis ; un `model` explicite la remplace. Le simple `subagent` hérite toujours du Lead.
 
 Paliers de capacité suggérés, comme point de départ plutôt que comme règle :
 
@@ -325,7 +325,7 @@ Regardez la sortie de spawn imprimée au-dessus du premier message du membre. El
 
 Deux autres causes ne concernent pas le fichier de réglages :
 
-- le Lead a appelé le `spawn_teammate` simple au lieu de `spawn_teammate_with_model`, qui hérite toujours du Lead. La persona demande au Lead de ne passer aucun `model` à l'outil modeled et de ne jamais revenir en arrière par doute sur les noms ;
+- le Lead a appelé le `subagent` simple au lieu de `spawn_teammate_with_model`, qui hérite toujours du Lead. La persona demande au Lead de ne passer aucun `model` à l'outil modeled et de ne jamais revenir en arrière par doute sur les noms ;
 
 - la ligne de réglages a été enregistrée sous un `DSH_HOME` différent de celui que lit l'hôte en cours. Comparez la ligne `settings file:` imprimée par `research_team_routes` avec `echo $DSH_HOME`.
 
@@ -343,7 +343,7 @@ Le panneau « Recherche » liste les éléments de travail actifs de `.research/
 
 ### `spawn_teammate_with_model` est indisponible
 
-Le sous-module enveloppe un service interne de sous-agents. Une mise à niveau de DSH peut modifier la forme de l'activation. Consultez le texte de l'échec ; si l'enveloppe ne peut pas s'installer, mettez `research-modeled-teammates.enabled: false`, redémarrez et utilisez le simple `spawn_teammate`.
+Le sous-module enveloppe un service interne de sous-agents. Une mise à niveau de DSH peut modifier la forme de l'activation. Consultez le texte de l'échec ; si l'enveloppe ne peut pas s'installer, mettez `research-modeled-teammates.enabled: false`, redémarrez et utilisez le simple `subagent`.
 
 ### Le preset n'est pas listé
 

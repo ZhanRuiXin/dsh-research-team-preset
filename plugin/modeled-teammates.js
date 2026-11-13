@@ -2,9 +2,8 @@
  * Optional modeled-teammate submodule (toggleable).
  *
  * The host Agent Teams tool `spawn_teammate` creates a child through
- * `ctx.agentTeams.spawnTeammate`, which calls `ctx.subagents.startActivation`
- * without per-child `agentOptions`; the child therefore inherits the Lead's
- * provider/model/reasoning effort.
+ * `ctx.subagents.startActivation` with no per-child `agentOptions`; a child
+ * started that way inherits the Lead's provider, model and reasoning effort.
  *
  * This module adds `spawn_teammate_with_model` and, only for the duration of
  * that tool's team spawn, injects `request.agentOptions` into
@@ -28,7 +27,7 @@ import { readRouteTable } from './settings-file.js'
 
 export const name = 'research-modeled-teammates'
 
-export const inject = ['tools', 'subagents', 'agentTeams', 'agents']
+export const inject = ['tools', 'subagents', 'agents']
 
 const modeledSpawn = new AsyncLocalStorage()
 const patches = new WeakMap()
@@ -165,20 +164,20 @@ function patchStartActivation(service) {
   const wrapped = function (spec) {
     const store = modeledSpawn.getStore()
     if (store !== undefined && spec !== null && typeof spec === 'object' && spec.delivery === 'parent') {
-      const parent = spec.request === undefined ? undefined : spec.request.parent
+      const nested = spec.request !== null && typeof spec.request === 'object' ? spec.request : undefined
+      const parent = nested === undefined ? spec.parent : nested.parent
       const sameParent = parent === store.caller ||
         (parent !== undefined && store.caller !== undefined && parent.id !== undefined && parent.id === store.caller.id)
       if (sameParent) {
-        return original.call(this, {
-          ...spec,
-          request: {
-            ...spec.request,
-            agentOptions: {
-              ...(spec.request.agentOptions === undefined ? {} : spec.request.agentOptions),
-              ...store.agentOptions
-            }
-          }
-        })
+        const holder = nested === undefined ? spec : nested
+        const merged = {
+          ...(holder.agentOptions === undefined ? {} : holder.agentOptions),
+          ...store.agentOptions
+        }
+        const next = nested === undefined
+          ? { ...spec, agentOptions: merged }
+          : { ...spec, request: { ...nested, agentOptions: merged } }
+        return original.call(this, next)
       }
     }
     return original.apply(this, arguments)
@@ -469,19 +468,34 @@ export function apply(ctx, config = {}) {
       const provider = context === 'fork' ? forkProvider : freshProvider
       const signal = exec.signal === undefined ? new AbortController().signal : exec.signal
       const spawn = () =>
-        ctx.agentTeams.spawnTeammate(agent, {
-          name: args.name,
-          description: args.description,
-          prompt: [{ type: 'text', text: args.prompt }],
-          context,
+        ctx.subagents.startActivation({
           provider,
-          signal
+          label: args.description,
+          ...(typeof args.name === 'string' && args.name !== '' ? { name: args.name } : {}),
+          prompt: [{ type: 'text', text: args.prompt }],
+          parent: agent,
+          signal,
+          delivery: 'parent'
         })
-      const member = requestedModel === undefined
+      const started = requestedModel === undefined
         ? await spawn()
         : await modeledSpawn.run({ caller: agent, agentOptions: requestedModel }, spawn)
-      const view = member !== null && typeof member === 'object' && member.member !== undefined ? member.member : member
-      const sessionId = view !== null && typeof view === 'object' && typeof view.id === 'string' ? view.id : undefined
+      const sessionId = started !== null && typeof started === 'object'
+        ? (typeof started.childId === 'string' ? started.childId : typeof started.id === 'string' ? started.id : undefined)
+        : undefined
+      const memberName = started !== null && typeof started === 'object' && typeof started.name === 'string'
+        ? started.name
+        : args.name
+      let live
+      if (sessionId !== undefined) {
+        try { live = ctx.agents.get(sessionId) } catch { live = undefined }
+      }
+      const member = {
+        id: sessionId,
+        name: memberName,
+        status: live?.status === 'running' ? 'running' : 'provisioning',
+        model: typeof live?.options?.model === 'string' ? live.options.model : requestedModel?.model
+      }
       const inherited = leadModeOf(ctx, agent)
       const permission = permissionFor(resolved.role, args.permission, inherited)
       const permissionResult = await applyPermission(ctx, sessionId, permission, signal, readOnlySessions)

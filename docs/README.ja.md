@@ -56,7 +56,7 @@ Lead の返答は科学的なコミュニケーションであり、ステータ
 | 機能 | Provider | 備考 |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` を基準に開発。他のリリースでも動作する可能性はありますが保証はありません |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | `spawn_teammate`、`send_message`、`wait_agent`、`interrupt_agent` と Team サービスを提供。本プリセットは作業をワークログに記録し、チームタスクには記録しません |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | `send_message`、`wait_agent`、`interrupt_agent` と Team サービスを提供。本プリセットは作業をワークログに記録し、チームタスクには記録しません |
 | PTC ランタイム | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) と [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH ベースの一部。`run_code` を有効化 |
 
 **任意の連携プラグイン。** これらは他者が開発したプラグインです。本プリセットはこれらに依存せず、インストールもしません。チームと連携させたい場合にのみ追加します:
@@ -229,7 +229,7 @@ Plugins → dsh-research-team-preset → research-team-settings → Configure
 - **モデル**: すべての provider のモデルを含む 1 つのドロップダウン。provider のグループヘッダーはクリックできません。モデルを選ぶと provider と model の両方が設定されます。
 - **推論強度**: 選択中のモデルが公開している強度に、モデルの既定値オプションを加えた 2 つ目のドロップダウン。
 
-モデルが空の場合は「Lead のルートを継承」、強度が空の場合は「モデルの既定値を使用」を意味します。`spawn_teammate_with_model` は `model` が省略されたときに選択中プロファイルの役割ごとの既定値を読み、明示的な `model` はそれを上書きします。通常の `spawn_teammate` は常に Lead を継承します。
+モデルが空の場合は「Lead のルートを継承」、強度が空の場合は「モデルの既定値を使用」を意味します。`spawn_teammate_with_model` は `model` が省略されたときに選択中プロファイルの役割ごとの既定値を読み、明示的な `model` はそれを上書きします。通常の `subagent` は常に Lead を継承します。
 
 推奨される能力ティア（あくまで出発点であり、規則ではありません）:
 
@@ -323,7 +323,7 @@ $DSH_HOME/research-team-settings.json
 
 ほかに設定ファイルとは無関係な原因が二つある。
 
-- Lead が modeled ツールではなく通常の `spawn_teammate` を呼んだ場合。これは常に Lead を継承する。persona は Lead に、modeled ツールへ `model` を渡さず、名前が不確かだからといってフォールバックしないよう求めている。
+- Lead が modeled ツールではなく通常の `subagent` を呼んだ場合。これは常に Lead を継承する。persona は Lead に、modeled ツールへ `model` を渡さず、名前が不確かだからといってフォールバックしないよう求めている。
 
 - 設定行が、実行中のホストが読むのとは別の `DSH_HOME` の下に保存されている場合。`research_team_routes` が出力する `settings file:` 行と `echo $DSH_HOME` を比較する。
 
@@ -341,7 +341,7 @@ $DSH_HOME/research-team-settings.json
 
 ### `spawn_teammate_with_model` が利用できない
 
-このサブモジュールは内部のサブエージェントサービスをラップしています。DSH のアップグレードでアクティベーションの形が変わる可能性があります。失敗メッセージを確認し、ラッパーをインストールできない場合は `research-modeled-teammates.enabled: false` を設定して再起動し、通常の `spawn_teammate` を使用してください。
+このサブモジュールは内部のサブエージェントサービスをラップしています。DSH のアップグレードでアクティベーションの形が変わる可能性があります。失敗メッセージを確認し、ラッパーをインストールできない場合は `research-modeled-teammates.enabled: false` を設定して再起動し、通常の `subagent` を使用してください。
 
 ### プリセットが一覧にない
 

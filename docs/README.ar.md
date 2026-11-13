@@ -58,7 +58,7 @@
 | القدرة | المزوّد | ملاحظات |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | طُوِّر على `0.2.1-rc.5`؛ قد تعمل إصدارات أخرى، لكن ذلك غير مضمون |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | يوفر `spawn_teammate` و`send_message` و`wait_agent` و`interrupt_agent` وخدمات Team؛ ويسجل هذا الإعداد العمل في سجل العمل لا في مهام الفريق |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | يوفر `subagent` و`send_message` و`wait_agent` و`interrupt_agent` وخدمات Team؛ ويسجل هذا الإعداد العمل في سجل العمل لا في مهام الفريق |
 | بيئة PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) و[`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | جزء من أساس DSH؛ يتيح `run_code` |
 
 **تكاملات اختيارية.** هذه إضافات من مؤلفين آخرين. يعمل الإعداد المسبق بدونها ولا يثبّتها؛ أضف واحدة فقط لربط الفريق بها:
@@ -231,7 +231,7 @@ Plugins → dsh-research-team-preset → research-team-settings → Configure
 - **Model**: قائمة منسدلة واحدة تضم نماذج كل المزوّدين، مع عناوين مجموعات مزوّدين غير قابلة للنقر. اختيار نموذج يضبط provider وmodel معًا.
 - **Reasoning effort**: قائمة منسدلة ثانية تضم قوى الاستدلال المعلنة للنموذج المحدد، إضافةً إلى خيار القيمة الافتراضية للنموذج.
 
-النموذج الفارغ يعني «وراثة مسار الـ Lead»؛ وقوة الاستدلال الفارغة تعني «استخدام القيمة الافتراضية للنموذج». يقرأ `spawn_teammate_with_model` القيمة الافتراضية للدور من ملف التعريف المحدد عندما يُحذف `model`؛ ويَغلِب عليه `model` الصريح. أما `spawn_teammate` العادي فيرث الـ Lead دائمًا.
+النموذج الفارغ يعني «وراثة مسار الـ Lead»؛ وقوة الاستدلال الفارغة تعني «استخدام القيمة الافتراضية للنموذج». يقرأ `spawn_teammate_with_model` القيمة الافتراضية للدور من ملف التعريف المحدد عندما يُحذف `model`؛ ويَغلِب عليه `model` الصريح. أما `subagent` العادي فيرث الـ Lead دائمًا.
 
 مستويات القدرات المقترحة، كنقطة انطلاق لا كقاعدة:
 
@@ -325,7 +325,7 @@ $DSH_HOME/research-team-settings.json
 
 هناك سببان آخران لا علاقة لهما بملف الإعدادات:
 
-- استدعى Lead الأداة العادية `spawn_teammate` بدلاً من `spawn_teammate_with_model` التي ترث Lead دائماً. وتطلب persona من Lead ألا يمرّر `model` إلى الأداة modeled وألا يتراجع أبداً بسبب الشك في الأسماء؛
+- استدعى Lead الأداة العادية `subagent` بدلاً من `spawn_teammate_with_model` التي ترث Lead دائماً. وتطلب persona من Lead ألا يمرّر `model` إلى الأداة modeled وألا يتراجع أبداً بسبب الشك في الأسماء؛
 
 - حُفظ سطر الإعدادات تحت `DSH_HOME` مختلف عن الذي يقرأه المضيف العامل. قارن سطر `settings file:` الذي تطبعه `research_team_routes` مع `echo $DSH_HOME`.
 
@@ -343,7 +343,7 @@ $DSH_HOME/research-team-settings.json
 
 ### الأداة `spawn_teammate_with_model` غير متاحة
 
-تلتفّ هذه الوحدة الفرعية حول خدمة subagent داخلية. وقد تغيّر ترقية DSH شكل التنشيط. تحقق من نص الفشل؛ وإن لم يتمكن الغلاف من التثبيت، فاضبط `research-modeled-teammates.enabled: false`، وأعد التشغيل، واستخدم `spawn_teammate` العادي.
+تلتفّ هذه الوحدة الفرعية حول خدمة subagent داخلية. وقد تغيّر ترقية DSH شكل التنشيط. تحقق من نص الفشل؛ وإن لم يتمكن الغلاف من التثبيت، فاضبط `research-modeled-teammates.enabled: false`، وأعد التشغيل، واستخدم `subagent` العادي.
 
 ### الـ preset غير مدرج
 

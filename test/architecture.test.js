@@ -231,34 +231,48 @@ test('experiment settings and run approval persist to disk', () => {
   assert.match(setRunApproval(root, 'missing', 'approved').error, /no manifest/)
 })
 
-test('teamRoster reports members and the work item each owns', () => {
-  const members = [
-    { id: 's-lead', name: 'lead', role: 'lead', status: 'running', model: 'deepseek/deepseek-v4.1-flash' },
-    { id: 's-builder', name: 'builder', role: 'teammate', status: 'inactive' }
-  ]
+test('teamRoster reports the Lead and continuable children with their work item', async () => {
   const ctx = {
-    agents: { get: (id) => (id === 's-1' ? { id: 's-1' } : undefined) },
-    agentTeams: { listMembers: (agent) => (agent.id === 's-1' ? members : []) }
+    agents: {
+      get: (id) => (id === 's-1'
+        ? { id: 's-1', status: 'running', options: { model: 'deepseek/deepseek-v4.1-flash', reasoningEffort: 'high' } }
+        : id === 's-builder'
+          ? { id: 's-builder', status: 'inactive' }
+          : undefined)
+    },
+    subagents: {
+      rootOf: () => ({ id: 's-1' }),
+      listDescendants: async () => ([
+        { id: 's-builder', path: 'builder', label: 'implementation', mode: 'continuable' },
+        { id: 's-broken', kind: 'diagnostic', reason: 'corrupt', mode: 'continuable' },
+        { id: 's-oneshot', mode: 'one-shot', label: 'probe' }
+      ])
+    }
   }
   const items = [
     { id: 'task-3', title: '编码器脚手架', owner: 'builder', status: 'in_progress' },
     { id: 'task-4', title: '基准生成器', owner: 'designer', status: 'todo' }
   ]
-  const roster = teamRoster(ctx, 's-1', items)
+  const roster = await teamRoster(ctx, 's-1', items)
   assert.equal(roster.length, 2)
+  assert.equal(roster[0].name, 'lead')
+  assert.equal(roster[0].role, 'lead')
+  assert.equal(roster[0].status, 'running')
+  assert.equal(roster[0].model, 'deepseek/deepseek-v4.1-flash')
+  assert.equal(roster[0].effort, 'high')
   assert.deepEqual(roster[1], {
     id: 's-builder',
     name: 'builder',
     role: 'teammate',
     status: 'inactive',
-    description: '',
+    description: 'implementation',
     model: '',
     effort: '',
     modelSource: 'unknown',
     item: { id: 'task-3', title: '编码器脚手架', status: 'in_progress', updated: undefined, next: undefined }
   })
-  assert.equal(teamRoster(ctx, 'missing', items).length, 0)
-  assert.equal(teamRoster({}, 's-1', items).length, 0)
+  assert.equal((await teamRoster(ctx, 'missing', items)).length, 0)
+  assert.equal((await teamRoster({}, 's-1', items)).length, 0)
 })
 
 test('experiments move through the lifecycle through the tool functions', () => {

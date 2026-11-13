@@ -56,7 +56,7 @@ Ein negatives Ergebnis früherer Arbeit beschränkt die Methode, die Daten und d
 | Funktion | Provider | Hinweise |
 | --- | --- | --- |
 | DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Entwickelt gegen `0.2.1-rc.5`; andere Releases können funktionieren, sind aber nicht garantiert |
-| Agent Teams | [`@deepseek-ai/dsh-experimental-agent-team-profile`](https://github.com/deepseek-ai/deepseek-harness) | Stellt `spawn_teammate`, `send_message`, `wait_agent`, `interrupt_agent` und die Team-Services bereit; das Preset fuehrt seine Arbeit im Worklog, nicht in Team-Tasks |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Stellt `send_message`, `wait_agent`, `interrupt_agent` und die Team-Services bereit; das Preset fuehrt seine Arbeit im Worklog, nicht in Team-Tasks |
 | PTC-Laufzeit | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) und [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Teil der DSH-Basis; aktiviert `run_code` |
 
 **Optionale Integrationen.** Diese Plugins stammen von anderen Autoren. Das Preset läuft ohne sie und installiert nichts; fügen Sie eines nur hinzu, um das Team damit zu verknüpfen:
@@ -231,7 +231,7 @@ Jedes Profil hat eine Zeile pro Standardmitglied:
 - **Modell**: ein Dropdown mit den Modellen aller Provider und nicht anklickbaren Provider-Gruppenüberschriften. Die Auswahl eines Modells legt sowohl Provider als auch Modell fest.
 - **Reasoning-Effort**: ein zweites Dropdown mit den für das ausgewählte Modell angegebenen Efforts sowie einer Option für den Modellstandard.
 
-Ein leeres Modell bedeutet „Route des Lead übernehmen“; ein leerer Effort bedeutet „Modellstandard verwenden“. `spawn_teammate_with_model` liest den rollenspezifischen Standard des ausgewählten Profils, wenn `model` fehlt; ein explizites `model` überschreibt ihn. Ein einfaches `spawn_teammate` übernimmt immer die Route des Lead.
+Ein leeres Modell bedeutet „Route des Lead übernehmen“; ein leerer Effort bedeutet „Modellstandard verwenden“. `spawn_teammate_with_model` liest den rollenspezifischen Standard des ausgewählten Profils, wenn `model` fehlt; ein explizites `model` überschreibt ihn. Ein einfaches `subagent` übernimmt immer die Route des Lead.
 
 Empfohlene Fähigkeitsstufen, als Ausgangspunkt und nicht als Regel:
 
@@ -325,7 +325,7 @@ Prüfen Sie die Spawn-Ausgabe über der ersten Nachricht des Mitglieds. Sie zeig
 
 Zwei weitere Ursachen betreffen nicht die Einstellungsdatei:
 
-- der Lead rief das einfache `spawn_teammate` statt `spawn_teammate_with_model` auf, das immer vom Lead erbt. Die Persona verlangt, dass der Lead dem modeled-Tool kein `model` übergibt und nie aus Unsicherheit über Namen zurückfällt;
+- der Lead rief das einfache `subagent` statt `spawn_teammate_with_model` auf, das immer vom Lead erbt. Die Persona verlangt, dass der Lead dem modeled-Tool kein `model` übergibt und nie aus Unsicherheit über Namen zurückfällt;
 
 - die Einstellungszeile wurde unter einem anderen `DSH_HOME` gespeichert als dem, das der laufende Host liest. Vergleichen Sie die von `research_team_routes` ausgegebene Zeile `settings file:` mit `echo $DSH_HOME`.
 
@@ -343,7 +343,7 @@ Das Panel „Forschung“ listet die aktiven Arbeitselemente aus `.research/work
 
 ### `spawn_teammate_with_model` ist nicht verfügbar
 
-Das Submodul umschließt einen internen Subagent-Service. Ein DSH-Upgrade kann die Form der Aktivierung ändern. Prüfen Sie den Fehlertext; falls der Wrapper nicht installiert werden kann, setzen Sie `research-modeled-teammates.enabled: false`, starten Sie neu und verwenden Sie das einfache `spawn_teammate`.
+Das Submodul umschließt einen internen Subagent-Service. Ein DSH-Upgrade kann die Form der Aktivierung ändern. Prüfen Sie den Fehlertext; falls der Wrapper nicht installiert werden kann, setzen Sie `research-modeled-teammates.enabled: false`, starten Sie neu und verwenden Sie das einfache `subagent`.
 
 ### Das Preset wird nicht angezeigt
 

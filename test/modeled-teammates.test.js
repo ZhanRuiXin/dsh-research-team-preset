@@ -92,27 +92,7 @@ function fakeContext({ defaultMode = 'workspace-write', leadMode } = {}) {
     subagents: {
       async startActivation(spec) {
         activations.push(spec)
-        return { id: 'child-1' }
-      }
-    },
-    agentTeams: {
-      async spawnTeammate(agent, request) {
-        await ctx.subagents.startActivation({
-          delivery: 'parent',
-          provider: request.provider,
-          label: request.description,
-          request: { prompt: request.prompt, parent: agent, signal: request.signal }
-        })
-        const spec = activations[activations.length - 1]
-        return {
-          id: 'child-1',
-          name: request.name,
-          status: 'running',
-          provider: request.provider,
-          context: request.context,
-          model: spec.request.agentOptions?.model,
-          target: 'teammate:child-1'
-        }
+        return { childId: 'child-1', name: spec.name ?? 'agent-1' }
       }
     }
   }
@@ -149,7 +129,7 @@ test('a modeled spawn resolves the file route and injects agentOptions', async (
   assert.equal(result.diagnostics, undefined)
   assert.equal(result.member.model, 'gpt-6-astra')
   assert.equal(activations.length, 1)
-  assert.deepEqual(activations[0].request.agentOptions, ROUTES.advisor)
+  assert.deepEqual(activations[0].agentOptions, ROUTES.advisor)
 })
 
 test('an explicit model overrides the configured route', async () => {
@@ -166,7 +146,7 @@ test('an explicit model overrides the configured route', async () => {
   )
   assert.equal(result.routeSource, 'explicit')
   assert.deepEqual(result.requestedModel, { provider: 'deepseek', model: 'deepseek-v4.1-flash', reasoningEffort: 'medium' })
-  assert.deepEqual(activations[0].request.agentOptions, result.requestedModel)
+  assert.deepEqual(activations[0].agentOptions, result.requestedModel)
 })
 
 test('an unconfigured role inherits but says so in diagnostics', async () => {
@@ -182,7 +162,7 @@ test('an unconfigured role inherits but says so in diagnostics', async () => {
   assert.ok(Array.isArray(result.diagnostics))
   assert.match(result.diagnostics[0], /no route configured for role "builder"/)
   assert.match(result.diagnostics[0], /inherits the Lead route/)
-  assert.equal(activations[0].request.agentOptions, undefined)
+  assert.equal(activations[0].agentOptions, undefined)
 })
 
 test('a name outside the standard roster reports the roster', async () => {

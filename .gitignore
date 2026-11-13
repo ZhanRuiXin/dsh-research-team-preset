@@ -7,3 +7,5 @@ Thumbs.db
 .env.*
 !.env.example
 research-team-settings.json
+# Runtime research state written by the preset inside a project.
+.research/

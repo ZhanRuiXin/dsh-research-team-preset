@@ -5,6 +5,7 @@ import path from 'node:path'
 import test from 'node:test'
 
 process.env.DSH_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-teammode-'))
+const workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-teammode-cwd-'))
 
 const { apply: applyPanel } = await import('../plugin/index.js')
 const { apply: applySpawn } = await import('../plugin/modeled-teammates.js')
@@ -28,7 +29,7 @@ function baseCtx(teams, handlers) {
   const tools = {}
   const agent = {
     id: 's1',
-    session: { header: { agentPreset: 'research-team', origin: 'startup', cwd: process.cwd() }, append() {} }
+    session: { header: { agentPreset: 'research-team', origin: 'startup', cwd: workdir }, append() {} }
   }
   const ctx = {
     systemPrompt: { section() { return () => {} } },

@@ -804,6 +804,7 @@ function statusLabel(status) {
       const [hover, setHover] = React.useState(null)
       const [showFinished, setShowFinished] = React.useState(false)
       const [openItem, setOpenItem] = React.useState('')
+      const [openRun, setOpenRun] = React.useState('')
       const rootRef = React.useRef(null)
 
       React.useEffect(() => { ensurePanelStyles() }, [])
@@ -1180,19 +1181,35 @@ function statusLabel(status) {
               state === 'stopped' || state === 'failed' ? entry.reason || '' : '',
               entry.approval === 'approved' && state !== 'approved' ? '已批准' : entry.approval === 'rejected' ? '已拒绝' : ''
             ].filter(Boolean).join(' · ')
-            return h('div', { key: entry.name, className: 'rtp-row' }, [
+            const open = openRun === entry.name
+            return h('div', {
+              key: entry.name,
+              className: open ? 'rtp-row open' : 'rtp-row',
+              onClick: () => setOpenRun(open ? '' : entry.name)
+            }, [
               h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(state) } }),
               h('div', { key: 'main', className: 'rtp-rowmain' }, [
                 h('div', { key: 't', className: 'rtp-rowtitle' }, [
                   h('span', { key: 'name', style: { fontFamily: 'var(--dsw-font-family-mono)', fontSize: '14px' } }, entry.name),
                   seedDots(entry.seeds) === null ? null : h('span', { key: 'seeds', className: 'rtp-seeds' }, seedDots(entry.seeds))
                 ]),
-                h('div', { key: 'm', className: 'rtp-rowmeta' }, meta)
+                h('div', { key: 'm', className: 'rtp-rowmeta' }, meta),
+                open ? h('div', { key: 'x', className: 'rtp-itemextra' }, [
+                  entry.question ? h('div', { key: 'q' }, `问题：${entry.question}`) : null,
+                  entry.hypothesis ? h('div', { key: 'h' }, `假设：${entry.hypothesis}`) : null,
+                  entry.decisionRule ? h('div', { key: 'd' }, `判定：${entry.decisionRule}`) : null,
+                  entry.reason ? h('div', { key: 'r' }, `原因：${entry.reason}`) : null,
+                  entry.evidence ? h('div', { key: 'e' }, `证据：${entry.evidence}`) : null,
+                  h('div', { key: 'a' }, [
+                    entry.startedAt ? `开始 ${entry.startedAt.slice(0, 16).replace('T', ' ')}` : '',
+                    entry.finishedAt ? ` · 结束 ${entry.finishedAt.slice(0, 16).replace('T', ' ')}` : ''
+                  ].join(''))
+                ]) : null
               ]),
               pending
                 ? h('div', { key: 'act', style: { display: 'flex', gap: '6px', flexShrink: 0 } }, [
-                    h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: () => decideRun(entry.name, 'approved') }, '批准'),
-                    h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: () => decideRun(entry.name, 'rejected') }, '拒绝')
+                    h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideRun(entry.name, 'approved') } }, '批准'),
+                    h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideRun(entry.name, 'rejected') } }, '拒绝')
                   ])
                 : h('span', {
                     key: 'chip',

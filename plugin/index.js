@@ -732,11 +732,16 @@ export function buildPanelState(root, options = {}) {
       } else {
         approval = settings.approval === 'auto' ? 'auto' : 'pending'
       }
+      const text = (value, limit) => (typeof value === 'string' ? value.slice(0, limit) : '')
       runs.push({
         name,
         status,
         state,
-        reason: typeof parsed.reason === 'string' ? parsed.reason : '',
+        reason: text(parsed.reason, 300),
+        question: text(parsed.question, 300),
+        hypothesis: text(parsed.hypothesis, 300),
+        decisionRule: text(parsed.decisionRule, 300),
+        evidence: text(parsed.evidence, 300),
         seeds: typeof parsed.seeds === 'string' ? parsed.seeds : '',
         budget: typeof parsed.budget === 'string' ? parsed.budget : '',
         startedAt: Number.isNaN(startedAt) ? '' : new Date(startedAt).toISOString(),

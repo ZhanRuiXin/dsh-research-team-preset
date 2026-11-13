@@ -2,6 +2,18 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.0.
 
+## Unreleased
+
+- Experiments expand in place on click, the same way work items do: a run opens its question, hypothesis, decision rule, reason and timing, and collapses on a second click.
+
+- Only a directory under `runs/` with a readable `manifest.json` counts as a run line, so stray files and side directories no longer appear as 已登记 experiments.
+
+- The team status pill drops its absolutely-positioned pulse dot, which escaped to the panel corner; the pill text already carries the state.
+
+- The Research panel tab carries an icon in the sidebar and the plugin list, and the preset ships `icon.svg` artwork.
+
+- Architecture chip labels derive from the specific part of a card title: a card titled `实现：分析路径` now shows 分析路径 instead of 实现.
+
 ## 0.2.0 — 2026-11-12
 
 - Work items expand in place on click: the row grows to show the full title, next action, blocked reason, evidence and checklist, and collapses on a second click.

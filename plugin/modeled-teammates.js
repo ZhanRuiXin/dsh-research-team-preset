@@ -347,7 +347,7 @@ function describeRequested(requested) {
 function render(value) {
   const member = value === null || value === undefined ? undefined : value.member
   if (member === null || member === undefined || typeof member !== 'object') {
-    return [{ type: 'text', text: 'Teammate creation returned no roster row.' }]
+    return [{ type: 'text', text: 'Teammate creation returned no child session row.' }]
   }
   const head = [`Created teammate "${String(member.name)}"`]
   if (member.status !== undefined) head.push(`status=${String(member.status)}`)
@@ -549,7 +549,7 @@ export function apply(ctx, config = {}) {
       const permissionResult = await applyPermission(ctx, sessionId, permission, signal, readOnlySessions)
       let warning
       if (requestedModel !== undefined && typeof member?.model === 'string' && member.model !== requestedModel.model) {
-        warning = `requested model ${requestedModel.model} but roster reports ${member.model}; the activation patch may be incompatible with this DSH build.`
+        warning = `requested model ${requestedModel.model} but the child reports ${member.model}; the activation patch may be incompatible with this DSH build.`
       }
       return {
         member,

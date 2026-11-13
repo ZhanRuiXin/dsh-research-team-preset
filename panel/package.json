@@ -13,5 +13,6 @@
     "client": {
       "platform": "web"
     }
-  }
+  },
+  "icon": "./icon.svg"
 }

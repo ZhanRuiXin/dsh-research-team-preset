@@ -59,9 +59,11 @@
     "README.md",
     "DEVELOPMENT.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "icon.svg"
   ],
   "engines": {
     "node": ">=22"
-  }
+  },
+  "icon": "./icon.svg"
 }

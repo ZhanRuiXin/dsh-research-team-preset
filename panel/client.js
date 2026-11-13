@@ -1254,7 +1254,7 @@ function statusLabel(status) {
           id: 'research-team:panel',
           title: '研究面板',
           description: '团队状态：架构、工作项与实验',
-          icon: h(PanelIcon, { size: 15 }),
+          icon: (size) => h(PanelIcon, { size: size || 15 }),
           order: 40,
           single: true,
           component: (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })

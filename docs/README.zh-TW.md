@@ -328,7 +328,7 @@ $DSH_HOME/research-team-settings.json
 
 ### 每個隊友都跑在 Lead 的模型上
 
-先看 spawn 結果裡第一行上方的文字。套用了設定或明確路由時會印出 `requested=<provider>/<model> effort=<effort>`；沒有匹配到路由時會印出 `requested=inherit (Lead route)` 並附一條 `note:`。`note:` 裡點名某個角色，表示作用中的設定檔裡該角色沒有填 provider/model；提示名字不是標準角色，表示隊友名字裡沒有出現角色詞。
+先看 spawn 結果裡第一行上方的文字。套用了設定或明確路由時會印出 `requested=<provider>/<model> effort=<effort>`；沒有匹配到路由時會印出 `requested=inherit (Lead route)` 並附一條 `note:`。`note:` 裡點名某個角色，表示作用中的設定檔裡該角色沒有填 provider/model。
 
 另外兩種原因與設定檔無關。一是 Lead 使用了普通的委派工具，它永遠繼承 Lead；persona 已要求 Lead 使用 modeled 工具並且不要傳 `model`，也不要因為不確定名字就退回。二是儲存設定時所處的 `DSH_HOME` 與執行中的 host 讀取的不是同一個，可以對比 `research_team_routes` 印出的 `settings file:` 與 `echo $DSH_HOME`。
 

@@ -119,7 +119,7 @@ test('a modeled spawn resolves the file route and injects agentOptions', async (
   assert.ok(tool, 'spawn_teammate_with_model is registered')
 
   const result = await tool.execute(
-    { name: 'ELHA-R advisor', description: 'Senior advisor', prompt: 'Review the design.' },
+    { name: 'advisor', description: 'Senior advisor', prompt: 'Review the design.' },
     { agent }
   )
 
@@ -130,8 +130,8 @@ test('a modeled spawn resolves the file route and injects agentOptions', async (
   assert.equal(result.member.model, 'gpt-6-astra')
   assert.equal(activations.length, 1)
   assert.deepEqual(activations[0].agentOptions, ROUTES.advisor)
-  assert.equal(activations[0].name, 'elha-r-advisor')
-  assert.equal(result.member.name, 'elha-r-advisor')
+  assert.equal(activations[0].name, 'advisor')
+  assert.equal(result.member.name, 'advisor')
   assert.equal('agentPreset' in activations[0], false)
   assert.equal(activations[0].prompt.length, 1)
   assert.equal(activations[0].prompt[0].type, 'text')
@@ -139,31 +139,30 @@ test('a modeled spawn resolves the file route and injects agentOptions', async (
   assert.match(activations[0].prompt[0].text, /`research-role-advisor` skill/)
 })
 
-test('an explicit role routes a custom teammate name like the role', async () => {
+test('a custom teammate name is refused', async () => {
   writeSettingsFile(v2File())
   const { tools, activations } = fakeContext()
-  const result = await tools.spawn_teammate_with_model.execute(
-    { name: 'zhang', role: 'advisor', description: 'Advisor under a custom name', prompt: 'Review the design.' },
-    { agent }
+  await assert.rejects(
+    tools.spawn_teammate_with_model.execute(
+      { name: 'zhang', role: 'advisor', description: 'Advisor under a custom name', prompt: 'Review the design.' },
+      { agent }
+    ),
+    /the teammate's name must be the role it plays/
   )
-  assert.equal(result.role, 'advisor')
-  assert.equal(result.routeSource, 'file')
-  assert.deepEqual(result.requestedModel, ROUTES.advisor)
-  assert.equal(result.diagnostics, undefined)
-  assert.deepEqual(activations[0].agentOptions, ROUTES.advisor)
-  assert.equal(activations[0].name, 'zhang')
-  assert.match(activations[0].prompt[0].text, /`research-role-advisor` skill/)
+  assert.equal(activations.length, 0)
 })
 
-test('a reserved or unusable name falls back to the host default', async () => {
+test('a name outside the eight roles is refused', async () => {
   writeSettingsFile(v2File())
   const { tools, activations } = fakeContext()
-  const result = await tools.spawn_teammate_with_model.execute(
-    { name: 'Lead', description: 'Reserved name', prompt: 'Go.' },
-    { agent }
+  await assert.rejects(
+    tools.spawn_teammate_with_model.execute(
+      { name: 'Lead', description: 'Reserved name', prompt: 'Go.' },
+      { agent }
+    ),
+    /limited to the eight standard roles/
   )
-  assert.equal('name' in activations[0], false)
-  assert.equal(result.member.name, 'agent-1')
+  assert.equal(activations.length, 0)
 })
 
 test('a fork inherits the context instead of selecting the member preset', async () => {
@@ -225,15 +224,30 @@ test('an unconfigured role inherits but says so in diagnostics', async () => {
   assert.equal(activations[0].agentOptions, undefined)
 })
 
-test('a name outside the standard roster reports the roster', async () => {
+test('a role without a name uses the role as the name', async () => {
   writeSettingsFile(v2File())
-  const { tools } = fakeContext()
+  const { tools, activations } = fakeContext()
   const result = await tools.spawn_teammate_with_model.execute(
-    { name: 'probe-med', description: 'Probe', prompt: 'Probe.' },
+    { role: 'runner', description: 'Run the pilot', prompt: 'Run it.' },
     { agent }
   )
-  assert.equal(result.role, undefined)
-  assert.match(result.diagnostics[0], /not one of the standard roles/)
+  assert.equal(result.role, 'runner')
+  assert.equal(activations[0].name, 'runner')
+  assert.equal(result.member.name, 'runner')
+  assert.match(activations[0].prompt[0].text, /`research-role-runner` skill/)
+})
+
+test('a name that disagrees with the role is refused', async () => {
+  writeSettingsFile(v2File())
+  const { tools, activations } = fakeContext()
+  await assert.rejects(
+    tools.spawn_teammate_with_model.execute(
+      { name: 'builder', role: 'runner', description: 'Mixed', prompt: 'Go.' },
+      { agent }
+    ),
+    /the teammate's name must be the role it plays/
+  )
+  assert.equal(activations.length, 0)
 })
 
 test('a broken settings file is reported instead of silently inheriting', async () => {

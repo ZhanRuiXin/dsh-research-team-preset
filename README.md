@@ -241,7 +241,7 @@ Each profile has one row per default member:
 
 An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. A named child started without `model` inherits the Lead route.
 
-Route lookup happens at spawn time and reads `$DSH_HOME/research-team-settings.json` directly before falling back to the in-process store, so a session opened before the Plugins page was ever saved still resolves the configured routes. A teammate name resolves to a role when it contains the role as a whole word (`advisor`, `ELHA-R advisor`, `advisor-hi`); a name with no standard role inherits the Lead route, and the tool result carries a `diagnostics` note saying which role was matched and why nothing was configured. The Lead can call `research_team_routes` to read the configured table instead of guessing provider and model names.
+Route lookup happens at spawn time and reads `$DSH_HOME/research-team-settings.json` directly before falling back to the in-process store, so a session opened before the Plugins page was ever saved still resolves the configured routes. The team is limited to the eight standard roles and a teammate's name is its role, so `spawn_teammate_with_model` refuses any other name and the role alone selects the route. When the active profile has no route for that role the teammate inherits the Lead route, and the tool result carries a `diagnostics` note saying so. The Lead can call `research_team_routes` to read the configured table instead of guessing provider and model names.
 
 Suggested capability tiers, as a starting point rather than a rule:
 
@@ -333,7 +333,7 @@ Version 0.1.0 fixes the known cause: the old loader passed the whole `{ roles: .
 
 ### Every teammate runs on the Lead's model
 
-Check the spawn result printed above the member's first message. It reads `requested=<provider>/<model> effort=<effort>` when a configured or explicit route was applied, and `requested=inherit (Lead route)` with a `note:` line when no route matched. A `note:` naming the role means that role has no provider/model in the active profile; a note saying the name is not a standard role means the teammate name did not contain a role word.
+Check the spawn result printed above the member's first message. It reads `requested=<provider>/<model> effort=<effort>` when a configured or explicit route was applied, and `requested=inherit (Lead route)` with a `note:` line when no route matched. A `note:` naming the role means that role has no provider/model in the active profile.
 
 Two other causes are not about the settings file:
 

@@ -4,7 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
-- The `role` argument now routes a custom teammate name: `spawn_teammate_with_model` with `name: "zhang"` and `role: "advisor"` takes the advisor's configured provider/model instead of silently inheriting the Lead's route, and the spawn records the role under `.research/team/members.jsonl` so the panel shows that configured model for the custom name both before and after the child goes idle.
+- The team is limited to the eight standard roles. `spawn_teammate_with_model` refuses a custom name and takes the role from the name (or from `role`), so the teammate always loads the matching `research-role-<role>` skill and uses that role's configured route; the name is no longer a free-form label.
 
 ## 0.2.3 — 2026-11-14
 

@@ -73,20 +73,20 @@ Lead के उत्तर वैज्ञानिक संचार हो�
 ### DSH प्लगइन पृष्ठ से इंस्टॉल करें
 
 2. **सेटिंग्स → प्लगइन** खोलें और **जोड़ें** पर क्लिक करें।
-3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.2.2`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
+3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.2.3`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
 4. **DSH को पुनः आरंभ करें।** प्रीसेट पंक्तियाँ और बंडल का क्लाइंट भाग स्टार्टअप पर लोड होते हैं।
 5. **उसी प्रोफ़ाइल में बंडल सक्षम होने की पुष्टि करें**, फिर **नया सत्र खोलें** और मोड चयनकर्ता में **Research Team Mode** चुनें।
 
 ### कमांड लाइन से इंस्टॉल करें
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 रजिस्ट्री के बजाय स्रोत पिन करने के लिए:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > यह मोड प्रोफ़ाइल-स्तरीय बंडल है: एक प्रोफ़ाइल में इंस्टॉल करने से वह दूसरे में सक्षम नहीं होता। प्रत्येक प्रोफ़ाइल के लिए इंस्टॉल और पूर्वापेक्षाएँ दोहराएँ।
@@ -301,7 +301,7 @@ $DSH_HOME/research-team-settings.json
 | सेटिंग | स्थान | नोट्स |
 | --- | --- | --- |
 | Preset id | `cordis.patch.yml` | `research-team`; टास्क कार्डों में `presetId=research-team` का उपयोग करना चाहिए |
-| Persona | `cordis.patch.yml` | अंग्रेज़ी सिस्टम प्रॉम्प्ट; मोड-व्यापी नियम |
+| Prompt | `prompt/` | अंग्रेज़ी साझा कोर जिसे `plugin/prompt.js` preset persona के रूप में माउंट करता है; भूमिका ब्रीफ़ `plugin/roles.js` के ज़रिए अंतर्निहित skills के रूप में मिलते हैं |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | `spawn_teammate_with_model` और उसके service wrapper को हटाने के लिए `false` सेट करें |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn टूल द्वारा उपयोग किए जाने वाले subagent प्रदाता; डिफ़ॉल्ट `spawn` / `fork` |
 | `research-team-settings` row | `cordis.patch.yml` | शीर्ष-स्तरीय host row; package-root नाम बनाए रखें |
@@ -309,7 +309,7 @@ $DSH_HOME/research-team-settings.json
 
 ## यह कैसे काम करता है
 
-- **Preset**: `cordis.patch.yml` persona, tool rows, modeled-teammates submodule और शीर्ष-स्तरीय settings row घोषित करता है।
+- **Preset**: `cordis.patch.yml` एक ही preset पंक्ति, `research-team`, घोषित करता है, जिसमें prompt पंक्ति, भूमिका-skill पंक्ति, tool पंक्तियाँ और modeled-teammates मॉड्यूल हैं। prompt पंक्ति सभी के लिए `prompt/core.md` माउंट करती है; भूमिका-skill पंक्ति `skill` टूल से `research-role-lead` और आठ विशेषज्ञ ब्रीफ़ देती है। शुरू किया गया साथी यही preset विरासत में लेता है; spawn टूल साथी को कॉलर के रूप में अस्वीकार करता है, इसलिए केवल Lead साथी बनाता है।
 - **Per-role routing**: `plugin/modeled-teammates.js` `subagents.startActivation` को `AsyncLocalStorage` के साथ लपेटता है और `agentOptions` केवल `spawn_teammate_with_model` कॉल के लिए इंजेक्ट करता है। आधिकारिक Agent Teams पैकेज अछूता रहता है। Cordis सेवाओं को ट्रेस करने योग्य प्रॉक्सी के रूप में देता है, इसलिए रैपर विधि की पहचान के बजाय अपने स्वयं के प्रॉपर्टी डिस्क्रिप्टर की जाँच करता है।
 - **Settings**: `settings/index.js` प्रोफ़ाइल JSON फ़ाइल लोड/सेव करता है और `GET/POST /api/dsh-research-team-settings` सर्व करता है; `client/index.js` `plugins.row.config` के माध्यम से Plugins-पृष्ठ का प्रोफ़ाइल एडिटर पंजीकृत करता है।
 - **Refresh**: `plugin/settings-store.js` इन-मेमोरी स्नैपशॉट रखता है, प्रत्येक पढ़ने और spawn पर सक्रिय प्रोफ़ाइल हल करता है, और यदि पढ़ना विफल हो तो अंतिम अच्छा स्नैपशॉट बनाए रखता है।

@@ -4,7 +4,7 @@
 
 **A DSH agent preset that turns one session into a small, coordinated research team.**
 
-**Version 0.2.2** · **Updated 2026-11-14**
+**Version 0.2.3** · **Updated 2026-11-14**
 
 <p align="center"><strong>English</strong> · <a href="docs/README.zh-CN.md">简体中文</a> · <a href="docs/README.zh-TW.md">繁體中文</a> · <a href="docs/README.ja.md">日本語</a> · <a href="docs/README.ko.md">한국어</a> · <a href="docs/README.de.md">Deutsch</a> · <a href="docs/README.fr.md">Français</a> · <a href="docs/README.es.md">Español</a> · <a href="docs/README.pt-BR.md">Português (Brasil)</a> · <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.ar.md">العربية</a> · <a href="docs/README.hi.md">हिन्दी</a></p>
 
@@ -15,6 +15,8 @@
 Research Team Mode is a DSH agent preset for running end-to-end research as a team instead of a single chat. The Lead plans the work, keeps the worklog (a JSON store under `.research/worklog/` with one item per piece of work, gated or internal), dispatches work, integrates results, and talks to the user. Eight default specialists cover advisory review, literature and evidence, data acquisition, experiment design, code, runs, independent review, and paper writing.
 
 The mode is built for research that spans days or weeks, needs traceable evidence, and benefits from clear role boundaries. It is not a one-shot Q&A mode: the Lead creates only the roles a task actually needs.
+
+The preset has one system prompt for the whole team. `prompt/core.md` holds the shared discipline and is mounted by `plugin/prompt.js`; each role's own duties are a built-in skill under `prompt/roles/`, registered by `plugin/roles.js` as `research-role-<role>`. The Lead loads `research-role-lead`, and a teammate loads the one its task message names, so every member runs the same preset with the same cacheable system prefix while carrying only the rules it needs.
 
 ## At a glance
 
@@ -77,20 +79,20 @@ This preset ships as a DSH bundle and is published on npm as `dsh-research-team-
 
 1. **Enable the required bundles** in the target profile: Agent Teams [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness). The optional integrations above can be added now or later.
 2. Open **Settings → Plugins** and click **Add**.
-3. Paste the install spec: `dsh-research-team-preset@0.2.2` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
+3. Paste the install spec: `dsh-research-team-preset@0.2.3` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
 4. **Restart DSH.** Preset rows and the client half of the bundle load at startup.
 5. **Check the bundle is enabled** in the same profile, then **open a new session** and select **Research Team Mode** in the mode selector.
 
 ### Install from the CLI
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 To pin the source instead of the registry:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > The mode is a profile-level bundle: installing it in one profile does not enable it in another. Repeat the install and prerequisite steps per profile.
@@ -174,7 +176,7 @@ A run or long job that outlives the turn leaves its job or terminal handle, host
 
 The preset adds a Research panel tab to the right sidebar. It answers what the team is doing now, what is blocked, and what comes next: the objective from the plan, the active work items from the JSON store (finished ones sit behind a 已完成 toggle), the runs with their lifecycle and approval state (a directory under `runs/` only counts once it carries a `manifest.json`), the architecture cards in their project-defined groups, and the live team. Click a work item or an experiment to expand the row: an item opens its full title, next action, blocked reason, evidence and checklist; a run opens its question, hypothesis, decision rule, reason and timing. Clicking it again collapses it.
 
-Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the selection can be quoted into the conversation; anything worth keeping is stored on the card as a note the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
+Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. The agent cannot see the rendered picture, so the tool returns a geometry audit instead: `op=check` lists overlapping or too-close boxes, boxes outside the canvas and crossing edges in plain coordinates, and `op=arrange` lays the card out as a left-to-right flow, grows the canvas and saves the result, so an agent can fix a tangled diagram without guessing. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the selection can be quoted into the conversation; anything worth keeping is stored on the card as a note the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
 
 The panel ships as its own module under `panel/`, separate from the settings form, so it can be enabled or disabled on its own. It appears as a right-sidebar tab in each conversation.
 
@@ -302,8 +304,8 @@ $DSH_HOME/research-team-settings.json
 
 | Setting | Location | Notes |
 | --- | --- | --- |
-| Preset id | `cordis.patch.yml` | `research-team`; use it when a session should run this preset |
-| Persona | `cordis.patch.yml` | English system prompt; mode-wide rules |
+| Preset id | `cordis.patch.yml` | `research-team`; use it when a session should run this preset. Teammates inherit it, so it is the only preset you pick |
+| Prompt | `prompt/` | English shared core mounted as the preset persona by `plugin/prompt.js`; the role briefs ship as built-in skills through `plugin/roles.js` |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Set `false` to remove `spawn_teammate_with_model` and its service wrapper |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Subagent providers used by the modeled spawn tool; defaults `spawn` / `fork` |
 | `research-team-settings` row | `cordis.patch.yml` | Top-level host row; keep the package-root name |
@@ -312,7 +314,7 @@ $DSH_HOME/research-team-settings.json
 
 ## How it works
 
-- **Preset**: `cordis.patch.yml` declares the persona, tool rows, the modeled-teammates submodule, and the top-level settings row.
+- **Preset**: `cordis.patch.yml` declares one preset row, `research-team`, with the prompt row, the role-skill row, the tool rows, the modeled-teammates submodule, and the top-level settings row. The prompt row mounts `prompt/core.md` for every member; the role-skill row serves `research-role-lead` and the eight specialist briefs, which the model loads with the `skill` tool. The preset also mounts `@deepseek-ai/dsh-tool-subagent-control` and `@deepseek-ai/dsh-tool-agent-team`: the profile supplies the subagent and agent-team services, not the tool packages, so `list_agents`, `send_message`, `wait_agent`, `interrupt_agent` and `team_task_*` only exist when the preset declares them. A spawned teammate inherits this preset instead of mounting a second one, and the spawn tool refuses a teammate caller so only the Lead can create teammates.
 - **Coordination ledger**: `plugin/index.js` registers an English ledger section (`plugin:dsh-research-team-worklog`) at the preset scope and provides `research_project` to resolve the current project root.
 - **Per-role routing**: `plugin/modeled-teammates.js` wraps `subagents.startActivation` with `AsyncLocalStorage` and injects `agentOptions` only for a `spawn_teammate_with_model` call. It resolves the route from `plugin/settings-file.js` (the settings JSON, read at spawn time) and falls back to the in-process store, so a preset submodule never depends on the top-level settings row having filled that store first. The official Agent Teams package is untouched. Cordis returns a traceable proxy for services, so the wrapper verifies its own property descriptor instead of method identity.
 - **Settings**: `settings/index.js` loads/saves the profile JSON file and serves `GET/POST /api/dsh-research-team-settings`; `client/index.js` registers the Plugins-page profile editor through `plugins.row.config`.

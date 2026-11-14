@@ -73,20 +73,20 @@ Lead の返答は科学的なコミュニケーションであり、ステータ
 ### DSH のプラグインページからインストール
 
 2. **設定 → プラグイン** を開き、**追加** をクリックします。
-3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.2.2`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
+3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.2.3`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
 4. **DSH を再起動します。** プリセット行とバンドルのクライアント側は起動時に読み込まれます。
 5. **同じプロファイルでバンドルが有効になっていることを確認**し、**新しいセッションを開いて** モード選択で **Research Team Mode** を選びます。
 
 ### コマンドラインからインストール
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 レジストリではなくソースを固定する場合:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > このモードはプロファイル単位のバンドルです。あるプロファイルにインストールしても別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件を繰り返してください。
@@ -297,7 +297,7 @@ $DSH_HOME/research-team-settings.json
 | 設定 | 場所 | 備考 |
 | --- | --- | --- |
 | プリセット ID | `cordis.patch.yml` | `research-team`。タスクカードでは `presetId=research-team` を使う |
-| ペルソナ | `cordis.patch.yml` | 英語のシステムプロンプト。モード全体のルール |
+| プロンプト | `prompt/` | 英語の共有コア。`plugin/prompt.js` がプリセットのペルソナとしてマウントし、役割ブリーフは `plugin/roles.js` が組み込み skill として配信 |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | `false` にすると `spawn_teammate_with_model` とそのサービスラッパーを削除 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn ツールが使うサブエージェント provider。既定値は `spawn` / `fork` |
 | `research-team-settings` 行 | `cordis.patch.yml` | トップレベルのホスト行。パッケージルート名を保つ |
@@ -305,7 +305,7 @@ $DSH_HOME/research-team-settings.json
 
 ## 仕組み
 
-- **プリセット**: `cordis.patch.yml` がペルソナ、ツール行、modeled-teammates サブモジュール、トップレベルの設定行を宣言します。
+- **プリセット**: `cordis.patch.yml` はプリセット行をひとつだけ宣言します（`research-team`）。prompt 行、役割 skill 行、ツール行、modeled-teammates モジュールを含みます。prompt 行が全員に `prompt/core.md` をマウントし、役割 skill 行が `skill` ツール経由で `research-role-lead` と八つの専門ブリーフを配信します。起動されたチームメイトはこのプリセットを継承し、spawn ツールはチームメイトからの呼び出しを拒否するため、チームメイトを作れるのは Lead だけです。
 - **役割ごとのルーティング**: `plugin/modeled-teammates.js` が `subagents.startActivation` を `AsyncLocalStorage` でラップし、`spawn_teammate_with_model` の呼び出しに限って `agentOptions` を注入します。公式の Agent Teams パッケージには手を加えません。 Cordis はサービスをトレース可能なプロキシとして返すため、ラッパーはメソッドの同一性ではなく自身のプロパティ記述子を検証します。
 - **設定**: `settings/index.js` がプロファイルの JSON ファイルを読み書きし、`GET/POST /api/dsh-research-team-settings` を提供します。`client/index.js` は `plugins.row.config` を通じて Plugins ページのプロファイルエディターを登録します。
 - **更新**: `plugin/settings-store.js` がメモリ内スナップショットを保持し、読み取りと spawn のたびにアクティブなプロファイルを解決します。読み取りに失敗した場合は最後に正常だったスナップショットを保持します。

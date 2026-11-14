@@ -132,6 +132,11 @@ test('a modeled spawn resolves the file route and injects agentOptions', async (
   assert.deepEqual(activations[0].agentOptions, ROUTES.advisor)
   assert.equal(activations[0].name, 'elha-r-advisor')
   assert.equal(result.member.name, 'elha-r-advisor')
+  assert.equal('agentPreset' in activations[0], false)
+  assert.equal(activations[0].prompt.length, 1)
+  assert.equal(activations[0].prompt[0].type, 'text')
+  assert.match(activations[0].prompt[0].text, /^Review the design\./)
+  assert.match(activations[0].prompt[0].text, /`research-role-advisor` skill/)
 })
 
 test('a reserved or unusable name falls back to the host default', async () => {
@@ -143,6 +148,32 @@ test('a reserved or unusable name falls back to the host default', async () => {
   )
   assert.equal('name' in activations[0], false)
   assert.equal(result.member.name, 'agent-1')
+})
+
+test('a fork inherits the context instead of selecting the member preset', async () => {
+  writeSettingsFile(v2File())
+  const { tools, activations } = fakeContext()
+  await tools.spawn_teammate_with_model.execute(
+    { name: 'builder', description: 'Implement', prompt: 'Build it.', context: 'fork' },
+    { agent }
+  )
+  assert.equal('agentPreset' in activations[0], false)
+  assert.match(activations[0].prompt[0].text, /^Build it\./)
+  assert.match(activations[0].prompt[0].text, /`research-role-builder` skill/)
+})
+
+test('a teammate cannot spawn teammates of its own', async () => {
+  writeSettingsFile(v2File())
+  const { tools, activations } = fakeContext()
+  const teammate = { id: 'child-1', session: { header: { origin: 'subagent', delegationDepth: 1 } } }
+  await assert.rejects(
+    tools.spawn_teammate_with_model.execute(
+      { name: 'builder', description: 'Implement', prompt: 'Build it.' },
+      { agent: teammate }
+    ),
+    /only the Lead can create teammates/
+  )
+  assert.equal(activations.length, 0)
 })
 
 test('an explicit model overrides the configured route', async () => {

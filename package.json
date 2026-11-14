@@ -1,6 +1,6 @@
 {
   "name": "dsh-research-team-preset",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
   "type": "module",
   "description": "A DSH agent preset that turns one session into a small, coordinated research team; 科研团队模式，覆盖文献、数据、设计、实现、实验、复核与论文产出的端到端科研协作。",
@@ -9,7 +9,9 @@
     "./tool": "./plugin/index.js",
     "./modeled-teammates": "./plugin/modeled-teammates.js",
     "./settings": "./settings/index.js",
-    "./client": "./client/index.js"
+    "./prompt": "./plugin/prompt.js",
+    "./client": "./client/index.js",
+    "./roles": "./plugin/roles.js"
   },
   "dsh": {
     "bundle": {
@@ -24,7 +26,7 @@
     }
   },
   "scripts": {
-    "test": "node --test test/modeled-teammates.test.js test/workspace-init.test.js test/scope-check.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js test/team-mode.test.js"
+    "test": "node --test test/modeled-teammates.test.js test/workspace-init.test.js test/scope-check.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js test/team-mode.test.js test/prompt.test.js test/roles.test.js"
   },
   "repository": {
     "type": "git",
@@ -52,6 +54,7 @@
   "files": [
     "cordis.patch.yml",
     "plugin/",
+    "prompt/",
     "settings/",
     "client/",
     "panel/",

@@ -340,7 +340,7 @@ function statusLabel(status) {
 .rtp-file:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
 .rtp-file.missing{opacity:.55;cursor:default}
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
-.rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:7px}
+.rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-archgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-width:100%;align-items:center}
 .rtp-archg{flex:0 0 100%;font-size:11.5px;line-height:1.4;color:var(--dsw-alias-label-tertiary);margin:2px 0 0}
@@ -375,6 +375,7 @@ function statusLabel(status) {
 .rtp-tipline{white-space:normal;overflow-wrap:anywhere}
 .rtp-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;height:19px;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:500;border:.5px solid transparent}
 .rtp-idle{flex:0 0 auto;width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-border-l3);margin-right:3px}
+.rtp-idle.on{background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--dsw-alias-state-success-primary) 18%,transparent)}
 .rtp-pill.on{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 30%,transparent)}
 .rtp-pill.off{color:var(--dsw-alias-label-tertiary);background:var(--dsw-alias-bg-layer-2);border-color:var(--dsw-alias-border-l1)}
 .rtp-pill.warn{color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
@@ -902,15 +903,17 @@ function statusLabel(status) {
         if (event !== undefined && typeof event.stopPropagation === 'function') event.stopPropagation()
         if (file === null || typeof file !== 'object') return
         const api = pluginCtx === null || typeof pluginCtx.get !== 'function' ? undefined : pluginCtx.get('sidebarRight')
-        if (typeof file.url === 'string' && file.url.length > 0) {
-          if (String(file.kind) === 'url' && api !== undefined && typeof api.openTab === 'function') {
-            api.openTab('browser', { params: { url: file.url } })
-            return
-          }
-          if (api !== undefined && typeof api.openResource === 'function') {
-            api.openResource(file.url)
-            return
-          }
+        if (String(file.kind) === 'url' && typeof file.url === 'string' && file.url.length > 0
+          && api !== undefined && typeof api.openTab === 'function') {
+          api.openTab('browser', { params: { url: file.url } })
+          return
+        }
+        // openResource takes a dsh-resource:// address, never a plain file URL;
+        // the host sends the address it resolved for the deliverable.
+        if (typeof file.address === 'string' && file.address.length > 0
+          && api !== undefined && typeof api.openResource === 'function') {
+          api.openResource(file.address)
+          return
         }
         setToast(file.path ? `打不开 ${file.path}` : '无法在侧栏打开')
       }
@@ -1024,8 +1027,11 @@ function statusLabel(status) {
         if (value === 'inactive') {
           return h('span', { key: 'pill', className: 'rtp-idle', title: '空闲' })
         }
-        // The running state is already in the label; a pulse drawn inside the pill
-        // used to escape to the panel corner because the pill is not positioned.
+        if (value === 'running') {
+          // The word 运行中 ate the width the member name needs; the dot keeps the
+          // state visible and the hover card still spells it out.
+          return h('span', { key: 'pill', className: 'rtp-idle on', title: '运行中' })
+        }
         return h('span', { key: 'pill', className: `rtp-pill ${tone}` }, memberLabel(value))
       }
       const estimateTipHeight = (lines, width) => {

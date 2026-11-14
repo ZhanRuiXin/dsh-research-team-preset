@@ -73,20 +73,20 @@ Lead 的回复是科学性沟通，而不是状态播报：先给结论或结果
 ### 从 DSH 插件页面安装
 
 2. 打开 **设置 → 插件**，点击 **添加**。
-3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.2.2`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.2.3`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重启 DSH。** preset 行与 bundle 的客户端部分在启动时加载。
 5. **确认 bundle 在同一 profile 中已启用**，然后**新建会话**，在模式选择器中选择 **Research Team Mode**。
 
 ### 从命令行安装
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 若要固定源码而不是从 registry 安装：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > 该模式是 profile 级 bundle：在一个 profile 中安装不会在另一个 profile 中启用。每个 profile 都要重复安装与前置步骤。
@@ -306,7 +306,7 @@ $DSH_HOME/research-team-settings.json
 | 设置 | 位置 | 说明 |
 | --- | --- | --- |
 | Preset id | `cordis.patch.yml` | `research-team`；任务卡应使用 `presetId=research-team` |
-| Persona | `cordis.patch.yml` | 英文 system prompt；模式级规则 |
+| Prompt | `prompt/` | 英文共享核心，由 `plugin/prompt.js` 挂载为预设 persona；角色说明由 `plugin/roles.js` 作为内置 skill 提供 |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | 设为 `false` 可移除 `spawn_teammate_with_model` 及其服务包装 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn 工具使用的 subagent provider；默认 `spawn` / `fork` |
 | `research-team-settings` 行 | `cordis.patch.yml` | 顶层 host 行；保持包根名称 |
@@ -314,7 +314,7 @@ $DSH_HOME/research-team-settings.json
 
 ## 工作原理
 
-- **Preset**：`cordis.patch.yml` 声明 persona、工具行、modeled-teammates 子模块和顶层设置行。
+- **预设**：`cordis.patch.yml` 只声明一个预设行 `research-team`，含 prompt 行、角色 skill 行、工具行和 modeled-teammates 子模块。prompt 行给所有成员挂载 `prompt/core.md`；角色 skill 行通过 `skill` 工具提供 `research-role-lead` 与其余八份说明。启动的队友继承这个预设；spawn 工具会拒绝队友作为调用者，因此只有 Lead 能创建队友。
 - **按角色路由**：`plugin/modeled-teammates.js` 通过 `AsyncLocalStorage` 包装 `subagents.startActivation`，只对 `spawn_teammate_with_model` 调用注入 `agentOptions`。路由由 `plugin/settings-file.js` 在 spawn 时直接读配置 JSON 解析，读不到才退回进程内快照，因此 preset 子模块不再依赖顶层设置行先填好快照。官方 Agent Teams 包未被修改。 Cordis 对服务返回可追踪代理，因此包装器校验自身属性描述符，而不比较方法身份。
 - **设置**：`settings/index.js` 加载/保存配置 JSON 文件并提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 通过 `plugins.row.config` 注册「插件」页的配置编辑器。
 - **刷新**：`plugin/settings-store.js` 持有内存快照，在每次读取和 spawn 时解析活动配置，并在读取失败时保留最后一次有效快照。

@@ -11,11 +11,16 @@ dsh-research-team-preset/
 ├── AGENTS.md                 # Branch and merge rules for coding agents
 ├── CHANGELOG.md
 ├── LICENSE
-├── cordis.patch.yml          # Preset declaration: persona, tool rows, settings row
+├── cordis.patch.yml          # Preset declaration: one preset row, prompt row, role-skill row, tool rows, settings row
 ├── package.json
+├── prompt/
+│   ├── core.md               # Shared persona every member loads
+│   └── roles/                # One brief per role (lead, advisor, researcher, …)
 ├── plugin/
 │   ├── index.js              # research_project, research_workspace_init, research_scope_check, worklog protocol
 │   ├── modeled-teammates.js  # spawn_teammate_with_model, research_team_routes, permission handling
+│   ├── prompt.js             # Mounts prompt/core.md as the preset persona
+│   ├── roles.js              # Serves prompt/roles/*.md as built-in skills (research-role-<role>)
 │   ├── settings-file.js
 │   └── settings-store.js
 ├── settings/index.js         # Settings API (GET/POST /api/dsh-research-team-settings)
@@ -23,6 +28,8 @@ dsh-research-team-preset/
 ├── docs/                     # Translated READMEs and translation notes
 └── test/
     ├── modeled-teammates.test.js
+    ├── prompt.test.js
+    ├── roles.test.js
     ├── scope-check.test.js
     └── workspace-init.test.js
 ```
@@ -44,13 +51,15 @@ node --check panel/index.js
 node --check panel/client.js
 node --check plugin/index.js
 node --check plugin/modeled-teammates.js
+node --check plugin/prompt.js
+node --check plugin/roles.js
 node --check client/index.js
 npm test
 ```
 
-`npm test` runs the seven test files: spawn routing, permission inheritance and automatic team mode, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, and settings-route mounting.
+`npm test` runs the nine test files: spawn routing, permission inheritance and automatic team mode, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, the shared persona, the role-skill provider, and settings-route mounting.
 
-Parse `cordis.patch.yml` with the `yaml` package after stripping `!!js` tags, and confirm the persona prefix contains every required section. Keep the 12 READMEs structurally in sync (same `## ` and `### ` headings in each).
+Parse `cordis.patch.yml` with the `yaml` package after stripping `!!js` tags, confirm the single `research-team` preset carries the prompt row, the role-skills row and the `research-modeled-teammates` row, then check `prompt/core.md` and every `prompt/roles/*.md` (`node tmp/val-prompt.cjs`). Keep the 12 READMEs structurally in sync (same `## ` and `### ` headings in each).
 
 ## Verification checklist
 
@@ -68,4 +77,4 @@ research_scope_check                     # envelope check on a card handoff
 
 ## Versioning
 
-Semantic versioning. The current release is **0.2.2**; see [CHANGELOG.md](CHANGELOG.md). Releases are tagged from `main` as `vX.Y.Z` and published to npm as `dsh-research-team-preset`.
+Semantic versioning. The current release is **0.2.3**; see [CHANGELOG.md](CHANGELOG.md). Releases are tagged from `main` as `vX.Y.Z` and published to npm as `dsh-research-team-preset`.

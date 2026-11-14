@@ -4,7 +4,7 @@
 
 **Un preset d'agent DSH qui transforme une session en une petite équipe de recherche coordonnée.**
 
-**Version 0.2.2** · **Mise à jour 2026-11-14**
+**Version 0.2.3** · **Mise à jour 2026-11-14**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <strong>Français</strong> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -73,20 +73,20 @@ Ce preset est livré comme bundle DSH et publié sur npm sous le nom `dsh-resear
 ### Installer depuis la page Plugins de DSH
 
 2. Ouvrez **Réglages → Plugins** et cliquez sur **Ajouter**.
-3. Collez la source d’installation : `dsh-research-team-preset@0.2.2` pour le paquet npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2` pour épingler la source, ou `link:/absolute/path/to/dsh-research-team-preset` pour un checkout local.
+3. Collez la source d’installation : `dsh-research-team-preset@0.2.3` pour le paquet npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3` pour épingler la source, ou `link:/absolute/path/to/dsh-research-team-preset` pour un checkout local.
 4. **Redémarrez DSH.** Les lignes de preset et la moitié client du bundle se chargent au démarrage.
 5. **Vérifiez que le bundle est activé** dans le même profil, puis **ouvrez une nouvelle session** et choisissez **Research Team Mode** dans le sélecteur de mode.
 
 ### Installer depuis la ligne de commande
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 Pour épingler la source plutôt que le registre :
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > Le mode est un bundle au niveau du profil : l’installer dans un profil ne l’active pas dans un autre. Répétez l’installation et les prérequis pour chaque profil.
@@ -299,7 +299,7 @@ $DSH_HOME/research-team-settings.json
 | Réglage | Emplacement | Remarques |
 | --- | --- | --- |
 | Preset id | `cordis.patch.yml` | `research-team` ; les cartes de tâches doivent utiliser `presetId=research-team` |
-| Persona | `cordis.patch.yml` | Prompt système en anglais ; règles valables pour tout le mode |
+| Prompt | `prompt/` | Cœur partagé en anglais monté par `plugin/prompt.js` comme persona du preset ; les briefs de rôle sont des skills intégrés servis par `plugin/roles.js` |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Mettre `false` pour retirer `spawn_teammate_with_model` et son enveloppe de service |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Fournisseurs de sous-agents utilisés par l'outil de spawn modélisé ; valeurs par défaut `spawn` / `fork` |
 | Ligne `research-team-settings` | `cordis.patch.yml` | Ligne hôte de premier niveau ; conservez le nom à la racine du paquet |
@@ -307,7 +307,7 @@ $DSH_HOME/research-team-settings.json
 
 ## Fonctionnement
 
-- **Preset** : `cordis.patch.yml` déclare la persona, les lignes d'outils, le sous-module modeled-teammates et la ligne de réglages de premier niveau.
+- **Preset** : `cordis.patch.yml` déclare une seule ligne de preset, `research-team`, avec la ligne de prompt, celle des skills de rôle, les lignes d’outils et le module modeled-teammates. La ligne de prompt monte `prompt/core.md` pour tous ; celle des skills de rôle sert `research-role-lead` et les huit briefs spécialisés via l’outil `skill`. Un coéquipier lancé hérite de ce preset ; l’outil de spawn refuse un coéquipier comme appelant, donc seul le Lead crée des coéquipiers.
 - **Routage par rôle** : `plugin/modeled-teammates.js` enveloppe `subagents.startActivation` avec `AsyncLocalStorage` et injecte `agentOptions` uniquement pour un appel `spawn_teammate_with_model`. Le paquet officiel Agent Teams n'est pas modifié. Cordis expose les services via un proxy traçable ; le wrapper vérifie donc son propre descripteur de propriété plutôt que l'identité de la méthode.
 - **Réglages** : `settings/index.js` charge et enregistre le fichier JSON des profils et sert `GET/POST /api/dsh-research-team-settings` ; `client/index.js` enregistre l'éditeur de profils de la page Plugins via `plugins.row.config`.
 - **Rafraîchissement** : `plugin/settings-store.js` détient l'instantané en mémoire, résout le profil actif à chaque lecture et à chaque spawn, et conserve le dernier instantané valide si une lecture échoue.

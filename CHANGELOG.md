@@ -1,6 +1,13 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.2.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.3.
+
+## 0.2.3 — 2026-11-14
+
+- `research_architecture` gained `op=check` and `op=arrange`: the agent cannot see the rendered SVG, so `check` reports overlapping or too-close boxes, boxes outside the canvas and crossing edges as coordinates, and `arrange` re-lays a card as a left-to-right flow with a canvas grown to fit. Node `w`/`h` are honoured as the box size, so a long label can reserve the room it needs.
+- Deliverable files open in the right sidebar again: the panel passes the host a `dsh-resource://file/absolute/...` address through `openResource`, because a plain `file://` URL was silently ignored. Running members are marked with a small dot instead of the word 运行中 in the roster tile, which gives the name the width it needs.
+- The preset mounts `@deepseek-ai/dsh-tool-subagent-control` and `@deepseek-ai/dsh-tool-agent-team`, so `list_agents`, `send_message`, `wait_agent`, `interrupt_agent` and `team_task_*` exist in a research-team session; the profile supplies the subagent and agent-team services only, and the preset had been assuming the tools came with them.
+- One preset, one shared system prompt, role duties as built-in skills. `prompt/core.md` is the only persona: `plugin/prompt.js` mounts it, and `spawn_teammate_with_model` starts a teammate with no separate preset so the child inherits the Lead's composition and the same cacheable system prefix. The nine briefs under `prompt/roles/` ship as built-in skills through `plugin/roles.js` (`research-role-<role>`), named in the Lead's or teammate's first instruction and loaded on demand with the `skill` tool. The spawn tool now refuses a teammate caller, so only the Lead creates teammates.
 
 ## 0.2.2 — 2026-11-14
 

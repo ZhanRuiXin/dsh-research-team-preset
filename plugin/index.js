@@ -391,6 +391,159 @@ export function readArchitectureCard(root, id) {
   }
 }
 
+/** Minimum breathing room between two node boxes, in canvas pixels. */
+export const ARCH_NODE_GAP = 24
+
+/** The boxes the panel draws, with the same defaults the card normalizer uses. */
+export function architectureBoxes(card) {
+  return (Array.isArray(card?.nodes) ? card.nodes : []).map((node) => ({
+    id: String(node.id),
+    label: String(node.label ?? ''),
+    x: Number(node.x) || 0,
+    y: Number(node.y) || 0,
+    w: Number(node.w) || 160,
+    h: Number(node.h) || 56
+  }))
+}
+
+function segmentCrosses(a, b) {
+  const cross = (o, p, q) => (p.x - o.x) * (q.y - o.y) - (p.y - o.y) * (q.x - o.x)
+  const d1 = cross(a.p1, a.p2, b.p1)
+  const d2 = cross(a.p1, a.p2, b.p2)
+  const d3 = cross(b.p1, b.p2, a.p1)
+  const d4 = cross(b.p1, b.p2, a.p2)
+  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))
+}
+
+/**
+ * Geometry audit of a card: boxes that overlap or sit outside the canvas and
+ * edges that cross. Returned as text-friendly issues so an agent can fix the
+ * coordinates instead of guessing from a picture it cannot see.
+ */
+export function checkArchitectureCard(card) {
+  const issues = []
+  const boxes = architectureBoxes(card)
+  const byId = new Map(boxes.map((box) => [box.id, box]))
+  const canvas = {
+    width: Number(card?.canvas?.width) || 520,
+    height: Number(card?.canvas?.height) || 300
+  }
+  for (const box of boxes) {
+    if (box.x < 0 || box.y < 0 || box.x + box.w > canvas.width || box.y + box.h > canvas.height) {
+      const right = box.x + box.w
+      const bottom = box.y + box.h
+      issues.push({
+        code: 'outside',
+        nodes: [box.id],
+        message: `"${box.id}" spans x ${box.x}-${right}, y ${box.y}-${bottom}, outside the ${canvas.width}x${canvas.height} canvas; move it inside or enlarge canvas.width/height.`
+      })
+    }
+  }
+  for (let i = 0; i < boxes.length; i += 1) {
+    for (let j = i + 1; j < boxes.length; j += 1) {
+      const a = boxes[i]
+      const b = boxes[j]
+      const overlapX = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)
+      const overlapY = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
+      if (overlapX > -ARCH_NODE_GAP && overlapY > -ARCH_NODE_GAP) {
+        const degree = overlapX > 0 && overlapY > 0 ? 'overlap' : 'too close'
+        issues.push({
+          code: overlapX > 0 && overlapY > 0 ? 'overlap' : 'tight',
+          nodes: [a.id, b.id],
+          message: `"${a.id}" and "${b.id}" ${degree}: keep at least ${ARCH_NODE_GAP} px between boxes.`
+        })
+      }
+    }
+  }
+  const edges = Array.isArray(card?.edges) ? card.edges : []
+  const segments = edges
+    .filter((edge) => byId.has(edge.from) && byId.has(edge.to))
+    .map((edge) => {
+      const from = byId.get(edge.from)
+      const to = byId.get(edge.to)
+      return {
+        from: edge.from,
+        to: edge.to,
+        p1: { x: from.x + from.w / 2, y: from.y + from.h / 2 },
+        p2: { x: to.x + to.w / 2, y: to.y + to.h / 2 }
+      }
+    })
+  for (let i = 0; i < segments.length; i += 1) {
+    for (let j = i + 1; j < segments.length; j += 1) {
+      const a = segments[i]
+      const b = segments[j]
+      if (a.from === b.from || a.from === b.to || a.to === b.from || a.to === b.to) continue
+      if (segmentCrosses(a, b)) {
+        issues.push({
+          code: 'crossing',
+          nodes: [a.from, a.to, b.from, b.to],
+          message: `edges "${a.from}"->"${a.to}" and "${b.from}"->"${b.to}" cross; reorder the boxes or drop one edge.`
+        })
+      }
+    }
+  }
+  return { ok: issues.length === 0, canvas, nodes: boxes.length, edges: edges.length, issues }
+}
+
+/**
+ * Lay the card out as a left-to-right flow: one column per longest-path level,
+ * boxes separated by a fixed gap, canvas grown to fit. Existing order inside a
+ * level is kept, so a hand-placed card keeps its reading order.
+ */
+export function arrangeArchitectureCard(card) {
+  const boxes = architectureBoxes(card)
+  const edges = Array.isArray(card?.edges) ? card.edges : []
+  const ids = boxes.map((box) => box.id)
+  const known = new Set(ids)
+  const level = new Map(ids.map((id) => [id, 0]))
+  for (let pass = 0; pass <= ids.length; pass += 1) {
+    let changed = false
+    for (const edge of edges) {
+      if (!known.has(edge.from) || !known.has(edge.to)) continue
+      const want = (level.get(edge.from) ?? 0) + 1
+      if (want > (level.get(edge.to) ?? 0) && want < ids.length) {
+        level.set(edge.to, want)
+        changed = true
+      }
+    }
+    if (!changed) break
+  }
+  const columns = new Map()
+  boxes.forEach((box, index) => {
+    const key = level.get(box.id) ?? 0
+    if (!columns.has(key)) columns.set(key, [])
+    columns.get(key).push({ ...box, index })
+  })
+  const gapX = 56
+  const gapY = 28
+  const pad = 24
+  let x = pad
+  let maxBottom = pad
+  const moved = []
+  const placed = new Map()
+  for (const key of [...columns.keys()].sort((a, b) => a - b)) {
+    const column = columns.get(key)
+    const width = Math.max(...column.map((box) => box.w))
+    let y = pad
+    for (const box of column) {
+      if (box.x !== x || box.y !== y) moved.push(box.id)
+      placed.set(box.id, { ...box, x, y })
+      y += box.h + gapY
+    }
+    maxBottom = Math.max(maxBottom, y - gapY)
+    x += width + gapX
+  }
+  const nodes = boxes.map((box) => {
+    const next = placed.get(box.id) ?? box
+    return { ...(card.nodes.find((node) => node.id === box.id) ?? box), x: next.x, y: next.y }
+  })
+  const canvas = {
+    width: Math.min(4000, Math.max(320, x - gapX + pad)),
+    height: Math.min(4000, Math.max(200, maxBottom + pad))
+  }
+  return { nodes, canvas, moved }
+}
+
 export function listArchitectureCards(root) {
   const dir = architectureDir(root)
   let names = []
@@ -650,6 +803,19 @@ export function setRunApproval(root, runId, decision) {
   return { ok: true }
 }
 
+/**
+ * The `dsh-resource://file/absolute/…` address of an absolute path: the only
+ * address the right sidebar's `openResource` opens. Segments are
+ * component-encoded and a drive colon stays literal.
+ */
+export function fileResourceAddress(absolute) {
+  const normalized = String(absolute).replace(/\\/g, '/').replace(/^\/+/, '')
+  return `dsh-resource://file/absolute/${normalized
+    .split('/')
+    .map((segment) => encodeURIComponent(segment).replace(/%3A/gi, ':'))
+    .join('/')}`
+}
+
 export function buildPanelState(root, options = {}) {
   const worklogPlan = readPlan(root)
   const plan = {
@@ -689,7 +855,7 @@ export function buildPanelState(root, options = {}) {
           const rel = path.relative(root, abs)
           const inside = rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel)
           const exists = inside && fs.existsSync(abs)
-          return { label, path: file.path, kind: 'file', exists, url: exists ? pathToFileURL(abs).href : '' }
+          return { label, path: file.path, kind: 'file', exists, address: exists ? fileResourceAddress(abs) : '', url: exists ? pathToFileURL(abs).href : '' }
         }).slice(0, 10)
       : []
   }))
@@ -858,6 +1024,16 @@ function renderArchitecture(value, args) {
   }
   if (value.removed === true) {
     return [{ type: 'text', text: `Removed architecture card "${value.id}".` }]
+  }
+  if (args.op === 'check' || (Array.isArray(value.issues) && value.ok !== undefined)) {
+    const lines = [
+      value.ok === true
+        ? `Layout OK: ${value.nodes} nodes and ${value.edges} edges fit the ${value.canvas.width}x${value.canvas.height} canvas with at least ${ARCH_NODE_GAP} px between boxes.`
+        : `${value.issues.length} layout issue(s) on a ${value.canvas.width}x${value.canvas.height} canvas:`
+    ]
+    for (const issue of value.issues ?? []) lines.push(`- ${issue.message}`)
+    if (value.moved !== undefined) lines.push(`Moved: ${value.moved.length === 0 ? 'nothing' : value.moved.join(', ')}`)
+    return [{ type: 'text', text: lines.join(NL) }]
   }
   if (args.op === 'get') {
     return [{ type: 'text', text: JSON.stringify(value, null, 2) }]
@@ -1462,15 +1638,15 @@ export function apply(ctx) {
   const disposeArchitecture = ctx.tools.register({
     name: 'research_architecture',
     description:
-      'Read or update the architecture cards shown in the Research sidebar: the diagrams of this project, stored as JSON under .research/architecture/<id>.json. A project names its own groups, one group per aspect it wants to show (for example method, implementation, data or training), and the panel draws one chip row per group; put every card in the group it belongs to. Use op=list to see them, op=get to read one, op=save to create or update, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a specific short title shown on its chip and a description shown in the chip hover card, and it already sits in its group row, so do not repeat the group name as a prefix (write 分析路径, not 实现：分析路径); before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and quote them into the conversation composer; when the point should stay with the card, record it in `notes` with op=save, and read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. Node boxes are sized from their labels, so omit w and h: the panel grows a box to fit its text and ignores a fixed width or height.',
+      'Read or update the architecture cards shown in the Research sidebar: the diagrams of this project, stored as JSON under .research/architecture/<id>.json. A project names its own groups, one group per aspect it wants to show (for example method, implementation, data or training), and the panel draws one chip row per group; put every card in the group it belongs to. Use op=list to see them, op=get to read one, op=save to create or update, op=check to audit the layout, op=arrange to re-lay it out automatically, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a specific short title shown on its chip and a description shown in the chip hover card, and it already sits in its group row, so do not repeat the group name as a prefix (write 分析路径, not 实现：分析路径); before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and quote them into the conversation composer; when the point should stay with the card, record it in `notes` with op=save, and read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. You cannot see the rendered picture, so after op=save call op=check: it reports boxes that overlap, sit closer than 24 px, run past the canvas, or edges that cross, in plain coordinates. Fix the coordinates yourself or call op=arrange, which lays the nodes out as a left-to-right flow, grows the canvas, and saves the result; then op=check again until it is clean. Nodes carry an optional w and h (the box size in pixels, default 160x56) so a long label reserves the room it needs.',
     parameters: {
       type: 'object',
       properties: {
-        op: { type: 'string', enum: ['list', 'get', 'save', 'remove', 'archive', 'restore'] },
+        op: { type: 'string', enum: ['list', 'get', 'save', 'check', 'arrange', 'remove', 'archive', 'restore'] },
         id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
         card: {
           type: 'object',
-          description: 'Full card for op=save: id, title (a specific short title, under 40 characters, shown on the sidebar chip; the chip already sits in its group row, so do not prefix it with the group name), description (the detail shown in the chip hover card, a sentence or two), group (the aspect this card belongs to, up to 24 characters, for example 方法, 实现, 数据 or 训练; a project defines its own), kind (an optional color hint: method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y}], edges [{from,to,label}], and notes. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
+          description: 'Full card for op=save: id, title (a specific short title, under 40 characters, shown on the sidebar chip; the chip already sits in its group row, so do not prefix it with the group name), description (the detail shown in the chip hover card, a sentence or two), group (the aspect this card belongs to, up to 24 characters, for example 方法, 实现, 数据 or 训练; a project defines its own), kind (an optional color hint: method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y,w,h}], edges [{from,to,label}], and notes. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
         },
         expectedVersion: { type: 'number', description: 'For op=save on an existing card, the version you read; a mismatch is rejected.' }
       },
@@ -1508,10 +1684,32 @@ export function apply(ctx) {
       if (op === 'save') {
         return saveArchitectureCard(root, args.card, args.expectedVersion)
       }
+      if (op === 'check') {
+        const card = readArchitectureCard(root, args.id)
+        return card === undefined ? { error: `No architecture card "${String(args.id)}".` } : checkArchitectureCard(card)
+      }
+      if (op === 'arrange') {
+        const card = readArchitectureCard(root, args.id)
+        if (card === undefined) return { error: `No architecture card "${String(args.id)}".` }
+        const arranged = arrangeArchitectureCard(card)
+        const saved = saveArchitectureCard(root, { ...card, canvas: arranged.canvas, nodes: arranged.nodes }, card.version)
+        if (saved.error !== undefined) return saved
+        const audit = checkArchitectureCard(saved)
+        return {
+          ok: audit.ok,
+          id: saved.id,
+          version: saved.version,
+          canvas: saved.canvas,
+          moved: arranged.moved,
+          nodes: audit.nodes,
+          edges: audit.edges,
+          issues: audit.issues
+        }
+      }
       if (op === 'archive' || op === 'restore') {
         return setArchitectureArchived(root, args.id, op === 'archive')
       }
-      return { error: `Unknown op "${op}"; expected list, get, save, remove, archive or restore.` }
+      return { error: `Unknown op "${op}"; expected list, get, save, check, arrange, remove, archive or restore.` }
     }
   })
 

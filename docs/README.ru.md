@@ -73,20 +73,20 @@ Research Team Mode - это пресет агента DSH для сквозно�
 ### Установка со страницы плагинов DSH
 
 2. Откройте **Настройки → Плагины** и нажмите **Добавить**.
-3. Вставьте источник установки: `dsh-research-team-preset@0.2.2` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
+3. Вставьте источник установки: `dsh-research-team-preset@0.2.3` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
 4. **Перезапустите DSH.** Строки пресета и клиентская часть бандла загружаются при старте.
 5. **Убедитесь, что бандл включён** в том же профиле, затем **откройте новую сессию** и выберите **Research Team Mode** в выборе режима.
 
 ### Установка из командной строки
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 Чтобы закрепить исходный код вместо реестра:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > Режим является бандлом уровня профиля: установка в одном профиле не включает его в другом. Повторите установку и предварительные условия для каждого профиля.
@@ -297,7 +297,7 @@ $DSH_HOME/research-team-settings.json
 | Настройка | Расположение | Примечания |
 | --- | --- | --- |
 | Preset id | `cordis.patch.yml` | `research-team`; карточки задач должны использовать `presetId=research-team` |
-| Персона | `cordis.patch.yml` | Английский system prompt; правила для всего режима |
+| Промпт | `prompt/` | Общее английское ядро, которое `plugin/prompt.js` монтирует как персону пресета; брифы ролей поставляются как встроенные навыки через `plugin/roles.js` |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Установите `false`, чтобы убрать `spawn_teammate_with_model` и его обёртку сервиса |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Провайдеры subagent, используемые инструментом modeled spawn; по умолчанию `spawn` / `fork` |
 | Строка `research-team-settings` | `cordis.patch.yml` | Host-строка верхнего уровня; сохраняйте имя корня пакета |
@@ -305,7 +305,7 @@ $DSH_HOME/research-team-settings.json
 
 ## Как это работает
 
-- **Preset**: `cordis.patch.yml` объявляет персону, строки инструментов, подмодуль modeled-teammates и строку настроек верхнего уровня.
+- **Пресет**: `cordis.patch.yml` объявляет одну строку пресета, `research-team`, со строкой промпта, строкой навыков ролей, строками инструментов и модулем modeled-teammates. Строка промпта монтирует `prompt/core.md` для всех; строка навыков ролей отдаёт `research-role-lead` и восемь брифов через инструмент `skill`. Запущенный коллега наследует этот пресет; инструмент spawn отклоняет вызов от коллеги, поэтому коллег создаёт только Lead.
 - **Маршрутизация по ролям**: `plugin/modeled-teammates.js` оборачивает `subagents.startActivation` через `AsyncLocalStorage` и внедряет `agentOptions` только для вызова `spawn_teammate_with_model`. Официальный пакет Agent Teams не изменяется. Cordis возвращает сервисы как трассируемый прокси, поэтому обёртка проверяет собственный дескриптор свойства, а не идентичность метода.
 - **Настройки**: `settings/index.js` загружает и сохраняет JSON-файл профилей и обслуживает `GET/POST /api/dsh-research-team-settings`; `client/index.js` регистрирует редактор профилей на странице Plugins через `plugins.row.config`.
 - **Обновление**: `plugin/settings-store.js` хранит снимок в памяти, определяет активный профиль при каждом чтении и spawn и сохраняет последний корректный снимок, если чтение не удалось.

@@ -75,20 +75,20 @@ Este preset é distribuído como bundle DSH e publicado no npm como `dsh-researc
 ### Instalar pela página de Plugins do DSH
 
 2. Abra **Configurações → Plugins** e clique em **Adicionar**.
-3. Cole a origem de instalação: `dsh-research-team-preset@0.2.2` para o pacote npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2` para fixar o código-fonte, ou `link:/absolute/path/to/dsh-research-team-preset` para um checkout local.
+3. Cole a origem de instalação: `dsh-research-team-preset@0.2.3` para o pacote npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3` para fixar o código-fonte, ou `link:/absolute/path/to/dsh-research-team-preset` para um checkout local.
 4. **Reinicie o DSH.** As linhas do preset e a metade cliente do bundle carregam na inicialização.
 5. **Verifique se o bundle está habilitado** no mesmo perfil, depois **abra uma nova sessão** e escolha **Research Team Mode** no seletor de modo.
 
 ### Instalar pela linha de comando
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 Para fixar o código-fonte em vez do registro:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > O modo é um bundle no nível do perfil: instalá-lo em um perfil não o habilita em outro. Repita a instalação e os pré-requisitos em cada perfil.
@@ -299,7 +299,7 @@ $DSH_HOME/research-team-settings.json
 | Configuração | Local | Observações |
 | --- | --- | --- |
 | Id do preset | `cordis.patch.yml` | `research-team`; os cartões de tarefa devem usar `presetId=research-team` |
-| Persona | `cordis.patch.yml` | Prompt de sistema em inglês; regras para todo o modo |
+| Prompt | `prompt/` | Núcleo compartilhado em inglês que `plugin/prompt.js` monta como persona do preset; os briefs de papel são skills integrados servidos por `plugin/roles.js` |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Defina como `false` para remover `spawn_teammate_with_model` e seu wrapper de serviço |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Provedores de subagente usados pela ferramenta de spawn modelada; padrões `spawn` / `fork` |
 | Linha `research-team-settings` | `cordis.patch.yml` | Linha host de nível superior; mantenha o nome na raiz do pacote |
@@ -307,7 +307,7 @@ $DSH_HOME/research-team-settings.json
 
 ## Como funciona
 
-- **Preset**: `cordis.patch.yml` declara a persona, as linhas de ferramentas, o submódulo modeled-teammates e a linha de configurações de nível superior.
+- **Preset**: `cordis.patch.yml` declara uma única linha de preset, `research-team`, com a linha de prompt, a de skills de papel, as linhas de ferramentas e o módulo modeled-teammates. A linha de prompt monta `prompt/core.md` para todos; a de skills de papel serve `research-role-lead` e os oito briefs especializados pela ferramenta `skill`. Um colega iniciado herda este preset; a ferramenta de spawn recusa um colega como chamador, então só o Lead cria colegas.
 - **Roteamento por função**: `plugin/modeled-teammates.js` envolve `subagents.startActivation` com `AsyncLocalStorage` e injeta `agentOptions` apenas em uma chamada `spawn_teammate_with_model`. O pacote oficial do Agent Teams permanece intacto. O Cordis expõe serviços como um proxy rastreável, então o wrapper verifica seu próprio descritor de propriedade em vez da identidade do método.
 - **Configurações**: `settings/index.js` carrega e salva o arquivo JSON de perfis e serve `GET/POST /api/dsh-research-team-settings`; `client/index.js` registra o editor de perfis da página de Plugins via `plugins.row.config`.
 - **Atualização**: `plugin/settings-store.js` mantém o snapshot em memória, resolve o perfil ativo em cada leitura e spawn e preserva o último snapshot válido se uma leitura falhar.

@@ -25,6 +25,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import fs from 'node:fs'
 import path from 'node:path'
 import { ROLE_NAMES, matchRoleName, modelForRole } from './settings-store.js'
+import { ROLES, roleSkill } from './roles.js'
 import { ensureTeamMode } from './index.js'
 import { readRouteTable } from './settings-file.js'
 
@@ -462,11 +463,11 @@ export function apply(ctx, config = {}) {
   const disposeTool = ctx.tools.register({
     name: 'spawn_teammate_with_model',
     description:
-      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics. The advisor and reviewer roles spawn read-only; every other role inherits the Lead sandbox mode. Pass permission to override.',
+      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics. The teammate runs the same preset and system prompt as the Lead and loads its role brief from the built-in `research-role-<role>` skill named in the task message. The advisor and reviewer roles spawn read-only; every other role inherits the Lead sandbox mode. Pass permission to override. Only the Lead can call this tool.',
     parameters: {
       type: 'object',
       properties: {
-        name: { type: 'string', description: 'Unique teammate name; include the role, e.g. "advisor" or "ELHA-R advisor". The host keeps lower-case letters, digits and hyphens, so other characters are folded into hyphens.' },
+        name: { type: 'string', description: 'Unique teammate name; include the role, e.g. "advisor" or "ELHA-R advisor" (stored as elha-r-advisor). The host keeps lower-case letters, digits and hyphens, so spaces and capitals are folded into hyphens.' },
         description: { type: 'string', description: 'Short description of the delegated responsibility.' },
         prompt: { type: 'string', description: 'Complete initial task for the teammate.' },
         context: { type: 'string', enum: ['fresh', 'fork'], description: 'Start mode; defaults to fresh.' },
@@ -485,6 +486,11 @@ export function apply(ctx, config = {}) {
           type: 'string',
           enum: ['read-only', 'workspace-write', 'danger-full-access'],
           description: "Sandbox permission for the teammate session. Defaults to read-only for the advisor and reviewer roles and to the Lead's current sandbox mode for every other role; pass a value only to override that default."
+        },
+        role: {
+          type: 'string',
+          enum: ['advisor', 'researcher', 'data', 'designer', 'builder', 'runner', 'reviewer', 'writer', 'member'],
+          description: 'Role this teammate plays. The task message names the built-in skill it must load (research-role-<role>). Omit to derive it from the name; an unknown name becomes a generic member that loads no role skill.'
         }
       },
       required: ['name', 'description', 'prompt'],
@@ -505,7 +511,21 @@ export function apply(ctx, config = {}) {
         throw new Error('spawn_teammate_with_model requires a calling agent')
       }
       await ensureTeamMode(ctx, agent)
+      const header = agent.session?.header
+      if (header?.origin === 'subagent' || (header?.delegationDepth ?? 0) > 0) {
+        throw new Error('only the Lead can create teammates; a teammate works on the item the Lead assigned to it')
+      }
       const context = args.context === 'fork' ? 'fork' : 'fresh'
+      const role = typeof args.role === 'string' && ROLES.includes(args.role)
+        ? args.role
+        : (matchRoleName(args.name) ?? 'member')
+      // The teammate runs the same preset and the same system prompt as the
+      // Lead. Role duties are a built-in skill, so the task message only names
+      // the skill to load instead of carrying a 3-10 KB brief.
+      const roleLine = ROLES.includes(role)
+        ? `\n\nStart by loading the \`${roleSkill(role)}\` skill with the \`skill\` tool; it holds the duties of this role.`
+        : ''
+      const promptText = `${args.prompt}${roleLine}`
       const explicit = args.model === undefined ? undefined : readModel(args)
       const resolved = explicit === undefined
         ? resolveConfiguredRoute(args.name)
@@ -519,7 +539,7 @@ export function apply(ctx, config = {}) {
           provider,
           label: args.description,
           ...(slug === undefined ? {} : { name: slug }),
-          prompt: [{ type: 'text', text: args.prompt }],
+          prompt: [{ type: 'text', text: promptText }],
           parent: agent,
           signal,
           delivery: 'parent'

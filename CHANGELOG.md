@@ -4,7 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
-- `research_library` now covers the Zotero local API surface the workflow needs: `search` gained pagination and tag/collection scope; new `attach` (three-phase file upload — the way a paper's PDF enters the library), `export` (BibTeX, BibLaTeX, RIS, CSL JSON), `annotations`, `fulltext`, `fulltextPut`, `file`, `fields`, `tagList`, `collectionList`, `collectionItems`, `collectionUpdate`, `collectionDelete`, `noteUpdate`, `noteDelete`, `delete`/`restore`, saved searches and `tagDelete`. Destructive ops take `confirm: true` and only move objects to the trash; every write still lands in `.research/library-log.jsonl`.
+- `research_zotero` now covers the Zotero local API surface the workflow needs: `search` gained pagination and tag/collection scope; new `attach` (three-phase file upload — the way a paper's PDF enters the library), `export` (BibTeX, BibLaTeX, RIS, CSL JSON), `annotations`, `fulltext`, `fulltextPut`, `file`, `fields`, `tagList`, `collectionList`, `collectionItems`, `collectionUpdate`, `collectionDelete`, `noteUpdate`, `noteDelete`, `delete`/`restore`, saved searches and `tagDelete`. Destructive ops take `confirm: true` and only move objects to the trash; every write still lands in `.research/library-log.jsonl`.
 - The team is limited to the eight standard roles. `spawn_teammate_with_model` refuses a custom name and takes the role from the name (or from `role`), so the teammate always loads the matching `research-role-<role>` skill and uses that role's configured route; the name is no longer a free-form label.
 
 ## 0.2.3 — 2026-11-14

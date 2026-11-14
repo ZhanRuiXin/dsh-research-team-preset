@@ -11,6 +11,7 @@ window.__ModuleLoader__.load({
     /* ---------------------------------------------------------------- */
 
     const PANEL_ROUTE = '/api/dsh-research-team-panel'
+const LITERATURE_ROUTE = '/api/dsh-research-team-literature'
 
     const KIND_LABELS = {
       input: '输入',
@@ -411,6 +412,15 @@ function statusLabel(status) {
 .rtp-primary{height:29px;padding:0 12px;border:0;border-radius:7px;background:var(--dsw-alias-button-primary-fill);color:var(--dsw-alias-label-primary-foreground);font:inherit;font-size:14px;font-weight:500;cursor:pointer}
 .rtp-primary:disabled{opacity:.45;cursor:default}
 .rtp-error{margin:10px 16px 0;padding:8px 10px;border-radius:8px;font-size:14px;color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 8%,transparent);border:.5px solid color-mix(in srgb,var(--dsw-alias-state-error-primary) 28%,transparent)}
+.rtp-litquery{width:100%;box-sizing:border-box;height:30px;margin:0 0 7px;padding:0 9px;border-radius:8px;border:.5px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-size:13.5px;outline:none}
+.rtp-litquery:focus{border-color:var(--dsw-alias-brand-primary)}
+.rtp-litquery::placeholder{color:var(--dsw-alias-label-tertiary)}
+.rtp-litchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.rtp-lit{max-height:300px}
+.rtp-litrow{align-items:center;cursor:default}
+.rtp-litact{display:flex;gap:4px;flex:none}
+.rtp-litact .rtp-ghost{height:24px;padding:0 6px;font-size:12.5px}
+.rtp-litlink{color:var(--dsw-alias-brand-primary)}
 .rtp-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:64px;z-index:60;padding:7px 12px;border-radius:8px;font-size:14px;background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-primary);border:.5px solid var(--dsw-alias-border-l2);box-shadow:var(--dsw-shadow-lv2)}
 .rtp-skel{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--dsw-alias-bg-layer-2) 25%,var(--dsw-alias-bg-layer-3) 37%,var(--dsw-alias-bg-layer-2) 63%);background-size:400% 100%;animation:rtp-shine 1.2s ease-in-out infinite}
 @keyframes rtp-shine{0%{background-position:100% 0}100%{background-position:0 0}}
@@ -812,6 +822,10 @@ function statusLabel(status) {
       const [showFinished, setShowFinished] = React.useState(false)
       const [openItem, setOpenItem] = React.useState('')
       const [openRun, setOpenRun] = React.useState('')
+      const [literature, setLiterature] = React.useState({ loading: true, items: [], count: 0, error: '' })
+      const [litQuery, setLitQuery] = React.useState('')
+      const [litFilter, setLitFilter] = React.useState('all')
+      const [litScope, setLitScope] = React.useState('project')
       const rootRef = React.useRef(null)
 
       React.useEffect(() => { ensurePanelStyles() }, [])
@@ -847,6 +861,22 @@ function statusLabel(status) {
           document.removeEventListener('visibilitychange', onVisible)
         }
       }, [load])
+
+      React.useEffect(() => {
+        let cancelled = false
+        const timer = setTimeout(async () => {
+          const params = new URLSearchParams({ session: sessionId || '', q: litQuery.trim(), filter: litFilter, scope: litScope })
+          try {
+            const response = await fetch(`${LITERATURE_ROUTE}?${params.toString()}`)
+            const data = await response.json()
+            if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`)
+            if (!cancelled) setLiterature({ loading: false, items: data.items || [], count: data.count || 0, error: '' })
+          } catch (failure) {
+            if (!cancelled) setLiterature({ loading: false, items: [], count: 0, error: failure.message })
+          }
+        }, litQuery.trim() === '' ? 0 : 320)
+        return () => { cancelled = true; clearTimeout(timer) }
+      }, [sessionId, litQuery, litFilter, litScope])
 
       React.useEffect(() => {
         if (toast === '') return undefined
@@ -942,6 +972,58 @@ function statusLabel(status) {
           void failure
           setToast(text)
         }
+      }
+
+      function insertIntoComposer(text, message) {
+        try {
+          const actx = pluginCtx !== null && typeof pluginCtx.sessions?.scope === 'function' ? pluginCtx.sessions.scope(sessionId) : undefined
+          const conversation = actx !== undefined && typeof actx.get === 'function' ? actx.get('conversation') : undefined
+          const shell = conversation !== undefined && typeof conversation.input?.for === 'function' ? conversation.input.for(actx) : undefined
+          const actions = shell === undefined ? undefined : shell.actions
+          if (actions !== undefined && typeof actions.insertQuote === 'function' && actions.insertQuote(text) !== false) {
+            setToast(message)
+            if (typeof window !== 'undefined') window.setTimeout(focusComposer, 30)
+            return true
+          }
+        } catch (failure) {
+          void failure
+        }
+        try {
+          navigator.clipboard.writeText(text)
+          setToast('已复制引用，粘贴到输入框')
+        } catch (failure) {
+          void failure
+          setToast(text)
+        }
+        return false
+      }
+
+      function copyCitation(text, message) {
+        try {
+          navigator.clipboard.writeText(text)
+          setToast(message)
+        } catch (failure) {
+          void failure
+          setToast(text)
+        }
+      }
+
+      function citationOf(entry) {
+        return entry.citationKey || entry.key
+      }
+
+      function insertCitation(entry) {
+        insertIntoComposer(`\\cite{${citationOf(entry)}}`, '已加入输入框')
+      }
+
+      function openLiteratureItem(entry) {
+        const api = pluginCtx === null || typeof pluginCtx.get !== 'function' ? undefined : pluginCtx.get('sidebarRight')
+        const url = `zotero://select/library/items/${entry.key}`
+        if (api !== undefined && typeof api.openTab === 'function') {
+          api.openTab('browser', { params: { url } })
+          return
+        }
+        setToast(url)
       }
 
       const header = h('div', { key: 'header', className: 'rtp-header' }, [
@@ -1266,13 +1348,86 @@ function statusLabel(status) {
             ])
           })))
 
+      const literatureSection = h(Section, {
+        key: 'literature',
+        title: '文献',
+        action: h('button', {
+          key: 'scope',
+          type: 'button',
+          className: 'rtp-toggle',
+          title: litScope === 'project' ? '只看本项目入库的文献' : '搜索整个 Zotero 文库',
+          onClick: () => setLitScope(litScope === 'project' ? 'all' : 'project')
+        }, litScope === 'project' ? '本项目' : '全库')
+      }, [
+        h('input', {
+          key: 'q',
+          type: 'search',
+          className: 'rtp-litquery',
+          placeholder: '搜索标题、作者、DOI…',
+          value: litQuery,
+          onChange: (event) => setLitQuery(event.target.value)
+        }),
+        h('div', { key: 'filters', className: 'rtp-litchips' }, [
+          ['all', '全部'], ['fulltext', '全文'], ['meta', '仅元数据'], ['annot', '有批注']
+        ].map(([value, label]) => h('button', {
+          key: value,
+          type: 'button',
+          className: litFilter === value ? 'rtp-arch on' : 'rtp-arch',
+          onClick: () => setLitFilter(value)
+        }, label))),
+        literature.loading
+          ? h('div', { key: 'loading', className: 'rtp-empty' }, '读取文献…')
+          : literature.error !== ''
+            ? h('div', { key: 'error', className: 'rtp-empty' }, literature.error)
+            : literature.items.length === 0
+              ? h('div', { key: 'empty', className: 'rtp-empty' }, litScope === 'project' ? '这个项目还没有入库文献' : '没有匹配的文献')
+              : h('div', { key: 'list', className: 'rtp-items rtp-lit' }, literature.items.map((entry) => h('div', {
+                  key: entry.key,
+                  className: 'rtp-row rtp-litrow'
+                }, [
+                  h('div', { key: 'main', className: 'rtp-rowmain' }, [
+                    h('div', { key: 't', className: 'rtp-rowtitle' }, entry.title || entry.key),
+                    h('div', { key: 'm', className: 'rtp-rowmeta' }, [
+                      entry.authors.length > 0 ? entry.authors.join(', ') : '未署名',
+                      entry.year ? ` · ${entry.year}` : '',
+                      entry.venue ? ` · ${entry.venue}` : '',
+                      entry.attachments > 0 ? ' · 全文' : '',
+                      entry.annotations > 0 ? ` · 批注 ${entry.annotations}` : ''
+                    ])
+                  ]),
+                  h('div', { key: 'act', className: 'rtp-litact' }, [
+                    h('button', {
+                      key: 'cite',
+                      type: 'button',
+                      className: 'rtp-ghost',
+                      title: `复制 \\cite{${citationOf(entry)}}`,
+                      onClick: (event) => { event.stopPropagation(); copyCitation(`\\cite{${citationOf(entry)}}`, '已复制 \\cite 引用') }
+                    }, 'cite'),
+                    h('button', {
+                      key: 'quote',
+                      type: 'button',
+                      className: 'rtp-ghost',
+                      title: '插入引用到会话输入框',
+                      onClick: (event) => { event.stopPropagation(); insertCitation(entry) }
+                    }, '引用'),
+                    h('button', {
+                      key: 'open',
+                      type: 'button',
+                      className: 'rtp-ghost',
+                      title: '在 Zotero 中打开',
+                      onClick: (event) => { event.stopPropagation(); openLiteratureItem(entry) }
+                    }, '打开')
+                  ])
+                ])))
+      ])
+
       const body = state === null && error === ''
         ? h('div', { key: 'skel', className: 'rtp-section' }, [
             h('div', { key: 'a', className: 'rtp-skel', style: { width: '46%', height: '8px' } }),
             h('div', { key: 'b', className: 'rtp-skel', style: { width: '86%', height: '13px', marginTop: '12px' } }),
             h('div', { key: 'c', className: 'rtp-skel', style: { width: '64%', height: '10px', marginTop: '10px' } })
           ])
-        : [teamSection, archSection, cardsSection, runsSection]
+        : [teamSection, archSection, cardsSection, runsSection, literatureSection]
 
       return h('div', { className: 'rtp-root', ref: rootRef }, [
         header,

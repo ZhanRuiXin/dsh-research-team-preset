@@ -21,6 +21,8 @@ dsh-research-team-preset/
 │   ├── modeled-teammates.js  # spawn_teammate_with_model, research_team_routes, permission handling
 │   ├── prompt.js             # Mounts prompt/core.md as the preset persona
 │   ├── roles.js              # Serves prompt/roles/*.md as built-in skills (research-role-<role>)
+│   ├── library.js            # research_zotero: Zotero local-API reads and writes
+│   ├── literature.js         # research_literature: project reading list and the panel route
 │   ├── settings-file.js
 │   └── settings-store.js
 ├── settings/index.js         # Settings API (GET/POST /api/dsh-research-team-settings)
@@ -30,6 +32,7 @@ dsh-research-team-preset/
     ├── modeled-teammates.test.js
     ├── prompt.test.js
     ├── roles.test.js
+    ├── literature.test.js
     ├── scope-check.test.js
     └── workspace-init.test.js
 ```
@@ -54,11 +57,12 @@ node --check plugin/modeled-teammates.js
 node --check plugin/prompt.js
 node --check plugin/roles.js
 node --check plugin/library.js
+node --check plugin/literature.js
 node --check client/index.js
 npm test
 ```
 
-`npm test` runs the ten test files: spawn routing, permission inheritance and automatic team mode, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, the shared persona, the role-skill provider, the Zotero local-API library client, and settings-route mounting.
+`npm test` runs the eleven test files: spawn routing, permission inheritance and automatic team mode, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, the shared persona, the role-skill provider, the Zotero local-API library client, the project literature index, and settings-route mounting.
 
 Parse `cordis.patch.yml` with the `yaml` package after stripping `!!js` tags, confirm the single `research-team` preset carries the prompt row, the role-skills row and the `research-modeled-teammates` row, then check `prompt/core.md` and every `prompt/roles/*.md` (`node tmp/val-prompt.cjs`). Keep the 12 READMEs structurally in sync (same `## ` and `### ` headings in each).
 

@@ -2,6 +2,10 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.3.
 
+## Unreleased
+
+- The `role` argument now routes a custom teammate name: `spawn_teammate_with_model` with `name: "zhang"` and `role: "advisor"` takes the advisor's configured provider/model instead of silently inheriting the Lead's route, and the spawn records the role under `.research/team/members.jsonl` so the panel shows that configured model for the custom name both before and after the child goes idle.
+
 ## 0.2.3 — 2026-11-14
 
 - `research_architecture` gained `op=check` and `op=arrange`: the agent cannot see the rendered SVG, so `check` reports overlapping or too-close boxes, boxes outside the canvas and crossing edges as coordinates, and `arrange` re-lays a card as a left-to-right flow with a canvas grown to fit. Node `w`/`h` are honoured as the box size, so a long label can reserve the room it needs.

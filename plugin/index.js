@@ -1123,7 +1123,7 @@ function renderState(value) {
   return [{ type: 'text', text: lines.join(NL) }]
 }
 
-function rosterRow(ctx, id, name, role, items) {
+function rosterRow(ctx, id, name, role, items, routeRole = '') {
   const list = Array.isArray(items) ? items : []
   const open = list.find((item) => item.owner === name)
   let live
@@ -1133,7 +1133,7 @@ function rosterRow(ctx, id, name, role, items) {
   const liveModel = typeof live?.options?.model === 'string' ? live.options.model : ''
   const liveEffortValue = live?.options?.reasoningEffort ?? live?.options?.effort
   const liveEffort = typeof liveEffortValue === 'string' ? liveEffortValue : ''
-  const configured = role === 'teammate' ? modelForRole(name) : undefined
+  const configured = role === 'teammate' ? modelForRole(routeRole !== '' ? routeRole : name) : undefined
   const model = liveModel !== ''
     ? liveModel
     : configured !== undefined ? `${configured.provider}/${configured.model}` : ''
@@ -1156,19 +1156,23 @@ function rosterRow(ctx, id, name, role, items) {
 
 /** Read the teammates this preset recorded under a project. */
 export function readTeamMembers(root) {
-  const ids = new Set()
+  const members = new Map()
   try {
     const file = path.join(String(root), '.research', 'team', 'members.jsonl')
-    if (fs.existsSync(file) === false) return ids
+    if (fs.existsSync(file) === false) return members
     for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/u)) {
       if (line.trim() === '') continue
       try {
         const row = JSON.parse(line)
-        if (row !== null && typeof row === 'object' && typeof row.id === 'string' && row.id !== '') ids.add(row.id)
+        if (row === null || typeof row !== 'object' || typeof row.id !== 'string' || row.id === '') continue
+        members.set(row.id, {
+          name: typeof row.name === 'string' ? row.name : '',
+          role: typeof row.role === 'string' ? row.role : ''
+        })
       } catch {}
     }
   } catch {}
-  return ids
+  return members
 }
 
 /** Shorten a session id for display when a child never got a name. */
@@ -1244,7 +1248,9 @@ export async function teamRoster(ctx, sessionId, items, root) {
       const direct = path !== '' && path.includes('/') === false
       const usable = historical !== undefined || (direct && (tracked.has(entry.id) || matchRoleName(name) !== undefined))
       if (usable === false) continue
-      const row = rosterRow(ctx, entry.id, name, 'teammate', items)
+      const record = tracked.get(entry.id)
+      const routeRole = typeof record?.role === 'string' ? record.role : ''
+      const row = rosterRow(ctx, entry.id, name, 'teammate', items, routeRole)
       row.description = historical !== undefined && historical.description !== ''
         ? historical.description
         : typeof entry.label === 'string' ? entry.label : ''

@@ -139,6 +139,22 @@ test('a modeled spawn resolves the file route and injects agentOptions', async (
   assert.match(activations[0].prompt[0].text, /`research-role-advisor` skill/)
 })
 
+test('an explicit role routes a custom teammate name like the role', async () => {
+  writeSettingsFile(v2File())
+  const { tools, activations } = fakeContext()
+  const result = await tools.spawn_teammate_with_model.execute(
+    { name: 'zhang', role: 'advisor', description: 'Advisor under a custom name', prompt: 'Review the design.' },
+    { agent }
+  )
+  assert.equal(result.role, 'advisor')
+  assert.equal(result.routeSource, 'file')
+  assert.deepEqual(result.requestedModel, ROUTES.advisor)
+  assert.equal(result.diagnostics, undefined)
+  assert.deepEqual(activations[0].agentOptions, ROUTES.advisor)
+  assert.equal(activations[0].name, 'zhang')
+  assert.match(activations[0].prompt[0].text, /`research-role-advisor` skill/)
+})
+
 test('a reserved or unusable name falls back to the host default', async () => {
   writeSettingsFile(v2File())
   const { tools, activations } = fakeContext()

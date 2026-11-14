@@ -60,7 +60,7 @@ function teammateSlug(value) {
  * Record a teammate the preset started, so the panel can tell its own team
  * apart from subagents other plugins create under the same Lead.
  */
-async function rememberTeammate(ctx, agent, sessionId, name) {
+async function rememberTeammate(ctx, agent, sessionId, name, role) {
   if (typeof sessionId !== 'string' || sessionId === '') return
   try {
     const cwd = agent?.session?.header?.cwd
@@ -72,7 +72,12 @@ async function rememberTeammate(ctx, agent, sessionId, name) {
     } catch {}
     const dir = path.join(root, '.research', 'team')
     fs.mkdirSync(dir, { recursive: true })
-    const row = { id: sessionId, name: typeof name === 'string' ? name : '', at: new Date().toISOString() }
+    const row = {
+      id: sessionId,
+      name: typeof name === 'string' ? name : '',
+      at: new Date().toISOString(),
+      ...(typeof role === 'string' && role !== '' && role !== 'member' ? { role } : {})
+    }
     fs.appendFileSync(path.join(dir, 'members.jsonl'), JSON.stringify(row) + '\n')
   } catch {}
 }
@@ -527,9 +532,14 @@ export function apply(ctx, config = {}) {
         : ''
       const promptText = `${args.prompt}${roleLine}`
       const explicit = args.model === undefined ? undefined : readModel(args)
+      // The role decides the skill and the configured route together. A custom
+      // teammate name (zhang, ops, a Chinese label) matches no standard role on
+      // its own, so without this the spawn silently inherits the Lead route even
+      // when the caller passed role: advisor.
+      const routeName = role === 'member' ? args.name : role
       const resolved = explicit === undefined
-        ? resolveConfiguredRoute(args.name)
-        : { role: matchRoleName(args.name), route: explicit, source: 'explicit' }
+        ? resolveConfiguredRoute(routeName)
+        : { role: matchRoleName(routeName), route: explicit, source: 'explicit' }
       const requestedModel = resolved.route
       const slug = teammateSlug(args.name)
       const provider = context === 'fork' ? forkProvider : freshProvider
@@ -563,7 +573,7 @@ export function apply(ctx, config = {}) {
         status: live?.status === 'running' ? 'running' : 'provisioning',
         model: typeof live?.options?.model === 'string' ? live.options.model : requestedModel?.model
       }
-      await rememberTeammate(ctx, agent, sessionId, memberName)
+      await rememberTeammate(ctx, agent, sessionId, memberName, resolved.role)
       const inherited = leadModeOf(ctx, agent)
       const permission = permissionFor(resolved.role, args.permission, inherited)
       const permissionResult = await applyPermission(ctx, sessionId, permission, signal, readOnlySessions)

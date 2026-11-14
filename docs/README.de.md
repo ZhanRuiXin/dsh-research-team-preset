@@ -215,6 +215,8 @@ Beim Wiederaufnehmen zuerst `research_state`, dann `research_worklog op=get` fü
 
 ## Team-Modellprofile
 
+Jede Rollenkurzbeschreibung nennt die Werkzeuge, die diese Rolle nutzt, und kennzeichnet die schreibgeschützten; die Kurzbeschreibung des Forschers legt Ablage von Aufsätzen und Evidenz als Teil der Arbeit an statt auf Anfrage.
+
 Die Einstellungsseite verwaltet mehrere benannte Modellprofile für die Standard-Teammitglieder und verwendet für den nächsten Spawn das ausgewählte Profil.
 
 Öffnen Sie:

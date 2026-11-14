@@ -215,6 +215,8 @@ Une branche n'est fusionnée qu'après l'acceptation de la carte, puis supprimé
 
 ## Profils de modèle d'équipe
 
+Chaque fiche de rôle nomme les outils que ce rôle utilise et signale ceux en lecture seule ; la fiche du chercheur fait du classement des articles et des preuves une partie du travail plutôt qu'une demande.
+
 La page de réglages conserve plusieurs profils de modèle nommés pour les membres d'équipe par défaut et utilise celui qui est sélectionné pour le prochain spawn.
 
 Ouvrez :

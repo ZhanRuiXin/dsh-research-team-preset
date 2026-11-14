@@ -215,6 +215,8 @@ Ao retomar, primeiro `research_state`, depois `research_worklog op=get` para o i
 
 ## Perfis de modelo da equipe
 
+Cada ficha de papel nomeia as ferramentas que aquele papel usa e marca as somente leitura; a ficha do pesquisador trata o arquivamento de artigos e evidências como parte do trabalho, não como um pedido.
+
 A página de configurações mantém vários perfis de modelo nomeados para os membros padrão da equipe e usa o selecionado no próximo spawn.
 
 Abra:

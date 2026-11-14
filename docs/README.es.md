@@ -215,6 +215,8 @@ Al reanudar, primero `research_state` y después `research_worklog op=get` para 
 
 ## Perfiles de modelo del equipo
 
+Cada ficha de rol nombra las herramientas que ese rol usa y marca las de solo lectura; la ficha del investigador convierte el archivo de artículos y la evidencia en parte del trabajo, no en una petición.
+
 La página de ajustes mantiene varios perfiles de modelo con nombre para los miembros predeterminados del equipo y usa el seleccionado en el siguiente spawn.
 
 Abre:

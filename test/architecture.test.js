@@ -5,7 +5,9 @@ import path from 'node:path'
 import test from 'node:test'
 
 import {
+  arrangeArchitectureCard,
   buildPanelState,
+  checkArchitectureCard,
   finishRun,
   registerRun,
   startRun,
@@ -414,4 +416,64 @@ test('deliverables resolve to openable files and http links', () => {
   assert.equal(files[3].exists, false)
   assert.equal(files[3].url, '')
   assert.equal(files[3].address, '')
+})
+
+test('checkArchitectureCard reports overlaps, boxes outside the canvas and crossing edges', () => {
+  const card = normalizeArchitectureCard({
+    id: 'audit',
+    title: 'Layout audit',
+    canvas: { width: 320, height: 200 },
+    nodes: [
+      { id: 'a', label: 'A', x: 20, y: 20 },
+      { id: 'b', label: 'B', x: 40, y: 30 },
+      { id: 'c', label: 'C', x: 300, y: 150 },
+      { id: 'd', label: 'D', x: 40, y: 120 },
+      { id: 'e', label: 'E', x: 200, y: 20 }
+    ],
+    edges: [
+      { from: 'a', to: 'c' },
+      { from: 'd', to: 'e' }
+    ]
+  })
+  const audit = checkArchitectureCard(card)
+  assert.equal(audit.ok, false)
+  const codes = audit.issues.map((issue) => issue.code)
+  assert.ok(codes.includes('overlap'))
+  assert.ok(codes.includes('outside'))
+  const overlap = audit.issues.find((issue) => issue.code === 'overlap')
+  assert.deepEqual(overlap.nodes.sort(), ['a', 'b'])
+  for (const issue of audit.issues) assert.ok(issue.message.includes('\"') || issue.message.includes('canvas'))
+})
+
+test('arrangeArchitectureCard lays a card out without overlaps and grows the canvas', () => {
+  const card = normalizeArchitectureCard({
+    id: 'flow',
+    title: 'Flow',
+    canvas: { width: 320, height: 200 },
+    nodes: [
+      { id: 'a', label: 'Load data', x: 10, y: 10 },
+      { id: 'b', label: 'Model the lattice', x: 12, y: 12 },
+      { id: 'c', label: 'Audit', x: 14, y: 14 },
+      { id: 'd', label: 'Report', x: 16, y: 16 }
+    ],
+    edges: [
+      { from: 'a', to: 'b' },
+      { from: 'b', to: 'c' },
+      { from: 'b', to: 'd' }
+    ]
+  })
+  assert.equal(checkArchitectureCard(card).ok, false)
+
+  const arranged = arrangeArchitectureCard(card)
+  assert.deepEqual([...arranged.moved].sort(), ['a', 'b', 'c', 'd'])
+  const sorted = arrangeArchitectureCard(card).nodes
+  const laid = normalizeArchitectureCard({ ...card, nodes: sorted, canvas: arranged.canvas }, card)
+  const audit = checkArchitectureCard(laid)
+  assert.equal(audit.ok, true, JSON.stringify(audit.issues))
+  assert.equal(laid.edges.length, 3)
+  assert.ok(arranged.canvas.width > 320)
+  // Longest path: a -> b -> c/d, so c and d share the rightmost column.
+  const byId = new Map(laid.nodes.map((node) => [node.id, node]))
+  assert.ok(byId.get('a').x < byId.get('b').x)
+  assert.equal(byId.get('c').x, byId.get('d').x)
 })

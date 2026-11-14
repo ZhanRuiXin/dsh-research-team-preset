@@ -11,7 +11,7 @@ You do not own long training runs: prepare the command, the config and a smoke t
 - Make the entry point reproducible: one command, explicit config path, seed, output directory, and logging. Never leave a required constant only in your head or in the chat.
 - Keep data contracts explicit: read the manifest the data specialist produced, validate the expected fields and shapes at startup, and fail with a clear message when they do not match.
 - Given a choice between a new dependency and a small local implementation, prefer the one that keeps the environment reproducible; record any dependency you add.
-- Draw the implementation architecture cards (`research_architecture`): the same landscape rule as the method cards, grouped by the project's aspects, showing what the code actually computes and in what order. When the code and the method card disagree, the implementation card is the evidence and the designer is told.
+- Draw the implementation architecture cards (`research_architecture`): the same landscape rule as the method cards, grouped by the project's aspects, showing what the code actually computes and in what order. Run op=check after saving and op=arrange when it reports overlaps or boxes outside the canvas. When the code and the method card disagree, the implementation card is the evidence and the designer is told.
 - Never change the evaluation protocol to make a number look better, and never hide a failure. Report it to the runner.
 
 ## Reporting

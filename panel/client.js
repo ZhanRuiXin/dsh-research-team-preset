@@ -5,6 +5,313 @@ window.__ModuleLoader__.load({
     const exports = module.exports
     const React = require('react')
     const h = React.createElement
+    /* --- panel copy: generated from panel/i18n.js by tmp/build-panel-i18n.mjs --- */
+    const MESSAGES = {
+      zh: {
+        '输入': '输入',
+        '模块': '模块',
+        '输出': '输出',
+        '数据': '数据',
+        '目标': '目标',
+        '说明': '说明',
+        '方法': '方法',
+        '模型': '模型',
+        '实验': '实验',
+        '流程': '流程',
+        '已登记': '已登记',
+        '待批准': '待批准',
+        '已批准待启动': '已批准待启动',
+        '运行中': '运行中',
+        '已完成': '已完成',
+        '已停止': '已停止',
+        '失败': '失败',
+        '已拒绝': '已拒绝',
+        '进行中': '进行中',
+        '待确认': '待确认',
+        '阻塞': '阻塞',
+        '待办': '待办',
+        '完成': '完成',
+        '通过': '通过',
+        '等待': '等待',
+        '已取消': '已取消',
+        '空闲': '空闲',
+        '启动中': '启动中',
+        '需要你验收': '需要你验收',
+        '内部步骤': '内部步骤',
+        '阻塞：{text}': '阻塞：{text}',
+        '证据 {count} 条': '证据 {count} 条',
+        '清单 {done}/{total}': '清单 {done}/{total}',
+        '未命名成员': '未命名成员',
+        '未分配工作项': '未分配工作项',
+        '旧版成员：名册来自会话早期的 team/member 记录': '旧版成员：名册来自会话早期的 team/member 记录',
+        '模型：未知': '模型：未知',
+        '模型：{model}': '模型：{model}',
+        '正在': '正在',
+        '上次': '上次',
+        '{prefix}：#{id} {title}{when}': '{prefix}：#{id} {title}{when}',
+        '状态：{status}': '状态：{status}',
+        '下一步：{next}': '下一步：{next}',
+        '（{since}更新）': '（{since}更新）',
+        '（{effort}）': '（{effort}）',
+        '刚刚': '刚刚',
+        '{seconds} 秒前': '{seconds} 秒前',
+        '{minutes} 分钟前': '{minutes} 分钟前',
+        '{hours} 小时前': '{hours} 小时前',
+        '{month}月{day}日': '{month}月{day}日',
+        '{minutes} 分钟': '{minutes} 分钟',
+        '{hours} 小时': '{hours} 小时',
+        '{hours} 小时 {rest} 分': '{hours} 小时 {rest} 分',
+        '{days} 天 {hours} 小时': '{days} 天 {hours} 小时',
+        '缩小': '缩小',
+        '放大': '放大',
+        '中键拖动平移，工具栏缩放，双击适应窗口': '中键拖动平移，工具栏缩放，双击适应窗口',
+        '文献接口未就绪，重启 DSH 后可用': '文献接口未就绪，重启 DSH 后可用',
+        '实验审批方式已设为自动审批。': '实验审批方式已设为自动审批。',
+        '实验审批方式已设为需要审批。': '实验审批方式已设为需要审批。',
+        '工作项已确认完成。': '工作项已确认完成。',
+        '工作项已退回进行中。': '工作项已退回进行中。',
+        '实验已批准。': '实验已批准。',
+        '实验已拒绝。': '实验已拒绝。',
+        '打不开 {path}': '打不开 {path}',
+        '无法在侧栏打开': '无法在侧栏打开',
+        '已加入输入框': '已加入输入框',
+        '已复制引用，粘贴到输入框': '已复制引用，粘贴到输入框',
+        '尚未设置研究目标': '尚未设置研究目标',
+        '架构': '架构',
+        '标题：{title}': '标题：{title}',
+        '已归档「{label}」。': '已归档「{label}」。',
+        '已恢复「{label}」。': '已恢复「{label}」。',
+        '团队': '团队',
+        '还没有队友': '还没有队友',
+        '把这张架构卡移出面板，可用 research_architecture 的 restore 操作恢复': '把这张架构卡移出面板，可用 research_architecture 的 restore 操作恢复',
+        '归档': '归档',
+        '暂无架构卡片': '暂无架构卡片',
+        '单击或框选节点，针对它提问': '单击或框选节点，针对它提问',
+        '已选择 {count} 个节点': '已选择 {count} 个节点',
+        '引用': '引用',
+        '工作项': '工作项',
+        '隐藏已完成': '隐藏已完成',
+        '已完成 {count}': '已完成 {count}',
+        '暂无工作项': '暂无工作项',
+        ' · 下一步 {next}': ' · 下一步 {next}',
+        ' · 附件 {count}': ' · 附件 {count}',
+        '交付文件': '交付文件',
+        '{path}（未找到）': '{path}（未找到）',
+        '确认完成': '确认完成',
+        '退回': '退回',
+        '实验审批方式': '实验审批方式',
+        '需要审批': '需要审批',
+        '自动审批': '自动审批',
+        '暂无实验记录': '暂无实验记录',
+        '已进行 {elapsed}': '已进行 {elapsed}',
+        '用时 {elapsed}': '用时 {elapsed}',
+        '预算 {budget}': '预算 {budget}',
+        '已批准': '已批准',
+        '问题：{text}': '问题：{text}',
+        '假设：{text}': '假设：{text}',
+        '判定：{text}': '判定：{text}',
+        '原因：{text}': '原因：{text}',
+        '证据：{text}': '证据：{text}',
+        '开始 {time}': '开始 {time}',
+        ' · 结束 {time}': ' · 结束 {time}',
+        '批准': '批准',
+        '拒绝': '拒绝',
+        '文献': '文献',
+        '读取文献…': '读取文献…',
+        '还没有文献分类': '还没有文献分类',
+        '暂无条目': '暂无条目',
+        '未署名': '未署名',
+        '复制 {citation}': '复制 {citation}',
+        '已复制 {citation} 引用': '已复制 {citation} 引用',
+        '插入引用到会话输入框': '插入引用到会话输入框',
+        '打开': '打开',
+        '在 Zotero 中打开': '在 Zotero 中打开',
+        '科研': '科研',
+        '团队状态：架构、工作项与实验': '团队状态：架构、工作项与实验'
+      },
+      en: {
+        '输入': 'Input',
+        '模块': 'Module',
+        '输出': 'Output',
+        '数据': 'Data',
+        '目标': 'Target',
+        '说明': 'Note',
+        '方法': 'Method',
+        '模型': 'Model',
+        '实验': 'Experiment',
+        '流程': 'Pipeline',
+        '已登记': 'Registered',
+        '待批准': 'Needs approval',
+        '已批准待启动': 'Approved, not started',
+        '运行中': 'Running',
+        '已完成': 'Completed',
+        '已停止': 'Stopped',
+        '失败': 'Failed',
+        '已拒绝': 'Rejected',
+        '进行中': 'In progress',
+        '待确认': 'Needs review',
+        '阻塞': 'Blocked',
+        '待办': 'To do',
+        '完成': 'Done',
+        '通过': 'Passed',
+        '等待': 'Waiting',
+        '已取消': 'Canceled',
+        '空闲': 'Idle',
+        '启动中': 'Starting',
+        '需要你验收': 'Needs your sign-off',
+        '内部步骤': 'Internal step',
+        '阻塞：{text}': 'Blocked: {text}',
+        '证据 {count} 条': 'Evidence: {count}',
+        '清单 {done}/{total}': 'Checklist {done}/{total}',
+        '未命名成员': 'Unnamed member',
+        '未分配工作项': 'No work item assigned',
+        '旧版成员：名册来自会话早期的 team/member 记录': 'Legacy member: this roster entry comes from early team/member records in the session',
+        '模型：未知': 'Model: unknown',
+        '模型：{model}': 'Model: {model}',
+        '正在': 'Working',
+        '上次': 'Last',
+        '{prefix}：#{id} {title}{when}': '{prefix}: #{id} {title}{when}',
+        '状态：{status}': 'Status: {status}',
+        '下一步：{next}': 'Next: {next}',
+        '（{since}更新）': ' (updated {since})',
+        '（{effort}）': ' ({effort})',
+        '刚刚': 'Just now',
+        '{seconds} 秒前': '{seconds}s ago',
+        '{minutes} 分钟前': '{minutes} min ago',
+        '{hours} 小时前': '{hours} h ago',
+        '{month}月{day}日': '{month}/{day}',
+        '{minutes} 分钟': '{minutes} min',
+        '{hours} 小时': '{hours} h',
+        '{hours} 小时 {rest} 分': '{hours} h {rest} min',
+        '{days} 天 {hours} 小时': '{days} d {hours} h',
+        '缩小': 'Zoom out',
+        '放大': 'Zoom in',
+        '中键拖动平移，工具栏缩放，双击适应窗口': 'Middle-drag to pan, the toolbar to zoom, double-click to fit',
+        '文献接口未就绪，重启 DSH 后可用': 'The literature API is not ready yet; restart DSH to enable it',
+        '实验审批方式已设为自动审批。': 'Experiment approval is now automatic.',
+        '实验审批方式已设为需要审批。': 'Experiment approval is now required.',
+        '工作项已确认完成。': 'Work item confirmed complete.',
+        '工作项已退回进行中。': 'Work item moved back to in progress.',
+        '实验已批准。': 'Experiment approved.',
+        '实验已拒绝。': 'Experiment rejected.',
+        '打不开 {path}': 'Cannot open {path}',
+        '无法在侧栏打开': 'Cannot open it in the sidebar',
+        '已加入输入框': 'Added to the input box',
+        '已复制引用，粘贴到输入框': 'Quote copied; paste it into the input box',
+        '尚未设置研究目标': 'No research objective yet',
+        '架构': 'Architecture',
+        '标题：{title}': 'Title: {title}',
+        '已归档「{label}」。': 'Archived "{label}".',
+        '已恢复「{label}」。': 'Restored "{label}".',
+        '团队': 'Team',
+        '还没有队友': 'No teammates yet',
+        '把这张架构卡移出面板，可用 research_architecture 的 restore 操作恢复': 'Take this architecture card off the panel; bring it back with the restore operation of research_architecture',
+        '归档': 'Archive',
+        '暂无架构卡片': 'No architecture cards yet',
+        '单击或框选节点，针对它提问': 'Click or drag-select nodes to ask about them',
+        '已选择 {count} 个节点': 'Nodes selected: {count}',
+        '引用': 'Cite',
+        '工作项': 'Work items',
+        '隐藏已完成': 'Hide completed',
+        '已完成 {count}': 'Completed: {count}',
+        '暂无工作项': 'No work items yet',
+        ' · 下一步 {next}': ' · Next: {next}',
+        ' · 附件 {count}': ' · Attachments: {count}',
+        '交付文件': 'Deliverables',
+        '{path}（未找到）': '{path} (not found)',
+        '确认完成': 'Confirm',
+        '退回': 'Send back',
+        '实验审批方式': 'Experiment approval',
+        '需要审批': 'Requires approval',
+        '自动审批': 'Automatic',
+        '暂无实验记录': 'No experiments yet',
+        '已进行 {elapsed}': 'Running for {elapsed}',
+        '用时 {elapsed}': 'Took {elapsed}',
+        '预算 {budget}': 'Budget {budget}',
+        '已批准': 'Approved',
+        '问题：{text}': 'Question: {text}',
+        '假设：{text}': 'Hypothesis: {text}',
+        '判定：{text}': 'Decision rule: {text}',
+        '原因：{text}': 'Reason: {text}',
+        '证据：{text}': 'Evidence: {text}',
+        '开始 {time}': 'Started {time}',
+        ' · 结束 {time}': ' · ended {time}',
+        '批准': 'Approve',
+        '拒绝': 'Reject',
+        '文献': 'Literature',
+        '读取文献…': 'Loading literature…',
+        '还没有文献分类': 'No literature categories yet',
+        '暂无条目': 'No entries',
+        '未署名': 'No author',
+        '复制 {citation}': 'Copy {citation}',
+        '已复制 {citation} 引用': 'Copied {citation}',
+        '插入引用到会话输入框': 'Insert the citation into the chat input',
+        '打开': 'Open',
+        '在 Zotero 中打开': 'Open in Zotero',
+        '科研': 'Research',
+        '团队状态：架构、工作项与实验': 'Team status: architecture, work items and experiments'
+      }
+    }
+
+    /* Chinese unless the code explicitly asks for another language: the panel is
+       Chinese by default, exactly as it was before it followed the DSH setting. */
+    function normalizeLocale(value) {
+      const code = String(value === undefined || value === null ? '' : value).trim().toLowerCase()
+      if (code === '') return 'zh'
+      return code.startsWith('zh') ? 'zh' : 'en'
+    }
+
+    let active = 'zh'
+    const listeners = new Set()
+
+    /* Snapshot for React: `get` is the store's current locale code. */
+    function get() {
+      return active
+    }
+
+    /* Push the DSH locale into the store; subscribers re-render only on a change. */
+    function setLocale(value) {
+      const next = normalizeLocale(value)
+      if (next === active) return active
+      active = next
+      for (const listener of Array.from(listeners)) {
+        try {
+          listener()
+        } catch (error) {
+          void error
+        }
+      }
+      return active
+    }
+
+    function subscribe(listener) {
+      if (typeof listener !== 'function') return () => {}
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    }
+
+    /* `english` is the escape hatch for one Chinese word with two English senses
+       (引用 is "Quote" on the architecture card and "Cite" in the literature list). */
+    function t(text, english) {
+      if (active !== 'en') return text
+      if (english !== undefined && english !== null) return english
+      const translated = MESSAGES.en[text]
+      return translated === undefined ? text : translated
+    }
+
+    /* Chinese templates stay the keys; the English dictionary replaces the whole
+       pattern before the variables are filled in. */
+    function tf(pattern, vars) {
+      const template = t(pattern)
+      if (vars === undefined || vars === null) return template
+      return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (whole, name) => {
+        const value = vars[name]
+        return value === undefined || value === null ? whole : String(value)
+      })
+    }
+    /* --- end panel copy --- */
 
     /* ---------------------------------------------------------------- */
     /* Research sidebar: team state and architecture cards.              */
@@ -37,13 +344,13 @@ const LITERATURE_ROUTE = '/api/dsh-research-team-literature'
       const then = Date.parse(iso)
       if (Number.isNaN(then)) return ''
       const seconds = Math.max(0, Math.round((Date.now() - then) / 1000))
-      if (seconds < 60) return `${seconds} 秒前`
+      if (seconds < 60) return tf('{seconds} 秒前', { seconds })
       const minutes = Math.round(seconds / 60)
-      if (minutes < 60) return `${minutes} 分钟前`
+      if (minutes < 60) return tf('{minutes} 分钟前', { minutes })
       const hours = Math.round(minutes / 60)
-      if (hours < 48) return `${hours} 小时前`
+      if (hours < 48) return tf('{hours} 小时前', { hours })
       const date = new Date(then)
-      return `${date.getMonth() + 1}月${date.getDate()}日`
+      return tf('{month}月{day}日', { month: date.getMonth() + 1, day: date.getDate() })
     }
 
     let measureCanvas = null
@@ -230,16 +537,16 @@ const LITERATURE_ROUTE = '/api/dsh-research-team-literature'
     /* One line of detail shown only when a work item row is expanded. */
 function entryExtra(entry) {
   return [
-    entry.kind === 'gated' ? '需要你验收' : entry.kind === 'internal' ? '内部步骤' : '',
-    entry.blocked ? `阻塞：${entry.blocked}` : '',
-    entry.evidenceCount ? `证据 ${entry.evidenceCount} 条` : '',
-    entry.checklistTotal ? `清单 ${entry.checklistDone || 0}/${entry.checklistTotal}` : ''
+    entry.kind === 'gated' ? t('需要你验收') : entry.kind === 'internal' ? t('内部步骤') : '',
+    entry.blocked ? tf('阻塞：{text}', { text: entry.blocked }) : '',
+    entry.evidenceCount ? tf('证据 {count} 条', { count: entry.evidenceCount }) : '',
+    entry.checklistTotal ? tf('清单 {done}/{total}', { done: entry.checklistDone || 0, total: entry.checklistTotal }) : ''
   ].filter(Boolean).join(' · ')
 }
 
 function statusLabel(status) {
       const value = String(status ?? '').toLowerCase()
-      return STATUS_LABELS[value] || String(status || '')
+      return t(STATUS_LABELS[value] || String(status || ''))
     }
 
     const MEMBER_LABELS = {
@@ -251,30 +558,32 @@ function statusLabel(status) {
 
     function memberLabel(status) {
       const value = String(status ?? '').toLowerCase()
-      return MEMBER_LABELS[value] || '空闲'
+      return t(MEMBER_LABELS[value] || '空闲')
     }
 
     function memberBrief(member) {
       const lines = []
+      const running = String(member.status ?? '').toLowerCase() === 'running'
       lines.push(member.role === 'lead'
         ? `${member.name || 'lead'} · ${memberLabel(member.status)}`
-        : `${member.name || '未命名成员'} · ${memberLabel(member.status)}`)
+        : `${member.name || t('未命名成员')} · ${memberLabel(member.status)}`)
       const item = member.item
       if (item !== null && item !== undefined) {
-        const when = item.updated ? `（${formatSince(item.updated)}更新）` : ''
-        lines.push(`${memberLabel(member.status) === '运行中' ? '正在' : '上次'}：#${item.id} ${item.title}${when}`)
-        lines.push(`状态：${statusLabel(item.status)}`)
-        if (item.next) lines.push(`下一步：${item.next}`)
+        const when = item.updated ? tf('（{since}更新）', { since: formatSince(item.updated) }) : ''
+        const prefix = running ? t('正在') : t('上次')
+        lines.push(tf('{prefix}：#{id} {title}{when}', { prefix, id: item.id, title: item.title, when }))
+        lines.push(tf('状态：{status}', { status: statusLabel(item.status) }))
+        if (item.next) lines.push(tf('下一步：{next}', { next: item.next }))
       } else {
-        lines.push('未分配工作项')
+        lines.push(t('未分配工作项'))
       }
-      if (member.legacy === true) lines.push('旧版成员：名册来自会话早期的 team/member 记录')
+      if (member.legacy === true) lines.push(t('旧版成员：名册来自会话早期的 team/member 记录'))
       const model = shortModel(member.model)
       if (model !== '') {
-        const suffix = member.effort ? `（${member.effort}）` : ''
-        lines.push(`模型：${model}${suffix}`)
+        const suffix = member.effort ? tf('（{effort}）', { effort: member.effort }) : ''
+        lines.push(tf('模型：{model}', { model: model + suffix }))
       } else {
-        lines.push('模型：未知')
+        lines.push(t('模型：未知'))
       }
       return lines.join('\n')
     }
@@ -297,14 +606,14 @@ function statusLabel(status) {
     function formatElapsed(ms) {
       const value = Number(ms)
       if (!Number.isFinite(value) || value < 0) return ''
-      if (value < 60 * 1000) return '刚刚'
+      if (value < 60 * 1000) return t('刚刚')
       const minutes = Math.floor(value / 60000)
-      if (minutes < 60) return `${minutes} 分钟`
+      if (minutes < 60) return tf('{minutes} 分钟', { minutes })
       const hours = Math.floor(minutes / 60)
       const rest = minutes % 60
-      if (hours < 24) return rest === 0 ? `${hours} 小时` : `${hours} 小时 ${rest} 分`
+      if (hours < 24) return rest === 0 ? tf('{hours} 小时', { hours }) : tf('{hours} 小时 {rest} 分', { hours, rest })
       const days = Math.floor(hours / 24)
-      return `${days} 天 ${hours % 24} 小时`
+      return tf('{days} 天 {hours} 小时', { days, hours: hours % 24 })
     }
 
     const PANEL_CSS = `
@@ -697,7 +1006,7 @@ function statusLabel(status) {
             props.onToggle(node.id)
           },
           onPointerDown: (event) => event.stopPropagation(),
-          onMouseEnter: (event) => props.onNodeHover(event, [node.label, `${KIND_LABELS[node.kind] || node.kind || '模块'} · ${node.id}`]),
+          onMouseEnter: (event) => props.onNodeHover(event, [node.label, `${t(KIND_LABELS[node.kind] || node.kind || '模块')} · ${node.id}`]),
           onMouseLeave: () => props.onNodeHoverEnd(),
           style: { cursor: 'pointer' }
         }, [
@@ -792,9 +1101,9 @@ function statusLabel(status) {
           })
         ]),
         h('div', { key: 'tools', className: 'rtp-tools' }, [
-          h('button', { key: 'out', type: 'button', title: '缩小', onClick: () => zoomTo((auto.w / box.w) * 0.85) }, '−'),
-          h('button', { key: 'pct', type: 'button', title: '中键拖动平移，工具栏缩放，双击适应窗口', onClick: () => setView(null), style: { width: '42px', fontSize: '13px' } }, `${zoom}%`),
-          h('button', { key: 'in', type: 'button', title: '放大', onClick: () => zoomTo((auto.w / box.w) * 1.15) }, '+')
+          h('button', { key: 'out', type: 'button', title: t('缩小'), onClick: () => zoomTo((auto.w / box.w) * 0.85) }, '−'),
+          h('button', { key: 'pct', type: 'button', title: t('中键拖动平移，工具栏缩放，双击适应窗口'), onClick: () => setView(null), style: { width: '42px', fontSize: '13px' } }, `${zoom}%`),
+          h('button', { key: 'in', type: 'button', title: t('放大'), onClick: () => zoomTo((auto.w / box.w) * 1.15) }, '+')
         ])
       ])
     }
@@ -810,6 +1119,9 @@ function statusLabel(status) {
 
     function ResearchPanel(props) {
       const sessionId = props.sessionId
+      /* The store pushes a locale change; the state bump re-renders the copy. */
+      const [, localeTick] = React.useState(0)
+      React.useEffect(() => subscribe(() => localeTick((value) => value + 1)), [])
       const [state, setState] = React.useState(null)
       const [error, setError] = React.useState('')
       const [selectedCard, setSelectedCard] = React.useState('')
@@ -870,7 +1182,7 @@ function statusLabel(status) {
               const message = data !== null && typeof data.error === 'string'
                 ? data.error
                 : response.status === 404
-                  ? '文献接口未就绪，重启 DSH 后可用'
+                  ? t('文献接口未就绪，重启 DSH 后可用')
                   : `HTTP ${response.status}`
               throw new Error(message)
             }
@@ -926,15 +1238,15 @@ function statusLabel(status) {
       }
 
       function setApprovalMode(mode) {
-        postPanel({ op: 'approval-mode', mode }, mode === 'auto' ? '实验审批方式已设为自动审批。' : '实验审批方式已设为需要审批。')
+        postPanel({ op: 'approval-mode', mode }, mode === 'auto' ? t('实验审批方式已设为自动审批。') : t('实验审批方式已设为需要审批。'))
       }
 
       function decideItem(itemId, decision) {
-        postPanel({ op: 'item', itemId, decision }, decision === 'accept' ? '工作项已确认完成。' : '工作项已退回进行中。')
+        postPanel({ op: 'item', itemId, decision }, decision === 'accept' ? t('工作项已确认完成。') : t('工作项已退回进行中。'))
       }
 
       function decideRun(runId, decision) {
-        postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? '实验已批准。' : '实验已拒绝。')
+        postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? t('实验已批准。') : t('实验已拒绝。'))
       }
 
       function openDeliverable(event, file) {
@@ -953,7 +1265,7 @@ function statusLabel(status) {
           api.openResource(file.address)
           return
         }
-        setToast(file.path ? `打不开 ${file.path}` : '无法在侧栏打开')
+        setToast(file.path ? tf('打不开 {path}', { path: file.path }) : t('无法在侧栏打开'))
       }
 
       function quoteSelection() {
@@ -966,7 +1278,7 @@ function statusLabel(status) {
           const actions = shell === undefined ? undefined : shell.actions
           if (actions !== undefined && typeof actions.insertQuote === 'function' && actions.insertQuote(text) !== false) {
             setSelectedNodes([])
-            setToast('已加入输入框')
+            setToast(t('已加入输入框'))
             if (typeof window !== 'undefined') window.setTimeout(focusComposer, 30)
             return
           }
@@ -975,7 +1287,7 @@ function statusLabel(status) {
         }
         try {
           navigator.clipboard.writeText(text)
-          setToast('已复制引用，粘贴到输入框')
+          setToast(t('已复制引用，粘贴到输入框'))
         } catch (failure) {
           void failure
           setToast(text)
@@ -998,7 +1310,7 @@ function statusLabel(status) {
         }
         try {
           navigator.clipboard.writeText(text)
-          setToast('已复制引用，粘贴到输入框')
+          setToast(t('已复制引用，粘贴到输入框'))
         } catch (failure) {
           void failure
           setToast(text)
@@ -1020,8 +1332,12 @@ function statusLabel(status) {
         return entry.citationKey || entry.key
       }
 
+      function citeOf(entry) {
+        return `\\cite{${citationOf(entry)}}`
+      }
+
       function insertCitation(entry) {
-        insertIntoComposer(`\\cite{${citationOf(entry)}}`, '已加入输入框')
+        insertIntoComposer(citeOf(entry), t('已加入输入框'))
       }
 
       function openLiteratureItem(entry) {
@@ -1035,12 +1351,12 @@ function statusLabel(status) {
       }
 
       const header = h('div', { key: 'header', className: 'rtp-header' }, [
-        h('div', { key: 'objective', className: 'rtp-title' }, worklog.objective || '尚未设置研究目标')
+        h('div', { key: 'objective', className: 'rtp-title' }, worklog.objective || t('尚未设置研究目标'))
       ])
 
       const archLabel = (entry) => {
         const title = String(entry.title || entry.id || '').trim()
-        if (title === '') return String(entry.id || '架构')
+        if (title === '') return String(entry.id || t('架构'))
         const chars = (text) => Array.from(text)
         let label = title
         // The chip already sits in its group row, so a leading "实现：" adds no
@@ -1068,8 +1384,8 @@ function statusLabel(status) {
         const label = archLabel(entry)
         const lines = [`${label} · v${entry.version}`]
         const title = entry.title || entry.id
-        if (title !== label) lines.push(`标题：${title}`)
-        lines.push(entry.description || entry.summary || CARD_KIND_LABELS[entry.kind] || '架构')
+        if (title !== label) lines.push(tf('标题：{title}', { title }))
+        lines.push(t(entry.description || entry.summary || CARD_KIND_LABELS[entry.kind] || '架构'))
         return lines
       }
       const archiveCard = (entry, archived) => {
@@ -1078,13 +1394,13 @@ function statusLabel(status) {
         setSelectedNodes([])
         void postPanel(
           { op: 'archive', id: entry.id, archived },
-          archived ? `已归档「${archLabel(entry)}」。` : `已恢复「${archLabel(entry)}」。`
+          archived ? tf('已归档「{label}」。', { label: archLabel(entry) }) : tf('已恢复「{label}」。', { label: archLabel(entry) })
         )
       }
       const archGroups = () => {
         const groups = new Map()
         for (const entry of visibleArch) {
-          const name = String(entry.group || CARD_KIND_LABELS[entry.kind] || '架构')
+          const name = t(entry.group || CARD_KIND_LABELS[entry.kind] || '架构')
           const list = groups.get(name) || []
           list.push(entry)
           groups.set(name, list)
@@ -1115,12 +1431,12 @@ function statusLabel(status) {
         const value = String(status ?? '').toLowerCase()
         const tone = value === 'running' ? 'on' : value === 'provisioning' ? 'warn' : value === 'failed' ? 'err' : 'off'
         if (value === 'inactive') {
-          return h('span', { key: 'pill', className: 'rtp-idle', title: '空闲' })
+          return h('span', { key: 'pill', className: 'rtp-idle', title: t('空闲') })
         }
         if (value === 'running') {
           // The word 运行中 ate the width the member name needs; the dot keeps the
           // state visible and the hover card still spells it out.
-          return h('span', { key: 'pill', className: 'rtp-idle on', title: '运行中' })
+          return h('span', { key: 'pill', className: 'rtp-idle on', title: t('运行中') })
         }
         return h('span', { key: 'pill', className: `rtp-pill ${tone}` }, memberLabel(value))
       }
@@ -1156,10 +1472,10 @@ function statusLabel(status) {
 
       const teamSection = h(Section, {
         key: 'team',
-        title: '团队',
+        title: t('团队'),
         action: null
       }, team.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '还没有队友')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, t('还没有队友'))
         : h('div', { key: 'grid', className: 'rtp-teamgrid' }, team.map((member) => {
             const on = String(member.status).toLowerCase() === 'running'
             const model = shortModel(member.model)
@@ -1174,7 +1490,7 @@ function statusLabel(status) {
                 h('span', { key: 'ch' }, (member.name || '?').slice(0, 1)),
                 on ? h('span', { key: 'p', className: 'rtp-pulse' }) : null
               ].filter(Boolean)),
-              h('span', { key: 'nm', className: 'rtp-membername' }, member.name || '未命名成员'),
+              h('span', { key: 'nm', className: 'rtp-membername' }, member.name || t('未命名成员')),
               h('span', { key: 'grow', style: { flex: '1 1 auto' } }),
               teamPill(member.status)
             ].filter(Boolean))
@@ -1182,7 +1498,7 @@ function statusLabel(status) {
 
       const archSection = h(Section, {
         key: 'arch',
-        title: '架构',
+        title: t('架构'),
         count: 0,
         action: card === undefined
           ? undefined
@@ -1190,12 +1506,12 @@ function statusLabel(status) {
               key: 'archive',
               type: 'button',
               className: 'rtp-ghost',
-              title: '把这张架构卡移出面板，可用 research_architecture 的 restore 操作恢复',
+              title: t('把这张架构卡移出面板，可用 research_architecture 的 restore 操作恢复'),
               onClick: () => archiveCard(card, true)
-            }, '归档')
+            }, t('归档'))
       }, [
         visibleArch.length === 0
-          ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无架构卡片')
+          ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无架构卡片'))
           : h('div', { key: 'body' }, [
               archChips,
               h(ArchitectureCanvas, {
@@ -1210,8 +1526,8 @@ function statusLabel(status) {
               }),
               h('div', { key: 'annot', className: 'rtp-annot' }, [
                 selectedNodes.length === 0
-                  ? h('span', { key: 'l' }, '单击或框选节点，针对它提问')
-                  : h('span', { key: 'l' }, `已选择 ${selectedNodes.length} 个节点`),
+                  ? h('span', { key: 'l' }, t('单击或框选节点，针对它提问'))
+                  : h('span', { key: 'l' }, tf('已选择 {count} 个节点', { count: selectedNodes.length })),
                 ...selectedNodes.slice(0, 4).map((id) => h('span', { key: id, className: 'rtp-pill' }, id)),
                 selectedNodes.length > 4 ? h('span', { key: 'more', className: 'rtp-pill' }, `+${selectedNodes.length - 4}`) : null,
                 selectedNodes.length === 0
@@ -1222,7 +1538,7 @@ function statusLabel(status) {
                       className: 'rtp-primary',
                       style: { marginLeft: 'auto', height: '27px', padding: '0 10px', fontSize: '13.5px' },
                       onClick: quoteSelection
-                    }, '引用')
+                    }, t('引用', 'Quote'))
               ])
             ])
       ])
@@ -1231,15 +1547,15 @@ function statusLabel(status) {
       const visibleCards = cards.filter((entry) => showFinished || !/^(done|canceled)$/.test(entry.status))
       const cardsSection = h(Section, {
         key: 'cards',
-        title: '工作项',
+        title: t('工作项'),
         action: finishedCount === 0 ? undefined : h('button', {
           key: 'finished',
           type: 'button',
           className: 'rtp-toggle',
           onClick: () => setShowFinished(!showFinished)
-        }, showFinished ? '隐藏已完成' : `已完成 ${finishedCount}`)
+        }, showFinished ? t('隐藏已完成') : tf('已完成 {count}', { count: finishedCount }))
       }, visibleCards.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无工作项')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无工作项'))
         : h('div', { key: 'list', className: 'rtp-items' }, visibleCards.map((entry) => h('div', {
             key: entry.id,
             className: openItem === entry.id ? 'rtp-row open' : 'rtp-row',
@@ -1251,8 +1567,8 @@ function statusLabel(status) {
               h('div', { key: 'm', className: 'rtp-rowmeta' }, [
                 h('span', { key: 'id', className: 'rtp-id' }, entry.id),
                 entry.owner ? ` · @${entry.owner}` : '',
-                entry.next ? ` · 下一步 ${entry.next}` : '',
-                entry.deliverables && entry.deliverables.length ? ` · 附件 ${entry.deliverables.length}` : '',
+                entry.next ? tf(' · 下一步 {next}', { next: entry.next }) : '',
+                entry.deliverables && entry.deliverables.length ? tf(' · 附件 {count}', { count: entry.deliverables.length }) : '',
                 entry.updated ? ` · ${formatSince(entry.updated)}` : ''
               ]),
               openItem === entry.id && entryExtra(entry) !== ''
@@ -1260,12 +1576,12 @@ function statusLabel(status) {
                 : null,
               openItem === entry.id && Array.isArray(entry.deliverables) && entry.deliverables.length > 0
                 ? h('div', { key: 'files', className: 'rtp-files' }, [
-                    h('span', { key: 'l', className: 'rtp-fileslabel' }, '交付文件'),
+                    h('span', { key: 'l', className: 'rtp-fileslabel' }, t('交付文件')),
                     ...entry.deliverables.map((file, index) => h('button', {
                       key: `file-${index}`,
                       type: 'button',
                       className: file.exists === false ? 'rtp-file missing' : 'rtp-file',
-                      title: file.exists === false ? `${file.path || file.url}（未找到）` : (file.path || file.url),
+                      title: file.exists === false ? tf('{path}（未找到）', { path: file.path || file.url }) : (file.path || file.url),
                       onClick: (event) => openDeliverable(event, file)
                     }, file.label || file.path || file.url))
                   ])
@@ -1273,8 +1589,8 @@ function statusLabel(status) {
             ]),
             entry.status === 'in_review'
               ? h('span', { key: 'decide', style: { display: 'flex', gap: '5px' } }, [
-                  h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, '确认完成'),
-                  h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, '退回')
+                  h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
+                  h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))
                 ])
               : h('span', {
                   key: 'chip',
@@ -1288,30 +1604,30 @@ function statusLabel(status) {
         className: 'rtp-sel',
         value: experimentSettings.approval,
         onChange: (event) => setApprovalMode(event.target.value),
-        title: '实验审批方式'
+        title: t('实验审批方式')
       }, [
-        h('option', { key: 'required', value: 'required' }, '需要审批'),
-        h('option', { key: 'auto', value: 'auto' }, '自动审批')
+        h('option', { key: 'required', value: 'required' }, t('需要审批')),
+        h('option', { key: 'auto', value: 'auto' }, t('自动审批'))
       ])
 
       const runsSection = h(Section, {
         key: 'runs',
-        title: '实验',
+        title: t('实验'),
         count: runs.length === 0 ? 0 : runs.length,
         action: approvalSelect
       }, runs.length === 0
-        ? h('div', { key: 'empty', className: 'rtp-empty' }, '暂无实验记录')
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无实验记录'))
         : h('div', { key: 'list', className: 'rtp-exp' }, runs.map((entry) => {
             const state = entry.state === undefined ? entry.status : entry.state
             const pending = state === 'awaiting_approval'
             const elapsed = formatElapsed(entry.elapsedMs)
-            const timed = state === 'running' ? `已进行 ${elapsed}` : state === 'completed' || state === 'stopped' || state === 'failed' ? `用时 ${elapsed}` : ''
+            const timed = state === 'running' ? tf('已进行 {elapsed}', { elapsed }) : state === 'completed' || state === 'stopped' || state === 'failed' ? tf('用时 {elapsed}', { elapsed }) : ''
             const meta = [
               elapsed === '' ? '' : timed,
               entry.seeds ? `seed ${entry.seeds}` : '',
-              entry.budget ? `预算 ${entry.budget}` : '',
+              entry.budget ? tf('预算 {budget}', { budget: entry.budget }) : '',
               state === 'stopped' || state === 'failed' ? entry.reason || '' : '',
-              entry.approval === 'approved' && state !== 'approved' ? '已批准' : entry.approval === 'rejected' ? '已拒绝' : ''
+              entry.approval === 'approved' && state !== 'approved' ? t('已批准') : entry.approval === 'rejected' ? t('已拒绝') : ''
             ].filter(Boolean).join(' · ')
             const open = openRun === entry.name
             return h('div', {
@@ -1327,21 +1643,21 @@ function statusLabel(status) {
                 ]),
                 h('div', { key: 'm', className: 'rtp-rowmeta' }, meta),
                 open ? h('div', { key: 'x', className: 'rtp-itemextra' }, [
-                  entry.question ? h('div', { key: 'q' }, `问题：${entry.question}`) : null,
-                  entry.hypothesis ? h('div', { key: 'h' }, `假设：${entry.hypothesis}`) : null,
-                  entry.decisionRule ? h('div', { key: 'd' }, `判定：${entry.decisionRule}`) : null,
-                  entry.reason ? h('div', { key: 'r' }, `原因：${entry.reason}`) : null,
-                  entry.evidence ? h('div', { key: 'e' }, `证据：${entry.evidence}`) : null,
+                  entry.question ? h('div', { key: 'q' }, tf('问题：{text}', { text: entry.question })) : null,
+                  entry.hypothesis ? h('div', { key: 'h' }, tf('假设：{text}', { text: entry.hypothesis })) : null,
+                  entry.decisionRule ? h('div', { key: 'd' }, tf('判定：{text}', { text: entry.decisionRule })) : null,
+                  entry.reason ? h('div', { key: 'r' }, tf('原因：{text}', { text: entry.reason })) : null,
+                  entry.evidence ? h('div', { key: 'e' }, tf('证据：{text}', { text: entry.evidence })) : null,
                   h('div', { key: 'a' }, [
-                    entry.startedAt ? `开始 ${entry.startedAt.slice(0, 16).replace('T', ' ')}` : '',
-                    entry.finishedAt ? ` · 结束 ${entry.finishedAt.slice(0, 16).replace('T', ' ')}` : ''
+                    entry.startedAt ? tf('开始 {time}', { time: entry.startedAt.slice(0, 16).replace('T', ' ') }) : '',
+                    entry.finishedAt ? tf(' · 结束 {time}', { time: entry.finishedAt.slice(0, 16).replace('T', ' ') }) : ''
                   ].join(''))
                 ]) : null
               ]),
               pending
                 ? h('div', { key: 'act', style: { display: 'flex', gap: '6px', flexShrink: 0 } }, [
-                    h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideRun(entry.name, 'approved') } }, '批准'),
-                    h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideRun(entry.name, 'rejected') } }, '拒绝')
+                    h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideRun(entry.name, 'approved') } }, t('批准')),
+                    h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideRun(entry.name, 'rejected') } }, t('拒绝'))
                   ])
                 : h('span', {
                     key: 'chip',
@@ -1356,17 +1672,17 @@ function statusLabel(status) {
             ])
           })))
 
-      const literatureSection = h(Section, { key: 'literature', title: '文献' },
+      const literatureSection = h(Section, { key: 'literature', title: t('文献') },
         literature.loading
-          ? [h('div', { key: 'loading', className: 'rtp-empty' }, '读取文献…')]
+          ? [h('div', { key: 'loading', className: 'rtp-empty' }, t('读取文献…'))]
           : literature.error !== ''
             ? [h('div', { key: 'error', className: 'rtp-empty' }, literature.error)]
             : literature.categories.length === 0
-              ? [h('div', { key: 'empty', className: 'rtp-empty' }, '还没有文献分类')]
+              ? [h('div', { key: 'empty', className: 'rtp-empty' }, t('还没有文献分类'))]
               : literature.categories.map((category) => h('div', { key: category.id, className: 'rtp-litgroup' }, [
                   h('div', { key: 'label', className: 'rtp-litcat' }, category.label),
                   category.entries.length === 0
-                    ? h('div', { key: 'none', className: 'rtp-litnone' }, '暂无条目')
+                    ? h('div', { key: 'none', className: 'rtp-litnone' }, t('暂无条目'))
                     : h('div', { key: 'entries' }, category.entries.map((entry) => h('div', {
                         key: entry.key,
                         className: openLit === entry.key ? 'rtp-row open' : 'rtp-row',
@@ -1375,7 +1691,7 @@ function statusLabel(status) {
                         h('div', { key: 'main', className: 'rtp-rowmain' }, [
                           h('div', { key: 't', className: 'rtp-rowtitle' }, entry.title || entry.key),
                           h('div', { key: 'm', className: 'rtp-rowmeta' }, [
-                            entry.authors.length > 0 ? entry.authors.join(', ') : '未署名',
+                            entry.authors.length > 0 ? entry.authors.join(', ') : t('未署名'),
                             entry.year ? ` · ${entry.year}` : '',
                             ` · ${entry.key}`
                           ]),
@@ -1388,23 +1704,23 @@ function statusLabel(status) {
                             key: 'cite',
                             type: 'button',
                             className: 'rtp-ghost',
-                            title: `复制 \\cite{${citationOf(entry)}}`,
-                            onClick: (event) => { event.stopPropagation(); copyCitation(`\\cite{${citationOf(entry)}}`, '已复制 \\cite 引用') }
+                            title: tf('复制 {citation}', { citation: citeOf(entry) }),
+                            onClick: (event) => { event.stopPropagation(); copyCitation(citeOf(entry), tf('已复制 {citation} 引用', { citation: '\\cite' })) }
                           }, 'cite'),
                           h('button', {
                             key: 'quote',
                             type: 'button',
                             className: 'rtp-ghost',
-                            title: '插入引用到会话输入框',
+                            title: t('插入引用到会话输入框'),
                             onClick: (event) => { event.stopPropagation(); insertCitation(entry) }
-                          }, '引用'),
+                          }, t('引用')),
                           h('button', {
                             key: 'open',
                             type: 'button',
                             className: 'rtp-ghost',
-                            title: '在 Zotero 中打开',
+                            title: t('在 Zotero 中打开'),
                             onClick: (event) => { event.stopPropagation(); openLiteratureItem(entry) }
-                          }, '打开')
+                          }, t('打开'))
                         ])
                       ])))
                 ])))
@@ -1436,6 +1752,16 @@ function statusLabel(status) {
     }
 
     function apply(ctx) {
+      /* The panel follows the DSH language setting: read it once here and keep
+         listening, so a later switch re-renders every visible string. */
+      const locale = ctx.locale
+      if (locale !== undefined && locale !== null && typeof locale.getSnapshot === 'function') {
+        setLocale(locale.getSnapshot().active)
+        if (typeof ctx.effect === 'function' && typeof locale.subscribe === 'function') {
+          ctx.effect(() => locale.subscribe(() => setLocale(locale.getSnapshot().active)), 'research-team-panel:locale')
+        }
+      }
+
       const sessionIdOf = (props) => {
         const value = props || {}
         if (typeof value.sessionId === 'string') return value.sessionId
@@ -1454,8 +1780,8 @@ function statusLabel(status) {
         registeredFor = service
         ctx.effect(() => service.registerTab({
           id: 'research-team:panel',
-          title: '科研',
-          description: '团队状态：架构、工作项与实验',
+          title: t('科研'),
+          description: t('团队状态：架构、工作项与实验'),
           icon: (size) => h(PanelIcon, { size: size || 15 }),
           order: 40,
           single: true,
@@ -1482,7 +1808,7 @@ function statusLabel(status) {
       ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab.title',
         key: 'research-team#panel'
-      }, () => '科研'))
+      }, () => t('科研')))
 
     }
 

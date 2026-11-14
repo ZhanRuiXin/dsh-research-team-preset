@@ -863,8 +863,17 @@ function statusLabel(status) {
         const loadLiterature = async () => {
           try {
             const response = await fetch(`${LITERATURE_ROUTE}?session=${encodeURIComponent(sessionId || '')}`)
-            const data = await response.json()
-            if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`)
+            const body = await response.text()
+            let data = null
+            try { data = JSON.parse(body) } catch { data = null }
+            if (!response.ok || data === null || !data.ok) {
+              const message = data !== null && typeof data.error === 'string'
+                ? data.error
+                : response.status === 404
+                  ? '文献接口未就绪，重启 DSH 后可用'
+                  : `HTTP ${response.status}`
+              throw new Error(message)
+            }
             if (!cancelled) setLiterature({ loading: false, categories: data.categories || [], count: data.count || 0, error: '' })
           } catch (failure) {
             if (!cancelled) setLiterature({ loading: false, categories: [], count: 0, error: failure.message })

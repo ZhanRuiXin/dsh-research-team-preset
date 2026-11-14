@@ -638,13 +638,25 @@ window.__ModuleLoader__.load({
 
     function apply(ctx) {
       /* Follow the DSH language setting: read it once, then keep listening so a
-         later switch re-renders the page and the configure-row summary. */
-      const locale = ctx.locale
-      if (locale !== undefined && locale !== null && typeof locale.getSnapshot === 'function') {
-        setLocale(locale.getSnapshot().active)
-        if (typeof ctx.effect === 'function' && typeof locale.subscribe === 'function') {
-          ctx.effect(() => locale.subscribe(() => setLocale(locale.getSnapshot().active)), 'research-team-settings:locale')
+         later switch re-renders the page and the configure-row summary. The
+         locale service is optional and reading ctx.locale can throw when it is
+         not mounted yet, so neither the read nor the subscription may break the
+         page. */
+      let locale
+      try {
+        locale = typeof ctx.get === 'function' ? ctx.get('locale') : ctx.locale
+      } catch (error) {
+        locale = undefined
+      }
+      try {
+        if (locale !== undefined && locale !== null && typeof locale.getSnapshot === 'function') {
+          setLocale(locale.getSnapshot().active)
+          if (typeof ctx.effect === 'function' && typeof locale.subscribe === 'function') {
+            ctx.effect(() => locale.subscribe(() => setLocale(locale.getSnapshot().active)), 'research-team-settings:locale')
+          }
         }
+      } catch (error) {
+        setLocale('zh')
       }
       const loadCatalog = () => ctx.remote.session.modelCatalog()
       ctx.slots.inject('plugins.row.config', () => ctx.slots.register({

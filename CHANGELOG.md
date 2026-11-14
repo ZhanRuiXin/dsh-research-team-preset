@@ -2,6 +2,10 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.4.
 
+## Unreleased
+
+- The panel and the settings page no longer depend on the client locale service being present at apply time: the locale is read through an optional lookup inside a guard, and a failure there falls back to the Chinese copy instead of aborting the module. The panel also registers its native pane slots before it talks to better-sidebar and contains a better-sidebar failure, so a tab cannot disappear because an optional integration changed.
+
 ## 0.2.4 — 2026-11-15
 
 - The panel and the settings page follow the DSH language setting: with a Chinese locale they render exactly the Chinese copy as before, every other locale renders English from a bundled dictionary, and the prompts stay English on purpose (cache stability and one behaviour for every member). The dictionaries live inside the two client bundles, because the host ships only `client.js`, and a test keeps each in sync with its source module.

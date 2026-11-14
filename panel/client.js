@@ -5,6 +5,24 @@ window.__ModuleLoader__.load({
     const exports = module.exports
     const React = require('react')
     const h = React.createElement
+    /* A render error inside this bundle must not blank the whole pane: show it. */
+    class RenderBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { error: '' }
+      }
+      static getDerivedStateFromError(error) {
+        return { error: error instanceof Error ? error.message : String(error) }
+      }
+      componentDidCatch(error, info) {
+        console.error('research-team render failed', error, info)
+      }
+      render() {
+        if (this.state.error !== '') return h('div', { className: 'rtp-error' }, `面板渲染失败：${this.state.error}`)
+        return this.props.children
+      }
+    }
+
     /* --- panel copy: generated from panel/i18n.js by tmp/build-panel-i18n.mjs --- */
     const MESSAGES = {
       zh: {
@@ -1753,13 +1771,24 @@ function statusLabel(status) {
 
     function apply(ctx) {
       /* The panel follows the DSH language setting: read it once here and keep
-         listening, so a later switch re-renders every visible string. */
-      const locale = ctx.locale
-      if (locale !== undefined && locale !== null && typeof locale.getSnapshot === 'function') {
-        setLocale(locale.getSnapshot().active)
-        if (typeof ctx.effect === 'function' && typeof locale.subscribe === 'function') {
-          ctx.effect(() => locale.subscribe(() => setLocale(locale.getSnapshot().active)), 'research-team-panel:locale')
+         listening, so a later switch re-renders every visible string. Nothing
+         here may break the panel: the locale service is optional, and reading
+         ctx.locale can throw when the service is not mounted yet. */
+      let locale
+      try {
+        locale = typeof ctx.get === 'function' ? ctx.get('locale') : ctx.locale
+      } catch (error) {
+        locale = undefined
+      }
+      try {
+        if (locale !== undefined && locale !== null && typeof locale.getSnapshot === 'function') {
+          setLocale(locale.getSnapshot().active)
+          if (typeof ctx.effect === 'function' && typeof locale.subscribe === 'function') {
+            ctx.effect(() => locale.subscribe(() => setLocale(locale.getSnapshot().active)), 'research-team-panel:locale')
+          }
         }
+      } catch (error) {
+        setLocale('zh')
       }
 
       const sessionIdOf = (props) => {
@@ -1770,38 +1799,15 @@ function statusLabel(status) {
         return ''
       }
 
-      /* better-sidebar may activate after this module does, so wait for its service
-         instead of deciding once at apply time: an immediate ctx.get() misses it on
-         a cold start and the tab only reappears when the module is toggled. */
-      let registeredFor = null
-      const registerBetterTab = (service) => {
-        if (service === undefined || service === null || typeof service.registerTab !== 'function') return
-        if (registeredFor === service) return
-        registeredFor = service
-        ctx.effect(() => service.registerTab({
-          id: 'research-team:panel',
-          title: t('科研'),
-          description: t('团队状态：架构、工作项与实验'),
-          icon: (size) => h(PanelIcon, { size: size || 15 }),
-          order: 40,
-          single: true,
-          component: (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })
-        }))
-      }
-
-      if (typeof ctx.inject === 'function') {
-        ctx.inject(['betterSidebar'], (inner) => {
-          registerBetterTab(inner.betterSidebar)
-        })
-      }
       pluginCtx = ctx
-      const immediate = typeof ctx.get === 'function' ? ctx.get('betterSidebar') : undefined
-      if (immediate !== undefined) registerBetterTab(immediate)
 
+      /* The native pane slots are registered first and on their own: they are the
+         panel's fallback home, and nothing about better-sidebar may take the tab
+         down with it. */
       ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab',
         key: 'research-team#panel'
-      }, (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })))
+      }, (props) => h(RenderBoundary, null, h(ResearchPanel, { sessionId: sessionIdOf(props) }))))
       /* The chip already draws the descriptor icon through better-sidebar; a second
          icon plus text overflows a narrow chip and the close button overlaps it, so
          the native fallback title stays plain text and lets the host ellipsize. */
@@ -1809,6 +1815,42 @@ function statusLabel(status) {
         name: 'sidebar.right.pane.tab.title',
         key: 'research-team#panel'
       }, () => t('科研')))
+
+      /* better-sidebar may activate after this module does, so wait for its service
+         instead of deciding once at apply time: an immediate ctx.get() misses it on
+         a cold start and the tab only reappears when the module is toggled. Any
+         failure here is contained: the native slots above already carry the panel. */
+      let registeredFor = null
+      const registerBetterTab = (service) => {
+        if (service === undefined || service === null || typeof service.registerTab !== 'function') return
+        if (registeredFor === service) return
+        registeredFor = service
+        try {
+          ctx.effect(() => service.registerTab({
+            id: 'research-team:panel',
+            title: t('科研'),
+            description: t('团队状态：架构、工作项与实验'),
+            icon: (size) => h(PanelIcon, { size: size || 15 }),
+            order: 40,
+            single: true,
+            component: (props) => h(RenderBoundary, null, h(ResearchPanel, { sessionId: sessionIdOf(props) }))
+          }))
+        } catch (error) {
+          console.warn('research-team-panel: better-sidebar registration failed', error)
+        }
+      }
+
+      try {
+        if (typeof ctx.inject === 'function') {
+          ctx.inject(['betterSidebar'], (inner) => {
+            registerBetterTab(inner.betterSidebar)
+          })
+        }
+        const immediate = typeof ctx.get === 'function' ? ctx.get('betterSidebar') : undefined
+        if (immediate !== undefined) registerBetterTab(immediate)
+      } catch (error) {
+        console.warn('research-team-panel: better-sidebar unavailable', error)
+      }
 
     }
 

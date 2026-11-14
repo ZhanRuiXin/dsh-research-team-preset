@@ -650,6 +650,19 @@ export function setRunApproval(root, runId, decision) {
   return { ok: true }
 }
 
+/**
+ * The `dsh-resource://file/absolute/…` address of an absolute path: the only
+ * address the right sidebar's `openResource` opens. Segments are
+ * component-encoded and a drive colon stays literal.
+ */
+export function fileResourceAddress(absolute) {
+  const normalized = String(absolute).replace(/\\/g, '/').replace(/^\/+/, '')
+  return `dsh-resource://file/absolute/${normalized
+    .split('/')
+    .map((segment) => encodeURIComponent(segment).replace(/%3A/gi, ':'))
+    .join('/')}`
+}
+
 export function buildPanelState(root, options = {}) {
   const worklogPlan = readPlan(root)
   const plan = {
@@ -689,7 +702,7 @@ export function buildPanelState(root, options = {}) {
           const rel = path.relative(root, abs)
           const inside = rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel)
           const exists = inside && fs.existsSync(abs)
-          return { label, path: file.path, kind: 'file', exists, url: exists ? pathToFileURL(abs).href : '' }
+          return { label, path: file.path, kind: 'file', exists, address: exists ? fileResourceAddress(abs) : '', url: exists ? pathToFileURL(abs).href : '' }
         }).slice(0, 10)
       : []
   }))

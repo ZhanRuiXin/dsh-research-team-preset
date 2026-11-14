@@ -4,7 +4,7 @@
 
 **एक DSH एजेंट प्रीसेट जो एक सत्र को एक छोटी, समन्वित शोध टीम में बदलता है।**
 
-**संस्करण 0.2.1** · **अद्यतन 2026-11-13**
+**संस्करण 0.2.2** · **अद्यतन 2026-11-14**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <strong>हिन्दी</strong></p>
 
@@ -55,7 +55,7 @@ Lead के उत्तर वैज्ञानिक संचार हो�
 
 | क्षमता | प्रदाता | नोट्स |
 | --- | --- | --- |
-| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.1-rc.5` के विरुद्ध विकसित; अन्य रिलीज़ काम कर सकते हैं, परंतु गारंटी नहीं है |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | `0.2.2-rc.3` के विरुद्ध विकसित; अन्य रिलीज़ काम कर सकते हैं, परंतु गारंटी नहीं है |
 | Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | `send_message`, `wait_agent`, `interrupt_agent` और Team सेवाएँ देता है; यह preset अपना काम वर्कलॉग में लिखता है, टीम टास्क में नहीं |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) और [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | DSH बेस का हिस्सा; `run_code` सक्षम करता है |
 
@@ -73,20 +73,20 @@ Lead के उत्तर वैज्ञानिक संचार हो�
 ### DSH प्लगइन पृष्ठ से इंस्टॉल करें
 
 2. **सेटिंग्स → प्लगइन** खोलें और **जोड़ें** पर क्लिक करें।
-3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.2.1`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
+3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.2.2`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
 4. **DSH को पुनः आरंभ करें।** प्रीसेट पंक्तियाँ और बंडल का क्लाइंट भाग स्टार्टअप पर लोड होते हैं।
 5. **उसी प्रोफ़ाइल में बंडल सक्षम होने की पुष्टि करें**, फिर **नया सत्र खोलें** और मोड चयनकर्ता में **Research Team Mode** चुनें।
 
 ### कमांड लाइन से इंस्टॉल करें
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.1
+dsh plugin add dsh-research-team-preset@0.2.2
 ```
 
 रजिस्ट्री के बजाय स्रोत पिन करने के लिए:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
 ```
 
 > यह मोड प्रोफ़ाइल-स्तरीय बंडल है: एक प्रोफ़ाइल में इंस्टॉल करने से वह दूसरे में सक्षम नहीं होता। प्रत्येक प्रोफ़ाइल के लिए इंस्टॉल और पूर्वापेक्षाएँ दोहराएँ।
@@ -102,6 +102,10 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 ```
 
 एक विशिष्ट पहला कार्य:
+
+टीम सहयोग चालू होने पर होस्ट अपनी Agent Teams नीति भी इंजेक्ट करता है, जिसमें `team_task_*` को साझा कार्य-बोर्ड कहा जाता है। रिकॉर्ड यहीं रहता है: टीम कार्य केवल उन आंतरिक असाइनमेंट के लिए हैं जिन्हें स्थायी रिकॉर्ड नहीं चाहिए, और गेट, साक्ष्य, निर्णय, रन मैनिफ़ेस्ट तथा उपयोगकर्ता स्वीकृति `.research/worklog/` और `runs/` में रहते हैं। पूरा हुआ टीम कार्य कभी worklog गेट की जगह नहीं लेता।
+
+कार्य आइटम में डिलीवरेबल फ़ाइलें जोड़ी जा सकती हैं: पैनल हर फ़ाइल के लिए एक बटन दिखाता है और क्लिक करने पर वह दाएँ साइडबार में खुलती है। इन्हें `research_worklog` op=update के `deliverables: [{ label, path }]` से दर्ज करें, जहाँ `path` प्रोजेक्ट रूट के सापेक्ष है (http(s) लिंक के लिए `url`)।
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."

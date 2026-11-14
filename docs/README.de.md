@@ -4,7 +4,7 @@
 
 **Ein DSH-Agent-Preset, das eine Sitzung in ein kleines, koordiniertes Forschungsteam verwandelt.**
 
-**Version 0.2.1** · **Aktualisiert 2026-11-13**
+**Version 0.2.2** · **Aktualisiert 2026-11-14**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <strong>Deutsch</strong> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -55,7 +55,7 @@ Ein negatives Ergebnis früherer Arbeit beschränkt die Methode, die Daten und d
 
 | Funktion | Provider | Hinweise |
 | --- | --- | --- |
-| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Entwickelt gegen `0.2.1-rc.5`; andere Releases können funktionieren, sind aber nicht garantiert |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Entwickelt gegen `0.2.2-rc.3`; andere Releases können funktionieren, sind aber nicht garantiert |
 | Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Stellt `send_message`, `wait_agent`, `interrupt_agent` und die Team-Services bereit; das Preset fuehrt seine Arbeit im Worklog, nicht in Team-Tasks |
 | PTC-Laufzeit | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) und [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Teil der DSH-Basis; aktiviert `run_code` |
 
@@ -73,20 +73,20 @@ Dieses Preset wird als DSH-Bundle ausgeliefert und ist auf npm als `dsh-research
 ### Installation über die DSH-Plugins-Seite
 
 2. Öffnen Sie **Einstellungen → Plugins** und klicken Sie auf **Hinzufügen**.
-3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.2.1` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
+3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.2.2` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
 4. **Starten Sie DSH neu.** Preset-Zeilen und die Client-Hälfte des Bundles werden beim Start geladen.
 5. **Prüfen Sie, dass das Bundle im selben Profil aktiviert ist**, öffnen Sie dann **eine neue Sitzung** und wählen Sie **Research Team Mode** in der Modusauswahl.
 
 ### Installation über die Kommandozeile
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.1
+dsh plugin add dsh-research-team-preset@0.2.2
 ```
 
 Um stattdessen die Quelle zu pinnen statt den Registrierungsserver:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
 ```
 
 > Der Modus ist ein profilweites Bundle: Die Installation in einem Profil aktiviert ihn nicht in einem anderen. Wiederholen Sie Installation und Voraussetzungen für jedes Profil.
@@ -102,6 +102,10 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 ```
 
 Eine typische erste Aufgabe:
+
+Mit eingeschalteter Team-Zusammenarbeit injiziert der Host zusätzlich seine eigene Agent-Teams-Richtlinie, die `team_task_*` als gemeinsames Aufgabenboard nennt. Der Nachweis bleibt hier: Team-Aufgaben dienen nur kurzfristigen internen Zuweisungen ohne dauerhafte Aufzeichnung; Gates, Evidenz, Entscheidungen, Lauf-Manifeste und Nutzerabnahme liegen in `.research/worklog/` und `runs/`. Eine abgeschlossene Team-Aufgabe ersetzt kein Gate im Worklog.
+
+Ein Arbeitselement kann Lieferdateien tragen: das Panel zeigt eine Schaltfläche je Datei, ein Klick öffnet sie in der rechten Seitenleiste. Registriert werden sie mit `research_worklog` op=update und `deliverables: [{ label, path }]`, wobei `path` relativ zum Projektstamm ist (`url` für einen http(s)-Link).
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."

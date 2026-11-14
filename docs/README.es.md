@@ -4,7 +4,7 @@
 
 **Un preset de agente de DSH que convierte una sesión en un pequeño equipo de investigación coordinado.**
 
-**Versión 0.2.1** · **Actualizado 2026-11-13**
+**Versión 0.2.2** · **Actualizado 2026-11-14**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <strong>Español</strong> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -55,7 +55,7 @@ Un resultado negativo previo limita el método, los datos y el presupuesto que l
 
 | Capacidad | Proveedor | Notas |
 | --- | --- | --- |
-| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Desarrollado contra `0.2.1-rc.5`; otras versiones pueden funcionar, pero no están garantizadas |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Desarrollado contra `0.2.2-rc.3`; otras versiones pueden funcionar, pero no están garantizadas |
 | Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Proporciona `send_message`, `wait_agent`, `interrupt_agent` y los servicios de Team; el preset registra su trabajo en el worklog, no en tareas de equipo |
 | Runtime PTC | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) y [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Forma parte de la base de DSH; habilita `run_code` |
 
@@ -73,20 +73,20 @@ Este preset se distribuye como bundle DSH y se publica en npm como `dsh-research
 ### Instalar desde la página de Plugins de DSH
 
 2. Abre **Ajustes → Plugins** y haz clic en **Añadir**.
-3. Pega el origen de instalación: `dsh-research-team-preset@0.2.1` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
+3. Pega el origen de instalación: `dsh-research-team-preset@0.2.2` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
 4. **Reinicia DSH.** Las filas del preset y la mitad cliente del bundle se cargan al iniciar.
 5. **Comprueba que el bundle está habilitado** en el mismo perfil, luego **abre una sesión nueva** y elige **Research Team Mode** en el selector de modo.
 
 ### Instalar desde la línea de comandos
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.1
+dsh plugin add dsh-research-team-preset@0.2.2
 ```
 
 Para fijar el código fuente en lugar del registro:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
 ```
 
 > El modo es un bundle a nivel de perfil: instalarlo en un perfil no lo habilita en otro. Repite la instalación y los prerrequisitos en cada perfil.
@@ -102,6 +102,10 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 ```
 
 Una primera tarea típica:
+
+Con la colaboración de equipo activada, el host también inyecta su propia política de Agent Teams, que llama a `team_task_*` el tablero de tareas compartido. El registro se queda aquí: usa las tareas de equipo solo para encargos internos que no necesitan registro duradero, y mantén las puertas, la evidencia, las decisiones, los manifiestos de ejecución y la aceptación del usuario en `.research/worklog/` y `runs/`. Una tarea de equipo completada nunca sustituye una puerta del worklog.
+
+Un elemento de trabajo puede llevar entregables: el panel muestra un botón por archivo y al pulsarlo se abre en la barra lateral derecha. Regístralos con `research_worklog` op=update y `deliverables: [{ label, path }]`, con `path` relativo a la raíz del proyecto (o `url` para un enlace http(s)).
 
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."

@@ -4,7 +4,7 @@
 
 **A DSH agent preset that turns one session into a small, coordinated research team.**
 
-**Version 0.2.1** · **Updated 2026-11-13**
+**Version 0.2.2** · **Updated 2026-11-14**
 
 <p align="center"><strong>English</strong> · <a href="docs/README.zh-CN.md">简体中文</a> · <a href="docs/README.zh-TW.md">繁體中文</a> · <a href="docs/README.ja.md">日本語</a> · <a href="docs/README.ko.md">한국어</a> · <a href="docs/README.de.md">Deutsch</a> · <a href="docs/README.fr.md">Français</a> · <a href="docs/README.es.md">Español</a> · <a href="docs/README.pt-BR.md">Português (Brasil)</a> · <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.ar.md">العربية</a> · <a href="docs/README.hi.md">हिन्दी</a></p>
 
@@ -58,8 +58,8 @@ Research Team Mode is a **profile-level DSH bundle**. The bundle does not instal
 
 | Capability | Provider | Notes |
 | --- | --- | --- |
-| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.1-rc.5`; other releases may work but are not guaranteed |
-| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Shares the task DAG and change waits across a subagent tree; teammates are continuable subagent children, and the preset records work in its own worklog; the preset records work in its own worklog |
+| DSH | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) `0.2.x` | Developed against `0.2.2-rc.3`; other releases may work but are not guaranteed |
+| Agent Teams | [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness) | Shares the task DAG and change waits across a subagent tree; teammates are continuable subagent children, and the preset records work in its own worklog. Every session opened in the profile gets Team collaboration enabled, including older workspaces, so the 智能体团队协作 toggle does not have to be set by hand. |
 | PTC runtime | [`@deepseek-ai/dsh-agent-tool-presentation`](https://github.com/deepseek-ai/deepseek-harness) and [`@deepseek-ai/dsh-ptc-runtime-node`](https://github.com/deepseek-ai/deepseek-harness) | Part of the DSH base; enables `run_code` |
 
 **Optional integrations.** These are plugins by other authors. The preset runs without them and installs nothing; add one only to link the team with it:
@@ -77,20 +77,20 @@ This preset ships as a DSH bundle and is published on npm as `dsh-research-team-
 
 1. **Enable the required bundles** in the target profile: Agent Teams [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness). The optional integrations above can be added now or later.
 2. Open **Settings → Plugins** and click **Add**.
-3. Paste the install spec: `dsh-research-team-preset@0.2.1` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.1` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
+3. Paste the install spec: `dsh-research-team-preset@0.2.2` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
 4. **Restart DSH.** Preset rows and the client half of the bundle load at startup.
 5. **Check the bundle is enabled** in the same profile, then **open a new session** and select **Research Team Mode** in the mode selector.
 
 ### Install from the CLI
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.1
+dsh plugin add dsh-research-team-preset@0.2.2
 ```
 
 To pin the source instead of the registry:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
 ```
 
 > The mode is a profile-level bundle: installing it in one profile does not enable it in another. Repeat the install and prerequisite steps per profile.
@@ -187,7 +187,7 @@ The experiment section lists runs newest first and shows how long each has been 
 
 The worklog is the record. Its machine state is JSON under `.research/worklog/`: `plan.json` and one `items/<id>.json` per work item. The tools write it — `research_worklog` (init, list, get, update, claim, gate, plan), `research_decision`, `research_evidence`, `research_design`, and `research_state` for one read of the whole team state — and `worklog/PLAN.md`, `worklog/INDEX.md` and `worklog/<id>.md` are generated views, so nobody edits them by hand.
 
-A work item carries an owner, a status (`todo`, `in_progress`, `in_review`, `blocked`, `done`, `canceled`), a next action, optional evidence and checklist items, and a kind: internal steps and gated deliverables. Claiming is `op=claim`, and it refuses to take over an item another owner holds. Status moves follow one table: `todo -> in_progress -> in_review -> done`, with `blocked` and `canceled` as side states; `blocked` requires a reason, a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history. At a gate the owner records the checklist with evidence, the execution summary and the `base..head` range, and the item moves to `in_review`; the reviewer records PASS/FAIL; `done` stays the user's acceptance action: the sidebar shows 确认完成 / 退回 on every `in_review` item, and the model never writes it.
+A work item carries an owner, a status (`todo`, `in_progress`, `in_review`, `blocked`, `done`, `canceled`), a next action, optional evidence and checklist items, and a kind: internal steps and gated deliverables. Claiming is `op=claim`, and it refuses to take over an item another owner holds. Status moves follow one table: `todo -> in_progress -> in_review -> done`, with `blocked` and `canceled` as side states; `blocked` requires a reason, a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history. At a gate the owner records the checklist with evidence, the execution summary and the `base..head` range, and the item moves to `in_review`; A work item can carry deliverables: the panel shows one button per file, and a click opens it in the right sidebar. Register them with `research_worklog` op=update and `deliverables: [{ label, path }]`, where `path` is relative to the project root (or use `url` for an http(s) link). the reviewer records PASS/FAIL; `done` stays the user's acceptance action: the sidebar shows 确认完成 / 退回 on every `in_review` item, and the model never writes it.
 
 ```text
 research_worklog op=init                 # plan.json + views
@@ -196,6 +196,8 @@ research_worklog op=claim                # take it as your role
 research_worklog op=gate                 # in_review with evidence
 research_state                           # the whole team state in one read
 ```
+
+When Team collaboration is on, the host also injects its own Agent Teams policy, which names `team_task_*` as the shared-task board. The record stays here: use team tasks only for internal assignments that do not need a durable record, and keep gates, evidence, decisions, run manifests and user acceptance in `.research/worklog/` and `runs/`. A completed team task never stands in for a worklog gate.
 
 The full discipline lives in the preset prompt and in `AGENTS.md` of the project.
 

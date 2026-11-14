@@ -1,6 +1,6 @@
 {
   "name": "dsh-research-team-panel",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "description": "Research sidebar module for the Research Team preset: team state, architecture cards and annotations.",
   "type": "module",

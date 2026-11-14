@@ -25,6 +25,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import fs from 'node:fs'
 import path from 'node:path'
 import { ROLE_NAMES, matchRoleName, modelForRole } from './settings-store.js'
+import { ensureTeamMode } from './index.js'
 import { readRouteTable } from './settings-file.js'
 
 export const name = 'research-modeled-teammates'
@@ -346,7 +347,7 @@ function describeRequested(requested) {
 function render(value) {
   const member = value === null || value === undefined ? undefined : value.member
   if (member === null || member === undefined || typeof member !== 'object') {
-    return [{ type: 'text', text: 'Teammate creation returned no roster row.' }]
+    return [{ type: 'text', text: 'Teammate creation returned no child session row.' }]
   }
   const head = [`Created teammate "${String(member.name)}"`]
   if (member.status !== undefined) head.push(`status=${String(member.status)}`)
@@ -503,6 +504,7 @@ export function apply(ctx, config = {}) {
       if (agent === undefined) {
         throw new Error('spawn_teammate_with_model requires a calling agent')
       }
+      await ensureTeamMode(ctx, agent)
       const context = args.context === 'fork' ? 'fork' : 'fresh'
       const explicit = args.model === undefined ? undefined : readModel(args)
       const resolved = explicit === undefined
@@ -547,7 +549,7 @@ export function apply(ctx, config = {}) {
       const permissionResult = await applyPermission(ctx, sessionId, permission, signal, readOnlySessions)
       let warning
       if (requestedModel !== undefined && typeof member?.model === 'string' && member.model !== requestedModel.model) {
-        warning = `requested model ${requestedModel.model} but roster reports ${member.model}; the activation patch may be incompatible with this DSH build.`
+        warning = `requested model ${requestedModel.model} but the child reports ${member.model}; the activation patch may be incompatible with this DSH build.`
       }
       return {
         member,

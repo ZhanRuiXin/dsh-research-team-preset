@@ -48,7 +48,7 @@ node --check client/index.js
 npm test
 ```
 
-`npm test` runs the six test files: spawn routing and permission inheritance, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, and settings-route mounting.
+`npm test` runs the seven test files: spawn routing, permission inheritance and automatic team mode, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, and settings-route mounting.
 
 Parse `cordis.patch.yml` with the `yaml` package after stripping `!!js` tags, and confirm the persona prefix contains every required section. Keep the 12 READMEs structurally in sync (same `## ` and `### ` headings in each).
 
@@ -68,4 +68,4 @@ research_scope_check                     # envelope check on a card handoff
 
 ## Versioning
 
-Semantic versioning. The current release is **0.2.1**; see [CHANGELOG.md](CHANGELOG.md). Releases are tagged from `main` as `vX.Y.Z` and published to npm as `dsh-research-team-preset`.
+Semantic versioning. The current release is **0.2.2**; see [CHANGELOG.md](CHANGELOG.md). Releases are tagged from `main` as `vX.Y.Z` and published to npm as `dsh-research-team-preset`.

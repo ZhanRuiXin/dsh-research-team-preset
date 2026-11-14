@@ -380,3 +380,33 @@ test('the panel summarises work items and counts the finished ones', () => {
   assert.equal(beta.checklistTotal, 0)
   assert.equal(state.cards.find((entry) => entry.id === 'gamma').status, 'done')
 })
+
+
+test('deliverables resolve to openable files and http links', () => {
+  const root = makeRoot()
+  fs.mkdirSync(path.join(root, 'reports'), { recursive: true })
+  fs.writeFileSync(path.join(root, 'reports', 'e2.md'), '# E2 report\n')
+  upsertItem(root, {
+    id: 'e2',
+    title: 'E2 report',
+    owner: 'writer',
+    status: 'todo',
+    deliverables: [
+      { label: 'E2 report', path: 'reports/e2.md' },
+      { label: 'Missing', path: 'reports/missing.md' },
+      { label: 'Upstream', url: 'https://example.org/paper' },
+      { label: 'Escape', path: '../outside.md' }
+    ]
+  })
+  const state = buildPanelState(root)
+  const files = state.cards.find((entry) => entry.id === 'e2').deliverables
+  assert.equal(files.length, 4)
+  assert.equal(files[0].exists, true)
+  assert.ok(files[0].url.startsWith('file://'))
+  assert.equal(files[1].exists, false)
+  assert.equal(files[1].url, '')
+  assert.equal(files[2].kind, 'url')
+  assert.equal(files[2].url, 'https://example.org/paper')
+  assert.equal(files[3].exists, false)
+  assert.equal(files[3].url, '')
+})

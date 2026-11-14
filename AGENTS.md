@@ -14,7 +14,7 @@ node --check plugin/modeled-teammates.js
 node --check client/index.js
 node --check panel/index.js
 node --check panel/client.js
-node --test test/modeled-teammates.test.js test/scope-check.test.js test/workspace-init.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js
+node --test test/modeled-teammates.test.js test/scope-check.test.js test/workspace-init.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js test/team-mode.test.js
 ```
 
 - Parse `cordis.patch.yml` with the `yaml` package (strip `!!js` tags first) and confirm the persona prefix contains every required section.

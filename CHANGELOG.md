@@ -1,6 +1,13 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.1.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.2.
+
+## 0.2.2 — 2026-11-14
+
+- Work items can carry deliverables: `research_worklog op=update` accepts `deliverables: [{ label, path }]` (relative to the project root, or `{ label, url }`), and the panel renders one button per file that opens it in the right sidebar.
+- Reconciles the host's Agent Teams policy with the worklog: `team_task_*` remains an optional internal board, while gates, evidence, decisions, run manifests and user acceptance stay in `.research/worklog/` and `runs/`.
+
+- A session started with the preset turns Team collaboration on itself, so the Lead can create and message teammates without the user setting the 智能体团队协作 toggle first; `spawn_teammate_with_model` also re-checks it before every spawn.
 
 ## 0.2.1 — 2026-11-13
 

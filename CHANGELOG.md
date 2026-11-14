@@ -1,9 +1,11 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.3.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.4.
 
-## Unreleased
+## 0.2.4 — 2026-11-15
 
+- The panel and the settings page follow the DSH language setting: with a Chinese locale they render exactly the Chinese copy as before, every other locale renders English from a bundled dictionary, and the prompts stay English on purpose (cache stability and one behaviour for every member). The dictionaries live inside the two client bundles, because the host ships only `client.js`, and a test keeps each in sync with its source module.
+- The 文献 section points at the project reading list the agent maintains: categories are project labels, entries are Zotero item keys with a markdown note, so the panel shows the project's own related-work and method groups instead of a search box.
 - Each role brief now names the tools that role runs and marks the read-only ones; the researcher's brief makes library search, reading-list filing and evidence capture defaults rather than requests, and every brief tells members to record with the tools as they work.
 
 - The Research panel gained a 文献 section backed by `GET /api/dsh-research-team-literature` and the new `research_literature` tool: categories are the project's own labels (`category`), each entry is a Zotero item key with its title and a markdown note stored in `.research/literature/<KEY>.md`, and the panel renders one collapsible card per entry with `\cite{key}`, insert-into-composer and open-in-Zotero on every row. The index lives in `.research/literature.json`. The Zotero tool is now `research_zotero` (renamed from `research_library`; the rename is breaking for prompts written against the old name).

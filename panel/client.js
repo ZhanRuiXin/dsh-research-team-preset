@@ -5,6 +5,24 @@ window.__ModuleLoader__.load({
     const exports = module.exports
     const React = require('react')
     const h = React.createElement
+    /* A render error inside this bundle must not blank the whole pane: show it. */
+    class RenderBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { error: '' }
+      }
+      static getDerivedStateFromError(error) {
+        return { error: error instanceof Error ? error.message : String(error) }
+      }
+      componentDidCatch(error, info) {
+        console.error('research-team render failed', error, info)
+      }
+      render() {
+        if (this.state.error !== '') return h('div', { className: 'rtp-error' }, `面板渲染失败：${this.state.error}`)
+        return this.props.children
+      }
+    }
+
     /* --- panel copy: generated from panel/i18n.js by tmp/build-panel-i18n.mjs --- */
     const MESSAGES = {
       zh: {
@@ -1785,7 +1803,7 @@ function statusLabel(status) {
           icon: (size) => h(PanelIcon, { size: size || 15 }),
           order: 40,
           single: true,
-          component: (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })
+          component: (props) => h(RenderBoundary, null, h(ResearchPanel, { sessionId: sessionIdOf(props) }))
         }))
       }
 
@@ -1801,7 +1819,7 @@ function statusLabel(status) {
       ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register({
         name: 'sidebar.right.pane.tab',
         key: 'research-team#panel'
-      }, (props) => h(ResearchPanel, { sessionId: sessionIdOf(props) })))
+      }, (props) => h(RenderBoundary, null, h(ResearchPanel, { sessionId: sessionIdOf(props) }))))
       /* The chip already draws the descriptor icon through better-sidebar; a second
          icon plus text overflows a narrow chip and the close button overlaps it, so
          the native fallback title stays plain text and lets the host ellipsize. */

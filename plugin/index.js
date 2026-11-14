@@ -1001,10 +1001,15 @@ async function sessionProjectRoot(ctx, sessionId) {
   if (typeof sessionId !== 'string' || sessionId === '') return undefined
   try {
     const agent = await Promise.resolve(ctx.agents?.get?.(sessionId))
-    const cwd = agent?.session?.header?.cwd
+    const opened = await Promise.resolve(ctx.sessions?.get?.(sessionId))
+    const cwd = agent?.session?.header?.cwd ?? opened?.header?.cwd
     if (typeof cwd !== 'string' || cwd === '') return undefined
-    const workspace = await ctx.workspaceRegistry.resolveByPath(cwd)
-    if (workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0) return workspace.path
+    try {
+      const workspace = await ctx.workspaceRegistry.resolveByPath(cwd)
+      if (workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0) return workspace.path
+    } catch {
+      /* A registry miss must not hide the project the session already has. */
+    }
     return cwd
   } catch {
     return undefined

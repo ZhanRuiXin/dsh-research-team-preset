@@ -5,6 +5,24 @@ window.__ModuleLoader__.load({
     const exports = module.exports
     const React = require('react')
     const h = React.createElement
+    /* A render error inside this bundle must not blank the whole pane: show it. */
+    class RenderBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = { error: '' }
+      }
+      static getDerivedStateFromError(error) {
+        return { error: error instanceof Error ? error.message : String(error) }
+      }
+      componentDidCatch(error, info) {
+        console.error('research-team render failed', error, info)
+      }
+      render() {
+        if (this.state.error !== '') return h('div', { className: 'rtp-error' }, `设置页渲染失败：${this.state.error}`)
+        return this.props.children
+      }
+    }
+
 
     /* --- Settings page copy. The Chinese literals below are the keys of this
        table, so the zh text stays exactly what it has always been; only the
@@ -634,7 +652,7 @@ window.__ModuleLoader__.load({
         key: 'dsh-research-team-preset#research-team-settings'
       }, (props) => props && props.view === 'summary'
         ? t('配置默认团队成员的 LLM 与思考强度')
-        : h(SettingsPage, { ...(props || {}), loadCatalog })))
+        : h(RenderBoundary, null, h(SettingsPage, { ...(props || {}), loadCatalog }))))
     }
 
 

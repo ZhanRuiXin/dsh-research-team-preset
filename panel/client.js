@@ -1158,6 +1158,7 @@ function statusLabel(status) {
 
       const load = React.useCallback(async () => {
         try {
+          console.info('research-team-panel: request', { sessionId })
           const response = await fetch(`${PANEL_ROUTE}?session=${encodeURIComponent(sessionId || '')}`)
           const data = await response.json()
           if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`)
@@ -1793,9 +1794,20 @@ function statusLabel(status) {
 
       const sessionIdOf = (props) => {
         const value = props || {}
-        if (typeof value.sessionId === 'string') return value.sessionId
+        if (typeof value.sessionId === 'string' && value.sessionId !== '') return value.sessionId
         if (value.session && typeof value.session.id === 'string') return value.session.id
         if (value.scope && typeof value.scope.sessionId === 'string') return value.scope.sessionId
+        if (value.tab && typeof value.tab.sessionId === 'string') return value.tab.sessionId
+        /* A tab body may be rendered without a session prop; the scope tag on the
+           context it receives still names the session the pane belongs to. */
+        try {
+          const scoped = value.ctx && value.ctx.sessions && typeof value.ctx.sessions.scopeOf === 'function'
+            ? value.ctx.sessions.scopeOf(value.ctx)
+            : undefined
+          if (typeof scoped === 'string' && scoped !== '') return scoped
+        } catch (error) {
+          /* fall through to the warning below */
+        }
         return ''
       }
 

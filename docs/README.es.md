@@ -299,7 +299,7 @@ $DSH_HOME/research-team-settings.json
 | Ajuste | Ubicación | Notas |
 | --- | --- | --- |
 | Id de preset | `cordis.patch.yml` | `research-team`; las tarjetas de tarea deben usar `presetId=research-team` |
-| Persona | `cordis.patch.yml` | Prompt del sistema en inglés; reglas para todo el modo |
+| Prompt | `prompt/` | Prompt en inglés separado en un núcleo compartido y un brief por rol; `plugin/prompt.js` lo monta como persona del preset |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Establece `false` para eliminar `spawn_teammate_with_model` y su envoltorio de servicio |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Proveedores de subagente que usa la herramienta de spawn modelada; valores predeterminados `spawn` / `fork` |
 | Fila `research-team-settings` | `cordis.patch.yml` | Fila host de nivel superior; mantén el nombre en la raíz del paquete |
@@ -307,7 +307,7 @@ $DSH_HOME/research-team-settings.json
 
 ## Cómo funciona
 
-- **Preset**: `cordis.patch.yml` declara la persona, las filas de herramientas, el submódulo de compañeros modelados y la fila de ajustes de nivel superior.
+- **Preset**: `cordis.patch.yml` declara la fila de prompt (un núcleo compartido y un brief por rol en `prompt/`), las filas de herramientas, el submódulo de compañeros modelados y la fila de ajustes de nivel superior.
 - **Enrutamiento por rol**: `plugin/modeled-teammates.js` envuelve `subagents.startActivation` con `AsyncLocalStorage` e inyecta `agentOptions` solo para una llamada a `spawn_teammate_with_model`. El paquete oficial Agent Teams no se modifica. Cordis expone los servicios como un proxy rastreable, así que el envoltorio comprueba su propio descriptor de propiedad en lugar de la identidad del método.
 - **Ajustes**: `settings/index.js` carga y guarda el archivo JSON de perfiles y sirve `GET/POST /api/dsh-research-team-settings`; `client/index.js` registra el editor de perfiles de la página de Plugins mediante `plugins.row.config`.
 - **Actualización**: `plugin/settings-store.js` mantiene la instantánea en memoria, resuelve el perfil activo en cada lectura y spawn, y conserva la última instantánea buena si una lectura falla.

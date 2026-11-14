@@ -9,6 +9,7 @@
     "./tool": "./plugin/index.js",
     "./modeled-teammates": "./plugin/modeled-teammates.js",
     "./settings": "./settings/index.js",
+    "./prompt": "./plugin/prompt.js",
     "./client": "./client/index.js"
   },
   "dsh": {
@@ -24,7 +25,7 @@
     }
   },
   "scripts": {
-    "test": "node --test test/modeled-teammates.test.js test/workspace-init.test.js test/scope-check.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js test/team-mode.test.js"
+    "test": "node --test test/modeled-teammates.test.js test/workspace-init.test.js test/scope-check.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js test/team-mode.test.js test/prompt.test.js"
   },
   "repository": {
     "type": "git",
@@ -52,6 +53,7 @@
   "files": [
     "cordis.patch.yml",
     "plugin/",
+    "prompt/",
     "settings/",
     "client/",
     "panel/",

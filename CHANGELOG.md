@@ -2,6 +2,10 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.2.
 
+## Unreleased
+
+- Split the preset prompt so a teammate loads only the shared core plus its own role brief. `prompt/core.md` holds the common discipline; the nine briefs live under `prompt/roles/`, and `plugin/prompt.js` mounts them as the preset persona. The Lead preset (`research-team`) loads the core plus the Lead brief; the member preset (`research-team-member`) loads the core only, and `spawn_teammate_with_model` prepends the member's brief to its task message. The member preset also drops the spawn tool, so teammates cannot create further teammates by default.
+
 ## 0.2.2 — 2026-11-14
 
 - Work items can carry deliverables: `research_worklog op=update` accepts `deliverables: [{ label, path }]` (relative to the project root, or `{ label, url }`), and the panel renders one button per file that opens it in the right sidebar.

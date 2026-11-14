@@ -25,6 +25,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import fs from 'node:fs'
 import path from 'node:path'
 import { ROLE_NAMES, matchRoleName, modelForRole } from './settings-store.js'
+import { ROLES, rolePrompt } from './prompt.js'
 import { ensureTeamMode } from './index.js'
 import { readRouteTable } from './settings-file.js'
 
@@ -466,7 +467,7 @@ export function apply(ctx, config = {}) {
     parameters: {
       type: 'object',
       properties: {
-        name: { type: 'string', description: 'Unique teammate name; include the role, e.g. "advisor" or "ELHA-R advisor". The host keeps lower-case letters, digits and hyphens, so other characters are folded into hyphens.' },
+        name: { type: 'string', description: 'Unique teammate name; include the role, e.g. "advisor" or "ELHA-R advisor" (stored as elha-r-advisor). The host keeps lower-case letters, digits and hyphens, so spaces and capitals are folded into hyphens.' },
         description: { type: 'string', description: 'Short description of the delegated responsibility.' },
         prompt: { type: 'string', description: 'Complete initial task for the teammate.' },
         context: { type: 'string', enum: ['fresh', 'fork'], description: 'Start mode; defaults to fresh.' },
@@ -485,6 +486,11 @@ export function apply(ctx, config = {}) {
           type: 'string',
           enum: ['read-only', 'workspace-write', 'danger-full-access'],
           description: "Sandbox permission for the teammate session. Defaults to read-only for the advisor and reviewer roles and to the Lead's current sandbox mode for every other role; pass a value only to override that default."
+        },
+        role: {
+          type: 'string',
+          enum: ['advisor', 'researcher', 'data', 'designer', 'builder', 'runner', 'reviewer', 'writer', 'member'],
+          description: 'Role this teammate plays. Its brief is prepended to the task prompt and the teammate runs the member preset (shared core only). Omit to derive it from the name; an unknown name becomes a generic member.'
         }
       },
       required: ['name', 'description', 'prompt'],
@@ -506,6 +512,11 @@ export function apply(ctx, config = {}) {
       }
       await ensureTeamMode(ctx, agent)
       const context = args.context === 'fork' ? 'fork' : 'fresh'
+      const role = typeof args.role === 'string' && ROLES.includes(args.role)
+        ? args.role
+        : (matchRoleName(args.name) ?? 'member')
+      const brief = ROLES.includes(role) ? rolePrompt(role) : undefined
+      const promptText = brief === undefined ? args.prompt : `${brief}\n\n---\n\n${args.prompt}`
       const explicit = args.model === undefined ? undefined : readModel(args)
       const resolved = explicit === undefined
         ? resolveConfiguredRoute(args.name)
@@ -519,10 +530,11 @@ export function apply(ctx, config = {}) {
           provider,
           label: args.description,
           ...(slug === undefined ? {} : { name: slug }),
-          prompt: [{ type: 'text', text: args.prompt }],
+          prompt: [{ type: 'text', text: promptText }],
           parent: agent,
           signal,
-          delivery: 'parent'
+          delivery: 'parent',
+          ...(context === 'fresh' ? { agentPreset: 'research-team-member' } : {})
         })
       const started = requestedModel === undefined
         ? await spawn()

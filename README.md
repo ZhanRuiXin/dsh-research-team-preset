@@ -16,6 +16,8 @@ Research Team Mode is a DSH agent preset for running end-to-end research as a te
 
 The mode is built for research that spans days or weeks, needs traceable evidence, and benefits from clear role boundaries. It is not a one-shot Q&A mode: the Lead creates only the roles a task actually needs.
 
+The persona is split so a teammate does not carry every role's rules. `prompt/core.md` holds the shared discipline; each role has one brief under `prompt/roles/`. The Lead's preset loads the core plus the Lead brief; teammates load the core and receive their own brief with the task message, so the system prefix is identical for every member and stays cacheable.
+
 ## At a glance
 
 | | |
@@ -302,8 +304,8 @@ $DSH_HOME/research-team-settings.json
 
 | Setting | Location | Notes |
 | --- | --- | --- |
-| Preset id | `cordis.patch.yml` | `research-team`; use it when a session should run this preset |
-| Persona | `cordis.patch.yml` | English system prompt; mode-wide rules |
+| Preset id | `cordis.patch.yml` | `research-team`; use it when a session should run this preset. `research-team-member` is internal: teammates start with it, do not select it by hand |
+| Prompt | `prompt/` | English persona split into a shared core plus one brief per role; `plugin/prompt.js` mounts it as the preset persona |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Set `false` to remove `spawn_teammate_with_model` and its service wrapper |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Subagent providers used by the modeled spawn tool; defaults `spawn` / `fork` |
 | `research-team-settings` row | `cordis.patch.yml` | Top-level host row; keep the package-root name |
@@ -312,7 +314,7 @@ $DSH_HOME/research-team-settings.json
 
 ## How it works
 
-- **Preset**: `cordis.patch.yml` declares the persona, tool rows, the modeled-teammates submodule, and the top-level settings row.
+- **Preset**: `cordis.patch.yml` declares two preset rows — `research-team` (the Lead) and `research-team-member` (the internal preset teammates start with) — plus the prompt row, tool rows, the modeled-teammates submodule, and the top-level settings row. The prompt row loads `prompt/core.md` for everyone and adds the Lead's brief only in the Lead preset; the member preset carries no spawn tool.
 - **Coordination ledger**: `plugin/index.js` registers an English ledger section (`plugin:dsh-research-team-worklog`) at the preset scope and provides `research_project` to resolve the current project root.
 - **Per-role routing**: `plugin/modeled-teammates.js` wraps `subagents.startActivation` with `AsyncLocalStorage` and injects `agentOptions` only for a `spawn_teammate_with_model` call. It resolves the route from `plugin/settings-file.js` (the settings JSON, read at spawn time) and falls back to the in-process store, so a preset submodule never depends on the top-level settings row having filled that store first. The official Agent Teams package is untouched. Cordis returns a traceable proxy for services, so the wrapper verifies its own property descriptor instead of method identity.
 - **Settings**: `settings/index.js` loads/saves the profile JSON file and serves `GET/POST /api/dsh-research-team-settings`; `client/index.js` registers the Plugins-page profile editor through `plugins.row.config`.

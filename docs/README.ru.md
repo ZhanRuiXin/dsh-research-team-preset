@@ -297,7 +297,7 @@ $DSH_HOME/research-team-settings.json
 | Настройка | Расположение | Примечания |
 | --- | --- | --- |
 | Preset id | `cordis.patch.yml` | `research-team`; карточки задач должны использовать `presetId=research-team` |
-| Персона | `cordis.patch.yml` | Английский system prompt; правила для всего режима |
+| Промпт | `prompt/` | Английский промпт, разделённый на общее ядро и бриф для каждой роли; `plugin/prompt.js` монтирует его как персону пресета |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Установите `false`, чтобы убрать `spawn_teammate_with_model` и его обёртку сервиса |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Провайдеры subagent, используемые инструментом modeled spawn; по умолчанию `spawn` / `fork` |
 | Строка `research-team-settings` | `cordis.patch.yml` | Host-строка верхнего уровня; сохраняйте имя корня пакета |
@@ -305,7 +305,7 @@ $DSH_HOME/research-team-settings.json
 
 ## Как это работает
 
-- **Preset**: `cordis.patch.yml` объявляет персону, строки инструментов, подмодуль modeled-teammates и строку настроек верхнего уровня.
+- **Preset**: `cordis.patch.yml` объявляет строку промпта (общее ядро и бриф для каждой роли в `prompt/`), строки инструментов, подмодуль modeled-teammates и строку настроек верхнего уровня.
 - **Маршрутизация по ролям**: `plugin/modeled-teammates.js` оборачивает `subagents.startActivation` через `AsyncLocalStorage` и внедряет `agentOptions` только для вызова `spawn_teammate_with_model`. Официальный пакет Agent Teams не изменяется. Cordis возвращает сервисы как трассируемый прокси, поэтому обёртка проверяет собственный дескриптор свойства, а не идентичность метода.
 - **Настройки**: `settings/index.js` загружает и сохраняет JSON-файл профилей и обслуживает `GET/POST /api/dsh-research-team-settings`; `client/index.js` регистрирует редактор профилей на странице Plugins через `plugins.row.config`.
 - **Обновление**: `plugin/settings-store.js` хранит снимок в памяти, определяет активный профиль при каждом чтении и spawn и сохраняет последний корректный снимок, если чтение не удалось.

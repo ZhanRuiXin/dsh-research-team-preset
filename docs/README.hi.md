@@ -301,7 +301,7 @@ $DSH_HOME/research-team-settings.json
 | सेटिंग | स्थान | नोट्स |
 | --- | --- | --- |
 | Preset id | `cordis.patch.yml` | `research-team`; टास्क कार्डों में `presetId=research-team` का उपयोग करना चाहिए |
-| Persona | `cordis.patch.yml` | अंग्रेज़ी सिस्टम प्रॉम्प्ट; मोड-व्यापी नियम |
+| Prompt | `prompt/` | अंग्रेज़ी प्रॉम्प्ट साझा कोर और प्रत्येक भूमिका के ब्रीफ़ में विभाजित; `plugin/prompt.js` इसे preset persona के रूप में माउंट करता है |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | `spawn_teammate_with_model` और उसके service wrapper को हटाने के लिए `false` सेट करें |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn टूल द्वारा उपयोग किए जाने वाले subagent प्रदाता; डिफ़ॉल्ट `spawn` / `fork` |
 | `research-team-settings` row | `cordis.patch.yml` | शीर्ष-स्तरीय host row; package-root नाम बनाए रखें |
@@ -309,7 +309,7 @@ $DSH_HOME/research-team-settings.json
 
 ## यह कैसे काम करता है
 
-- **Preset**: `cordis.patch.yml` persona, tool rows, modeled-teammates submodule और शीर्ष-स्तरीय settings row घोषित करता है।
+- **Preset**: `cordis.patch.yml` प्रॉम्प्ट पंक्ति (`prompt/` में साझा कोर और प्रत्येक भूमिका के लिए ब्रीफ़), टूल पंक्तियाँ, modeled-teammates सबमॉड्यूल और शीर्ष-स्तरीय settings row घोषित करता है।
 - **Per-role routing**: `plugin/modeled-teammates.js` `subagents.startActivation` को `AsyncLocalStorage` के साथ लपेटता है और `agentOptions` केवल `spawn_teammate_with_model` कॉल के लिए इंजेक्ट करता है। आधिकारिक Agent Teams पैकेज अछूता रहता है। Cordis सेवाओं को ट्रेस करने योग्य प्रॉक्सी के रूप में देता है, इसलिए रैपर विधि की पहचान के बजाय अपने स्वयं के प्रॉपर्टी डिस्क्रिप्टर की जाँच करता है।
 - **Settings**: `settings/index.js` प्रोफ़ाइल JSON फ़ाइल लोड/सेव करता है और `GET/POST /api/dsh-research-team-settings` सर्व करता है; `client/index.js` `plugins.row.config` के माध्यम से Plugins-पृष्ठ का प्रोफ़ाइल एडिटर पंजीकृत करता है।
 - **Refresh**: `plugin/settings-store.js` इन-मेमोरी स्नैपशॉट रखता है, प्रत्येक पढ़ने और spawn पर सक्रिय प्रोफ़ाइल हल करता है, और यदि पढ़ना विफल हो तो अंतिम अच्छा स्नैपशॉट बनाए रखता है।

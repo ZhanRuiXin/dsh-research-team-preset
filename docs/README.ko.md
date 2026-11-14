@@ -300,7 +300,7 @@ $DSH_HOME/research-team-settings.json
 | 설정 | 위치 | 비고 |
 | --- | --- | --- |
 | 프리셋 id | `cordis.patch.yml` | `research-team`; 작업 카드는 `presetId=research-team`을 사용해야 합니다 |
-| 페르소나 | `cordis.patch.yml` | 영어 시스템 프롬프트; 모드 전체 규칙 |
+| 프롬프트 | `prompt/` | 영어 프롬프트를 공유 코어와 역할별 브리프로 나눕니다; `plugin/prompt.js`가 프리셋 페르소나로 마운트합니다 |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | `false`로 설정하면 `spawn_teammate_with_model`과 해당 서비스 래퍼가 제거됩니다 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | modeled spawn 도구가 사용하는 하위 에이전트 제공자; 기본값 `spawn` / `fork` |
 | `research-team-settings` 행 | `cordis.patch.yml` | 최상위 호스트 행; 패키지 루트 이름을 유지하십시오 |
@@ -308,7 +308,7 @@ $DSH_HOME/research-team-settings.json
 
 ## 동작 방식
 
-- **프리셋**: `cordis.patch.yml`이 페르소나, 도구 행, modeled-teammates 하위 모듈, 최상위 설정 행을 선언합니다.
+- **프리셋**: `cordis.patch.yml`이 프롬프트 행(`prompt/`의 공유 코어와 역할별 브리프), 도구 행, modeled-teammates 하위 모듈, 최상위 설정 행을 선언합니다.
 - **역할별 라우팅**: `plugin/modeled-teammates.js`가 `AsyncLocalStorage`로 `subagents.startActivation`을 감싸고 `spawn_teammate_with_model` 호출에만 `agentOptions`를 주입합니다. 공식 Agent Teams 패키지는 수정되지 않습니다. Cordis는 서비스를 추적 가능한 프록시로 반환하므로, 래퍼는 메서드 동일성 대신 자체 속성 설명자를 검증합니다.
 - **설정**: `settings/index.js`가 프로필 JSON 파일을 로드/저장하고 `GET/POST /api/dsh-research-team-settings`를 제공합니다. `client/index.js`는 `plugins.row.config`를 통해 Plugins 페이지의 프로필 편집기를 등록합니다.
 - **새로 고침**: `plugin/settings-store.js`가 인메모리 스냅샷을 보관하고, 읽기와 spawn 시마다 활성 프로필을 확인하며, 읽기에 실패하면 마지막 정상 스냅샷을 유지합니다.

@@ -132,6 +132,11 @@ test('a modeled spawn resolves the file route and injects agentOptions', async (
   assert.deepEqual(activations[0].agentOptions, ROUTES.advisor)
   assert.equal(activations[0].name, 'elha-r-advisor')
   assert.equal(result.member.name, 'elha-r-advisor')
+  assert.equal(activations[0].agentPreset, 'research-team-member')
+  assert.equal(activations[0].prompt.length, 1)
+  assert.equal(activations[0].prompt[0].type, 'text')
+  assert.match(activations[0].prompt[0].text, /^You are the advisor/)
+  assert.match(activations[0].prompt[0].text, /Review the design\.$/)
 })
 
 test('a reserved or unusable name falls back to the host default', async () => {
@@ -143,6 +148,17 @@ test('a reserved or unusable name falls back to the host default', async () => {
   )
   assert.equal('name' in activations[0], false)
   assert.equal(result.member.name, 'agent-1')
+})
+
+test('a fork inherits the context instead of selecting the member preset', async () => {
+  writeSettingsFile(v2File())
+  const { tools, activations } = fakeContext()
+  await tools.spawn_teammate_with_model.execute(
+    { name: 'builder', description: 'Implement', prompt: 'Build it.', context: 'fork' },
+    { agent }
+  )
+  assert.equal('agentPreset' in activations[0], false)
+  assert.match(activations[0].prompt[0].text, /^You are the builder/)
 })
 
 test('an explicit model overrides the configured route', async () => {

@@ -302,7 +302,7 @@ $DSH_HOME/research-team-settings.json
 | 設定 | 位置 | 備註 |
 | --- | --- | --- |
 | Preset id | `cordis.patch.yml` | `research-team`；任務卡應使用 `presetId=research-team` |
-| Persona | `cordis.patch.yml` | 英文系統提示詞；模式層級規則 |
+| Prompt | `prompt/` | 英文提示詞，拆成共享核心與每個角色一份說明；`plugin/prompt.js` 以預設 persona 的形式掛載 |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | 設為 `false` 可移除 `spawn_teammate_with_model` 及其服務包裝 |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | 模型化 spawn 工具使用的 subagent provider；預設為 `spawn` / `fork` |
 | `research-team-settings` 列 | `cordis.patch.yml` | 頂層主機列；請保留套件根目錄名稱 |
@@ -310,7 +310,7 @@ $DSH_HOME/research-team-settings.json
 
 ## 運作原理
 
-- **Preset**：`cordis.patch.yml` 宣告 persona、工具列、modeled-teammates 子模組與頂層設定列。
+- **Preset**：`cordis.patch.yml` 宣告 prompt 列（`prompt/` 的共享核心與角色簡述）、工具列、modeled-teammates 子模組與頂層設定列。
 - **各角色路由**：`plugin/modeled-teammates.js` 以 `AsyncLocalStorage` 包裝 `subagents.startActivation`，僅在 `spawn_teammate_with_model` 呼叫時注入 `agentOptions`。官方 Agent Teams 套件未被改動。 Cordis 對服務回傳可追蹤代理，因此包裝器改為檢查自身屬性描述符，而不比較方法身分。
 - **設定**：`settings/index.js` 載入／儲存配置 JSON 檔並提供 `GET/POST /api/dsh-research-team-settings`；`client/index.js` 透過 `plugins.row.config` 註冊 Plugins 頁面的配置編輯器。
 - **重新整理**：`plugin/settings-store.js` 持有記憶體快照，在每次讀取與 spawn 時解析作用中的配置，並在讀取失敗時保留上一次良好的快照。

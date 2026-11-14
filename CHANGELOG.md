@@ -4,7 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
-- `research_library` reads and writes the Zotero library through its local API (`status`, `search`, `item`, `create`, `update`, `tags`, `collections`, `collection`, `note`, `log`). Reads need no key; the first write asks Zotero for a local API key ("Always Allow" remembers it), writes then run without a per-change plan card, and every change is appended to `.research/library-log.jsonl`. Tag and collection edits read-merge-write under the item version, and the module never deletes objects.
+- `research_library` now covers the Zotero local API surface the workflow needs: `search` gained pagination and tag/collection scope; new `attach` (three-phase file upload — the way a paper's PDF enters the library), `export` (BibTeX, BibLaTeX, RIS, CSL JSON), `annotations`, `fulltext`, `fulltextPut`, `file`, `fields`, `tagList`, `collectionList`, `collectionItems`, `collectionUpdate`, `collectionDelete`, `noteUpdate`, `noteDelete`, `delete`/`restore`, saved searches and `tagDelete`. Destructive ops take `confirm: true` and only move objects to the trash; every write still lands in `.research/library-log.jsonl`.
 - The team is limited to the eight standard roles. `spawn_teammate_with_model` refuses a custom name and takes the role from the name (or from `role`), so the teammate always loads the matching `research-role-<role>` skill and uses that role's configured route; the name is no longer a free-form label.
 
 ## 0.2.3 — 2026-11-14

@@ -17,6 +17,7 @@
  * tool layer, and nothing in this module deletes objects.
  */
 
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -41,6 +42,35 @@ export function itemKey(ref) {
   const match = /([A-Z0-9]{8})(?:[/?#]|$)/.exec(trimmed.toUpperCase())
   if (match !== null) return match[1]
   return /^[A-Z0-9]{8}$/.test(trimmed.toUpperCase()) ? trimmed.toUpperCase() : ''
+}
+
+async function md5File(file) {
+  return await new Promise((resolve, reject) => {
+    const hash = crypto.createHash('md5')
+    const stream = fs.createReadStream(file)
+    stream.on('data', (chunk) => hash.update(chunk))
+    stream.on('error', reject)
+    stream.on('end', () => resolve(hash.digest('hex')))
+  })
+}
+
+const CONTENT_TYPES = {
+  '.pdf': 'application/pdf',
+  '.epub': 'application/epub+zip',
+  '.html': 'text/html',
+  '.htm': 'text/html',
+  '.txt': 'text/plain',
+  '.md': 'text/markdown',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.doc': 'application/msword',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+}
+
+function contentTypeFor(file) {
+  return CONTENT_TYPES[path.extname(file).toLowerCase()] ?? 'application/octet-stream'
 }
 
 function escapeHtml(text) {
@@ -112,13 +142,14 @@ export function createLibraryClient(options = {}) {
   }
   let remembered = null
 
-  async function send(method, pathname, { headers = {}, body } = {}) {
+  async function send(method, pathname, { headers = {}, body, redirect } = {}) {
     let response
     try {
       response = await fetchImpl(`${baseUrl}${pathname}`, {
         method,
         headers,
         body,
+        redirect,
         signal: typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
           ? AbortSignal.timeout(timeoutMs)
           : undefined
@@ -140,6 +171,38 @@ export function createLibraryClient(options = {}) {
       }
     }
     return { response, text, json }
+  }
+
+  async function sendAbsolute(url, options = {}) {
+    const headers = options.headers ?? {}
+    try {
+      const response = await fetchImpl(url, {
+        method: options.method ?? 'POST',
+        headers,
+        body: options.body,
+        signal: typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+          ? AbortSignal.timeout(options.timeoutMs ?? timeoutMs)
+          : undefined
+      })
+      const text = typeof response.text === 'function' ? await response.text().catch(() => '') : ''
+      let json = null
+      if (text.length > 0) {
+        try {
+          json = JSON.parse(text)
+        } catch {
+          json = null
+        }
+      }
+      return { response, text, json }
+    } catch (error) {
+      throw new LibraryError('LIBRARY_UNAVAILABLE', `The attachment upload endpoint is not reachable: ${error?.message ?? error}`)
+    }
+  }
+
+  function absoluteUploadUrl(href) {
+    if (/^https?:/i.test(href)) return href
+    const origin = baseUrl.replace(/\/api$/, '')
+    return href.startsWith('/') ? `${origin}${href}` : `${origin}/${href}`
   }
 
   function statusOf(response) {
@@ -263,12 +326,21 @@ export function createLibraryClient(options = {}) {
 
     async search(query, options = {}) {
       const limit = Number.isInteger(options.limit) && options.limit > 0 ? Math.min(options.limit, 100) : 20
+      const offset = Number.isInteger(options.offset) && options.offset > 0 ? options.offset : 0
       const params = new URLSearchParams({ limit: String(limit) })
+      if (offset > 0) params.set('start', String(offset))
       if (typeof query === 'string' && query.trim().length > 0) params.set('q', query.trim())
       if (typeof options.itemType === 'string' && options.itemType.length > 0) params.set('itemType', options.itemType)
+      if (typeof options.tag === 'string' && options.tag.trim().length > 0) params.set('tag', options.tag.trim())
+      if (typeof options.collection === 'string' && options.collection.trim().length > 0) params.set('collection', options.collection.trim())
+      params.set('qmode', options.qmode === 'titleCreatorYear' ? 'titleCreatorYear' : 'everything')
+      if (typeof options.sort === 'string' && options.sort.length > 0) params.set('sort', options.sort)
       const { response, json, text } = await send('GET', `${LIBRARY_PATH}/items?${params.toString()}`)
       if (!response.ok) throw new LibraryError('LIBRARY_UNAVAILABLE', failure('Zotero search failed', response, text), statusOf(response))
-      return Array.isArray(json) ? json.map(compactItem) : []
+      const items = Array.isArray(json) ? json.map(compactItem) : []
+      const header = typeof response.headers?.get === 'function' ? response.headers.get('total-results') : null
+      const total = Number(header ?? 0) || items.length
+      return { items, total, offset, limit }
     },
 
     async item(ref, options = {}) {
@@ -378,6 +450,259 @@ export function createLibraryClient(options = {}) {
       if (clean.length > 0) item.tags = clean
       const created = await this.create(item)
       return { key: created.key, parent, version: created.version }
+    },
+
+    async export(refs, format) {
+      const allowed = ['bibtex', 'biblatex', 'ris', 'csljson']
+      const wanted = typeof format === 'string' && format.trim().length > 0 ? format.trim().toLowerCase() : 'bibtex'
+      if (!allowed.includes(wanted)) {
+        throw new LibraryError('LIBRARY_INVALID', `format must be one of ${allowed.join(', ')}.`)
+      }
+      const keys = (Array.isArray(refs) ? refs : refs === undefined ? [] : [refs]).map(itemKey).filter((key) => key.length > 0)
+      const params = new URLSearchParams({ format: wanted })
+      if (keys.length > 0) params.set('itemkey', keys.join(','))
+      const { response, text } = await send('GET', `${LIBRARY_PATH}/items?${params.toString()}`)
+      if (!response.ok) throw new LibraryError('LIBRARY_UNAVAILABLE', failure('Zotero export failed', response, text), statusOf(response))
+      return { format: wanted, keys, text }
+    },
+
+    async attach(parentRef, filePath, options = {}) {
+      const parent = itemKey(parentRef)
+      if (parent.length === 0) throw new LibraryError('LIBRARY_INVALID', `"${parentRef ?? ''}" is not a parent item key.`)
+      const absolute = path.resolve(String(filePath ?? ''))
+      let stat = null
+      try {
+        stat = await fs.promises.stat(absolute)
+      } catch {
+        throw new LibraryError('LIBRARY_INVALID', `No file at ${absolute}.`)
+      }
+      if (!stat.isFile()) throw new LibraryError('LIBRARY_INVALID', `${absolute} is not a file.`)
+      if (stat.size > 4 * 1024 * 1024 * 1024) throw new LibraryError('LIBRARY_INVALID', 'Zotero stores files under 4 GB.')
+      const filename = path.basename(absolute)
+      const contentType = typeof options.contentType === 'string' && options.contentType.length > 0 ? options.contentType : contentTypeFor(absolute)
+      const created = await this.create([
+        {
+          itemType: 'attachment',
+          parentItem: parent,
+          linkMode: options.linkMode ?? 'imported_file',
+          title: typeof options.title === 'string' && options.title.length > 0 ? options.title : filename,
+          filename,
+          contentType
+        }
+      ])
+      const key = created.key
+      const params = new URLSearchParams({
+        md5: await md5File(absolute),
+        filename,
+        filesize: String(stat.size),
+        mtime: String(Math.round(stat.mtimeMs))
+      })
+      const first = await write('POST', `${LIBRARY_PATH}/items/${key}/file?${params.toString()}`, undefined, { 'If-None-Match': '*' })
+      if (first.json?.exists === 1) return { key, parent, uploaded: false, existed: true }
+      const href = typeof first.json?.url === 'string' ? first.json.url : ''
+      if (href.length === 0) throw new LibraryError('LIBRARY_INVALID', failure('Zotero did not return an upload URL', first.response, first.text), statusOf(first.response))
+      const upload = await sendAbsolute(absoluteUploadUrl(href), {
+        method: 'POST',
+        headers: { 'Content-Type': contentType },
+        body: await fs.promises.readFile(absolute)
+      })
+      if (![200, 201].includes(statusOf(upload.response))) {
+        throw new LibraryError('LIBRARY_UPLOAD', failure('Zotero rejected the file upload', upload.response, upload.text), statusOf(upload.response))
+      }
+      const uploadKey = typeof first.json?.uploadKey === 'string' ? first.json.uploadKey : ''
+      const done = await write('POST', `${LIBRARY_PATH}/items/${key}/file?upload=${encodeURIComponent(uploadKey)}`, undefined, { 'If-None-Match': '*' })
+      const versionHeader = typeof done.response.headers?.get === 'function' ? done.response.headers.get('last-modified-version') : null
+      return { key, parent, uploaded: true, existed: false, bytes: stat.size, version: Number(versionHeader ?? 0) || 0 }
+    },
+
+    async file(ref) {
+      const key = itemKey(ref)
+      if (key.length === 0) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a Zotero attachment key.`)
+      const { response, text } = await send('GET', `${LIBRARY_PATH}/items/${key}/file`, { redirect: 'manual' })
+      const status = statusOf(response)
+      if (status === 404) throw new LibraryError('LIBRARY_NOT_FOUND', `Zotero has no attachment ${key}.`, 404)
+      if (![200, 301, 302, 303, 307, 308].includes(status)) {
+        throw new LibraryError('LIBRARY_UNAVAILABLE', failure('Zotero could not resolve the attachment file', response, text), status)
+      }
+      const location = typeof response.headers?.get === 'function' ? (response.headers.get('location') ?? '') : ''
+      const filePath = location.startsWith('file:') ? decodeURIComponent(location.replace(/^file:\/\/\/?/u, '')) : location
+      return { key, path: filePath }
+    },
+
+    async fulltext(ref) {
+      const key = itemKey(ref)
+      if (key.length === 0) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a Zotero attachment key.`)
+      const { response, json } = await send('GET', `${LIBRARY_PATH}/items/${key}/fulltext`)
+      if (statusOf(response) === 404) return { key, content: '', indexedChars: 0 }
+      if (!response.ok) throw new LibraryError('LIBRARY_UNAVAILABLE', `Zotero could not read full text for ${key}.`, statusOf(response))
+      return {
+        key,
+        content: typeof json?.content === 'string' ? json.content : '',
+        indexedChars: typeof json?.indexedChars === 'number' ? json.indexedChars : 0
+      }
+    },
+
+    async fulltextPut(ref, text) {
+      const key = itemKey(ref)
+      if (key.length === 0) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a Zotero attachment key.`)
+      const content = typeof text === 'string' ? text : ''
+      if (content.trim().length === 0) throw new LibraryError('LIBRARY_INVALID', 'op=fulltextPut needs text.')
+      await write('PUT', `${LIBRARY_PATH}/items/${key}/fulltext`, { content })
+      return { key, indexedChars: content.length }
+    },
+
+    async annotations(ref) {
+      const key = itemKey(ref)
+      if (key.length === 0) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a Zotero item key.`)
+      const { response, json, text } = await send('GET', `${LIBRARY_PATH}/items/${key}/children`)
+      if (!response.ok) throw new LibraryError('LIBRARY_UNAVAILABLE', failure(`Zotero could not read children of ${key}`, response, text), statusOf(response))
+      const list = Array.isArray(json) ? json : []
+      return list
+        .filter((entry) => entry?.data?.itemType === 'annotation')
+        .map((entry) => ({
+          key: entry.key,
+          type: entry.data.annotationType ?? '',
+          text: entry.data.annotationText ?? '',
+          comment: entry.data.annotationComment ?? '',
+          color: entry.data.annotationColor ?? '',
+          pageLabel: entry.data.annotationPageLabel ?? '',
+          sortIndex: entry.data.annotationSortIndex ?? ''
+        }))
+    },
+
+    async noteUpdate(ref, markdown) {
+      const key = itemKey(ref)
+      if (key.length === 0) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a Zotero note key.`)
+      const current = await this.item(key)
+      await write('PATCH', `${LIBRARY_PATH}/items/${key}`, { note: noteHtml(markdown) }, { 'If-Unmodified-Since-Version': String(current.version) })
+      return { key }
+    },
+
+    async noteDelete(ref) {
+      const key = itemKey(ref)
+      if (key.length === 0) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a Zotero note key.`)
+      const current = await this.item(key)
+      await write('DELETE', `${LIBRARY_PATH}/items/${key}`, undefined, { 'If-Unmodified-Since-Version': String(current.version) })
+      return { key, deleted: true }
+    },
+
+    async trashItem(ref) {
+      const key = itemKey(ref)
+      if (key.length === 0) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a Zotero item key.`)
+      const current = await this.item(key)
+      await write('PATCH', `${LIBRARY_PATH}/items/${key}`, { deleted: true }, { 'If-Unmodified-Since-Version': String(current.version) })
+      return { key, deleted: true }
+    },
+
+    async restoreItem(ref) {
+      const key = itemKey(ref)
+      if (key.length === 0) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a Zotero item key.`)
+      const current = await this.item(key)
+      await write('PATCH', `${LIBRARY_PATH}/items/${key}`, { deleted: false }, { 'If-Unmodified-Since-Version': String(current.version) })
+      return { key, deleted: false }
+    },
+
+    async trash(options = {}) {
+      const limit = Number.isInteger(options.limit) && options.limit > 0 ? Math.min(options.limit, 100) : 50
+      const { response, json } = await send('GET', `${LIBRARY_PATH}/items/trash?limit=${limit}`)
+      if (!response.ok) return []
+      return Array.isArray(json) ? json.map(compactItem) : []
+    },
+
+    async tagList(options = {}) {
+      const limit = Number.isInteger(options.limit) && options.limit > 0 ? Math.min(options.limit, 5000) : 100
+      const { response, json, text } = await send('GET', `${LIBRARY_PATH}/tags?limit=${limit}`)
+      if (!response.ok) throw new LibraryError('LIBRARY_UNAVAILABLE', failure('Zotero could not list tags', response, text), statusOf(response))
+      return Array.isArray(json) ? json.map((entry) => entry?.tag ?? entry?.data?.tag ?? '').filter((name) => name.length > 0) : []
+    },
+
+    async tagDelete(name) {
+      const wanted = typeof name === 'string' ? name.trim() : ''
+      if (wanted.length === 0) throw new LibraryError('LIBRARY_INVALID', 'op=tagDelete needs a tag name.')
+      await write('DELETE', `${LIBRARY_PATH}/tags?tag=${encodeURIComponent(wanted)}`)
+      return { tag: wanted, deleted: true }
+    },
+
+    async collectionItems(ref, options = {}) {
+      const raw = String(ref ?? '').trim().toUpperCase()
+      const key = /^[A-Z0-9]{8}$/.test(raw) ? raw : (await this.ensureCollection(String(ref ?? ''))).key
+      const limit = Number.isInteger(options.limit) && options.limit > 0 ? Math.min(options.limit, 100) : 50
+      const start = Number.isInteger(options.offset) && options.offset > 0 ? options.offset : 0
+      const { response, json, text } = await send('GET', `${LIBRARY_PATH}/collections/${key}/items?limit=${limit}&start=${start}`)
+      if (!response.ok) throw new LibraryError('LIBRARY_UNAVAILABLE', failure(`Zotero could not list items of ${key}`, response, text), statusOf(response))
+      const items = Array.isArray(json) ? json.map(compactItem) : []
+      return { collection: key, items, total: Number(response.headers?.get?.('total-results') ?? 0) || items.length }
+    },
+
+    async collectionVersion(ref) {
+      const key = String(ref ?? '').trim().toUpperCase()
+      const { response, json } = await send('GET', `${LIBRARY_PATH}/collections/${key}`)
+      if (!response.ok) throw new LibraryError('LIBRARY_NOT_FOUND', `Zotero has no collection ${key}.`, statusOf(response))
+      return typeof json?.version === 'number' ? json.version : 0
+    },
+
+    async collectionUpdate(ref, fields) {
+      const key = String(ref ?? '').trim().toUpperCase()
+      if (!/^[A-Z0-9]{8}$/.test(key)) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a collection key.`)
+      const patch = {}
+      if (typeof fields?.name === 'string' && fields.name.trim().length > 0) patch.name = fields.name.trim()
+      if (fields?.parent !== undefined) {
+        const parent = String(fields.parent ?? '').trim()
+        patch.parentCollection = parent.length === 0 ? false : (/^[A-Z0-9]{8}$/.test(parent.toUpperCase()) ? parent.toUpperCase() : (await this.ensureCollection(parent)).key)
+      }
+      if (Object.keys(patch).length === 0) throw new LibraryError('LIBRARY_INVALID', 'op=collectionUpdate needs fields.name or fields.parent.')
+      const version = await this.collectionVersion(key)
+      await write('PATCH', `${LIBRARY_PATH}/collections/${key}`, patch, { 'If-Unmodified-Since-Version': String(version) })
+      return { key, ...patch }
+    },
+
+    async collectionDelete(ref) {
+      const key = String(ref ?? '').trim().toUpperCase()
+      if (!/^[A-Z0-9]{8}$/.test(key)) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a collection key.`)
+      const version = await this.collectionVersion(key)
+      await write('DELETE', `${LIBRARY_PATH}/collections/${key}`, undefined, { 'If-Unmodified-Since-Version': String(version) })
+      return { key, deleted: true }
+    },
+
+    async searches() {
+      const { response, json, text } = await send('GET', `${LIBRARY_PATH}/searches`)
+      if (!response.ok) throw new LibraryError('LIBRARY_UNAVAILABLE', failure('Zotero could not list saved searches', response, text), statusOf(response))
+      return Array.isArray(json) ? json.map((entry) => ({ key: entry?.key ?? '', name: entry?.data?.name ?? entry?.name ?? '' })) : []
+    },
+
+    async saveSearch(name, conditions) {
+      const wanted = typeof name === 'string' ? name.trim() : ''
+      if (wanted.length === 0) throw new LibraryError('LIBRARY_INVALID', 'op=saveSearch needs a name.')
+      const list = Array.isArray(conditions) ? conditions : []
+      if (list.length === 0) throw new LibraryError('LIBRARY_INVALID', 'op=saveSearch needs conditions[].')
+      const { response, json, text } = await write('POST', `${LIBRARY_PATH}/searches`, [{ name: wanted, conditions: list }])
+      const created = readKeyFromResult(json)
+      if (created === null) throw new LibraryError('LIBRARY_INVALID', failure('Zotero returned no created search', response, text), statusOf(response))
+      return { key: created.key, name: wanted }
+    },
+
+    async savedSearchItems(ref, options = {}) {
+      const key = String(ref ?? '').trim().toUpperCase()
+      const limit = Number.isInteger(options.limit) && options.limit > 0 ? Math.min(options.limit, 100) : 50
+      const start = Number.isInteger(options.offset) && options.offset > 0 ? options.offset : 0
+      const { response, json, text } = await send('GET', `${LIBRARY_PATH}/searches/${key}/items?limit=${limit}&start=${start}`)
+      if (!response.ok) throw new LibraryError('LIBRARY_UNAVAILABLE', failure(`Zotero could not run saved search ${key}`, response, text), statusOf(response))
+      const items = Array.isArray(json) ? json.map(compactItem) : []
+      return { search: key, items, total: Number(response.headers?.get?.('total-results') ?? 0) || items.length }
+    },
+
+    async deleteSavedSearch(ref) {
+      const key = String(ref ?? '').trim().toUpperCase()
+      if (!/^[A-Z0-9]{8}$/.test(key)) throw new LibraryError('LIBRARY_INVALID', `"${ref ?? ''}" is not a saved-search key.`)
+      await write('DELETE', `${LIBRARY_PATH}/searches/${key}`)
+      return { key, deleted: true }
+    },
+
+    async fields(itemType) {
+      const wanted = typeof itemType === 'string' && itemType.length > 0 ? itemType : 'journalArticle'
+      const { response, json, text } = await send('GET', `${LIBRARY_PATH}/itemTypeFields?itemType=${encodeURIComponent(wanted)}`)
+      if (!response.ok) throw new LibraryError('LIBRARY_UNAVAILABLE', failure('Zotero could not list item fields', response, text), statusOf(response))
+      return Array.isArray(json) ? json.map((entry) => ({ field: entry?.field ?? '', localized: entry?.localized ?? '' })) : []
     }
   }
 }
@@ -410,34 +735,59 @@ export function apply(ctx) {
   const dispose = ctx.tools.register({
     name: 'research_library',
     description:
-      'Read and write the Zotero library through its local API (127.0.0.1:23119). ' +
-      'Ops: status, search, item, create, update, tags, collections, collection, note, log. ' +
-      'Reads need no key. The first write opens a Zotero dialog ("Always Allow" makes the key reusable); ' +
-      'after that writes run without a per-change plan card, and each one is appended to .research/library-log.jsonl. ' +
-      'Search for duplicates before create. update/tags/collections read the item, merge and write back under its version, so a concurrent edit fails with LIBRARY_CONFLICT instead of overwriting. ' +
-      'Nothing here deletes objects; removals are tag/collection membership only.',
+      'Read and write the Zotero library through its local API (http://127.0.0.1:23119/api). ' +
+      'Read ops: status, search, item, annotations, fulltext, file, export, fields, tagList, collectionList, collectionItems, searches, savedSearchItems, trash, log. ' +
+      'Write ops: create, update, attach, note, noteUpdate, noteDelete, tags, collections, collection, collectionUpdate, collectionDelete, delete, restore, saveSearch, deleteSavedSearch, fulltextPut, tagDelete. ' +
+      'Reads need no key. The first write opens a Zotero dialog ("Always Allow" makes the key reusable); afterwards writes run without a per-change plan card and each one is appended to .research/library-log.jsonl. ' +
+      'attach uploads a local file as a stored-file attachment (three-phase upload) and is how a paper\'s full text enters the library: create the item first, then attach the PDF to it. ' +
+      'Search by DOI before create. update/tags/collections read the item, merge, and write back under its version, so a concurrent edit fails with LIBRARY_CONFLICT instead of overwriting. ' +
+      'delete moves an item to the trash and requires confirm:true; noteDelete, collectionDelete, tagDelete and deleteSavedSearch require it too. This tool never erases data permanently.',
     parameters: {
       type: 'object',
       properties: {
         op: {
           type: 'string',
-          enum: ['status', 'search', 'item', 'create', 'update', 'tags', 'collections', 'collection', 'note', 'log'],
+          enum: [
+            'status', 'search', 'item', 'annotations', 'fulltext', 'file', 'export', 'fields',
+            'tagList', 'collectionList', 'collectionItems', 'searches', 'savedSearchItems', 'trash', 'log',
+            'create', 'update', 'attach', 'note', 'noteUpdate', 'noteDelete', 'tags', 'collections',
+            'collection', 'collectionUpdate', 'collectionDelete', 'delete', 'restore', 'saveSearch',
+            'deleteSavedSearch', 'fulltextPut', 'tagDelete'
+          ],
           description:
-            'status: reachability and server id. search: quick search. item: one item by key. create: POST items[]. ' +
-            'update: patch fields. tags: add/remove tags. collections: add/remove collection membership. ' +
-            'collection: find or create a collection by name. note: child note from markdown. log: recent writes.'
+            'status: reachability and server id. search: query with limit/offset/tag/collection. item: one item by key. ' +
+            'annotations/fulltext/file: read an attachment. export: bibliography text. fields: valid fields of an item type. ' +
+            'tagList/collectionList/collectionItems/searches/savedSearchItems/trash: library listings. ' +
+            'create/update/attach/note/tags/collections/collection: writes. delete/restore: trash and undelete. ' +
+            'noteDelete/collectionDelete/collectionUpdate/deleteSavedSearch/tagDelete: destructive, need confirm. log: recent writes.'
         },
-        ref: { type: 'string', description: 'Item key (8 chars) for item, update, tags, collections, note (parent).' },
+        ref: { type: 'string', description: 'Item key (8 chars) or zotero:// ref. Parent key for attach/note; attachment key for fulltext/file/annotations.' },
         query: { type: 'string', description: 'Search text for op=search.' },
-        limit: { type: 'number', description: 'Result count for search/log (1-100).' },
-        itemType: { type: 'string', description: 'Optional item type filter for op=search, e.g. journalArticle.' },
+        limit: { type: 'number', description: 'Result count (1-100 for items, 1-5000 for tagList).' },
+        offset: { type: 'number', description: 'Pagination start for search, collectionItems and savedSearchItems.' },
+        itemType: { type: 'string', description: 'Item type filter for op=search; item type for op=fields.' },
+        tag: { type: 'string', description: 'Tag filter for op=search.' },
+        collection: { type: 'string', description: 'Collection name or key for collectionItems/collectionUpdate/collectionDelete; collection filter for search.' },
+        qmode: { type: 'string', enum: ['everything', 'titleCreatorYear'], description: 'Search mode (default everything).' },
+        sort: { type: 'string', description: 'Sort field for op=search, e.g. dateModified desc.' },
         data: { type: 'object', description: 'Complete Zotero item object for op=create (itemType and title at least).' },
-        fields: { type: 'object', description: 'Fields to change for op=update.' },
-        add: { type: 'array', items: { type: 'string' }, description: 'Tag names or collection names/keys to add.' },
+        fields: { type: 'object', description: 'Fields to change for op=update; name/parent for collectionUpdate.' },
+        add: { type: 'array', items: { type: 'string' }, description: 'Tag names or collection names/keys to add; item keys for op=export.' },
         remove: { type: 'array', items: { type: 'string' }, description: 'Tag names or collection names/keys to remove.' },
-        name: { type: 'string', description: 'Collection name for op=collection.' },
+        name: { type: 'string', description: 'Collection name for op=collection; saved-search name for op=saveSearch.' },
         parent: { type: 'string', description: 'Optional parent collection name or key for op=collection.' },
-        markdown: { type: 'string', description: 'Note body for op=note (plain text, paragraphs, - lists, # headings).' },
+        markdown: { type: 'string', description: 'Note body for op=note/noteUpdate (plain text, paragraphs, - lists, # headings).' },
+        text: { type: 'string', description: 'Full-text content for op=fulltextPut.' },
+        filePath: { type: 'string', description: 'Absolute path of the file to upload for op=attach (e.g. a PDF).' },
+        format: { type: 'string', enum: ['bibtex', 'biblatex', 'ris', 'csljson'], description: 'Export format for op=export.' },
+        confirm: { type: 'boolean', description: 'Required true for destructive ops (delete, noteDelete, collectionDelete, tagDelete, deleteSavedSearch).' },
+        children: { type: 'boolean', description: 'Include child items for op=item.' },
+        searchKey: { type: 'string', description: 'Saved-search key for op=savedSearchItems.' },
+        conditions: {
+          type: 'array',
+          description: 'Saved-search conditions for op=saveSearch, e.g. [{ condition: "title", operator: "contains", value: "diffusion" }].',
+          items: { type: 'object' }
+        },
         dryRun: { type: 'boolean', description: 'Describe the write without performing it (no authorization, no change).' }
       },
       required: ['op'],
@@ -455,60 +805,167 @@ export function apply(ctx) {
     async execute(args, exec) {
       const op = typeof args?.op === 'string' ? args.op : ''
       const dryRun = args?.dryRun === true
+      const confirm = args?.confirm === true
       const client = createLibraryClient()
       const logFile = projectLibraryLog(exec)
+      const log = (entry) => {
+        appendLibraryLog(logFile, { at: new Date().toISOString(), by: exec?.agent?.session?.id ?? '', ...entry })
+      }
+      const needsConfirm = new Set(['delete', 'noteDelete', 'collectionDelete', 'tagDelete', 'deleteSavedSearch'])
       try {
+        if (needsConfirm.has(op) && !confirm) {
+          return { error: `LIBRARY_UNCONFIRMED: op=${op} removes or moves objects; pass confirm:true to proceed.` }
+        }
+
         if (op === 'status') return await client.status()
         if (op === 'search') {
-          const items = await client.search(args?.query, { limit: args?.limit, itemType: args?.itemType })
-          return { count: items.length, items }
+          return await client.search(args?.query, {
+            limit: args?.limit,
+            offset: args?.offset,
+            itemType: args?.itemType,
+            tag: args?.tag,
+            collection: args?.collection,
+            qmode: args?.qmode,
+            sort: args?.sort
+          })
         }
         if (op === 'item') return await client.item(args?.ref, { children: args?.children === true })
+        if (op === 'annotations') return { key: itemKey(args?.ref), annotations: await client.annotations(args?.ref) }
+        if (op === 'fulltext') return await client.fulltext(args?.ref)
+        if (op === 'file') return await client.file(args?.ref)
+        if (op === 'export') {
+          const refs = Array.isArray(args?.add) && args.add.length > 0 ? args.add : args?.ref !== undefined ? [args.ref] : []
+          return await client.export(refs, args?.format)
+        }
+        if (op === 'fields') return { itemType: args?.itemType ?? 'journalArticle', fields: await client.fields(args?.itemType) }
+        if (op === 'tagList') return { tags: await client.tagList({ limit: args?.limit }) }
+        if (op === 'collectionList') return { collections: await client.listCollections() }
+        if (op === 'collectionItems') {
+          return await client.collectionItems(args?.collection ?? args?.ref, { limit: args?.limit, offset: args?.offset })
+        }
+        if (op === 'searches') return { searches: await client.searches() }
+        if (op === 'savedSearchItems') {
+          return await client.savedSearchItems(args?.searchKey ?? args?.ref, { limit: args?.limit, offset: args?.offset })
+        }
+        if (op === 'trash') return { items: await client.trash({ limit: args?.limit }) }
         if (op === 'log') {
           const limit = Number.isInteger(args?.limit) && args.limit > 0 ? Math.min(args.limit, 100) : 10
           if (logFile.length === 0 || !fs.existsSync(logFile)) return { entries: [] }
           const lines = fs.readFileSync(logFile, 'utf8').split('\n').filter((line) => line.trim().length > 0)
           return { entries: lines.slice(-limit).map((line) => { try { return JSON.parse(line) } catch { return { raw: line } } }) }
         }
+
         if (op === 'create') {
           const list = Array.isArray(args?.data) ? args.data : args?.data !== undefined ? [args.data] : []
           if (list.length === 0) return { error: 'LIBRARY_INVALID: op=create needs data (an item object or an array of them).' }
           if (dryRun) return { dryRun: true, op, wouldCreate: list }
           const created = await client.create(list)
-          appendLibraryLog(logFile, { at: new Date().toISOString(), op, keys: [created.key], version: created.version, by: exec?.agent?.session?.id ?? '' })
+          log({ op, keys: [created.key], version: created.version })
           return created
         }
         if (op === 'update') {
           if (dryRun) return { dryRun: true, op, ref: args?.ref, fields: args?.fields ?? {} }
           const updated = await client.update(args?.ref, args?.fields)
-          appendLibraryLog(logFile, { at: new Date().toISOString(), op, key: updated.key, fields: Object.keys(args?.fields ?? {}), by: exec?.agent?.session?.id ?? '' })
+          log({ op, key: updated.key, fields: Object.keys(args?.fields ?? {}) })
           return updated
+        }
+        if (op === 'attach') {
+          if (typeof args?.filePath !== 'string' || args.filePath.length === 0) {
+            return { error: 'LIBRARY_INVALID: op=attach needs filePath and the parent item ref.' }
+          }
+          if (dryRun) return { dryRun: true, op, ref: args?.ref, filePath: args.filePath, contentType: args?.fields?.contentType }
+          const attached = await client.attach(args?.ref, args.filePath, {
+            title: args?.name,
+            contentType: typeof args?.fields?.contentType === 'string' ? args.fields.contentType : undefined
+          })
+          log({ op, key: attached.key, parent: attached.parent, bytes: attached.bytes ?? 0, uploaded: attached.uploaded })
+          return attached
+        }
+        if (op === 'note') {
+          if (dryRun) return { dryRun: true, op, parent: args?.ref, markdown: args?.markdown ?? '' }
+          const created = await client.note(args?.ref, args?.markdown, args?.add ?? [])
+          log({ op, key: created.key, parent: created.parent })
+          return created
+        }
+        if (op === 'noteUpdate') {
+          if (dryRun) return { dryRun: true, op, ref: args?.ref, markdown: args?.markdown ?? '' }
+          const updated = await client.noteUpdate(args?.ref, args?.markdown)
+          log({ op, key: updated.key })
+          return updated
+        }
+        if (op === 'noteDelete') {
+          if (dryRun) return { dryRun: true, op, ref: args?.ref }
+          const removed = await client.noteDelete(args?.ref)
+          log({ op, key: removed.key })
+          return removed
         }
         if (op === 'tags') {
           if (dryRun) return { dryRun: true, op, ref: args?.ref, add: args?.add ?? [], remove: args?.remove ?? [] }
           const result = await client.tags(args?.ref, args?.add ?? [], args?.remove ?? [])
-          if (result.changed) appendLibraryLog(logFile, { at: new Date().toISOString(), op, key: result.key, add: args?.add ?? [], remove: args?.remove ?? [], by: exec?.agent?.session?.id ?? '' })
+          if (result.changed) log({ op, key: result.key, add: args?.add ?? [], remove: args?.remove ?? [] })
           return result
+        }
+        if (op === 'tagDelete') {
+          if (dryRun) return { dryRun: true, op, name: args?.name }
+          const removed = await client.tagDelete(args?.name)
+          log({ op, tag: removed.tag })
+          return removed
         }
         if (op === 'collections') {
           if (dryRun) return { dryRun: true, op, ref: args?.ref, add: args?.add ?? [], remove: args?.remove ?? [] }
           const result = await client.collections(args?.ref, args?.add ?? [], args?.remove ?? [])
-          if (result.changed) appendLibraryLog(logFile, { at: new Date().toISOString(), op, key: result.key, add: args?.add ?? [], remove: args?.remove ?? [], by: exec?.agent?.session?.id ?? '' })
+          if (result.changed) log({ op, key: result.key, add: args?.add ?? [], remove: args?.remove ?? [] })
           return result
         }
         if (op === 'collection') {
           if (dryRun) return { dryRun: true, op, name: args?.name, parent: args?.parent }
           const result = await client.ensureCollection(args?.name, args?.parent)
-          if (result.created) appendLibraryLog(logFile, { at: new Date().toISOString(), op, key: result.key, name: result.name, by: exec?.agent?.session?.id ?? '' })
+          if (result.created) log({ op, key: result.key, name: result.name })
           return result
         }
-        if (op === 'note') {
-          if (dryRun) return { dryRun: true, op, parent: args?.ref, markdown: args?.markdown ?? '' }
-          const created = await client.note(args?.ref, args?.markdown, args?.add ?? [])
-          appendLibraryLog(logFile, { at: new Date().toISOString(), op, key: created.key, parent: created.parent, by: exec?.agent?.session?.id ?? '' })
+        if (op === 'collectionUpdate') {
+          if (dryRun) return { dryRun: true, op, collection: args?.collection, fields: args?.fields ?? {} }
+          const updated = await client.collectionUpdate(args?.collection ?? args?.ref, args?.fields ?? {})
+          log({ op, key: updated.key, fields: Object.keys(args?.fields ?? {}) })
+          return updated
+        }
+        if (op === 'collectionDelete') {
+          if (dryRun) return { dryRun: true, op, collection: args?.collection ?? args?.ref }
+          const removed = await client.collectionDelete(args?.collection ?? args?.ref)
+          log({ op, key: removed.key })
+          return removed
+        }
+        if (op === 'delete') {
+          if (dryRun) return { dryRun: true, op, ref: args?.ref }
+          const removed = await client.trashItem(args?.ref)
+          log({ op, key: removed.key })
+          return removed
+        }
+        if (op === 'restore') {
+          if (dryRun) return { dryRun: true, op, ref: args?.ref }
+          const restored = await client.restoreItem(args?.ref)
+          log({ op, key: restored.key })
+          return restored
+        }
+        if (op === 'saveSearch') {
+          if (dryRun) return { dryRun: true, op, name: args?.name, conditions: args?.conditions ?? [] }
+          const created = await client.saveSearch(args?.name, args?.conditions)
+          log({ op, key: created.key, name: created.name })
           return created
         }
-        return { error: `Unknown op "${op}"; use one of status, search, item, create, update, tags, collections, collection, note, log.` }
+        if (op === 'deleteSavedSearch') {
+          if (dryRun) return { dryRun: true, op, searchKey: args?.searchKey ?? args?.ref }
+          const removed = await client.deleteSavedSearch(args?.searchKey ?? args?.ref)
+          log({ op, key: removed.key })
+          return removed
+        }
+        if (op === 'fulltextPut') {
+          if (dryRun) return { dryRun: true, op, ref: args?.ref, chars: String(args?.text ?? '').length }
+          const written = await client.fulltextPut(args?.ref, args?.text)
+          log({ op, key: written.key, chars: written.indexedChars })
+          return written
+        }
+        return { error: `Unknown op "${op}".` }
       } catch (error) {
         if (error instanceof LibraryError) return { error: `${error.code}: ${error.message}` }
         return { error: `${error?.name ?? 'Error'}: ${error?.message ?? String(error)}` }

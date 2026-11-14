@@ -73,20 +73,20 @@ Lead의 답변은 상태 피드가 아니라 과학적 커뮤니케이션이다.
 ### DSH 플러그인 페이지에서 설치
 
 2. **설정 → 플러그인**을 열고 **추가**를 클릭합니다.
-3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.2.3`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
+3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.2.4`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.4`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
 4. **DSH를 재시작합니다.** 프리셋 행과 번들의 클라이언트 부분은 시작 시 로드됩니다.
 5. **같은 프로필에서 번들이 활성화되어 있는지 확인**한 뒤, **새 세션을 열고** 모드 선택기에서 **Research Team Mode**를 선택합니다.
 
 ### 명령줄에서 설치
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.3
+dsh plugin add dsh-research-team-preset@0.2.4
 ```
 
 레지스트리 대신 소스를 고정하려면:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.4
 ```
 
 > 이 모드는 프로필 수준 번들입니다. 한 프로필에 설치해도 다른 프로필에서는 활성화되지 않습니다. 프로필마다 설치와 사전 요구사항을 반복하세요.
@@ -215,6 +215,8 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 재개 시 먼저 `research_state`, 그다음 `research_worklog op=get`으로 항목과 최신 증거를 읽습니다. 보기는 거울일 뿐이며 원본은 JSON입니다.
 
 ## 팀 모델 프로필
+
+각 역할 설명은 그 역할이 사용하는 도구를 열거하고 읽기 전용 도구를 표시합니다. 연구원 설명은 논문 등록과 증거 기록을 요청 사항이 아니라 작업의 일부로 수행하도록 합니다.
 
 설정 페이지는 기본 팀원을 위한 이름 있는 모델 프로필 여러 개를 유지하며, 다음 스폰에는 선택한 프로필을 사용합니다.
 

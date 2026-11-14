@@ -73,20 +73,20 @@ Lead の返答は科学的なコミュニケーションであり、ステータ
 ### DSH のプラグインページからインストール
 
 2. **設定 → プラグイン** を開き、**追加** をクリックします。
-3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.2.3`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
+3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.2.4`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.2.4`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
 4. **DSH を再起動します。** プリセット行とバンドルのクライアント側は起動時に読み込まれます。
 5. **同じプロファイルでバンドルが有効になっていることを確認**し、**新しいセッションを開いて** モード選択で **Research Team Mode** を選びます。
 
 ### コマンドラインからインストール
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.3
+dsh plugin add dsh-research-team-preset@0.2.4
 ```
 
 レジストリではなくソースを固定する場合:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.4
 ```
 
 > このモードはプロファイル単位のバンドルです。あるプロファイルにインストールしても別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件を繰り返してください。
@@ -212,6 +212,8 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 再開時はまず `research_state`、次に `research_worklog op=get` で項目と最新の証拠を読みます。ビューは鏡像で、正は JSON です。
 
 ## チームモデルプロファイル
+
+各ロールの説明は、そのロールが使うツールを列挙し、読み取り専用のものを明示します。研究者の説明では、論文の登録と証拠の記録を依頼事項ではなく作業の一部として行います。
 
 設定ページは既定のチームメンバー用に複数の名前付きモデルプロファイルを保持し、次回の spawn には選択中のものを使用します。
 

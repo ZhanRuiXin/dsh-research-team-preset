@@ -4,7 +4,7 @@
 
 **Ein DSH-Agent-Preset, das eine Sitzung in ein kleines, koordiniertes Forschungsteam verwandelt.**
 
-**Version 0.2.3** · **Aktualisiert 2026-11-14**
+**Version 0.2.4** · **Aktualisiert 2026-11-15**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <strong>Deutsch</strong> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -73,20 +73,20 @@ Dieses Preset wird als DSH-Bundle ausgeliefert und ist auf npm als `dsh-research
 ### Installation über die DSH-Plugins-Seite
 
 2. Öffnen Sie **Einstellungen → Plugins** und klicken Sie auf **Hinzufügen**.
-3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.2.3` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
+3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.2.4` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.4` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
 4. **Starten Sie DSH neu.** Preset-Zeilen und die Client-Hälfte des Bundles werden beim Start geladen.
 5. **Prüfen Sie, dass das Bundle im selben Profil aktiviert ist**, öffnen Sie dann **eine neue Sitzung** und wählen Sie **Research Team Mode** in der Modusauswahl.
 
 ### Installation über die Kommandozeile
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.3
+dsh plugin add dsh-research-team-preset@0.2.4
 ```
 
 Um stattdessen die Quelle zu pinnen statt den Registrierungsserver:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.4
 ```
 
 > Der Modus ist ein profilweites Bundle: Die Installation in einem Profil aktiviert ihn nicht in einem anderen. Wiederholen Sie Installation und Voraussetzungen für jedes Profil.
@@ -214,6 +214,8 @@ Ein Branch wird erst nach der Abnahme der Karte zusammengeführt und danach gel�
 Beim Wiederaufnehmen zuerst `research_state`, dann `research_worklog op=get` für den Eintrag und seine neueste Evidenz. Die Ansichten sind nur Spiegel; maßgeblich ist das JSON.
 
 ## Team-Modellprofile
+
+Jede Rollenkurzbeschreibung nennt die Werkzeuge, die diese Rolle nutzt, und kennzeichnet die schreibgeschützten; die Kurzbeschreibung des Forschers legt Ablage von Aufsätzen und Evidenz als Teil der Arbeit an statt auf Anfrage.
 
 Die Einstellungsseite verwaltet mehrere benannte Modellprofile für die Standard-Teammitglieder und verwendet für den nächsten Spawn das ausgewählte Profil.
 

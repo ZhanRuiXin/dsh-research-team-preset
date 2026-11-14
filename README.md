@@ -4,7 +4,7 @@
 
 **A DSH agent preset that turns one session into a small, coordinated research team.**
 
-**Version 0.2.3** · **Updated 2026-11-14**
+**Version 0.2.4** · **Updated 2026-11-15**
 
 <p align="center"><strong>English</strong> · <a href="docs/README.zh-CN.md">简体中文</a> · <a href="docs/README.zh-TW.md">繁體中文</a> · <a href="docs/README.ja.md">日本語</a> · <a href="docs/README.ko.md">한국어</a> · <a href="docs/README.de.md">Deutsch</a> · <a href="docs/README.fr.md">Français</a> · <a href="docs/README.es.md">Español</a> · <a href="docs/README.pt-BR.md">Português (Brasil)</a> · <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.ar.md">العربية</a> · <a href="docs/README.hi.md">हिन्दी</a></p>
 
@@ -79,20 +79,20 @@ This preset ships as a DSH bundle and is published on npm as `dsh-research-team-
 
 1. **Enable the required bundles** in the target profile: Agent Teams [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness). The optional integrations above can be added now or later.
 2. Open **Settings → Plugins** and click **Add**.
-3. Paste the install spec: `dsh-research-team-preset@0.2.3` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
+3. Paste the install spec: `dsh-research-team-preset@0.2.4` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.4` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
 4. **Restart DSH.** Preset rows and the client half of the bundle load at startup.
 5. **Check the bundle is enabled** in the same profile, then **open a new session** and select **Research Team Mode** in the mode selector.
 
 ### Install from the CLI
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.3
+dsh plugin add dsh-research-team-preset@0.2.4
 ```
 
 To pin the source instead of the registry:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.4
 ```
 
 > The mode is a profile-level bundle: installing it in one profile does not enable it in another. Repeat the install and prerequisite steps per profile.
@@ -130,9 +130,11 @@ Lead: summarize -> user acceptance (done, set by the user)
 | `reviewer` | Independent verification of literature notes, code, results, and paper claims/citations; PASS/FAIL with blocking evidence |
 | `writer` | LaTeX paper draft: prose, sections, tables, captions, citations, and figure code; does not run experiments or change code/models |
 
-The Lead owns goal clarification, decomposition, ledger management, dispatch, integration, summaries, final asset assembly, and delivery. Members may use one subagent layer for a scoped subtask; they cannot create teammates. The Lead keeps its own tool use light, favors a short user-facing update over another routine call, and leaves deep work to the owning member.
+The Lead owns goal clarification, decomposition, ledger management, dispatch, integration, summaries, final asset assembly, and delivery. Each role brief names the tools that role runs and marks the read-only ones, and the researcher's brief makes library search, reading-list filing and evidence capture defaults that happen as part of the work rather than on request. Members may use one subagent layer for a scoped subtask; they cannot create teammates. The Lead keeps its own tool use light, favors a short user-facing update over another routine call, and leaves deep work to the owning member.
 
 ### Shared Zotero library
+
+The shared library is also reachable through the preset's `research_zotero` tool, which talks to Zotero's local API directly: reads need no key, the first write asks Zotero for a local API key the user can remember with "Always Allow", and each change is appended to `.research/library-log.jsonl`. It covers the whole entry lifecycle — `search` with limit/offset and tag or collection scope, `create`, `update`, tags and collection membership, child notes (`note`, `noteUpdate`, `noteDelete`) — plus what an intake needs: `attach` runs Zotero's three-phase upload that puts a paper's PDF into the library, `export` returns BibTeX, BibLaTeX, RIS or CSL JSON, `annotations`, `fulltext` and `file` read a PDF's highlights, indexed text and path, `fields` lists an item type's valid fields, and collection rename/move/delete, saved searches and the trash (`delete`/`restore`) manage the rest. Tag and collection edits read-merge-write under the item version so a concurrent edit fails instead of overwriting; destructive ops need `confirm: true` and only move objects to the trash. The host `zotero_*` write tools keep their per-change plan card, so use them when the user wants to review each change.
 
 The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and in the item's evidence, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
 
@@ -174,7 +176,7 @@ A run or long job that outlives the turn leaves its job or terminal handle, host
 
 ## Research sidebar
 
-The preset adds a Research panel tab to the right sidebar. It answers what the team is doing now, what is blocked, and what comes next: the objective from the plan, the active work items from the JSON store (finished ones sit behind a 已完成 toggle), the runs with their lifecycle and approval state (a directory under `runs/` only counts once it carries a `manifest.json`), the architecture cards in their project-defined groups, and the live team. Click a work item or an experiment to expand the row: an item opens its full title, next action, blocked reason, evidence and checklist; a run opens its question, hypothesis, decision rule, reason and timing. Clicking it again collapses it.
+The preset adds a Research panel tab to the right sidebar. It answers what the team is doing now, what is blocked, and what comes next: the objective from the plan, the active work items from the JSON store (finished ones sit behind a 已完成 toggle), the runs with their lifecycle and approval state (a directory under `runs/` only counts once it carries a `manifest.json`), the architecture cards in their project-defined groups, and the live team. Click a work item or an experiment to expand the row: an item opens its full title, next action, blocked reason, evidence and checklist; a run opens its question, hypothesis, decision rule, reason and timing. Clicking it again collapses it. A 文献 section renders the project reading list the team maintains with `research_literature`: agent-defined categories (related work, methods, models, data sets …), one card per Zotero item key showing the paper title, and an expanded markdown note with `\cite{key}`, insert-into-composer and open-in-Zotero actions.
 
 Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. The agent cannot see the rendered picture, so the tool returns a geometry audit instead: `op=check` lists overlapping or too-close boxes, boxes outside the canvas and crossing edges in plain coordinates, and `op=arrange` lays the card out as a left-to-right flow, grows the canvas and saves the result, so an agent can fix a tangled diagram without guessing. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the selection can be quoted into the conversation; anything worth keeping is stored on the card as a note the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
 
@@ -239,9 +241,9 @@ Each profile has one row per default member:
 - **Model**: one dropdown containing every provider's models, with non-clickable provider group headers. Selecting a model sets both provider and model.
 - **Reasoning effort**: a second dropdown with the selected model's advertised efforts, plus a model-default option.
 
-An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. A named child started without `model` inherits the Lead route.
+An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. A teammate whose role has no configured route inherits the Lead route.
 
-Route lookup happens at spawn time and reads `$DSH_HOME/research-team-settings.json` directly before falling back to the in-process store, so a session opened before the Plugins page was ever saved still resolves the configured routes. A teammate name resolves to a role when it contains the role as a whole word (`advisor`, `ELHA-R advisor`, `advisor-hi`); a name with no standard role inherits the Lead route, and the tool result carries a `diagnostics` note saying which role was matched and why nothing was configured. The Lead can call `research_team_routes` to read the configured table instead of guessing provider and model names.
+Route lookup happens at spawn time and reads `$DSH_HOME/research-team-settings.json` directly before falling back to the in-process store, so a session opened before the Plugins page was ever saved still resolves the configured routes. The team is limited to the eight standard roles and a teammate's name is its role, so `spawn_teammate_with_model` refuses any other name and the role alone selects the route. When the active profile has no route for that role the teammate inherits the Lead route, and the tool result carries a `diagnostics` note saying so. The Lead can call `research_team_routes` to read the configured table instead of guessing provider and model names.
 
 Suggested capability tiers, as a starting point rather than a rule:
 
@@ -333,7 +335,7 @@ Version 0.1.0 fixes the known cause: the old loader passed the whole `{ roles: .
 
 ### Every teammate runs on the Lead's model
 
-Check the spawn result printed above the member's first message. It reads `requested=<provider>/<model> effort=<effort>` when a configured or explicit route was applied, and `requested=inherit (Lead route)` with a `note:` line when no route matched. A `note:` naming the role means that role has no provider/model in the active profile; a note saying the name is not a standard role means the teammate name did not contain a role word.
+Check the spawn result printed above the member's first message. It reads `requested=<provider>/<model> effort=<effort>` when a configured or explicit route was applied, and `requested=inherit (Lead route)` with a `note:` line when no route matched. A `note:` naming the role means that role has no provider/model in the active profile.
 
 Two other causes are not about the settings file:
 

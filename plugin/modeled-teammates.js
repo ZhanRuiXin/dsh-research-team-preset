@@ -26,6 +26,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { ROLE_NAMES, matchRoleName, modelForRole } from './settings-store.js'
 import { ROLES, roleSkill } from './roles.js'
+
+/** The eight roles a teammate may play; the root agent is the Lead. */
+const TEAMMATE_ROLES = ROLES.filter((role) => role !== 'lead')
 import { ensureTeamMode } from './index.js'
 import { readRouteTable } from './settings-file.js'
 
@@ -60,7 +63,7 @@ function teammateSlug(value) {
  * Record a teammate the preset started, so the panel can tell its own team
  * apart from subagents other plugins create under the same Lead.
  */
-async function rememberTeammate(ctx, agent, sessionId, name) {
+async function rememberTeammate(ctx, agent, sessionId, name, role) {
   if (typeof sessionId !== 'string' || sessionId === '') return
   try {
     const cwd = agent?.session?.header?.cwd
@@ -72,7 +75,12 @@ async function rememberTeammate(ctx, agent, sessionId, name) {
     } catch {}
     const dir = path.join(root, '.research', 'team')
     fs.mkdirSync(dir, { recursive: true })
-    const row = { id: sessionId, name: typeof name === 'string' ? name : '', at: new Date().toISOString() }
+    const row = {
+      id: sessionId,
+      name: typeof name === 'string' ? name : '',
+      at: new Date().toISOString(),
+      ...(typeof role === 'string' && role !== '' && role !== 'member' ? { role } : {})
+    }
     fs.appendFileSync(path.join(dir, 'members.jsonl'), JSON.stringify(row) + '\n')
   } catch {}
 }
@@ -463,11 +471,11 @@ export function apply(ctx, config = {}) {
   const disposeTool = ctx.tools.register({
     name: 'spawn_teammate_with_model',
     description:
-      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics. The teammate runs the same preset and system prompt as the Lead and loads its role brief from the built-in `research-role-<role>` skill named in the task message. The advisor and reviewer roles spawn read-only; every other role inherits the Lead sandbox mode. Pass permission to override. Only the Lead can call this tool.',
+      'Create one durable teammate on the route configured for its role in the Plugins page. The team is limited to the eight standard roles (advisor, researcher, data, designer, builder, runner, reviewer, writer); the teammate name is its role, so a custom name is refused (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics. The teammate runs the same preset and system prompt as the Lead and loads its role brief from the built-in `research-role-<role>` skill named in the task message. The advisor and reviewer roles spawn read-only; every other role inherits the Lead sandbox mode. Pass permission to override. Only the Lead can call this tool.',
     parameters: {
       type: 'object',
       properties: {
-        name: { type: 'string', description: 'Unique teammate name; include the role, e.g. "advisor" or "ELHA-R advisor" (stored as elha-r-advisor). The host keeps lower-case letters, digits and hyphens, so spaces and capitals are folded into hyphens.' },
+        name: { type: 'string', description: 'Teammate name; it must be the role it plays, one of advisor, researcher, data, designer, builder, runner, reviewer, writer. Optional when role is given.' },
         description: { type: 'string', description: 'Short description of the delegated responsibility.' },
         prompt: { type: 'string', description: 'Complete initial task for the teammate.' },
         context: { type: 'string', enum: ['fresh', 'fork'], description: 'Start mode; defaults to fresh.' },
@@ -489,11 +497,11 @@ export function apply(ctx, config = {}) {
         },
         role: {
           type: 'string',
-          enum: ['advisor', 'researcher', 'data', 'designer', 'builder', 'runner', 'reviewer', 'writer', 'member'],
-          description: 'Role this teammate plays. The task message names the built-in skill it must load (research-role-<role>). Omit to derive it from the name; an unknown name becomes a generic member that loads no role skill.'
+          enum: ['advisor', 'researcher', 'data', 'designer', 'builder', 'runner', 'reviewer', 'writer'],
+          description: 'Role this teammate plays, one of the eight standard roles. The task message names the built-in skill it must load (research-role-<role>). Omit it only when name already is the role; any other name is refused.'
         }
       },
-      required: ['name', 'description', 'prompt'],
+      required: ['description', 'prompt'],
       additionalProperties: false
     },
     output: {
@@ -516,22 +524,30 @@ export function apply(ctx, config = {}) {
         throw new Error('only the Lead can create teammates; a teammate works on the item the Lead assigned to it')
       }
       const context = args.context === 'fork' ? 'fork' : 'fresh'
-      const role = typeof args.role === 'string' && ROLES.includes(args.role)
+      const requestedRole = typeof args.role === 'string' && TEAMMATE_ROLES.includes(args.role)
         ? args.role
-        : (matchRoleName(args.name) ?? 'member')
+        : undefined
+      const nameRole = typeof args.name === 'string' && args.name.trim() !== ''
+        ? matchRoleName(args.name)
+        : undefined
+      const role = requestedRole ?? nameRole
+      if (role === undefined) {
+        throw new Error(`the team is limited to the eight standard roles (${TEAMMATE_ROLES.join(', ')}); name the teammate after the role it plays, for example name: "builder" or role: "builder".`)
+      }
+      const slug = teammateSlug(args.name === undefined ? role : args.name)
+      if (slug !== role) {
+        throw new Error(`the teammate's name must be the role it plays; use name: "${role}" (or omit name and pass role: "${role}"), not "${args.name}".`)
+      }
       // The teammate runs the same preset and the same system prompt as the
       // Lead. Role duties are a built-in skill, so the task message only names
       // the skill to load instead of carrying a 3-10 KB brief.
-      const roleLine = ROLES.includes(role)
-        ? `\n\nStart by loading the \`${roleSkill(role)}\` skill with the \`skill\` tool; it holds the duties of this role.`
-        : ''
+      const roleLine = `\n\nStart by loading the \`${roleSkill(role)}\` skill with the \`skill\` tool; it holds the duties of this role.`
       const promptText = `${args.prompt}${roleLine}`
       const explicit = args.model === undefined ? undefined : readModel(args)
       const resolved = explicit === undefined
-        ? resolveConfiguredRoute(args.name)
-        : { role: matchRoleName(args.name), route: explicit, source: 'explicit' }
+        ? resolveConfiguredRoute(role)
+        : { role, route: explicit, source: 'explicit' }
       const requestedModel = resolved.route
-      const slug = teammateSlug(args.name)
       const provider = context === 'fork' ? forkProvider : freshProvider
       const signal = exec.signal === undefined ? new AbortController().signal : exec.signal
       const spawn = () =>
@@ -563,7 +579,7 @@ export function apply(ctx, config = {}) {
         status: live?.status === 'running' ? 'running' : 'provisioning',
         model: typeof live?.options?.model === 'string' ? live.options.model : requestedModel?.model
       }
-      await rememberTeammate(ctx, agent, sessionId, memberName)
+      await rememberTeammate(ctx, agent, sessionId, memberName, resolved.role)
       const inherited = leadModeOf(ctx, agent)
       const permission = permissionFor(resolved.role, args.permission, inherited)
       const permissionResult = await applyPermission(ctx, sessionId, permission, signal, readOnlySessions)

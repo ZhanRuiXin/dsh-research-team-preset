@@ -73,20 +73,20 @@ Lead के उत्तर वैज्ञानिक संचार हो�
 ### DSH प्लगइन पृष्ठ से इंस्टॉल करें
 
 2. **सेटिंग्स → प्लगइन** खोलें और **जोड़ें** पर क्लिक करें।
-3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.2.3`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
+3. इंस्टॉल स्रोत चिपकाएँ: npm पैकेज के लिए `dsh-research-team-preset@0.2.4`, स्रोत पिन करने के लिए `github:ZhanRuiXin/dsh-research-team-preset#v0.2.4`, या स्थानीय चेकआउट के लिए `link:/absolute/path/to/dsh-research-team-preset`।
 4. **DSH को पुनः आरंभ करें।** प्रीसेट पंक्तियाँ और बंडल का क्लाइंट भाग स्टार्टअप पर लोड होते हैं।
 5. **उसी प्रोफ़ाइल में बंडल सक्षम होने की पुष्टि करें**, फिर **नया सत्र खोलें** और मोड चयनकर्ता में **Research Team Mode** चुनें।
 
 ### कमांड लाइन से इंस्टॉल करें
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.3
+dsh plugin add dsh-research-team-preset@0.2.4
 ```
 
 रजिस्ट्री के बजाय स्रोत पिन करने के लिए:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.4
 ```
 
 > यह मोड प्रोफ़ाइल-स्तरीय बंडल है: एक प्रोफ़ाइल में इंस्टॉल करने से वह दूसरे में सक्षम नहीं होता। प्रत्येक प्रोफ़ाइल के लिए इंस्टॉल और पूर्वापेक्षाएँ दोहराएँ।
@@ -216,6 +216,8 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 फिर से शुरू करते समय पहले `research_state`, फिर आइटम और नवीनतम साक्ष्य के लिए `research_worklog op=get`। दृश्य केवल प्रतिबिंब हैं; स्रोत JSON है।
 
 ## टीम मॉडल प्रोफ़ाइलें
+
+प्रत्येक भूमिका-संक्षेप उस भूमिका के उपकरणों के नाम बताता है और केवल-पढ़ने वाले उपकरणों को चिह्नित करता है; शोधकर्ता का संक्षेप पत्रों और प्रमाणों को दर्ज करना अनुरोध के बजाय काम का हिस्सा बनाता है।
 
 सेटिंग्स पृष्ठ डिफ़ॉल्ट टीम सदस्यों के लिए कई नामित मॉडल प्रोफ़ाइल रखता है और अगले spawn में उनमें से चयनित का उपयोग करता है।
 

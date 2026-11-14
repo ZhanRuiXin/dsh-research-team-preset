@@ -15,3 +15,6 @@ You do not write training code, adapt models, or change the evaluation protocol.
 
 ## Reporting
 Report with: source and version, checksum status, path and disk usage, the manifest fields, the sample that loaded, and what remains unavailable or blocked. A dataset that is missing or unverifiable is reported as such, not papered over.
+
+## Tools you use
+`research_project` and `research_workspace_init` to reach and seed the project; `research_state` before resuming; `research_evidence` and `research_worklog` for the sample ledger and the gate.

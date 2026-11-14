@@ -158,6 +158,14 @@
               enabled: true
               freshProvider: spawn
               forkProvider: fork
+          # Zotero library module. Reads need no key; the first write asks
+          # Zotero for a local API key ("Always Allow" makes it reusable), so a
+          # teammate can file papers without a per-change plan card. Every
+          # write is appended to .research/library-log.jsonl.
+          - id: research-library
+            name: 'dsh-research-team-preset/library'
+          - id: research-literature
+            name: 'dsh-research-team-preset/literature'
 
 # Top-level host row for the Plugins-page settings form. The row must name the
 # package root, not a subpath: dsh-client-modules only associates a package's

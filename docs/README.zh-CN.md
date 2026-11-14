@@ -73,20 +73,20 @@ Lead 的回复是科学性沟通，而不是状态播报：先给结论或结果
 ### 从 DSH 插件页面安装
 
 2. 打开 **设置 → 插件**，点击 **添加**。
-3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.2.3`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 粘贴安装源：npm 包用 `dsh-research-team-preset@0.2.4`；固定源码用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.4`；本地 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重启 DSH。** preset 行与 bundle 的客户端部分在启动时加载。
 5. **确认 bundle 在同一 profile 中已启用**，然后**新建会话**，在模式选择器中选择 **Research Team Mode**。
 
 ### 从命令行安装
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.3
+dsh plugin add dsh-research-team-preset@0.2.4
 ```
 
 若要固定源码而不是从 registry 安装：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.4
 ```
 
 > 该模式是 profile 级 bundle：在一个 profile 中安装不会在另一个 profile 中启用。每个 profile 都要重复安装与前置步骤。
@@ -132,6 +132,8 @@ Lead 负责目标澄清、任务拆解、工作日志管理、分派、整合、
 
 ### 共享 Zotero 文库
 
+共享文库也可以经由本预设的 `research_zotero` 工具直接访问 Zotero 本地 API：读取不需要密钥，首次写入会在 Zotero 中请求一次本地 API 密钥（用户可选择“始终允许”），此后每次变更都会追加到 `.research/library-log.jsonl`。它覆盖条目的完整生命周期——带分页与标签/集合过滤的 `search`、`create`、`update`、标签与集合归属、子笔记（`note`、`noteUpdate`、`noteDelete`）——以及入库所需的操作：`attach` 走 Zotero 的三段式上传把论文 PDF 存进库，`export` 导出 BibTeX、BibLaTeX、RIS 或 CSL JSON，`annotations`、`fulltext`、`file` 读取 PDF 的批注、全文与路径，`fields` 列出条目类型的合法字段，集合的改名/移动/删除、保存的检索与回收站（`delete`/`restore`）补齐其余管理。标签和集合的修改按条目版本先读后并写，并发编辑会失败而不是被覆盖；删除类操作需要 `confirm: true`，且只会移入回收站。宿主的 `zotero_*` 写入工具仍保留逐次计划卡，需要逐条审核时用它们。
+
 researcher 把用户的 Zotero 文库作为团队的共享文献源：先检索现有的分类和条目，再检索公开网络；复用已附带的 PDF 和批注片段；只有在缺少某篇文献时，才导入正式版（version of record）全文，附带 PDF 并归档到项目分类中。导入按 DOI 和标题去重，不改动用户的标签和分类，并把 `zotero://` 条目引用记录到证据表和工作日志卡片上，让每位团队成员读到同一篇论文，reviewer 也能抽查相同的页面。当全文受付费墙限制或只有元数据时，researcher 会记录链接，并将证据标记为仅元数据，而不是导入替代品。
 
 ### 顾问评审
@@ -176,7 +178,7 @@ builder 实现该设计，runner 执行该设计，reviewer 在提案关卡检�
 
 架构卡片是以 JSON 形式存放在 `.research/architecture/` 下的节点-连线图，一张卡片一个文件。智能体通过 `research_architecture` 工具读取和更新它们，因此图会与设计保持同步，而不是散落在幻灯片里。卡片在面板内以 SVG 渲染；在节点上拖出选框即可选中，选中后可以把这段选择引用到会话里；值得保留的提问会作为备注写回卡片，智能体在回答前会读取它。安装了 `dsh-better-sidebar` 时标签页通过它注册，否则回退到原生右侧边栏。
 
-面板还会显示当前团队：每位成员的名称、角色、模型与状态（运行中或空闲），以及该成员负责的工作项。
+面板还会显示当前团队：每位成员的名称、角色、模型与状态（运行中或空闲），以及该成员负责的工作项。新增的「文献」区展示团队用 `research_literature` 维护的项目阅读清单：分类由团队按项目自定（相关工作、方法、模型、数据集等），每个 Zotero 条目一张卡片，卡片显示论文题目，展开后是存于 `.research/literature/<KEY>.md` 的 markdown 简介，并可一键复制 `\cite{key}`、插入引用到会话输入框或在 Zotero 中打开。
 
 实验区按时间从晚到早列出每个实验，并显示已进行或已用的时间。每个实验都有明确的生命周期（已登记、待批准、已批准、运行中、已完成、已停止、失败、已拒绝），由 `research_experiment` 工具推进：登记写决策规则、seed 与预算，启动在未获批时被拒绝，结束时记录完成、停止或失败及原因。区块标题右侧可以切换「需要审批 / 自动审批」，等待批准的实验带批准与拒绝按钮，结果写进该实验的 manifest；条目变多后列表在自己的框内滚动。
 
@@ -220,6 +222,8 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 
 ## 团队模型配置
 
+每个角色的说明都会点名该角色使用的工具，并标明哪些是只读的；研究员的说明还把检索共享文库、登记阅读清单、即时写入证据设为默认动作，不需要组长逐条交代。
+
 设置页为默认团队成员保留多个具名模型配置，下一次 spawn 时使用选中的那一个。
 
 打开：
@@ -240,9 +244,9 @@ Plugins → dsh-research-team-preset → research-team-settings → Configure
 - **Model**：一个下拉框，包含所有 provider 的模型，provider 分组标题不可点击。选择一个模型会同时设置 provider 和 model。
 - **Reasoning effort**：第二个下拉框，包含所选模型声明的推理强度，外加一个「模型默认」选项。
 
-空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取选中配置中该角色的默认值；显式传入的 `model` 会覆盖它。不传 `model` 启动的具名子成员继承 Lead 路由。
+空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取选中配置中该角色的默认值；显式传入的 `model` 会覆盖它。角色没有配置路由时，该队友继承 Lead 路由。
 
-路由在 spawn 时解析，先直接读 `$DSH_HOME/research-team-settings.json`，读不到才退回进程内的快照，因此即使会话是在「插件」页首次保存之前打开的，也能取到已配置的路由。队友名字里出现完整角色词（`advisor`、`ELHA-R advisor`、`advisor-hi`）就会匹配到该角色；名字里没有标准角色时该队友继承 Lead 路由，工具结果会带一条 `diagnostics` 说明匹配到哪个角色、为什么没有配置。Lead 可以调用 `research_team_routes` 查看当前配置表，不必猜 provider 和 model 名称。
+路由在 spawn 时解析，先直接读 `$DSH_HOME/research-team-settings.json`，读不到才退回进程内的快照，因此即使会话是在「插件」页首次保存之前打开的，也能取到已配置的路由。团队只限八个标准角色，队友名字就是角色名，`spawn_teammate_with_model` 会拒绝其他名字，路由也只由角色决定；活动配置里该角色没有路由时该队友继承 Lead 路由，工具结果会带一条 `diagnostics` 说明原因。Lead 可以调用 `research_team_routes` 查看当前配置表，不必猜 provider 和 model 名称。
 
 建议的能力层级，仅作为起点而非规则：
 
@@ -332,7 +336,7 @@ $DSH_HOME/research-team-settings.json
 
 ### 每个队友都跑在 Lead 的模型上
 
-先看 spawn 结果里第一行上方的文字。应用了配置或显式路由时会打印 `requested=<provider>/<model> effort=<effort>`；没有匹配到路由时会打印 `requested=inherit (Lead route)` 并附一条 `note:`。`note:` 里点名某个角色，说明活动配置里该角色没有填 provider/model；提示名字不是标准角色，说明队友名字里没有出现角色词。
+先看 spawn 结果里第一行上方的文字。应用了配置或显式路由时会打印 `requested=<provider>/<model> effort=<effort>`；没有匹配到路由时会打印 `requested=inherit (Lead route)` 并附一条 `note:`。`note:` 里点名某个角色，说明活动配置里该角色没有填 provider/model。
 
 另外两种原因与配置文件无关。一是 Lead 使用了普通的委派工具，它永远继承 Lead；persona 已要求 Lead 使用 modeled 工具并且不要传 `model`，也不要因为不确定名字就退回。二是保存设置时所处的 `DSH_HOME` 与运行中的 host 读取的不是同一个，可以对比 `research_team_routes` 打印的 `settings file:` 与 `echo $DSH_HOME`。
 

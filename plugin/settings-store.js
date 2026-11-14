@@ -66,8 +66,10 @@ export function activeProfile(settings) {
  *
  * An exact match used to be required, so a Lead that named a member after the
  * role plus a qualifier ("ELHA-R advisor", "advisor-hi", "senior_reviewer")
- * silently got no route and the member inherited the Lead route. Match the role
- * as a whole word instead; the first role word in the name wins.
+ * silently got no route and the member inherited the Lead route. The spawn tool
+ * now refuses any name that is not exactly a role, so this matcher remains for
+ * the panel filter and for names recorded before that rule; the first role word
+ * in the name wins.
  */
 export function matchRoleName(name) {
   const raw = typeof name === 'string' ? name.trim().toLowerCase() : ''

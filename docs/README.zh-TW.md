@@ -73,20 +73,20 @@ Lead 的回覆是科學性溝通，而不是狀態播報：先給結論或結果
 ### 從 DSH 外掛頁面安裝
 
 2. 開啟 **設定 → 外掛**，點擊 **新增**。
-3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.2.3`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.2.4`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.4`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重新啟動 DSH。** preset 列與 bundle 的用戶端部分在啟動時載入。
 5. **確認 bundle 在同一個 profile 中已啟用**，然後**開啟新工作階段**，在模式選擇器中選擇 **Research Team Mode**。
 
 ### 從命令列安裝
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.3
+dsh plugin add dsh-research-team-preset@0.2.4
 ```
 
 若要固定原始碼而不是從 registry 安裝：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.4
 ```
 
 > 此模式是 profile 層級的 bundle：在一個 profile 中安裝不會在另一個 profile 中啟用。每個 profile 都要重複安裝與前置步驟。
@@ -132,6 +132,8 @@ Lead 負責目標釐清、拆解、工作日誌管理、分派、整合、摘要
 
 ### 共享 Zotero 文獻庫
 
+共享文庫也可以經由本預設的 `research_zotero` 工具直接存取 Zotero 本地 API：讀取不需要金鑰，首次寫入會在 Zotero 中請求一次本地 API 金鑰（使用者可選擇「永遠允許」），此後每次變更都會追加到 `.research/library-log.jsonl`。它涵蓋條目的完整生命週期——帶分頁與標籤／集合過濾的 `search`、`create`、`update`、標籤與集合歸屬、子筆記（`note`、`noteUpdate`、`noteDelete`）——以及入庫所需的操作：`attach` 走 Zotero 的三段式上傳把論文 PDF 存進庫，`export` 匯出 BibTeX、BibLaTeX、RIS 或 CSL JSON，`annotations`、`fulltext`、`file` 讀取 PDF 的註記、全文與路徑，`fields` 列出條目類型的合法欄位，集合的改名／移動／刪除、儲存的檢索與資源回收筒（`delete`/`restore`）補齊其餘管理。標籤和集合的修改按條目版本先讀後併寫，並行編輯會失敗而不是被覆蓋；刪除類操作需要 `confirm: true`，且只會移入資源回收筒。宿主的 `zotero_*` 寫入工具仍保留逐次計畫卡，需要逐條審核時用它們。
+
 researcher 把使用者的 Zotero 文獻庫當作團隊的共享文獻來源：先搜尋既有的分類與條目，再搜尋公開網路；重複使用已附加的 PDF 與註記片段；只有在缺少某篇文獻時，才匯入正式版本（version of record）全文，附上 PDF 並歸檔到專案分類中。匯入時依 DOI 與標題去重，不去更動使用者的標籤與分類，並把 `zotero://` 條目參照記錄到證據表和工作日誌卡片上，讓每位隊友讀到同一篇論文，reviewer 也能抽查相同的頁面。當全文受付費牆限制或只有中繼資料時，researcher 會記錄連結，並將證據標記為僅中繼資料，而不是匯入替代品。
 
 ### 顧問審查
@@ -175,7 +177,7 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 架構卡片是以 JSON 形式存放在 `.research/architecture/` 下的節點-連線圖，一張卡片一個檔案。代理透過 `research_architecture` 工具讀取與更新它們，因此圖會與設計保持同步，而不是散落在簡報裡。卡片在面板內以 SVG 呈現；在節點上拖出選取框即可選取，選取後可以把這段選擇引用到會話裡；值得保留的提問會作為備註寫回卡片，代理在回答前會先讀取它。安裝了 `dsh-better-sidebar` 時標籤頁透過它註冊，否則回退到原生右側邊欄。
 
-面板也會顯示目前團隊：每位成員的名稱、角色、模型與狀態（執行中或閒置），以及該成員負責的工作項。
+面板也會顯示目前團隊：每位成員的名稱、角色、模型與狀態（執行中或閒置），以及該成員負責的工作項。新增的「文獻」區展示團隊用 `research_literature` 維護的專案閱讀清單：分類由團隊依專案自訂（相關工作、方法、模型、資料集等），每個 Zotero 條目一張卡片，卡片顯示論文題目，展開後是存於 `.research/literature/<KEY>.md` 的 markdown 簡介，並可一鍵複製 `\cite{key}`、插入引用到會話輸入框或在 Zotero 中開啟。
 
 實驗區按時間由晚到早列出每個實驗，並顯示已進行或已用的時間。每個實驗都有明確的生命週期（已登記、待批准、已批准、執行中、已完成、已停止、失敗、已拒絕），由 `research_experiment` 工具推進：登記寫決策規則、seed 與預算，啟動在未獲批時被拒絕，結束時記錄完成、停止或失敗及原因。區塊標題右側可切換「需要審批 / 自動審批」，等待批准的實驗帶批准與拒絕按鈕，結果寫進該實驗的 manifest；條目變多後清單在自己的框內捲動。
 
@@ -217,6 +219,8 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 恢復時先呼叫 `research_state`，再視需要 `research_worklog op=get` 讀目標項與最新證據。視圖只是給人看的鏡像，以 JSON 為準。
 
 ## 團隊模型配置
+
+每個角色的說明都會點名該角色使用的工具，並標明哪些是唯讀的；研究員的說明還把檢索共享文獻庫、登記閱讀清單、即時寫入證據設為預設動作，不需要組長逐條交代。
 
 設定頁面會為預設團隊成員保留多個具名模型配置，並在下一次 spawn 時使用選取的那一個。
 
@@ -328,7 +332,7 @@ $DSH_HOME/research-team-settings.json
 
 ### 每個隊友都跑在 Lead 的模型上
 
-先看 spawn 結果裡第一行上方的文字。套用了設定或明確路由時會印出 `requested=<provider>/<model> effort=<effort>`；沒有匹配到路由時會印出 `requested=inherit (Lead route)` 並附一條 `note:`。`note:` 裡點名某個角色，表示作用中的設定檔裡該角色沒有填 provider/model；提示名字不是標準角色，表示隊友名字裡沒有出現角色詞。
+先看 spawn 結果裡第一行上方的文字。套用了設定或明確路由時會印出 `requested=<provider>/<model> effort=<effort>`；沒有匹配到路由時會印出 `requested=inherit (Lead route)` 並附一條 `note:`。`note:` 裡點名某個角色，表示作用中的設定檔裡該角色沒有填 provider/model。
 
 另外兩種原因與設定檔無關。一是 Lead 使用了普通的委派工具，它永遠繼承 Lead；persona 已要求 Lead 使用 modeled 工具並且不要傳 `model`，也不要因為不確定名字就退回。二是儲存設定時所處的 `DSH_HOME` 與執行中的 host 讀取的不是同一個，可以對比 `research_team_routes` 印出的 `settings file:` 與 `echo $DSH_HOME`。
 

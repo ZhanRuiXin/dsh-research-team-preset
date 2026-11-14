@@ -75,20 +75,20 @@
 ### التثبيت من صفحة الإضافات في DSH
 
 2. افتح **الإعدادات ← الإضافات** واضغط **إضافة**.
-3. الصق مصدر التثبيت: `dsh-research-team-preset@0.2.3` لحزمة npm، أو `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3` لتثبيت المصدر، أو `link:/absolute/path/to/dsh-research-team-preset` لنسخة محلية.
+3. الصق مصدر التثبيت: `dsh-research-team-preset@0.2.4` لحزمة npm، أو `github:ZhanRuiXin/dsh-research-team-preset#v0.2.4` لتثبيت المصدر، أو `link:/absolute/path/to/dsh-research-team-preset` لنسخة محلية.
 4. **أعد تشغيل DSH.** تُحمَّل أسطر الإعداد المسبق والجزء العميلي من الحزمة عند البدء.
 5. **تحقق من تفعيل الحزمة** في ملف التعريف نفسه، ثم **افتح جلسة جديدة** واختر **Research Team Mode** في محدِّد الوضع.
 
 ### التثبيت من سطر الأوامر
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.3
+dsh plugin add dsh-research-team-preset@0.2.4
 ```
 
 لتثبيت المصدر بدلاً من السجل:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.4
 ```
 
 > الوضع هو حزمة على مستوى ملف التعريف: تثبيته في ملف تعريف لا يفعّله في ملف آخر. أعد التثبيت والمتطلبات المسبقة لكل ملف تعريف.
@@ -214,6 +214,8 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 عند الاستئناف استدعِ `research_state` أولًا، ثم `research_worklog op=get` للبند والأدلة. العروض المولّدة للقراءة فقط؛ المصدر هو JSON.
 
 ## ملفات تعريف نموذج الفريق
+
+يذكر كل موجز دور الأدوات التي تستخدمها تلك الأدوار ويحدد الأدوات للقراءة فقط؛ ويجعل موجز الباحث أرشفة الأوراق والأدلة جزءًا من العمل لا طلبًا منفصلًا.
 
 تحتفظ صفحة الإعدادات بعدة ملفات تعريف نموذج مسمّاة لأعضاء الفريق الافتراضيين، وتستخدم الملف المحدد عند الإنشاء (spawn) التالي.
 

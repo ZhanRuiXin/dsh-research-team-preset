@@ -4,6 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The preset mounts `@deepseek-ai/dsh-tool-subagent-control` and `@deepseek-ai/dsh-tool-agent-team`, so `list_agents`, `send_message`, `wait_agent`, `interrupt_agent` and `team_task_*` exist in a research-team session; the profile supplies the subagent and agent-team services only, and the preset had been assuming the tools came with them.
 - One preset, one shared system prompt, role duties as built-in skills. `prompt/core.md` is the only persona: `plugin/prompt.js` mounts it, and `spawn_teammate_with_model` starts a teammate with no separate preset so the child inherits the Lead's composition and the same cacheable system prefix. The nine briefs under `prompt/roles/` ship as built-in skills through `plugin/roles.js` (`research-role-<role>`), named in the Lead's or teammate's first instruction and loaded on demand with the `skill` tool. The spawn tool now refuses a teammate caller, so only the Lead creates teammates.
 
 ## 0.2.2 — 2026-11-14

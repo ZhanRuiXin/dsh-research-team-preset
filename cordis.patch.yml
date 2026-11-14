@@ -1,8 +1,9 @@
 # Research-team agent preset: PTC tool presentation + Agent Teams + a
 # worklog-first research workflow. One `@deepseek-ai/dsh-agent-preset`
-# declaration inserted over the web profile; the profile's Agent Teams bundle
-# supplies the spawn/send/wait/team tools, and the worklog under the project
-# root is the team's only record.
+# declaration inserted over the web profile; the profile supplies the subagent
+# and agent-team services, while this preset mounts the tool packages that
+# carry spawn/send/wait/team, and the worklog under the project root is the
+# team's only record.
 #
 # One preset: `research-team`. The Lead and every teammate it spawns run
 # the same preset and the same system prompt (`prompt/core.md`); each one
@@ -94,10 +95,11 @@
                   thresholdChars: 8192
                   headChars: 4096
                   tailChars: 1024
-          # One extra delegation layer for teammates stays available. The
-          # subagent-control pair is intentionally absent: the profile's Agent
-          # Teams bundle owns send_message / list_agents / wait_agent /
-          # interrupt_agent and the team task tools.
+          # One extra delegation layer for teammates, plus the control tools
+          # teammates talk through. The profile mounts the subagent and
+          # agent-team services, not the tool packages, so the preset adds
+          # them: without this row, list_agents / send_message / wait_agent /
+          # interrupt_agent are missing from every research-team session.
           - id: delegation
             name: cordis:group
             group: true
@@ -115,6 +117,10 @@
                 config:
                   provider: fork
                   toolName: subagent_fork
+              - id: tool-subagent-control
+                name: '@deepseek-ai/dsh-tool-subagent-control'
+              - id: tool-agent-team
+                name: '@deepseek-ai/dsh-tool-agent-team'
           - id: tool-ask-user
             name: '@deepseek-ai/dsh-tool-ask-user'
           - id: tool-todo

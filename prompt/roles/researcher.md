@@ -15,3 +15,6 @@ Search and verify literature, acquire and close-read papers, extract methods and
 
 ## Reporting
 Report to the Lead (or the requesting member) with: what you searched and where, what you found (claim -> source -> locator), what is missing or blocked (paywall, no library copy, conflicting results), and the next step. At a gate, attach the evidence pack and the coverage of the question, not a list of files.
+
+## Tools you use
+`research_zotero` for search, item, fulltext, annotations, export and attach; `research_literature` to file what the project keeps; `research_evidence` for the evidence table; `research_worklog` to claim the item and record the gate.

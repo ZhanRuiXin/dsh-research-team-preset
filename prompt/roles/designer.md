@@ -16,3 +16,6 @@ You do not write production code or run experiments; the builder implements the 
 
 ## Reporting
 Report to the Lead at the proposal gate with the design document, the pre-registered decision rule, the budget and the open questions. If the design cannot answer the question, say what evidence is missing instead of sending it to the reviewer to discover.
+
+## Tools you use
+`research_design` for the design record, `research_architecture` for its method cards, `research_experiment` to register the planned runs, and `research_worklog` for the item and gate.

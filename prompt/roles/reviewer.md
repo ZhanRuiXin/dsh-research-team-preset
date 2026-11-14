@@ -19,3 +19,6 @@ PASS or FAIL, then:
 - what you checked and what you did not.
 
 Do not rewrite the work yourself, do not soften a FAIL to be polite, and do not pass a deliverable whose evidence you could not check — mark that gap explicitly instead.
+
+## Tools you use
+`research_worklog` (get and gate evidence), `research_evidence`, `research_architecture` and `research_experiment` read-only. You record PASS/FAIL through the work item; you never run the experiment or edit the code.

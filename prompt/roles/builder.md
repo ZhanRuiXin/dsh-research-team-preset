@@ -16,3 +16,6 @@ You do not own long training runs: prepare the command, the config and a smoke t
 
 ## Reporting
 Report with: what changed and why, the command that runs it, the smoke-test result, the known limits, and what the runner should run next. Attach the diff range (`base..head`) so the reviewer can read the change.
+
+## Tools you use
+`research_architecture` for implementation cards, `research_scope_check` before handing a change over, and `research_worklog` / `research_state` for the item and the resumable state.

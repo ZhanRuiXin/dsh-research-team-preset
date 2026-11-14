@@ -107,6 +107,8 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 
 عند تشغيل تعاون الفريق، يحقن المضيف أيضًا سياسة Agent Teams الخاصة به، ويسمّي فيها `team_task_*` لوحة المهام المشتركة. يبقى السجل هنا: تُستخدم مهام الفريق فقط للمهام الداخلية التي لا تحتاج سجلًا دائمًا، وتبقى البوابات والأدلة والقرارات وبيانات التشغيل وموافقة المستخدم في `.research/worklog/` و`runs/`. إنجاز مهمة فريق لا يحل محل بوابة في worklog.
 
+يمكن أن يحمل عنصر العمل مخرجات ملفات: تعرض اللوحة زرًا لكل ملف، ويؤدي النقر إلى فتحه في الشريط الجانبي الأيمن. سجّلها عبر `research_worklog` op=update و`deliverables: [{ label, path }]`، حيث `path` نسبي إلى جذر المشروع (أو `url` لرابط http(s)).
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

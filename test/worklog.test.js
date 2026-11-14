@@ -178,3 +178,23 @@ test('only the user accepts a gated item, and a return sends it back with the re
   assert.equal(back.item.next, '缺少对照基线')
   assert.deepEqual(back.item.history.at(-1).to, 'in_progress')
 })
+
+
+test('an item keeps its deliverables and drops empty entries', (t) => {
+  const dir = project(t)
+  upsertItem(dir, {
+    id: 't-files',
+    title: 'Report',
+    owner: 'writer',
+    deliverables: [
+      { label: 'E2 report', path: 'reports/e2.md' },
+      { label: '', path: '' },
+      { label: 'Upstream', url: 'https://example.org/paper' }
+    ]
+  })
+  const item = listItems(dir).find((entry) => entry.id === 't-files')
+  assert.equal(item.deliverables.length, 2)
+  assert.equal(item.deliverables[0].label, 'E2 report')
+  assert.equal(item.deliverables[0].path, 'reports/e2.md')
+  assert.equal(item.deliverables[1].url, 'https://example.org/paper')
+})

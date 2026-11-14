@@ -105,6 +105,8 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 
 チーム協働が有効なとき、ホストは独自の Agent Teams ポリシーも注入し、`team_task_*` を共有タスクボードと呼ぶ。記録はここに残す: チームタスクは恒久的な記録を要さない内部割り当てだけに使い、ゲート・証拠・決定・実行マニフェスト・ユーザー承認は `.research/worklog/` と `runs/` に置く。完了したチームタスクが worklog のゲートの代わりになることはない。
 
+作業項目には成果物ファイルを添付できる。パネルはファイルごとにボタンを表示し、クリックすると右サイドバーで開く。`research_worklog` op=update の `deliverables: [{ label, path }]` で登録し、`path` はプロジェクトルートからの相対パス（http(s) リンクは `url`）。
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

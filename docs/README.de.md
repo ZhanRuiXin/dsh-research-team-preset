@@ -105,6 +105,8 @@ Eine typische erste Aufgabe:
 
 Mit eingeschalteter Team-Zusammenarbeit injiziert der Host zusätzlich seine eigene Agent-Teams-Richtlinie, die `team_task_*` als gemeinsames Aufgabenboard nennt. Der Nachweis bleibt hier: Team-Aufgaben dienen nur kurzfristigen internen Zuweisungen ohne dauerhafte Aufzeichnung; Gates, Evidenz, Entscheidungen, Lauf-Manifeste und Nutzerabnahme liegen in `.research/worklog/` und `runs/`. Eine abgeschlossene Team-Aufgabe ersetzt kein Gate im Worklog.
 
+Ein Arbeitselement kann Lieferdateien tragen: das Panel zeigt eine Schaltfläche je Datei, ein Klick öffnet sie in der rechten Seitenleiste. Registriert werden sie mit `research_worklog` op=update und `deliverables: [{ label, path }]`, wobei `path` relativ zum Projektstamm ist (`url` für einen http(s)-Link).
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

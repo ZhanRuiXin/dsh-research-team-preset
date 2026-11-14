@@ -105,6 +105,8 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 
 При включённом командном взаимодействии хост дополнительно внедряет свою политику Agent Teams, где `team_task_*` называется общей доской задач. Запись остаётся здесь: командные задачи — только для внутренних поручений без долговременной записи; ворота, доказательства, решения, манифесты запусков и приёмка пользователя хранятся в `.research/worklog/` и `runs/`. Завершённая командная задача никогда не заменяет ворота в worklog.
 
+Рабочий элемент может нести файлы-результаты: панель показывает кнопку для каждого файла, клик открывает его в правой боковой панели. Регистрируйте их через `research_worklog` op=update и `deliverables: [{ label, path }]`, где `path` задан относительно корня проекта (или `url` для ссылки http(s)).
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

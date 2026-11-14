@@ -105,6 +105,8 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 
 टीम सहयोग चालू होने पर होस्ट अपनी Agent Teams नीति भी इंजेक्ट करता है, जिसमें `team_task_*` को साझा कार्य-बोर्ड कहा जाता है। रिकॉर्ड यहीं रहता है: टीम कार्य केवल उन आंतरिक असाइनमेंट के लिए हैं जिन्हें स्थायी रिकॉर्ड नहीं चाहिए, और गेट, साक्ष्य, निर्णय, रन मैनिफ़ेस्ट तथा उपयोगकर्ता स्वीकृति `.research/worklog/` और `runs/` में रहते हैं। पूरा हुआ टीम कार्य कभी worklog गेट की जगह नहीं लेता।
 
+कार्य आइटम में डिलीवरेबल फ़ाइलें जोड़ी जा सकती हैं: पैनल हर फ़ाइल के लिए एक बटन दिखाता है और क्लिक करने पर वह दाएँ साइडबार में खुलती है। इन्हें `research_worklog` op=update के `deliverables: [{ label, path }]` से दर्ज करें, जहाँ `path` प्रोजेक्ट रूट के सापेक्ष है (http(s) लिंक के लिए `url`)।
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

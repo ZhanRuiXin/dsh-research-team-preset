@@ -212,6 +212,16 @@ function normalizeItem(input) {
           }))
           .slice(-40)
       : [],
+    deliverables: Array.isArray(input.deliverables)
+      ? input.deliverables
+          .map((entry) => ({
+            label: short(entry?.label, 80),
+            path: short(entry?.path, 300),
+            url: short(entry?.url, 500)
+          }))
+          .filter((entry) => entry.path.length > 0 || entry.url.length > 0)
+          .slice(0, 20)
+      : [],
     checklist: Array.isArray(input.checklist)
       ? input.checklist.map((entry) => ({
           text: short(entry?.text, 300),

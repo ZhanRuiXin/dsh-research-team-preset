@@ -105,6 +105,8 @@ Une première tâche typique :
 
 Quand la collaboration d'équipe est activée, l'hôte injecte aussi sa propre politique Agent Teams, qui nomme `team_task_*` le tableau des tâches partagées. Le registre reste ici : les tâches d'équipe ne servent qu'aux attributions internes sans trace durable, et les jalons, preuves, décisions, manifestes d'exécution et l'acceptation utilisateur restent dans `.research/worklog/` et `runs/`. Une tâche d'équipe terminée ne remplace jamais un jalon du worklog.
 
+Un élément de travail peut porter des livrables : le panneau affiche un bouton par fichier et un clic l'ouvre dans la barre latérale droite. Enregistrez-les avec `research_worklog` op=update et `deliverables: [{ label, path }]`, où `path` est relatif à la racine du projet (ou `url` pour un lien http(s)).
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

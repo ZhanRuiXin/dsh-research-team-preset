@@ -105,6 +105,8 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 
 팀 협업이 켜져 있으면 호스트는 자체 Agent Teams 정책도 주입하며 거기서 `team_task_*` 를 공유 작업 보드라고 부른다. 기록은 여기에 남는다: 팀 작업은 지속적 기록이 필요 없는 내부 할당에만 쓰고, 게이트·증거·결정·실행 매니페스트·사용자 수용은 `.research/worklog/` 와 `runs/` 에 둔다. 완료된 팀 작업이 worklog 게이트를 대신하지는 않는다.
 
+작업 항목에는 산출물 파일을 붙일 수 있다. 패널은 파일마다 버튼을 보여 주고, 클릭하면 오른쪽 사이드바에서 열린다. `research_worklog` op=update 의 `deliverables: [{ label, path }]` 로 등록하며 `path` 는 프로젝트 루트 기준 상대 경로다(http(s) 링크는 `url`).
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

@@ -105,6 +105,8 @@ research_workspace_init        # seed .research/worklog/ and render the views if
 
 開啟團隊協作後，宿主還會注入它自己的 Agent Teams 策略，其中把 `team_task_*` 稱作共享任務板。記錄仍留在本 preset：`team_task_*` 只用於不需要長期留檔的內部分派，關卡、證據、決策、執行清單與使用者驗收都放在 `.research/worklog/` 和 `runs/`。團隊任務完成不能取代工作日誌裡的關卡驗收。
 
+工作項可以附帶交付檔案：面板會為每個檔案顯示一個按鈕，點擊後在右側欄開啟。用 `research_worklog` op=update 的 `deliverables: [{ label, path }]` 登記，`path` 相對於專案根目錄（也可用 `url` 登記 http(s) 連結）。
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

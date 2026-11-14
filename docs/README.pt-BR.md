@@ -107,6 +107,8 @@ Uma primeira tarefa típica:
 
 Com a colaboração de equipe ligada, o host também injeta sua própria política do Agent Teams, que chama `team_task_*` de quadro de tarefas compartilhado. O registro fica aqui: tarefas de equipe servem apenas para atribuições internas sem registro durável; portões, evidências, decisões, manifestos de execução e aceite do usuário ficam em `.research/worklog/` e `runs/`. Uma tarefa de equipe concluída nunca substitui um portão do worklog.
 
+Um item de trabalho pode trazer entregáveis: o painel mostra um botão por arquivo e o clique abre na barra lateral direita. Registre-os com `research_worklog` op=update e `deliverables: [{ label, path }]`, com `path` relativo à raiz do projeto (ou `url` para um link http(s)).
+
 ```text
 User: "Survey the literature on X, implement the baseline, and draft the method section."
 Lead: research_project -> research_state -> research_worklog op=update (status=todo, next) + send_message

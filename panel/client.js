@@ -334,6 +334,11 @@ function statusLabel(status) {
 .rtp-row.open{flex-wrap:wrap}
 .rtp-row.open .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
 .rtp-itemextra{margin-top:5px;font-size:13px;line-height:1.5;color:var(--dsw-alias-label-secondary);white-space:normal;overflow-wrap:anywhere}
+.rtp-files{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.rtp-fileslabel{font-size:12.5px;line-height:1.4;color:var(--dsw-alias-label-tertiary)}
+.rtp-file{display:inline-flex;align-items:center;max-width:100%;height:24px;padding:0 9px;border:1px solid var(--dsw-alias-border-l1);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.rtp-file:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
+.rtp-file.missing{opacity:.55;cursor:default}
 .rtp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font-size:13px;font-weight:500;line-height:1;background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
@@ -893,6 +898,23 @@ function statusLabel(status) {
         postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? '实验已批准。' : '实验已拒绝。')
       }
 
+      function openDeliverable(event, file) {
+        if (event !== undefined && typeof event.stopPropagation === 'function') event.stopPropagation()
+        if (file === null || typeof file !== 'object') return
+        const api = pluginCtx === null || typeof pluginCtx.get !== 'function' ? undefined : pluginCtx.get('sidebarRight')
+        if (typeof file.url === 'string' && file.url.length > 0) {
+          if (String(file.kind) === 'url' && api !== undefined && typeof api.openTab === 'function') {
+            api.openTab('browser', { params: { url: file.url } })
+            return
+          }
+          if (api !== undefined && typeof api.openResource === 'function') {
+            api.openResource(file.url)
+            return
+          }
+        }
+        setToast(file.path ? `打不开 ${file.path}` : '无法在侧栏打开')
+      }
+
       function quoteSelection() {
         if (card === undefined || selectedNodes.length === 0) return
         const text = `Architecture: ${card.id} (v${card.version})\nNodes: ${selectedNodes.join(', ')}`
@@ -1134,10 +1156,23 @@ function statusLabel(status) {
                 h('span', { key: 'id', className: 'rtp-id' }, entry.id),
                 entry.owner ? ` · @${entry.owner}` : '',
                 entry.next ? ` · 下一步 ${entry.next}` : '',
+                entry.deliverables && entry.deliverables.length ? ` · 附件 ${entry.deliverables.length}` : '',
                 entry.updated ? ` · ${formatSince(entry.updated)}` : ''
               ]),
               openItem === entry.id && entryExtra(entry) !== ''
                 ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry))
+                : null,
+              openItem === entry.id && Array.isArray(entry.deliverables) && entry.deliverables.length > 0
+                ? h('div', { key: 'files', className: 'rtp-files' }, [
+                    h('span', { key: 'l', className: 'rtp-fileslabel' }, '交付文件'),
+                    ...entry.deliverables.map((file, index) => h('button', {
+                      key: `file-${index}`,
+                      type: 'button',
+                      className: file.exists === false ? 'rtp-file missing' : 'rtp-file',
+                      title: file.exists === false ? `${file.path || file.url}（未找到）` : (file.path || file.url),
+                      onClick: (event) => openDeliverable(event, file)
+                    }, file.label || file.path || file.url))
+                  ])
                 : null
             ]),
             entry.status === 'in_review'

@@ -21,6 +21,7 @@
 import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 
 import {
@@ -677,7 +678,20 @@ export function buildPanelState(root, options = {}) {
     kind: item.kind,
     evidenceCount: Array.isArray(item.evidence) ? item.evidence.length : 0,
     checklistTotal: Array.isArray(item.checklist) ? item.checklist.length : 0,
-    checklistDone: Array.isArray(item.checklist) ? item.checklist.filter((entry) => entry.done === true).length : 0
+    checklistDone: Array.isArray(item.checklist) ? item.checklist.filter((entry) => entry.done === true).length : 0,
+    deliverables: Array.isArray(item.deliverables)
+      ? item.deliverables.map((file) => {
+          const label = file.label || file.path || file.url
+          if (typeof file.url === 'string' && /^https?:\/\//i.test(file.url)) {
+            return { label, url: file.url, path: '', kind: 'url', exists: true }
+          }
+          const abs = path.resolve(root, String(file.path || ''))
+          const rel = path.relative(root, abs)
+          const inside = rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel)
+          const exists = inside && fs.existsSync(abs)
+          return { label, path: file.path, kind: 'file', exists, url: exists ? pathToFileURL(abs).href : '' }
+        }).slice(0, 10)
+      : []
   }))
   const team = typeof options.team === 'function' ? options.team(items) : []
 
@@ -1552,7 +1566,7 @@ export function apply(ctx) {
   const disposeWorklog = ctx.tools.register({
     name: 'research_worklog',
     description:
-      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; done belongs to the user, who accepts an in_review item from the Research panel, so this tool refuses to set it. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history.',
+      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; done belongs to the user, who accepts an in_review item from the Research panel, so this tool refuses to set it. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history.',
     parameters: {
       type: 'object',
       properties: {
@@ -1573,6 +1587,14 @@ export function apply(ctx) {
           items: {
             type: 'object',
             properties: { text: { type: 'string' }, done: { type: 'boolean' }, note: { type: 'string' } }
+          }
+        },
+        deliverables: {
+          type: 'array',
+          description: 'Files the user can open from the panel: path is relative to the project root, or url is an http(s) link.',
+          items: {
+            type: 'object',
+            properties: { label: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' } }
           }
         },
         by: { type: 'string', description: 'Who records this; needed as "user" to set done.' },

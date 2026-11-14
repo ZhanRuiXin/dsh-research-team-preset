@@ -130,7 +130,7 @@ Lead: summarize -> user acceptance (done, set by the user)
 | `reviewer` | Independent verification of literature notes, code, results, and paper claims/citations; PASS/FAIL with blocking evidence |
 | `writer` | LaTeX paper draft: prose, sections, tables, captions, citations, and figure code; does not run experiments or change code/models |
 
-The Lead owns goal clarification, decomposition, ledger management, dispatch, integration, summaries, final asset assembly, and delivery. Members may use one subagent layer for a scoped subtask; they cannot create teammates. The Lead keeps its own tool use light, favors a short user-facing update over another routine call, and leaves deep work to the owning member.
+The Lead owns goal clarification, decomposition, ledger management, dispatch, integration, summaries, final asset assembly, and delivery. Each role brief names the tools that role runs and marks the read-only ones, and the researcher's brief makes library search, reading-list filing and evidence capture defaults that happen as part of the work rather than on request. Members may use one subagent layer for a scoped subtask; they cannot create teammates. The Lead keeps its own tool use light, favors a short user-facing update over another routine call, and leaves deep work to the owning member.
 
 ### Shared Zotero library
 

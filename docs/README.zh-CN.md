@@ -222,6 +222,8 @@ User:  accept -> research_worklog op=update with by="user" (agents can never do 
 
 ## 团队模型配置
 
+每个角色的说明都会点名该角色使用的工具，并标明哪些是只读的；研究员的说明还把检索共享文库、登记阅读清单、即时写入证据设为默认动作，不需要组长逐条交代。
+
 设置页为默认团队成员保留多个具名模型配置，下一次 spawn 时使用选中的那一个。
 
 打开：

@@ -25,7 +25,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import fs from 'node:fs'
 import path from 'node:path'
 import { ROLE_NAMES, matchRoleName, modelForRole } from './settings-store.js'
-import { ROLES, rolePrompt } from './prompt.js'
+import { ROLES, roleSkill } from './roles.js'
 import { ensureTeamMode } from './index.js'
 import { readRouteTable } from './settings-file.js'
 
@@ -463,7 +463,7 @@ export function apply(ctx, config = {}) {
   const disposeTool = ctx.tools.register({
     name: 'spawn_teammate_with_model',
     description:
-      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics. The advisor and reviewer roles spawn read-only; every other role inherits the Lead sandbox mode. Pass permission to override.',
+      'Create one named, durable teammate on the route configured for its role in the Plugins page (Omit model to use that configured default; this is not the same as spawn_teammate). Pass model {provider, model, reasoningEffort} to override. If the role has no configured route, the teammate inherits the Lead route and the result says so in diagnostics. The teammate runs the same preset and system prompt as the Lead and loads its role brief from the built-in `research-role-<role>` skill named in the task message. The advisor and reviewer roles spawn read-only; every other role inherits the Lead sandbox mode. Pass permission to override. Only the Lead can call this tool.',
     parameters: {
       type: 'object',
       properties: {
@@ -490,7 +490,7 @@ export function apply(ctx, config = {}) {
         role: {
           type: 'string',
           enum: ['advisor', 'researcher', 'data', 'designer', 'builder', 'runner', 'reviewer', 'writer', 'member'],
-          description: 'Role this teammate plays. Its brief is prepended to the task prompt and the teammate runs the member preset (shared core only). Omit to derive it from the name; an unknown name becomes a generic member.'
+          description: 'Role this teammate plays. The task message names the built-in skill it must load (research-role-<role>). Omit to derive it from the name; an unknown name becomes a generic member that loads no role skill.'
         }
       },
       required: ['name', 'description', 'prompt'],
@@ -511,12 +511,21 @@ export function apply(ctx, config = {}) {
         throw new Error('spawn_teammate_with_model requires a calling agent')
       }
       await ensureTeamMode(ctx, agent)
+      const header = agent.session?.header
+      if (header?.origin === 'subagent' || (header?.delegationDepth ?? 0) > 0) {
+        throw new Error('only the Lead can create teammates; a teammate works on the item the Lead assigned to it')
+      }
       const context = args.context === 'fork' ? 'fork' : 'fresh'
       const role = typeof args.role === 'string' && ROLES.includes(args.role)
         ? args.role
         : (matchRoleName(args.name) ?? 'member')
-      const brief = ROLES.includes(role) ? rolePrompt(role) : undefined
-      const promptText = brief === undefined ? args.prompt : `${brief}\n\n---\n\n${args.prompt}`
+      // The teammate runs the same preset and the same system prompt as the
+      // Lead. Role duties are a built-in skill, so the task message only names
+      // the skill to load instead of carrying a 3-10 KB brief.
+      const roleLine = ROLES.includes(role)
+        ? `\n\nStart by loading the \`${roleSkill(role)}\` skill with the \`skill\` tool; it holds the duties of this role.`
+        : ''
+      const promptText = `${args.prompt}${roleLine}`
       const explicit = args.model === undefined ? undefined : readModel(args)
       const resolved = explicit === undefined
         ? resolveConfiguredRoute(args.name)
@@ -533,8 +542,7 @@ export function apply(ctx, config = {}) {
           prompt: [{ type: 'text', text: promptText }],
           parent: agent,
           signal,
-          delivery: 'parent',
-          ...(context === 'fresh' ? { agentPreset: 'research-team-member' } : {})
+          delivery: 'parent'
         })
       const started = requestedModel === undefined
         ? await spawn()

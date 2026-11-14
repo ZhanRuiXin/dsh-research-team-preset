@@ -4,7 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
-- Split the preset prompt so a teammate loads only the shared core plus its own role brief. `prompt/core.md` holds the common discipline; the nine briefs live under `prompt/roles/`, and `plugin/prompt.js` mounts them as the preset persona. The Lead preset (`research-team`) loads the core plus the Lead brief; the member preset (`research-team-member`) loads the core only, and `spawn_teammate_with_model` prepends the member's brief to its task message. The member preset also drops the spawn tool, so teammates cannot create further teammates by default.
+- One preset, one shared system prompt, role duties as built-in skills. `prompt/core.md` is the only persona: `plugin/prompt.js` mounts it, and `spawn_teammate_with_model` starts a teammate with no separate preset so the child inherits the Lead's composition and the same cacheable system prefix. The nine briefs under `prompt/roles/` ship as built-in skills through `plugin/roles.js` (`research-role-<role>`), named in the Lead's or teammate's first instruction and loaded on demand with the `skill` tool. The spawn tool now refuses a teammate caller, so only the Lead creates teammates.
 
 ## 0.2.2 — 2026-11-14
 

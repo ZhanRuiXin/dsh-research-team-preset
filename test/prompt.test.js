@@ -1,52 +1,32 @@
 /**
- * The persona split: a shared core every member loads, plus one brief per
- * role. These tests pin the contract the two preset rows rely on — the
- * member persona must not carry any role's duties, and the loader must
- * register the prefix section for the configured role.
+ * The preset persona: one shared core for the Lead and every teammate. Role
+ * duties are built-in skills (see roles.test.js), not prompt sections, so this
+ * row must never grow a role-specific API again.
  */
 
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-const { PERSONA_PREFIX_SECTION, ROLES, apply, corePrompt, personaFor, rolePrompt } = await import('../plugin/prompt.js')
+const prompt = await import('../plugin/prompt.js')
 
-test('the member persona is the shared core without a role brief', () => {
-  const core = corePrompt()
-  const member = personaFor('member')
-  assert.equal(member, core)
-  assert.match(member, /^You are running in Research Team Mode/)
-  assert.doesNotMatch(member, /You are the Team Lead/)
-  assert.doesNotMatch(member, /You are the advisor/)
-  assert.match(member, /## Coordination ledger/)
-  assert.match(member, /## Experiment admission/)
+test('the persona is the shared core with no role duties baked in', () => {
+  const core = prompt.corePrompt()
+  assert.match(core, /^You are running in Research Team Mode/)
+  assert.doesNotMatch(core, /You are the Team Lead/)
+  assert.doesNotMatch(core, /You are the advisor/)
+  assert.match(core, /## Coordination ledger/)
+  assert.match(core, /## Experiment admission/)
+  assert.match(core, /research-role-lead/)
+  assert.ok(core.length > 15000 && core.length < 30000, `core is ${core.length} chars`)
 })
 
-test('the lead persona composes the core and the lead brief', () => {
-  const lead = personaFor('lead')
-  const core = corePrompt()
-  assert.match(lead, /^You are running in Research Team Mode/)
-  assert.match(lead, /You are the Team Lead/)
-  assert.ok(lead.length > core.length + 5000, 'the lead brief must add substantial guidance')
+test('the row exposes no role-specific persona API', () => {
+  assert.equal(prompt.personaFor, undefined)
+  assert.equal(prompt.rolePrompt, undefined)
+  assert.equal(prompt.ROLES, undefined)
 })
 
-test('every role has its own brief and none duplicates the shared core', () => {
-  const seen = new Set()
-  for (const role of ROLES) {
-    const text = rolePrompt(role)
-    assert.match(text, /^You are /, `${role} brief must open with a role statement`)
-    assert.ok(!text.includes('## Coordination ledger'), `${role} brief must not repeat the core ledger`)
-    assert.ok(!seen.has(text), `${role} brief duplicates another role`)
-    seen.add(text)
-  }
-  assert.equal(ROLES.length, 9)
-})
-
-test('an unknown role is reported instead of made up', () => {
-  assert.throws(() => rolePrompt('historian'), /unknown research-team role "historian"/)
-  assert.throws(() => rolePrompt(undefined), /unknown research-team role "undefined"/)
-})
-
-test('apply registers the deployment persona prefix for the configured role', () => {
+test('apply registers the core prefix and an empty suffix that shadows the deployment persona', () => {
   const sections = []
   const ctx = {
     effect(fn) {
@@ -64,14 +44,14 @@ test('apply registers the deployment persona prefix for the configured role', ()
       }
     }
   }
-  apply(ctx, { role: 'member' })
-  const prefix = sections.find((section) => section.name === PERSONA_PREFIX_SECTION)
-  const suffix = sections.find((section) => section.name === 'deployment:persona-suffix')
+  prompt.apply(ctx)
+  const prefix = sections.find(section => section.name === prompt.PERSONA_PREFIX_SECTION)
+  const suffix = sections.find(section => section.name === 'deployment:persona-suffix')
   assert.ok(prefix, 'the prefix section is registered')
-  assert.ok(suffix, 'the empty suffix section shadows the deployment suffix')
+  assert.ok(suffix, 'the empty suffix lands after the deployment persona')
   assert.equal(prefix.order, 10)
   assert.equal(prefix.interpolate, false)
-  assert.equal(prefix.text, corePrompt())
+  assert.equal(prefix.text, prompt.corePrompt())
   assert.equal(suffix.order, 11)
   assert.equal(suffix.text, '')
 })

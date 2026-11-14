@@ -299,7 +299,7 @@ $DSH_HOME/research-team-settings.json
 | Einstellung | Ort | Hinweise |
 | --- | --- | --- |
 | Preset-ID | `cordis.patch.yml` | `research-team`; Aufgabenkarten sollten `presetId=research-team` verwenden |
-| Prompt | `prompt/` | Englisches Prompt, geteilt in einen gemeinsamen Kern und einen Brief pro Rolle; `plugin/prompt.js` mountet es als Preset-Persona |
+| Prompt | `prompt/` | Gemeinsamer englischer Kern, von `plugin/prompt.js` als Preset-Persona gemountet; die Rollen-Briefs kommen als eingebaute Skills über `plugin/roles.js` |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | Auf `false` setzen, um `spawn_teammate_with_model` und dessen Service-Wrapper zu entfernen |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | Subagent-Provider des modeled Spawn-Tools; Standard `spawn` / `fork` |
 | Zeile `research-team-settings` | `cordis.patch.yml` | Host-Zeile auf oberster Ebene; Paketwurzelnamen beibehalten |
@@ -307,7 +307,7 @@ $DSH_HOME/research-team-settings.json
 
 ## Funktionsweise
 
-- **Preset**: `cordis.patch.yml` deklariert die Prompt-Zeile (gemeinsamer Kern plus ein Brief pro Rolle unter `prompt/`), Tool-Zeilen, das modeled-teammates-Submodul und die Einstellungszeile auf oberster Ebene.
+- **Preset**: `cordis.patch.yml` deklariert eine Preset-Zeile, `research-team`, mit Prompt-Zeile, Rollen-Skill-Zeile, Tool-Zeilen und dem modeled-teammates-Modul. Die Prompt-Zeile mountet `prompt/core.md` für alle; die Rollen-Skill-Zeile liefert `research-role-lead` und die acht Fach-Briefs über das `skill`-Tool. Gestartete Teamkollegen erben dieses Preset; das Spawn-Tool lehnt Teamkollegen als Aufrufer ab, sodass nur der Lead Teamkollegen anlegt.
 - **Rollenbasiertes Routing**: `plugin/modeled-teammates.js` umschließt `subagents.startActivation` mit `AsyncLocalStorage` und injiziert `agentOptions` nur für einen Aufruf von `spawn_teammate_with_model`. Das offizielle Agent-Teams-Paket bleibt unverändert. Cordis liefert Dienste als nachverfolgbaren Proxy; der Wrapper prüft daher seinen eigenen Property-Deskriptor statt der Methodenidentität.
 - **Einstellungen**: `settings/index.js` lädt und speichert die Profil-JSON-Datei und bedient `GET/POST /api/dsh-research-team-settings`; `client/index.js` registriert den Profil-Editor der Plugins-Seite über `plugins.row.config`.
 - **Aktualisierung**: `plugin/settings-store.js` hält den In-Memory-Snapshot, löst bei jedem Lesezugriff und jedem Spawn das aktive Profil auf und behält den letzten guten Snapshot, falls ein Lesevorgang fehlschlägt.

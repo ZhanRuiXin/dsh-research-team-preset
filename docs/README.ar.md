@@ -299,7 +299,7 @@ $DSH_HOME/research-team-settings.json
 | الإعداد | الموقع | ملاحظات |
 | --- | --- | --- |
 | Preset id | `cordis.patch.yml` | `research-team`؛ ويُستحسن أن تستخدم بطاقات المهام `presetId=research-team` |
-| Prompt | `prompt/` | موجّه إنجليزي مقسّم إلى نواة مشتركة وموجز لكل دور؛ يثبّته `plugin/prompt.js` كشخصية القالب |
+| Prompt | `prompt/` | موجّه إنجليزي مشترك (نواة) يثبّته `plugin/prompt.js` كشخصية القالب؛ مهام كل دور تُقدَّم كمهارات مدمجة عبر `plugin/roles.js` |
 | `research-modeled-teammates.enabled` | `cordis.patch.yml` | اضبطه على `false` لإزالة `spawn_teammate_with_model` وغلاف الخدمة الخاص به |
 | `freshProvider` / `forkProvider` | `cordis.patch.yml` | مزوّدو subagent الذين تستخدمهم أداة الإنشاء النموذجية؛ القيم الافتراضية `spawn` / `fork` |
 | صف `research-team-settings` | `cordis.patch.yml` | صف مضيف من المستوى الأعلى؛ أبقِ اسم جذر الحزمة |
@@ -307,7 +307,7 @@ $DSH_HOME/research-team-settings.json
 
 ## كيف يعمل
 
-- **Preset**: يعلن `cordis.patch.yml` صفّ الموجّه (نواة مشتركة وموجز لكل دور داخل `prompt/`) وصفوف الأدوات والوحدة الفرعية modeled-teammates وصف الإعدادات من المستوى الأعلى.
+- **Preset**: يعلن `cordis.patch.yml` صفّ إعداد واحدًا باسم `research-team`، يضم صفّ الموجّه وصفّ مهارات الأدوار وصفوف الأدوات ووحدة modeled-teammates. يثبّت صفّ الموجّه `prompt/core.md` لكل الأعضاء، ويقدّم صفّ مهارات الأدوار `research-role-lead` وثمانية ملخصات تخصصية عبر أداة `skill`. الزميل الذي يبدأ يرث هذا الإعداد؛ وأداة الإنشاء ترفض أن يستدعيها زميل، فلا ينشئ الزملاء إلا الـ Lead.
 - **التوجيه لكل دور**: يغلّف `plugin/modeled-teammates.js` الدالة `subagents.startActivation` بـ `AsyncLocalStorage` ويحقن `agentOptions` عند نداء `spawn_teammate_with_model` فقط. وحزمة Agent Teams الرسمية لم تُمسّ. يعرض Cordis الخدمات كوسيط قابل للتتبع، لذا يتحقق الغلاف من واصف الخاصية الخاص به بدلاً من هوية الدالة.
 - **الإعدادات**: يحمّل `settings/index.js` ملف JSON لملفات التعريف ويحفظه ويقدّم `GET/POST /api/dsh-research-team-settings`؛ ويسجّل `client/index.js` محرّر ملفات التعريف في صفحة Plugins عبر `plugins.row.config`.
 - **التحديث**: يحتفظ `plugin/settings-store.js` بالنسخة في الذاكرة، ويحدّد ملف التعريف النشط عند كل قراءة وكل إنشاء (spawn)، ويُبقي آخر نسخة سليمة إذا فشلت القراءة.

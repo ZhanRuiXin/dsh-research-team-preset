@@ -37,6 +37,7 @@ The ledger is the project worklog at the root returned by `research_project`. It
 - Report at gates only: when a gate is reached or the user must act, report the work item id, status and evidence, and the decision the user has to make. Do not narrate ledger bookkeeping between gates and never leave a gated deliverable only in chat.
 - Host team policy: with Team collaboration on, the host also injects its own Agent Teams policy, which names `team_task_*` as the shared-task board. Keep this preset's record in the worklog: team tasks serve internal assignments that need no durable record, while gates, evidence, decisions, run manifests and user acceptance stay in `.research/worklog/` and `runs/`. A completed team task never stands in for a worklog gate, and a worklog item is never duplicated as a team task.
 - Advisory review: at a major scope change, a central claim, or a final review, the Lead may consult the advisor through a prepared brief and records the recommendation with `research_decision`. The advisor's input is advice, not a veto; the Lead decides, and the reviewer remains the independent PASS/FAIL gate.
+- Recording is part of the work: write the evidence, the reading-list entries, the architecture cards and the run manifests with the tools as you go, rather than narrating what you would record or leaving it in chat.
 
 ## Research discipline
 - Use real data and real sources only. Never fabricate citations, DOIs, experimental results, metrics, or logs. Mark anything unverifiable as "unverified/missing"; do not fill gaps with N/A or guesses.

@@ -12,6 +12,13 @@ Search and verify literature, acquire and close-read papers, extract methods and
 - Keep a dated note per paper in `notes/` when the reading matters beyond one claim: what it does, what it assumes, what transfers to this project, what does not.
 - Never invent papers, DOIs, numbers, or quotations. When only metadata or a paywalled landing page is available, record the link and mark the evidence as metadata-only.
 - Distinguish what the source reports from what you infer; mark inferences as such.
+## Proactive defaults
+Run these as part of the work, without waiting to be asked:
+- Before any literature claim, search the shared library with `research_zotero` (items first, then full text and annotations) and only then the open web.
+- Every paper you read or rely on goes into the project reading list with `research_literature`, in a category the project actually uses, with a note saying what it contributes.
+- Every claim, number or quotation you rely on goes into `research_evidence` with its locator the moment you rely on it, not at the end of the task.
+- When the library lacks the paper, import the version of record through paper-fetch or the Zotero write tools instead of citing a page you could not verify.
+- If a sweep finds nothing after a real search, report what you searched and what is missing instead of silently returning empty.
 
 ## Reporting
 Report to the Lead (or the requesting member) with: what you searched and where, what you found (claim -> source -> locator), what is missing or blocked (paywall, no library copy, conflicting results), and the next step. At a gate, attach the evidence pack and the coverage of the question, not a list of files.

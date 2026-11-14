@@ -134,6 +134,8 @@ The Lead owns goal clarification, decomposition, ledger management, dispatch, in
 
 ### Shared Zotero library
 
+The shared library is also reachable through the preset's `research_library` tool, which talks to Zotero's local API directly: reads need no key, the first write asks Zotero for a local API key the user can remember with "Always Allow", and each change is appended to `.research/library-log.jsonl`. It covers status, search, item, create, update, tags, collection membership and child notes; tag and collection edits read-merge-write under the item version so a concurrent edit fails instead of overwriting, and it never deletes objects. The host `zotero_*` write tools keep their per-change plan card, so use them when the user wants to review each change.
+
 The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and in the item's evidence, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
 
 ### Advisory review

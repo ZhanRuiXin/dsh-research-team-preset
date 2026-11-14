@@ -1393,7 +1393,6 @@ export function apply(ctx) {
     },
     async execute(_args, exec) {
       await ensureTeamMode(ctx, exec?.agent)
-      await ensureTeamMode(ctx, exec?.agent)
       const cwd = exec?.agent?.session?.header?.cwd
       if (typeof cwd !== 'string' || cwd.length === 0) {
         return { error: 'Cannot determine the session working directory; workspaceId was not resolved. Ask the user to confirm the project.' }

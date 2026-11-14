@@ -1158,7 +1158,6 @@ function statusLabel(status) {
 
       const load = React.useCallback(async () => {
         try {
-          console.info('research-team-panel: request', { sessionId })
           const response = await fetch(`${PANEL_ROUTE}?session=${encodeURIComponent(sessionId || '')}`)
           const data = await response.json()
           if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`)

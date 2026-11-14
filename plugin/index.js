@@ -1573,20 +1573,6 @@ export function apply(ctx) {
       if (req.method === 'GET') {
         const root = await sessionProjectRoot(ctx, sessionId)
         if (root === undefined) {
-          try {
-            fs.appendFileSync(
-              path.join(process.env.TEMP ?? process.env.TMPDIR ?? '.', 'dsh-research-team-panel-debug.log'),
-              JSON.stringify({
-                at: new Date().toISOString(),
-                sessionId,
-                agents: typeof ctx.agents?.get,
-                sessions: typeof ctx.sessions?.get,
-                query: typeof ctx.sessionQuery?.observeSession
-              }) + '\n'
-            )
-          } catch {
-            /* diagnostics are best effort */
-          }
           jsonResponse(res, 404, { ok: false, error: 'cannot resolve the project for this session' })
           return
         }

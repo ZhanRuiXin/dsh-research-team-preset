@@ -498,10 +498,10 @@ export function apply(ctx, config = {}) {
         role: {
           type: 'string',
           enum: ['advisor', 'researcher', 'data', 'designer', 'builder', 'runner', 'reviewer', 'writer'],
-          description: 'Role this teammate plays. The task message names the built-in skill it must load (research-role-<role>). Omit to derive it from the name; an unknown name becomes a generic member that loads no role skill.'
+          description: 'Role this teammate plays, one of the eight standard roles. The task message names the built-in skill it must load (research-role-<role>). Omit it only when name already is the role; any other name is refused.'
         }
       },
-      required: ['name', 'description', 'prompt'],
+      required: ['description', 'prompt'],
       additionalProperties: false
     },
     output: {

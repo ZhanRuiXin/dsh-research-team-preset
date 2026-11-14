@@ -1777,7 +1777,7 @@ export function apply(ctx) {
         op: { type: 'string', enum: ['init', 'list', 'get', 'update', 'claim', 'gate', 'plan'] },
         id: { type: 'string', description: 'Work item id, [A-Za-z0-9][A-Za-z0-9._-]{0,63}.' },
         title: { type: 'string' },
-        owner: { type: 'string' },
+        owner: { type: 'string', description: 'Role name of the owner, one of the eight standard teammate roles (advisor, researcher, data, designer, builder, runner, reviewer, writer).' },
         status: { type: 'string', enum: ['todo', 'in_progress', 'in_review', 'blocked', 'done', 'canceled'] },
         kind: { type: 'string', enum: ['gated', 'internal'] },
         next: { type: 'string' },

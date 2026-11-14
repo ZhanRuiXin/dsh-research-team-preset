@@ -239,7 +239,7 @@ Each profile has one row per default member:
 - **Model**: one dropdown containing every provider's models, with non-clickable provider group headers. Selecting a model sets both provider and model.
 - **Reasoning effort**: a second dropdown with the selected model's advertised efforts, plus a model-default option.
 
-An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. A named child started without `model` inherits the Lead route.
+An empty model means "inherit the Lead's route"; an empty effort means "use the model default". `spawn_teammate_with_model` reads the selected profile's per-role default when `model` is omitted; an explicit `model` overrides it. A teammate whose role has no configured route inherits the Lead route.
 
 Route lookup happens at spawn time and reads `$DSH_HOME/research-team-settings.json` directly before falling back to the in-process store, so a session opened before the Plugins page was ever saved still resolves the configured routes. The team is limited to the eight standard roles and a teammate's name is its role, so `spawn_teammate_with_model` refuses any other name and the role alone selects the route. When the active profile has no route for that role the teammate inherits the Lead route, and the tool result carries a `diagnostics` note saying so. The Lead can call `research_team_routes` to read the configured table instead of guessing provider and model names.
 

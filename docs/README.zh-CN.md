@@ -240,7 +240,7 @@ Plugins → dsh-research-team-preset → research-team-settings → Configure
 - **Model**：一个下拉框，包含所有 provider 的模型，provider 分组标题不可点击。选择一个模型会同时设置 provider 和 model。
 - **Reasoning effort**：第二个下拉框，包含所选模型声明的推理强度，外加一个「模型默认」选项。
 
-空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取选中配置中该角色的默认值；显式传入的 `model` 会覆盖它。不传 `model` 启动的具名子成员继承 Lead 路由。
+空的 model 表示「继承 Lead 的路由」；空的 effort 表示「使用模型默认值」。省略 `model` 时，`spawn_teammate_with_model` 会读取选中配置中该角色的默认值；显式传入的 `model` 会覆盖它。角色没有配置路由时，该队友继承 Lead 路由。
 
 路由在 spawn 时解析，先直接读 `$DSH_HOME/research-team-settings.json`，读不到才退回进程内的快照，因此即使会话是在「插件」页首次保存之前打开的，也能取到已配置的路由。团队只限八个标准角色，队友名字就是角色名，`spawn_teammate_with_model` 会拒绝其他名字，路由也只由角色决定；活动配置里该角色没有路由时该队友继承 Lead 路由，工具结果会带一条 `diagnostics` 说明原因。Lead 可以调用 `research_team_routes` 查看当前配置表，不必猜 provider 和 model 名称。
 

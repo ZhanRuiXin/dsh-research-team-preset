@@ -1,6 +1,10 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.5.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.6.
+
+## 0.2.6 — 2026-11-15
+
+- The panel finds a session's project from the persisted session header when the session is not a live Agent on the Host. DSH restores sessions lazily, so the Agent registry can be empty for a conversation that is open in the UI; the route now falls back through the session registry to the session-query observation and reads the cwd from its header, then releases the observation.
 
 ## 0.2.5 — 2026-11-15
 

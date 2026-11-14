@@ -997,12 +997,48 @@ async function projectRootOf(ctx, exec) {
   return workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0 ? workspace.path : cwd
 }
 
+/**
+ * The session's working directory, without requiring a live Agent: a restored
+ * session is a prepared observation the query service can read from disk.
+ */
+async function sessionCwd(ctx, sessionId) {
+  try {
+    const agent = await Promise.resolve(ctx.agents?.get?.(sessionId))
+    const cwd = agent?.session?.header?.cwd
+    if (typeof cwd === 'string' && cwd !== '') return cwd
+  } catch {
+    /* fall through to the persisted header */
+  }
+  try {
+    const opened = await Promise.resolve(ctx.sessions?.get?.(sessionId))
+    const cwd = opened?.header?.cwd ?? opened?.session?.header?.cwd
+    if (typeof cwd === 'string' && cwd !== '') return cwd
+  } catch {
+    /* fall through to the query service */
+  }
+  try {
+    const observation = await ctx.sessionQuery?.observeSession?.(sessionId)
+    if (observation === undefined || observation === null) return undefined
+    try {
+      const cwd = observation.header?.cwd
+      return typeof cwd === 'string' && cwd !== '' ? cwd : undefined
+    } finally {
+      try {
+        if (typeof observation[Symbol.dispose] === 'function') observation[Symbol.dispose]()
+        else if (typeof observation.dispose === 'function') observation.dispose()
+      } catch {
+        /* releasing the observation is best effort */
+      }
+    }
+  } catch {
+    return undefined
+  }
+}
+
 async function sessionProjectRoot(ctx, sessionId) {
   if (typeof sessionId !== 'string' || sessionId === '') return undefined
   try {
-    const agent = await Promise.resolve(ctx.agents?.get?.(sessionId))
-    const opened = await Promise.resolve(ctx.sessions?.get?.(sessionId))
-    const cwd = agent?.session?.header?.cwd ?? opened?.header?.cwd
+    const cwd = await sessionCwd(ctx, sessionId)
     if (typeof cwd !== 'string' || cwd === '') return undefined
     try {
       const workspace = await ctx.workspaceRegistry.resolveByPath(cwd)

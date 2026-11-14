@@ -244,6 +244,15 @@ export function apply(ctx) {
       },
       required: ['op']
     },
+    output: {
+      schema: {},
+      render(_args, value) {
+        if (value !== null && typeof value === 'object' && typeof value.error === 'string') {
+          return [{ type: 'text', text: value.error }]
+        }
+        return [{ type: 'text', text: JSON.stringify(value, null, 2) }]
+      }
+    },
     async execute(args, exec) {
       try {
         const root = projectRoot(ctx, exec?.agent?.session?.header?.id ?? exec?.agent?.session?.id)

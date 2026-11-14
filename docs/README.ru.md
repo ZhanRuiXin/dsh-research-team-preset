@@ -73,20 +73,20 @@ Research Team Mode - это пресет агента DSH для сквозно�
 ### Установка со страницы плагинов DSH
 
 2. Откройте **Настройки → Плагины** и нажмите **Добавить**.
-3. Вставьте источник установки: `dsh-research-team-preset@0.2.2` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
+3. Вставьте источник установки: `dsh-research-team-preset@0.2.3` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
 4. **Перезапустите DSH.** Строки пресета и клиентская часть бандла загружаются при старте.
 5. **Убедитесь, что бандл включён** в том же профиле, затем **откройте новую сессию** и выберите **Research Team Mode** в выборе режима.
 
 ### Установка из командной строки
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 Чтобы закрепить исходный код вместо реестра:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > Режим является бандлом уровня профиля: установка в одном профиле не включает его в другом. Повторите установку и предварительные условия для каждого профиля.

@@ -73,20 +73,20 @@ Lead の返答は科学的なコミュニケーションであり、ステータ
 ### DSH のプラグインページからインストール
 
 2. **設定 → プラグイン** を開き、**追加** をクリックします。
-3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.2.2`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
+3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.2.3`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
 4. **DSH を再起動します。** プリセット行とバンドルのクライアント側は起動時に読み込まれます。
 5. **同じプロファイルでバンドルが有効になっていることを確認**し、**新しいセッションを開いて** モード選択で **Research Team Mode** を選びます。
 
 ### コマンドラインからインストール
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 レジストリではなくソースを固定する場合:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > このモードはプロファイル単位のバンドルです。あるプロファイルにインストールしても別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件を繰り返してください。

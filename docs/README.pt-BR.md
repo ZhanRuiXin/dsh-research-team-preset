@@ -75,20 +75,20 @@ Este preset é distribuído como bundle DSH e publicado no npm como `dsh-researc
 ### Instalar pela página de Plugins do DSH
 
 2. Abra **Configurações → Plugins** e clique em **Adicionar**.
-3. Cole a origem de instalação: `dsh-research-team-preset@0.2.2` para o pacote npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2` para fixar o código-fonte, ou `link:/absolute/path/to/dsh-research-team-preset` para um checkout local.
+3. Cole a origem de instalação: `dsh-research-team-preset@0.2.3` para o pacote npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3` para fixar o código-fonte, ou `link:/absolute/path/to/dsh-research-team-preset` para um checkout local.
 4. **Reinicie o DSH.** As linhas do preset e a metade cliente do bundle carregam na inicialização.
 5. **Verifique se o bundle está habilitado** no mesmo perfil, depois **abra uma nova sessão** e escolha **Research Team Mode** no seletor de modo.
 
 ### Instalar pela linha de comando
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 Para fixar o código-fonte em vez do registro:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > O modo é um bundle no nível do perfil: instalá-lo em um perfil não o habilita em outro. Repita a instalação e os pré-requisitos em cada perfil.

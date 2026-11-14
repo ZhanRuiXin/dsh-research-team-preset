@@ -73,20 +73,20 @@ Lead 的回覆是科學性溝通，而不是狀態播報：先給結論或結果
 ### 從 DSH 外掛頁面安裝
 
 2. 開啟 **設定 → 外掛**，點擊 **新增**。
-3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.2.2`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.2`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.2.3`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.3`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重新啟動 DSH。** preset 列與 bundle 的用戶端部分在啟動時載入。
 5. **確認 bundle 在同一個 profile 中已啟用**，然後**開啟新工作階段**，在模式選擇器中選擇 **Research Team Mode**。
 
 ### 從命令列安裝
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.2
+dsh plugin add dsh-research-team-preset@0.2.3
 ```
 
 若要固定原始碼而不是從 registry 安裝：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.2
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.3
 ```
 
 > 此模式是 profile 層級的 bundle：在一個 profile 中安裝不會在另一個 profile 中啟用。每個 profile 都要重複安裝與前置步驟。

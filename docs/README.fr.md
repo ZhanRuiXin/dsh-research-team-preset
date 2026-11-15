@@ -22,7 +22,7 @@ Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semai
 | --- | --- |
 | **Rôles par défaut** | 8 : advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Flux** | Par portes : etapes internes en lignes d'index du worklog, portes utilisateur en fichiers d'éléments de travail ; creer, prendre, executer, rapporter, revoir, acceptation par l'utilisateur |
-| **Achèvement** | `in_review` est le dernier arrêt de l'agent ; seul l'utilisateur peut déplacer un élément de travail vers `done` |
+| **Achèvement** | Un élément soumis à validation s'arrête à `in_review` et seul l'utilisateur le passe à `done` ; une étape interne est clôturée par son responsable |
 | **Routage des modèles** | Provider, model et effort de raisonnement par rôle, depuis un formulaire de réglages de la page Plugins |
 | **Git** | Initialisé par l'agent au début du travail substantiel ; changements destructifs sur une branche ; fusion après acceptation seulement |
 | **Worklog** | Stockage JSON dans `.research/worklog/` ; `PLAN.md` et `INDEX.md` sont des vues générées ; à la reprise, d’abord `research_state` |
@@ -188,7 +188,7 @@ Le designer possède les cartes qui décrivent la méthode, le builder celles qu
 
 Les changements d’état suivent une table fixe (`todo → in_progress → in_review → done`) ; `blocked` et `canceled` sont des états latéraux. `blocked` exige un motif, une porte exige au moins une entrée de preuve, et chaque changement est conservé dans l’historique de l’élément.
 
-A la porte, le responsable ecrit la checklist avec preuves, le resume d'execution, la plage de commits et l'etape suivante dans le fichier de carte, lance `research_scope_check` sur les chemins modifies, puis passe le statut a `in_review`. Le reviewer ecrit un PASS/FAIL avec preuves ; le Lead ne rapporte l'id de carte, le statut et les preuves qu'a la porte ou quand l'utilisateur doit agir. `done` appartient a l'acceptation de l'utilisateur ; `blocked` signifie que le travail ne peut pas continuer, `canceled` qu'il ne continuera pas.
+A la porte, le responsable ecrit la checklist avec preuves, le resume d'execution, la plage de commits et l'etape suivante dans le fichier de carte, lance `research_scope_check` sur les chemins modifies, puis passe le statut a `in_review`. Le reviewer ecrit un PASS/FAIL avec preuves ; le Lead ne rapporte l'id de carte, le statut et les preuves qu'a la porte ou quand l'utilisateur doit agir. `done` appartient a l'acceptation de l'utilisateur pour un element soumis a validation, une etape interne est cloturee par son responsable ; `blocked` signifie que le travail ne peut pas continuer, `canceled` qu'il ne continuera pas.
 
 ```text
 User goal

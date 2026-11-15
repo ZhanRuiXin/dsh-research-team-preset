@@ -22,7 +22,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 | --- | --- |
 | **Standardrollen** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Gate-basiert: interne Schritte als Worklog-Indexzeilen, Nutzer-Gates als Work-Item-Dateien; erstellen, uebernehmen, ausfuehren, berichten, pruefen, Abnahme durch die nutzende Person |
-| **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann ein Arbeitselement auf `done` setzen |
+| **Abschluss** | Ein Freigabe-Element endet in `in_review`, nur die nutzende Person setzt `done`; interne Schritte schliesst der Verantwortliche selbst |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
 | **Git** | Wird beim Start substanzieller Arbeit vom Agenten initialisiert; destruktive Änderungen auf einem Branch; Zusammenführung erst nach Abnahme |
 | **Worklog** | JSON-Speicher in `.research/worklog/`; `PLAN.md` und `INDEX.md` sind generierte Ansichten; beim Wiederaufnehmen zuerst `research_state` |
@@ -188,7 +188,7 @@ Der Designer besitzt die Karten zur Methode, der Builder die Karten zur Implemen
 
 Statuswechsel folgen einer festen Tabelle (`todo → in_progress → in_review → done`); `blocked` und `canceled` sind Nebenstatus. `blocked` verlangt einen Grund, ein Gate verlangt mindestens einen Evidenzeintrag, und jeder Wechsel wird in der Historie des Eintrags festgehalten.
 
-Am Gate schreibt der Verantwortliche die Checkliste mit Evidenz, die Ausfuehrungszusammenfassung, den Commit-Bereich und den naechsten Schritt in die Kartendatei, fuehrt `research_scope_check` auf den geaenderten Pfaden aus und setzt den Status auf `in_review`. Der Reviewer schreibt ein PASS/FAIL mit Evidenz; der Lead berichtet Karten-id, Status und Evidenz nur am Gate oder wenn die Person handeln muss. `done` gehoert allein der Abnahme durch die Person; `blocked` heisst nicht fortfahrbar, `canceled` heisst beendet.
+Am Gate schreibt der Verantwortliche die Checkliste mit Evidenz, die Ausfuehrungszusammenfassung, den Commit-Bereich und den naechsten Schritt in die Kartendatei, fuehrt `research_scope_check` auf den geaenderten Pfaden aus und setzt den Status auf `in_review`. Der Reviewer schreibt ein PASS/FAIL mit Evidenz; der Lead berichtet Karten-id, Status und Evidenz nur am Gate oder wenn die Person handeln muss. `done` gehoert bei Freigabe-Elementen allein der Abnahme durch die Person, interne Schritte schliesst der Verantwortliche selbst; `blocked` heisst nicht fortfahrbar, `canceled` heisst beendet.
 
 ```text
 User goal

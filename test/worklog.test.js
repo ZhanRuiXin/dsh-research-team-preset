@@ -68,16 +68,26 @@ test('claim refuses to take over another owner', (t) => {
   assert.match(result.error, /owned by data/)
 })
 
-test('done needs the user, and unknown statuses are rejected', (t) => {
+test('a gated item is accepted by the user only, and unknown statuses are rejected', (t) => {
   const dir = project(t)
-  upsertItem(dir, { id: 'task-2', title: 'step' })
-  assert.match(upsertItem(dir, { id: 'task-2', status: 'done', by: 'user' }).error, /cannot move "task-2" from todo to done/)
-  const gated = gateItem(dir, { id: 'task-2', evidence: ['reports/step.md'] })
+  upsertItem(dir, { id: 't-gate9', title: 'checkpoint' })
+  assert.match(upsertItem(dir, { id: 't-gate9', status: 'done', by: 'user' }).error, /cannot move "t-gate9" from todo to done/)
+  const gated = gateItem(dir, { id: 't-gate9', evidence: ['reports/step.md'] })
   assert.equal(gated.item.status, 'in_review')
-  assert.match(upsertItem(dir, { id: 'task-2', status: 'done' }).error, /done belongs to the user/)
-  const accepted = upsertItem(dir, { id: 'task-2', status: 'done', by: 'user' })
+  assert.match(upsertItem(dir, { id: 't-gate9', status: 'done' }).error, /done belongs to the user/)
+  const accepted = upsertItem(dir, { id: 't-gate9', status: 'done', by: 'user' })
   assert.equal(accepted.item.status, 'done')
-  assert.match(upsertItem(dir, { id: 'task-2', status: 'finished' }).error, /status must be one of/)
+  assert.match(upsertItem(dir, { id: 't-gate9', status: 'finished' }).error, /status must be one of/)
+})
+
+test('an internal step closes itself with done', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 'task-2', title: 'step', status: 'in_progress' })
+  const review = upsertItem(dir, { id: 'task-2', status: 'in_review' })
+  assert.equal(review.item.status, 'in_review')
+  const closed = upsertItem(dir, { id: 'task-2', status: 'done' })
+  assert.equal(closed.item.status, 'done')
+  assert.equal(closed.item.history.at(-1).to, 'done')
 })
 
 test('status moves follow the transition table and leave a history', (t) => {

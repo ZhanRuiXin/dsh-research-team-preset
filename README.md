@@ -24,7 +24,7 @@ The preset has one system prompt for the whole team. `prompt/core.md` holds the 
 | --- | --- |
 | **Default roles** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Gate-based: every piece of work is a work item; only steps that need your review carry a card view; create, claim, execute, report, review, user acceptance |
-| **Completion** | `in_review` is the agent's last stop; only the user can move a work item to `done` |
+| **Completion** | A gated item stops at `in_review` and only the user closes it; an internal step is closed by its owner |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
 | **Worklog** | `.research/worklog/` JSON store with generated `PLAN.md` and `INDEX.md` views; resume reads `research_state` first |
@@ -114,7 +114,7 @@ User: "Survey the literature on X, implement the baseline, and draft the method 
 Lead: research_project -> research_worklog (gated item at a user gate, internal item otherwise) -> send_message
 Members: research_worklog op=claim -> work -> op=gate with checklist evidence and base..head -> send_message
 Reviewer: independent PASS/FAIL with evidence through research_worklog op=update
-Lead: summarize -> user acceptance (done, set by the user)
+Lead: summarize -> a gated item goes to user acceptance (done, set by the user); internal steps close on their own
 ```
 
 ## Default team

@@ -374,8 +374,12 @@ export function upsertItem(root, input = {}) {
   if (!ITEM_STATUSES.includes(status)) {
     return { error: `status must be one of ${ITEM_STATUSES.join(', ')}` }
   }
-  if (input.status === 'done' && input.by !== 'user') {
-    return { error: 'done belongs to the user: record acceptance only after the user accepted the work (pass by: "user")' }
+  const guardKind = input.kind ?? previous?.kind ?? (/^t-/.test(id) ? 'gated' : 'internal')
+  if (input.status === 'done' && guardKind === 'gated' && input.by !== 'user') {
+    return {
+      error:
+        'done belongs to the user: a gated item is accepted from the Research panel; an internal step can be closed by its owner'
+    }
   }
   const history = previous !== undefined && Array.isArray(previous.history) ? [...previous.history] : []
   if (previous !== undefined && status !== previous.status) {

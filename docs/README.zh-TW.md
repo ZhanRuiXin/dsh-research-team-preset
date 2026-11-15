@@ -22,7 +22,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊�
 | --- | --- |
 | **預設角色** | 8 名：advisor、designer、researcher、data、builder、runner、reviewer、writer |
 | **工作流** | 關卡制：內部步驟是工作日誌索引列，使用者關卡是工作項檔；建卡、認領、執行、回報、複核、使用者驗收 |
-| **完成** | `in_review` 是 agent 的最後一站；只有使用者能把工作項移到 `done` |
+| **完成** | 需要你驗收的工作項停在 `in_review`，只有使用者能把它移到 `done`；內部步驏由負責人自行關閉 |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
 | **Git** | 實質性工作開始時由 agent 初始化；破壞性改動走分支；驗收通過後才合併 |
 | **工作日誌** | `.research/worklog/` 下的 JSON 儲存；`PLAN.md` 與 `INDEX.md` 是產生視圖；恢復時先讀 `research_state` |
@@ -191,7 +191,7 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 狀態轉移遵循固定表（`todo → in_progress → in_review → done`），`blocked` 與 `canceled` 是旁路狀態；`blocked` 必須寫明原因，進入 `in_review` 至少要有一條證據，每次轉移都記錄在該項的歷史裡。
 
 
-到達關卡時，負責人在工作項檔寫入帶證據的清單、執行摘要、提交範圍與下一步，對改動路徑執行 `research_scope_check`，再把狀態設為 `in_review`。reviewer 寫入帶證據的 PASS/FAIL 結論；Lead 只在到達關卡或需要使用者行動時回報卡片 id、狀態與證據。`done` 只屬於使用者的驗收動作；`blocked` 表示無法繼續，`canceled` 表示不再繼續。
+到達關卡時，負責人在工作項檔寫入帶證據的清單、執行摘要、提交範圍與下一步，對改動路徑執行 `research_scope_check`，再把狀態設為 `in_review`。reviewer 寫入帶證據的 PASS/FAIL 結論；Lead 只在到達關卡或需要使用者行動時回報卡片 id、狀態與證據。`done` 對需要驗收的工作項只屬於使用者的驗收動作，內部步驏由負責人自行關閉；`blocked` 表示無法繼續，`canceled` 表示不再繼續。
 
 ```text
 User goal

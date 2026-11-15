@@ -22,7 +22,7 @@ El modo está pensado para investigaciones que abarcan días o semanas, que nece
 | --- | --- |
 | **Roles predeterminados** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Flujo de trabajo** | Por puertas: los pasos internos son filas del indice del worklog, las puertas del usuario son archivos de elementos de trabajo; crear, tomar, ejecutar, informar, revisar y aceptacion del usuario |
-| **Finalización** | `in_review` es la última parada del agente; solo el usuario puede mover un elemento de trabajo a `done` |
+| **Finalización** | Un elemento con puerta termina en `in_review` y solo el usuario lo pasa a `done`; un paso interno lo cierra su responsable |
 | **Enrutamiento de modelos** | Proveedor, modelo y esfuerzo de razonamiento por rol desde un formulario de ajustes de la página de Plugins |
 | **Git** | El agente lo inicializa al empezar el trabajo sustantivo; cambios destructivos en una rama; fusión solo tras la aceptación |
 | **Worklog** | Almacén JSON en `.research/worklog/`; `PLAN.md` e `INDEX.md` son vistas generadas; al reanudar, primero `research_state` |
@@ -188,7 +188,7 @@ El diseñador posee las tarjetas que describen el método y el constructor las d
 
 Los cambios de estado siguen una tabla fija (`todo → in_progress → in_review → done`); `blocked` y `canceled` son estados laterales. `blocked` exige un motivo, una puerta exige al menos una entrada de evidencia, y cada cambio queda en el historial del elemento.
 
-En la puerta, el responsable escribe la lista con evidencia, el resumen de ejecucion, el rango de commits y el siguiente paso en el archivo de tarjeta, ejecuta `research_scope_check` sobre las rutas cambiadas y pone el estado en `in_review`. El reviewer escribe un PASS/FAIL con evidencia; el Lead informa id de tarjeta, estado y evidencia solo al llegar a la puerta o cuando el usuario debe actuar. `done` pertenece a la aceptacion del usuario; `blocked` significa que no se puede continuar y `canceled` que no se continuara.
+En la puerta, el responsable escribe la lista con evidencia, el resumen de ejecucion, el rango de commits y el siguiente paso en el archivo de tarjeta, ejecuta `research_scope_check` sobre las rutas cambiadas y pone el estado en `in_review`. El reviewer escribe un PASS/FAIL con evidencia; el Lead informa id de tarjeta, estado y evidencia solo al llegar a la puerta o cuando el usuario debe actuar. `done` pertenece a la aceptacion del usuario en los elementos con puerta y un paso interno lo cierra su responsable; `blocked` significa que no se puede continuar y `canceled` que no se continuara.
 
 ```text
 User goal

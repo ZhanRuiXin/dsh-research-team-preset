@@ -22,7 +22,7 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 | --- | --- |
 | **既定の役割** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **ワークフロー** | ゲート方式：内部ステップはワークログのインデックス行、ユーザーゲートは作業項目ファイル。作成、引き受け、実行、報告、レビュー、ユーザー承認 |
-| **完了** | `in_review` がエージェントの最終地点。作業項目を `done` に移動できるのはユーザーだけ |
+| **完了** | 承認が必要な作業項目は `in_review` で止まり、`done` にできるのはユーザーだけ。内部ステップは担当者が自身で閉じる |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
 | **Git** | 実質的な作業の開始時にエージェントが初期化。破壊的な変更はブランチで行い、受け入れ後にのみマージ |
 | **Worklog** | `.research/worklog/` の JSON ストア。`PLAN.md` と `INDEX.md` は生成されたビュー。再開時はまず `research_state` |
@@ -186,7 +186,7 @@ Lead が実行を承認し、runner は記録がなければ起動を拒否し�
 
 状態遷移は固定表に従います（`todo → in_progress → in_review → done`）。`blocked` と `canceled` は側状態です。`blocked` には理由が必要で、ゲートには証拠が 1 件以上必要で、各遷移は項目の履歴に残ります。
 
-ゲートでは、担当者が証拠付きチェックリスト、実行サマリー、コミット範囲、次のアクションを作業項目ファイルに書き、変更パスに `research_scope_check` を実行してから状態を `in_review` にします。reviewer は証拠付きの PASS/FAIL を書き、Lead はゲート到達時またはユーザーの判断が必要なときだけカード id、状態、証拠を報告します。`done` はユーザーの承認だけが設定できます。`blocked` は継続不可、`canceled` は今後進めないという意味です。
+ゲートでは、担当者が証拠付きチェックリスト、実行サマリー、コミット範囲、次のアクションを作業項目ファイルに書き、変更パスに `research_scope_check` を実行してから状態を `in_review` にします。reviewer は証拠付きの PASS/FAIL を書き、Lead はゲート到達時またはユーザーの判断が必要なときだけカード id、状態、証拠を報告します。`done` は承認が必要な作業項目ではユーザーの承認だけが設定でき、内部ステップは担当者が自身で閉じます。`blocked` は継続不可、`canceled` は今後進めないという意味です。
 
 ```text
 User goal

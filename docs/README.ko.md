@@ -22,7 +22,7 @@ Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 �
 | --- | --- |
 | **기본 역할** | 8개: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **워크플로** | 게이트 기반: 내부 단계는 작업 로그 색인 행, 사용자 게이트는 작업 항목 파일; 생성, 인수, 실행, 보고, 검토, 사용자 승인 |
-| **완료** | `in_review`가 에이전트의 마지막 지점입니다. 사용자만 작업 항목을 `done`으로 옮길 수 있습니다 |
+| **완료** | 승인이 필요한 작업 항목은 `in_review`에서 멈추고 사용자만 `done`으로 옮길 수 있습니다. 내부 단계는 담당자가 직접 닫습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
 | **Git** | 실질적 작업이 시작될 때 에이전트가 초기화. 파괴적 변경은 브랜치에서 진행하고 수락 후에만 병합 |
 | **Worklog** | `.research/worklog/`의 JSON 저장소. `PLAN.md`와 `INDEX.md`는 생성된 보기. 재개 시 먼저 `research_state` |

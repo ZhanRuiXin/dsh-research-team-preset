@@ -1810,7 +1810,7 @@ export function apply(ctx) {
   const disposeWorklog = ctx.tools.register({
     name: 'research_worklog',
     description:
-      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; done belongs to the user, who accepts an in_review item from the Research panel, so this tool refuses to set it. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history.',
+      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; an internal step may be closed with done by its owner, while a gated item reaches done only after the user accepted it in the Research panel. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history.',
     parameters: {
       type: 'object',
       properties: {
@@ -1841,7 +1841,10 @@ export function apply(ctx) {
             properties: { label: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' } }
           }
         },
-        by: { type: 'string', description: 'Who records this; needed as "user" to set done.' },
+        by: {
+          type: 'string',
+          description: 'Who records this; a gated item needs by: "user" before it can be closed as done.'
+        },
         objective: { type: 'string', description: 'op=plan: the project objective.' },
         milestone: { type: 'string', description: 'op=plan: the current milestone.' },
         milestones: { type: 'array', items: { type: 'string' }, description: 'op=plan: the milestone list.' }
@@ -1857,9 +1860,6 @@ export function apply(ctx) {
       const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
       const root = workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0 ? workspace.path : cwd
       const op = typeof args.op === 'string' ? args.op : ''
-      if (args.status === 'done') {
-        return { error: 'done belongs to the user: accept the item from the Research panel, the model cannot mark it done' }
-      }
       if (op === 'init') {
         const imported = migrateLegacy(root)
         if (!fs.existsSync(worklogDirs(root).planFile)) writePlan(root, { objective: args.objective })

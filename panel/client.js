@@ -57,6 +57,7 @@ window.__ModuleLoader__.load({
         '需要你验收': '需要你验收',
         '内部步骤': '内部步骤',
         '阻塞：{text}': '阻塞：{text}',
+        '取消：{text}': '取消：{text}',
         '证据 {count} 条': '证据 {count} 条',
         '清单 {done}/{total}': '清单 {done}/{total}',
         '未命名成员': '未命名成员',
@@ -179,6 +180,7 @@ window.__ModuleLoader__.load({
         '需要你验收': 'Needs your sign-off',
         '内部步骤': 'Internal step',
         '阻塞：{text}': 'Blocked: {text}',
+        '取消：{text}': 'Canceled: {text}',
         '证据 {count} 条': 'Evidence: {count}',
         '清单 {done}/{total}': 'Checklist {done}/{total}',
         '未命名成员': 'Unnamed member',
@@ -557,6 +559,7 @@ function entryExtra(entry) {
   return [
     entry.kind === 'gated' ? t('需要你验收') : entry.kind === 'internal' ? t('内部步骤') : '',
     entry.blocked ? tf('阻塞：{text}', { text: entry.blocked }) : '',
+    entry.reason ? tf('取消：{text}', { text: entry.reason }) : '',
     entry.evidenceCount ? tf('证据 {count} 条', { count: entry.evidenceCount }) : '',
     entry.checklistTotal ? tf('清单 {done}/{total}', { done: entry.checklistDone || 0, total: entry.checklistTotal }) : ''
   ].filter(Boolean).join(' · ')

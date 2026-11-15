@@ -80,7 +80,7 @@ __pycache__/
 
 /** The coordination ledger: worklog files are the record (see `## Coordination ledger`). */
 const WORKLOG_PROTOCOL_EN = `The team records its work in the project worklog. Its machine state is JSON under .research/worklog/: plan.json (objective, milestones, next) and one items/<id>.json per work item (id, title, owner, status, kind, next, blocked, evidence, checklist). worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views of that state; read and write the ledger with research_worklog, never by editing the views.
-Status moves follow one table: todo -> in_progress -> in_review -> done; blocked and canceled are side states. blocked needs its reason, a gate needs at least one evidence entry or a noted checklist item, and every move is kept in the item history.
+Status moves follow one table: todo -> in_progress -> in_review -> done; blocked and canceled are side states. blocked needs its reason, canceled may carry one, a gate needs at least one evidence entry or a noted checklist item, and every move is kept in the item history.
 Discipline:
 1. Read before acting: call research_state (or research_worklog op=list) before starting, then read the one item you are taking. Do not scan every file in the worklog.
 2. Claim before working: call research_worklog op=claim with your role. If another owner holds the item, stop and report; never take it over.
@@ -840,6 +840,7 @@ export function buildPanelState(root, options = {}) {
     updated: item.updated,
     next: item.next,
     blocked: item.blocked,
+    reason: item.reason,
     summary: item.summary,
     kind: item.kind,
     evidenceCount: Array.isArray(item.evidence) ? item.evidence.length : 0,
@@ -1810,7 +1811,7 @@ export function apply(ctx) {
   const disposeWorklog = ctx.tools.register({
     name: 'research_worklog',
     description:
-      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; an internal step may be closed with done by its owner, while a gated item reaches done only after the user accepted it in the Research panel. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history.',
+      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; an internal step may be closed with done by its owner, while a gated item reaches done only after the user accepted it in the Research panel. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, canceled may carry one (usually an internal step), a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history.',
     parameters: {
       type: 'object',
       properties: {
@@ -1822,6 +1823,7 @@ export function apply(ctx) {
         kind: { type: 'string', enum: ['gated', 'internal'] },
         next: { type: 'string' },
         blocked: { type: 'string' },
+        reason: { type: 'string', description: 'op=update: why a canceled item was closed; optional.' },
         summary: { type: 'string' },
         base: { type: 'string' },
         head: { type: 'string' },

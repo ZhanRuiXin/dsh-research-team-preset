@@ -197,6 +197,7 @@ function normalizeItem(input) {
     updated: short(input.updated, 10),
     next: short(input.next, 300),
     blocked: short(input.blocked, 300),
+    reason: short(input.reason, 300),
     parent: short(input.parent, 64),
     summary: short(input.summary, 1200),
     base: short(input.base, 64),
@@ -406,6 +407,7 @@ export function upsertItem(root, input = {}) {
     owner: input.owner ?? previous?.owner ?? '',
     next: input.next ?? previous?.next ?? '',
     blocked: input.blocked ?? previous?.blocked ?? '',
+    reason: input.reason ?? previous?.reason ?? '',
     evidence: input.evidence ?? previous?.evidence ?? [],
     checklist: input.checklist ?? previous?.checklist ?? []
   })

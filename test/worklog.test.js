@@ -80,6 +80,18 @@ test('a gated item is accepted by the user only, and unknown statuses are reject
   assert.match(upsertItem(dir, { id: 't-gate9', status: 'finished' }).error, /status must be one of/)
 })
 
+test('canceled is the owner\'s call and can carry a reason', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 'task-7', title: 'probe', status: 'in_progress' })
+  const canceled = upsertItem(dir, { id: 'task-7', status: 'canceled', reason: 'superseded by task-8' })
+  assert.equal(canceled.item.status, 'canceled')
+  assert.equal(canceled.item.reason, 'superseded by task-8')
+  upsertItem(dir, { id: 'task-8', title: 'probe two', status: 'in_progress' })
+  const dropped = upsertItem(dir, { id: 'task-8', status: 'canceled' })
+  assert.equal(dropped.item.status, 'canceled')
+  assert.equal(dropped.item.reason, '')
+})
+
 test('an internal step closes itself with done', (t) => {
   const dir = project(t)
   upsertItem(dir, { id: 'task-2', title: 'step', status: 'in_progress' })

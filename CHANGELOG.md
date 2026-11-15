@@ -4,6 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- A canceled item is the owner's decision: it needs no user acceptance and may carry an optional `reason`, which the panel shows with the item. `blocked` still requires its reason.
 - Work items now separate the two cases: a gated item still reaches `done` only through the user's acceptance in the panel, while an internal step can be closed with `done` by its owner, so a teammate finishes its own subtask without asking for a sign-off that does not apply. The transition table, the history and the gate-evidence rule are unchanged.
 
 ## 0.2.6 — 2026-11-15

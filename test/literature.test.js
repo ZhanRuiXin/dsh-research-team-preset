@@ -48,6 +48,20 @@ test('an entry keeps the Zotero key, title and markdown note', () => {
   assert.match(readLiteratureNote(root, 'ABCDEFGH'), /# Why/)
 })
 
+test('op=add creates its category when new, and a default one when omitted', () => {
+  const root = tempRoot()
+  const first = upsertLiteratureEntry(root, { key: 'ijklmnop', category: 'Related work', title: 'A related paper' })
+  assert.equal(first.key, 'IJKLMNOP')
+  let index = readLiteratureIndex(root)
+  assert.equal(index.categories.length, 1)
+  assert.equal(index.categories[0].id, 'related-work')
+  assert.equal(index.categories[0].label, 'Related work')
+  upsertLiteratureEntry(root, { key: 'qrstuvwx', title: 'A default paper' })
+  index = readLiteratureIndex(root)
+  assert.equal(index.categories.length, 2)
+  assert.equal(index.categories[1].id, 'reading-list')
+})
+
 test('adding the same key again updates the entry instead of duplicating it', () => {
   const root = tempRoot()
   upsertCategory(root, { label: 'Related work' })
@@ -64,7 +78,7 @@ test('adding the same key again updates the entry instead of duplicating it', ()
   assert.match(models.entries[0].note, /two/)
 })
 
-test('bad keys and unknown categories are refused with a typed error', () => {
+test('a bad key is refused while an unknown category is created on the way in', () => {
   const root = tempRoot()
   upsertCategory(root, { label: 'Methods' })
   assert.equal(isLiteratureKey('abc'), false)
@@ -73,14 +87,13 @@ test('bad keys and unknown categories are refused with a typed error', () => {
     () => upsertLiteratureEntry(root, { key: 'nope', category: 'methods', title: 'x' }),
     (error) => error instanceof LiteratureError && error.code === 'LITERATURE_INVALID'
   )
-  assert.throws(
-    () => upsertLiteratureEntry(root, { key: 'ABCDEFGH', category: 'missing', title: 'x' }),
-    (error) => error instanceof LiteratureError && error.code === 'LITERATURE_INVALID'
-  )
-  assert.throws(
-    () => removeLiteratureEntry(root, 'ABCDEFGH'),
-    (error) => error instanceof LiteratureError && error.code === 'LITERATURE_NOT_FOUND'
-  )
+  upsertLiteratureEntry(root, { key: 'ABCDEFGH', category: 'missing', title: 'x' })
+  const index = readLiteratureIndex(root)
+  assert.equal(index.categories.length, 2)
+  assert.equal(index.categories[1].id, 'missing')
+  assert.equal(index.categories[1].entries[0].key, 'ABCDEFGH')
+  removeLiteratureEntry(root, 'ABCDEFGH')
+  assert.equal(readLiteratureIndex(root).categories[1].entries.length, 0)
 })
 
 test('removing an entry clears its note and removing a category drops it', () => {

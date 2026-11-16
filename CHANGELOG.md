@@ -4,6 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Filing a paper is one call: `research_literature op=add` now creates the category when the id or label is new (default `Reading list`), instead of refusing until a separate `op=category` ran. The tool description tells the agent to file papers as part of the work, and the shared prompt makes the reading list a duty of every member, so the panel 文献 section fills without the user asking.
 - A canceled item is the owner's decision: it needs no user acceptance and may carry an optional `reason`, which the panel shows with the item. `blocked` still requires its reason.
 - Work items now separate the two cases: a gated item still reaches `done` only through the user's acceptance in the panel, while an internal step can be closed with `done` by its owner, so a teammate finishes its own subtask without asking for a sign-off that does not apply. The transition table, the history and the gate-evidence rule are unchanged.
 

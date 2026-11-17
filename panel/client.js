@@ -110,6 +110,7 @@ window.__ModuleLoader__.load({
         '引用': '引用',
         '工作项': '工作项',
         '隐藏已完成': '隐藏已完成',
+      '暂无进行中的实验': '暂无进行中的实验',
         '已完成 {count}': '已完成 {count}',
         '暂无工作项': '暂无工作项',
         ' · 下一步 {next}': ' · 下一步 {next}',
@@ -233,6 +234,7 @@ window.__ModuleLoader__.load({
         '引用': 'Cite',
         '工作项': 'Work items',
         '隐藏已完成': 'Hide completed',
+      '暂无进行中的实验': 'No runs in progress',
         '已完成 {count}': 'Completed: {count}',
         '暂无工作项': 'No work items yet',
         ' · 下一步 {next}': ' · Next: {next}',
@@ -1158,6 +1160,7 @@ function statusLabel(status) {
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
       const [showFinished, setShowFinished] = React.useState(false)
+      const [showFinishedRuns, setShowFinishedRuns] = React.useState(false)
       const [openItems, setOpenItems] = React.useState(null)
       const [openRun, setOpenRun] = React.useState('')
       const [literature, setLiterature] = React.useState({ loading: true, categories: [], count: 0, error: '' })
@@ -1238,6 +1241,9 @@ function statusLabel(status) {
       const worklog = (state && state.worklog) || {}
       const cards = (state && state.cards) || []
       const runs = (state && state.runs) || []
+      const runState = (entry) => (entry.state === undefined ? entry.status : entry.state)
+      const finishedRuns = runs.filter((entry) => /^(completed|stopped|failed|rejected)$/.test(runState(entry)))
+      const visibleRuns = showFinishedRuns ? runs : runs.filter((entry) => /^(completed|stopped|failed|rejected)$/.test(runState(entry)) === false)
       const team = (state && state.team) || []
       const experimentSettings = (state && state.experimentSettings) || { approval: 'required' }
 
@@ -1692,11 +1698,20 @@ function statusLabel(status) {
       const runsSection = h(Section, {
         key: 'runs',
         title: t('实验'),
-        count: runs.length === 0 ? 0 : runs.length,
-        action: approvalSelect
+        action: h('div', { key: 'acts', style: { display: 'flex', alignItems: 'center', gap: '6px' } }, [
+          finishedRuns.length === 0 ? null : h('button', {
+            key: 'finished',
+            type: 'button',
+            className: 'rtp-toggle',
+            onClick: () => setShowFinishedRuns(!showFinishedRuns)
+          }, showFinishedRuns ? t('隐藏已完成') : tf('已完成 {count}', { count: finishedRuns.length })),
+          approvalSelect
+        ])
       }, runs.length === 0
         ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无实验记录'))
-        : h('div', { key: 'list', className: 'rtp-exp' }, runs.map((entry) => {
+        : visibleRuns.length === 0
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无进行中的实验'))
+        : h('div', { key: 'list', className: 'rtp-exp' }, visibleRuns.map((entry) => {
             const state = entry.state === undefined ? entry.status : entry.state
             const pending = state === 'awaiting_approval'
             const elapsed = formatElapsed(entry.elapsedMs)

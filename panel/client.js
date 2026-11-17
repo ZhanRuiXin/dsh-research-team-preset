@@ -666,7 +666,7 @@ function statusLabel(status) {
 .rtp-row.open .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;flex-wrap:wrap;overflow-wrap:anywhere}
 .rtp-row.open{flex-wrap:wrap}
 .rtp-row.open .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
-.rtp-subitems{margin:6px 0 2px 12px;display:flex;flex-direction:column;gap:6px}
+.rtp-subitems{flex:0 0 auto;width:calc(100% - 15px);margin:6px 0 2px 15px;display:flex;flex-direction:column;gap:6px}
 .rtp-subrow{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:8px;border:.5px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);cursor:pointer}
 .rtp-subrow:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
 .rtp-subrow.open{flex-wrap:wrap;background:var(--dsw-alias-bg-layer-1)}
@@ -1651,9 +1651,6 @@ function statusLabel(status) {
                     onClick: (event) => openDeliverable(event, file)
                   }, file.label || file.path || file.url))
                 ])
-              : null,
-            open && kids.length > 0
-              ? h('div', { key: 'kids', className: 'rtp-subitems' }, kids.map((kid) => itemRow(kid, depth + 1)))
               : null
           ]),
           depth > 0
@@ -1667,7 +1664,10 @@ function statusLabel(status) {
                 key: 'chip',
                 className: 'rtp-chip',
                 style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
-              }, statusLabel(entry.status))
+              }, statusLabel(entry.status)),
+          open && kids.length > 0
+            ? h('div', { key: 'kids', className: 'rtp-subitems' }, kids.map((kid) => itemRow(kid, depth + 1)))
+            : null
         ])
       }
       const cardsSection = h(Section, {

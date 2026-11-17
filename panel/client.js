@@ -663,17 +663,16 @@ function statusLabel(status) {
 .rtp-rowtitle{display:flex;align-items:baseline;gap:6px;font-size:15px;line-height:1.35;color:var(--dsw-alias-label-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rtp-id{flex:0 0 auto;font-size:13px;color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);letter-spacing:.02em}
 .rtp-rowmeta{margin-top:3px;font-size:13.5px;line-height:1.45;color:var(--dsw-alias-label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rtp-row.open .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;flex-wrap:wrap;overflow-wrap:anywhere}
+.rtp-row.open > .rtp-rowmain > .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;flex-wrap:wrap;overflow-wrap:anywhere}
 .rtp-row.open{flex-wrap:wrap}
-.rtp-row.open .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.rtp-row.open > .rtp-rowmain > .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.rtp-subrow.open > .rtp-rowmain > .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;flex-wrap:wrap;overflow-wrap:anywhere}
+.rtp-subrow.open > .rtp-rowmain > .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
 .rtp-subitems{flex:0 0 auto;width:calc(100% - 15px);margin:6px 0 2px 15px;display:flex;flex-direction:column;gap:6px}
 .rtp-subrow{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:8px;border:.5px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);cursor:pointer}
 .rtp-subrow:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
 .rtp-subrow.open{flex-wrap:wrap;background:var(--dsw-alias-bg-layer-1)}
-.rtp-subrow .rtp-rowmain > .rtp-rowtitle{flex-wrap:nowrap;white-space:nowrap;overflow:hidden;align-items:flex-start;gap:8px;font-size:15px;line-height:1.4}
-.rtp-subrow .rtp-rowmain > .rtp-rowtitle > .rtp-chip{margin-top:1px}
-.rtp-rowtitletext{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rtp-subrow.open .rtp-rowtitletext{white-space:normal;overflow:visible;overflow-wrap:anywhere}
+.rtp-subrow .rtp-rowtitle{font-size:15px;line-height:1.4}
 .rtp-subrow .rtp-rowmeta{font-size:13px;margin-top:2px}
 .rtp-itemextra{margin-top:5px;font-size:13px;line-height:1.5;color:var(--dsw-alias-label-secondary);white-space:normal;overflow-wrap:anywhere}
 .rtp-files{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
@@ -1620,16 +1619,7 @@ function statusLabel(status) {
         }, [
           h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
           h('div', { key: 'main', className: 'rtp-rowmain' }, [
-            h('div', { key: 't', className: 'rtp-rowtitle' }, depth > 0
-              ? [
-                  h('span', { key: 'text', className: 'rtp-rowtitletext' }, entry.title),
-                  h('span', {
-                    key: 'chip',
-                    className: 'rtp-chip',
-                    style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
-                  }, statusLabel(entry.status))
-                ]
-              : entry.title),
+            h('div', { key: 't', className: 'rtp-rowtitle' }, entry.title),
             h('div', { key: 'm', className: 'rtp-rowmeta' }, [
               h('span', { key: 'id', className: 'rtp-id' }, entry.id),
               entry.owner ? ` · @${entry.owner}` : '',
@@ -1653,9 +1643,7 @@ function statusLabel(status) {
                 ])
               : null
           ]),
-          depth > 0
-            ? null
-            : entry.kind === 'gated' && entry.status === 'in_review'
+          entry.kind === 'gated' && entry.status === 'in_review'
             ? h('span', { key: 'decide', style: { display: 'flex', gap: '5px' } }, [
                 h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
                 h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))

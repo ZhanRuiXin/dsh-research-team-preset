@@ -93,6 +93,18 @@ test('canceled is the owner\'s call and can carry a reason', (t) => {
   assert.equal(dropped.item.reason, '')
 })
 
+test('the panel does not accept an internal step', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 's1', title: 'Load the sample', kind: 'internal', status: 'in_progress' })
+  const review = upsertItem(dir, { id: 's1', title: 'Load the sample', kind: 'internal', status: 'in_review' })
+  assert.equal(review.error, undefined)
+  const refused = decideItem(dir, { id: 's1', decision: 'accept' })
+  assert.match(refused.error, /internal step/)
+  assert.equal(readItem(dir, 's1').status, 'in_review')
+  const closed = upsertItem(dir, { id: 's1', title: 'Load the sample', kind: 'internal', status: 'done', by: 'data' })
+  assert.equal(closed.item.status, 'done')
+})
+
 test('an internal step closes itself with done', (t) => {
   const dir = project(t)
   upsertItem(dir, { id: 'task-2', title: 'step', status: 'in_progress' })

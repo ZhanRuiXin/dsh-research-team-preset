@@ -1626,7 +1626,7 @@ function statusLabel(status) {
               entry.deliverables && entry.deliverables.length ? tf(' · 附件 {count}', { count: entry.deliverables.length }) : '',
               entry.updated ? ` · ${formatSince(entry.updated)}` : '',
               depth > 0
-                ? h('span', { key: 'st', className: 'rtp-substatus' }, entry.status === 'in_review'
+                ? h('span', { key: 'st', className: 'rtp-substatus' }, entry.kind === 'gated' && entry.status === 'in_review'
                     ? [
                         h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
                         h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))
@@ -1659,7 +1659,7 @@ function statusLabel(status) {
           ]),
           depth > 0
             ? null
-            : entry.status === 'in_review'
+            : entry.kind === 'gated' && entry.status === 'in_review'
             ? h('span', { key: 'decide', style: { display: 'flex', gap: '5px' } }, [
                 h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
                 h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))

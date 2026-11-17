@@ -473,6 +473,9 @@ export function decideItem(root, input = {}) {
   if (previous.status !== 'in_review') {
     return { error: `"${id}" is ${previous.status}; only an item in in_review can be accepted or returned` }
   }
+  if (previous.kind !== 'gated') {
+    return { error: `"${id}" is an internal step; its owner closes it with done, the panel does not accept it` }
+  }
   const decision = input.decision
   if (decision !== 'accept' && decision !== 'return') {
     return { error: 'decision must be "accept" or "return"' }

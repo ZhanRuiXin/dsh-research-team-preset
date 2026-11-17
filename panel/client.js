@@ -666,12 +666,15 @@ function statusLabel(status) {
 .rtp-row.open .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;flex-wrap:wrap;overflow-wrap:anywhere}
 .rtp-row.open{flex-wrap:wrap}
 .rtp-row.open .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
-.rtp-subitems{margin:2px 0 3px 14px;padding-left:8px;border-left:1px solid var(--dsw-alias-border-l1);display:flex;flex-direction:column;gap:1px}
-.rtp-subrow{display:flex;align-items:flex-start;gap:7px;padding:5px 6px;border-radius:7px;cursor:pointer}
-.rtp-subrow:hover{background:var(--dsw-alias-interactive-bg-hover)}
-.rtp-subrow .rtp-rowtitle{font-size:15px;line-height:1.4}
+.rtp-subitems{margin:6px 0 2px 12px;display:flex;flex-direction:column;gap:6px}
+.rtp-subrow{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:8px;border:.5px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);cursor:pointer}
+.rtp-subrow:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
+.rtp-subrow.open{flex-wrap:wrap;background:var(--dsw-alias-bg-layer-1)}
+.rtp-subrow .rtp-rowmain > .rtp-rowtitle{flex-wrap:nowrap;white-space:nowrap;overflow:hidden;align-items:flex-start;gap:8px;font-size:15px;line-height:1.4}
+.rtp-subrow .rtp-rowmain > .rtp-rowtitle > .rtp-chip{margin-top:1px}
+.rtp-rowtitletext{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rtp-subrow.open .rtp-rowtitletext{white-space:normal;overflow:visible;overflow-wrap:anywhere}
 .rtp-subrow .rtp-rowmeta{font-size:13px;margin-top:2px}
-.rtp-substatus{margin-left:6px;display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
 .rtp-itemextra{margin-top:5px;font-size:13px;line-height:1.5;color:var(--dsw-alias-label-secondary);white-space:normal;overflow-wrap:anywhere}
 .rtp-files{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
 .rtp-fileslabel{font-size:12.5px;line-height:1.4;color:var(--dsw-alias-label-tertiary)}
@@ -1609,7 +1612,6 @@ function statusLabel(status) {
         const open = isOpen(entry, depth)
         return h('div', {
           key: entry.id,
-          title: depth > 0 ? statusLabel(entry.status) : undefined,
           className: `${depth === 0 ? 'rtp-row' : 'rtp-subrow'}${open ? ' open' : ''}`,
           onClick: (event) => {
             if (depth > 0) event.stopPropagation()
@@ -1618,25 +1620,22 @@ function statusLabel(status) {
         }, [
           h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
           h('div', { key: 'main', className: 'rtp-rowmain' }, [
-            h('div', { key: 't', className: 'rtp-rowtitle' }, entry.title),
+            h('div', { key: 't', className: 'rtp-rowtitle' }, depth > 0
+              ? [
+                  h('span', { key: 'text', className: 'rtp-rowtitletext' }, entry.title),
+                  h('span', {
+                    key: 'chip',
+                    className: 'rtp-chip',
+                    style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
+                  }, statusLabel(entry.status))
+                ]
+              : entry.title),
             h('div', { key: 'm', className: 'rtp-rowmeta' }, [
               h('span', { key: 'id', className: 'rtp-id' }, entry.id),
               entry.owner ? ` · @${entry.owner}` : '',
               entry.next ? tf(' · 下一步 {next}', { next: entry.next }) : '',
               entry.deliverables && entry.deliverables.length ? tf(' · 附件 {count}', { count: entry.deliverables.length }) : '',
               entry.updated ? ` · ${formatSince(entry.updated)}` : '',
-              depth > 0
-                ? h('span', { key: 'st', className: 'rtp-substatus' }, entry.kind === 'gated' && entry.status === 'in_review'
-                    ? [
-                        h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
-                        h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))
-                      ]
-                    : h('span', {
-                        key: 'chip',
-                        className: 'rtp-chip',
-                        style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
-                      }, statusLabel(entry.status)))
-                : null
             ]),
             open && entryExtra(entry) !== ''
               ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry))

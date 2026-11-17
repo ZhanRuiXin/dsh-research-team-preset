@@ -664,11 +664,12 @@ function statusLabel(status) {
 .rtp-row.open .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;flex-wrap:wrap;overflow-wrap:anywhere}
 .rtp-row.open{flex-wrap:wrap}
 .rtp-row.open .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
-.rtp-subitems{margin:2px 0 3px 22px;padding-left:9px;border-left:1px solid var(--dsw-alias-border-l1);display:flex;flex-direction:column;gap:1px}
+.rtp-subitems{margin:2px 0 3px 14px;padding-left:8px;border-left:1px solid var(--dsw-alias-border-l1);display:flex;flex-direction:column;gap:1px}
 .rtp-subrow{display:flex;align-items:flex-start;gap:7px;padding:5px 6px;border-radius:7px;cursor:pointer}
 .rtp-subrow:hover{background:var(--dsw-alias-interactive-bg-hover)}
-.rtp-subrow .rtp-rowtitle{font-size:14px;line-height:1.4}
-.rtp-subrow .rtp-rowmeta{font-size:12.5px;margin-top:1px}
+.rtp-subrow .rtp-rowtitle{font-size:15px;line-height:1.4}
+.rtp-subrow .rtp-rowmeta{font-size:13px;margin-top:2px}
+.rtp-substatus{margin-left:6px;display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
 .rtp-itemextra{margin-top:5px;font-size:13px;line-height:1.5;color:var(--dsw-alias-label-secondary);white-space:normal;overflow-wrap:anywhere}
 .rtp-files{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
 .rtp-fileslabel{font-size:12.5px;line-height:1.4;color:var(--dsw-alias-label-tertiary)}
@@ -1157,7 +1158,7 @@ function statusLabel(status) {
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
       const [showFinished, setShowFinished] = React.useState(false)
-      const [openItem, setOpenItem] = React.useState(null)
+      const [openItems, setOpenItems] = React.useState(null)
       const [openRun, setOpenRun] = React.useState('')
       const [literature, setLiterature] = React.useState({ loading: true, categories: [], count: 0, error: '' })
       const [openLit, setOpenLit] = React.useState('')
@@ -1582,9 +1583,21 @@ function statusLabel(status) {
         childrenOf.get(parent).push(entry)
         nested.add(entry.id)
       }
+      const STEP_BUCKET = { in_progress: 0, todo: 1, blocked: 2, in_review: 3, done: 4, canceled: 5 }
+      const stepOrder = (a, b) => (STEP_BUCKET[a.status] ?? 9) - (STEP_BUCKET[b.status] ?? 9)
+        || String(a.created || a.updated || '').localeCompare(String(b.created || b.updated || ''))
+      for (const list of childrenOf.values()) list.sort(stepOrder)
       const topCards = visibleCards.filter((entry) => nested.has(entry.id) === false)
-      const isOpen = (entry, depth) => openItem === null ? depth === 0 && entry.status === 'in_progress' : openItem === entry.id
-      const toggleItem = (entry, depth) => setOpenItem(isOpen(entry, depth) ? '' : entry.id)
+      const autoOpen = (entry, depth) => depth === 0 && entry.status === 'in_progress'
+      const isOpen = (entry, depth) => openItems === null ? autoOpen(entry, depth) : openItems.has(entry.id)
+      const toggleItem = (entry, depth) => {
+        const next = openItems === null
+          ? new Set(visibleCards.filter((card) => autoOpen(card, 0)).map((card) => card.id))
+          : new Set(openItems)
+        if (isOpen(entry, depth)) next.delete(entry.id)
+        else next.add(entry.id)
+        setOpenItems(next)
+      }
       const itemRow = (entry, depth) => {
         const kids = childrenOf.get(entry.id) || []
         const open = isOpen(entry, depth)
@@ -1605,7 +1618,19 @@ function statusLabel(status) {
               entry.owner ? ` · @${entry.owner}` : '',
               entry.next ? tf(' · 下一步 {next}', { next: entry.next }) : '',
               entry.deliverables && entry.deliverables.length ? tf(' · 附件 {count}', { count: entry.deliverables.length }) : '',
-              entry.updated ? ` · ${formatSince(entry.updated)}` : ''
+              entry.updated ? ` · ${formatSince(entry.updated)}` : '',
+              depth > 0
+                ? h('span', { key: 'st', className: 'rtp-substatus' }, entry.status === 'in_review'
+                    ? [
+                        h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
+                        h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))
+                      ]
+                    : h('span', {
+                        key: 'chip',
+                        className: 'rtp-chip',
+                        style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
+                      }, statusLabel(entry.status)))
+                : null
             ]),
             open && entryExtra(entry) !== ''
               ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry))

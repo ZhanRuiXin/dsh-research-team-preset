@@ -210,6 +210,11 @@ test('an internal step keeps the gated item it serves as parent', (t) => {
   upsertItem(root, { id: 'alpha-step-1', title: 'Read the paper', kind: 'internal', parent: 't-alpha', status: 'in_progress' })
   const item = readItem(root, 'alpha-step-1')
   assert.equal(item.parent, 't-alpha')
+  const created = item.created
+  assert.equal(typeof created, 'string')
+  assert.ok(created.length > 0)
+  upsertItem(root, { id: 'alpha-step-1', status: 'blocked', blocked: 'waiting for the PDF' })
+  assert.equal(readItem(root, 'alpha-step-1').created, created)
   const listed = listItems(root).find((entry) => entry.id === 'alpha-step-1')
   assert.equal(listed.parent, 't-alpha')
 })

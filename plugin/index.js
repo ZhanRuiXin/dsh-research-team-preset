@@ -844,6 +844,7 @@ export function buildPanelState(root, options = {}) {
     summary: item.summary,
     kind: item.kind,
     parent: item.parent,
+    created: item.created,
     evidenceCount: Array.isArray(item.evidence) ? item.evidence.length : 0,
     checklistTotal: Array.isArray(item.checklist) ? item.checklist.length : 0,
     checklistDone: Array.isArray(item.checklist) ? item.checklist.filter((entry) => entry.done === true).length : 0,

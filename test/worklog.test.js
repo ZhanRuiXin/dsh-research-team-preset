@@ -20,6 +20,7 @@ const {
   listEvidence,
   listItems,
   readDesign,
+  readItem,
   saveDesign,
   upsertItem
 } = await import('../plugin/worklog.js')
@@ -201,6 +202,17 @@ test('only the user accepts a gated item, and a return sends it back with the re
   assert.deepEqual(back.item.history.at(-1).to, 'in_progress')
 })
 
+
+test('an internal step keeps the gated item it serves as parent', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-worklog-'))
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }))
+  upsertItem(root, { id: 't-alpha', title: 'Alpha gate', kind: 'gated', status: 'in_progress' })
+  upsertItem(root, { id: 'alpha-step-1', title: 'Read the paper', kind: 'internal', parent: 't-alpha', status: 'in_progress' })
+  const item = readItem(root, 'alpha-step-1')
+  assert.equal(item.parent, 't-alpha')
+  const listed = listItems(root).find((entry) => entry.id === 'alpha-step-1')
+  assert.equal(listed.parent, 't-alpha')
+})
 
 test('an item keeps its deliverables and drops empty entries', (t) => {
   const dir = project(t)

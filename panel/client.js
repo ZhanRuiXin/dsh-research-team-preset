@@ -664,6 +664,11 @@ function statusLabel(status) {
 .rtp-row.open .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;flex-wrap:wrap;overflow-wrap:anywhere}
 .rtp-row.open{flex-wrap:wrap}
 .rtp-row.open .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.rtp-subitems{margin:2px 0 3px 22px;padding-left:9px;border-left:1px solid var(--dsw-alias-border-l1);display:flex;flex-direction:column;gap:1px}
+.rtp-subrow{display:flex;align-items:flex-start;gap:7px;padding:5px 6px;border-radius:7px;cursor:pointer}
+.rtp-subrow:hover{background:var(--dsw-alias-interactive-bg-hover)}
+.rtp-subrow .rtp-rowtitle{font-size:14px;line-height:1.4}
+.rtp-subrow .rtp-rowmeta{font-size:12.5px;margin-top:1px}
 .rtp-itemextra{margin-top:5px;font-size:13px;line-height:1.5;color:var(--dsw-alias-label-secondary);white-space:normal;overflow-wrap:anywhere}
 .rtp-files{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
 .rtp-fileslabel{font-size:12.5px;line-height:1.4;color:var(--dsw-alias-label-tertiary)}
@@ -1152,7 +1157,7 @@ function statusLabel(status) {
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
       const [showFinished, setShowFinished] = React.useState(false)
-      const [openItem, setOpenItem] = React.useState('')
+      const [openItem, setOpenItem] = React.useState(null)
       const [openRun, setOpenRun] = React.useState('')
       const [literature, setLiterature] = React.useState({ loading: true, categories: [], count: 0, error: '' })
       const [openLit, setOpenLit] = React.useState('')
@@ -1567,6 +1572,74 @@ function statusLabel(status) {
 
       const finishedCount = Number(state && state.finishedItems) || 0
       const visibleCards = cards.filter((entry) => showFinished || !/^(done|canceled)$/.test(entry.status))
+      const visibleIds = new Set(visibleCards.map((entry) => entry.id))
+      const childrenOf = new Map()
+      const nested = new Set()
+      for (const entry of visibleCards) {
+        const parent = typeof entry.parent === 'string' ? entry.parent : ''
+        if (parent === '' || parent === entry.id || visibleIds.has(parent) === false) continue
+        if (childrenOf.has(parent) === false) childrenOf.set(parent, [])
+        childrenOf.get(parent).push(entry)
+        nested.add(entry.id)
+      }
+      const topCards = visibleCards.filter((entry) => nested.has(entry.id) === false)
+      const isOpen = (entry, depth) => openItem === null ? depth === 0 && entry.status === 'in_progress' : openItem === entry.id
+      const toggleItem = (entry, depth) => setOpenItem(isOpen(entry, depth) ? '' : entry.id)
+      const itemRow = (entry, depth) => {
+        const kids = childrenOf.get(entry.id) || []
+        const open = isOpen(entry, depth)
+        return h('div', {
+          key: entry.id,
+          title: depth > 0 ? statusLabel(entry.status) : undefined,
+          className: `${depth === 0 ? 'rtp-row' : 'rtp-subrow'}${open ? ' open' : ''}`,
+          onClick: (event) => {
+            if (depth > 0) event.stopPropagation()
+            toggleItem(entry, depth)
+          }
+        }, [
+          h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
+          h('div', { key: 'main', className: 'rtp-rowmain' }, [
+            h('div', { key: 't', className: 'rtp-rowtitle' }, entry.title),
+            h('div', { key: 'm', className: 'rtp-rowmeta' }, [
+              h('span', { key: 'id', className: 'rtp-id' }, entry.id),
+              entry.owner ? ` · @${entry.owner}` : '',
+              entry.next ? tf(' · 下一步 {next}', { next: entry.next }) : '',
+              entry.deliverables && entry.deliverables.length ? tf(' · 附件 {count}', { count: entry.deliverables.length }) : '',
+              entry.updated ? ` · ${formatSince(entry.updated)}` : ''
+            ]),
+            open && entryExtra(entry) !== ''
+              ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry))
+              : null,
+            open && Array.isArray(entry.deliverables) && entry.deliverables.length > 0
+              ? h('div', { key: 'files', className: 'rtp-files' }, [
+                  h('span', { key: 'l', className: 'rtp-fileslabel' }, t('交付文件')),
+                  ...entry.deliverables.map((file, index) => h('button', {
+                    key: `file-${index}`,
+                    type: 'button',
+                    className: file.exists === false ? 'rtp-file missing' : 'rtp-file',
+                    title: file.exists === false ? tf('{path}（未找到）', { path: file.path || file.url }) : (file.path || file.url),
+                    onClick: (event) => openDeliverable(event, file)
+                  }, file.label || file.path || file.url))
+                ])
+              : null,
+            open && kids.length > 0
+              ? h('div', { key: 'kids', className: 'rtp-subitems' }, kids.map((kid) => itemRow(kid, depth + 1)))
+              : null
+          ]),
+          depth > 0
+            ? null
+            : entry.status === 'in_review'
+            ? h('span', { key: 'decide', style: { display: 'flex', gap: '5px' } }, [
+                h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
+                h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))
+              ])
+            : h('span', {
+                key: 'chip',
+                className: 'rtp-chip',
+                style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
+              }, statusLabel(entry.status))
+        ])
+      }
       const cardsSection = h(Section, {
         key: 'cards',
         title: t('工作项'),
@@ -1576,50 +1649,9 @@ function statusLabel(status) {
           className: 'rtp-toggle',
           onClick: () => setShowFinished(!showFinished)
         }, showFinished ? t('隐藏已完成') : tf('已完成 {count}', { count: finishedCount }))
-      }, visibleCards.length === 0
+      }, topCards.length === 0
         ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无工作项'))
-        : h('div', { key: 'list', className: 'rtp-items' }, visibleCards.map((entry) => h('div', {
-            key: entry.id,
-            className: openItem === entry.id ? 'rtp-row open' : 'rtp-row',
-            onClick: () => setOpenItem(openItem === entry.id ? '' : entry.id)
-          }, [
-            h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
-            h('div', { key: 'main', className: 'rtp-rowmain' }, [
-              h('div', { key: 't', className: 'rtp-rowtitle' }, entry.title),
-              h('div', { key: 'm', className: 'rtp-rowmeta' }, [
-                h('span', { key: 'id', className: 'rtp-id' }, entry.id),
-                entry.owner ? ` · @${entry.owner}` : '',
-                entry.next ? tf(' · 下一步 {next}', { next: entry.next }) : '',
-                entry.deliverables && entry.deliverables.length ? tf(' · 附件 {count}', { count: entry.deliverables.length }) : '',
-                entry.updated ? ` · ${formatSince(entry.updated)}` : ''
-              ]),
-              openItem === entry.id && entryExtra(entry) !== ''
-                ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry))
-                : null,
-              openItem === entry.id && Array.isArray(entry.deliverables) && entry.deliverables.length > 0
-                ? h('div', { key: 'files', className: 'rtp-files' }, [
-                    h('span', { key: 'l', className: 'rtp-fileslabel' }, t('交付文件')),
-                    ...entry.deliverables.map((file, index) => h('button', {
-                      key: `file-${index}`,
-                      type: 'button',
-                      className: file.exists === false ? 'rtp-file missing' : 'rtp-file',
-                      title: file.exists === false ? tf('{path}（未找到）', { path: file.path || file.url }) : (file.path || file.url),
-                      onClick: (event) => openDeliverable(event, file)
-                    }, file.label || file.path || file.url))
-                  ])
-                : null
-            ]),
-            entry.status === 'in_review'
-              ? h('span', { key: 'decide', style: { display: 'flex', gap: '5px' } }, [
-                  h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
-                  h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))
-                ])
-              : h('span', {
-                  key: 'chip',
-                  className: 'rtp-chip',
-                  style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
-                }, statusLabel(entry.status)),
-          ]))))
+        : h('div', { key: 'list', className: 'rtp-items' }, topCards.map((entry) => itemRow(entry, 0))))
 
       const approvalSelect = h('select', {
         key: 'mode',

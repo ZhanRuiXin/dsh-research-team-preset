@@ -369,9 +369,10 @@ test('the panel summarises work items and counts the finished ones', () => {
   upsertItem(root, { id: 'alpha', title: 'Alpha', owner: 'lead', status: 'in_progress', next: 'do alpha' })
   upsertItem(root, { id: 'beta', title: 'Beta', owner: 'builder', status: 'blocked', blocked: 'waiting for the data sample' })
   upsertItem(root, { id: 'gamma', title: 'Gamma', owner: 'lead', status: 'done', by: 'user' })
+  upsertItem(root, { id: 'alpha-step', title: 'Alpha step', kind: 'internal', parent: 'alpha', status: 'in_progress' })
 
   const state = buildPanelState(root)
-  assert.equal(state.itemsTotal, 3)
+  assert.equal(state.itemsTotal, 4)
   assert.equal(state.finishedItems, 1)
   const alpha = state.cards.find((entry) => entry.id === 'alpha')
   assert.equal(alpha.status, 'in_progress')
@@ -380,6 +381,7 @@ test('the panel summarises work items and counts the finished ones', () => {
   assert.equal(beta.status, 'blocked')
   assert.match(beta.blocked, /data sample/)
   assert.equal(beta.checklistTotal, 0)
+  assert.equal(state.cards.find((entry) => entry.id === 'alpha-step').parent, 'alpha')
   assert.equal(state.cards.find((entry) => entry.id === 'gamma').status, 'done')
 })
 

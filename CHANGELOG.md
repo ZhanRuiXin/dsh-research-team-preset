@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The 文献 row has one citation action: the duplicate `cite` copy button is gone (the remaining 引用 button inserts into the composer and still falls back to the clipboard), and 打开 hands the `zotero://` link to the system protocol handler instead of the sidebar browser, which silently ignored the custom scheme.
+- The 已完成 toggle filters work items, not their steps: a finished internal step stays visible under its visible parent, its orphaned siblings stay hidden with the parent, and the toggle count now counts top-level items only.
 - The Zotero write key is cached on disk (`~/.dsh/research-team/zotero-key.json`, override with `DSH_ZOTERO_KEY_FILE`, disable with `keyFile: false`), so "Always Allow" is asked once per instance instead of once per write: the tool used to build a fresh client per call, which dropped the remembered key and reopened the dialog every time.
 - Internal steps are the owner's to close: the panel shows accept/return buttons only for gated items, the panel rejects a decision on an internal step, and the prompt says so.
 - The 实验 section works like the work-item list: finished runs (completed, stopped, failed, rejected) sit behind a 已完成 toggle and the list shows '暂无进行中的实验' when nothing is active, and the section no longer prints a count next to its title.

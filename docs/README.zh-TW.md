@@ -134,7 +134,7 @@ Lead 負責目標釐清、拆解、工作日誌管理、分派、整合、摘要
 
 共享文庫也可以經由本預設的 `research_zotero` 工具直接存取 Zotero 本地 API：讀取不需要金鑰，首次寫入會在 Zotero 中請求一次本地 API 金鑰（使用者可選擇「永遠允許」，金鑰會保存在 `~/.dsh/research-team/zotero-key.json`，之後的寫入與 DSH 重啟都直接沿用，不再重複詢問），此後每次變更都會追加到 `.research/library-log.jsonl`。它涵蓋條目的完整生命週期——帶分頁與標籤／集合過濾的 `search`、`create`、`update`、標籤與集合歸屬、子筆記（`note`、`noteUpdate`、`noteDelete`）——以及入庫所需的操作：`attach` 走 Zotero 的三段式上傳把論文 PDF 存進庫，`export` 匯出 BibTeX、BibLaTeX、RIS 或 CSL JSON，`annotations`、`fulltext`、`file` 讀取 PDF 的註記、全文與路徑，`fields` 列出條目類型的合法欄位，集合的改名／移動／刪除、儲存的檢索與資源回收筒（`delete`/`restore`）補齊其餘管理。標籤和集合的修改按條目版本先讀後併寫，並行編輯會失敗而不是被覆蓋；刪除類操作需要 `confirm: true`，且只會移入資源回收筒。宿主的 `zotero_*` 寫入工具仍保留逐次計畫卡，需要逐條審核時用它們。
 
-researcher 把使用者的 Zotero 文獻庫當作團隊的共享文獻來源：先搜尋既有的分類與條目，再搜尋公開網路；重複使用已附加的 PDF 與註記片段；只有在缺少某篇文獻時，才匯入正式版本（version of record）全文，附上 PDF 並歸檔到專案分類中。匯入時依 DOI 與標題去重，不去更動使用者的標籤與分類，並把 `zotero://` 條目參照記錄到證據表和工作日誌卡片上，讓每位隊友讀到同一篇論文，reviewer 也能抽查相同的頁面。當全文受付費牆限制或只有中繼資料時，researcher 會記錄連結，並將證據標記為僅中繼資料，而不是匯入替代品。
+researcher 把使用者的 Zotero 文獻庫當作團隊的共享文獻來源：先搜尋既有的分類與條目，再搜尋公開網路；重複使用已附加的 PDF 與註記片段；只有在缺少某篇文獻時，才匯入正式版本（version of record）全文，附上 PDF 並歸檔到專案分類中。匯入時依 DOI 與標題去重，不去更動使用者的標籤與分類，並把 `zotero://` 條目參照記錄到證據表和工作日誌卡片上，讓每位隊友讀到同一篇論文，reviewer 也能抽查相同的頁面。當全文受付費牆限制或只有中繼資料時，researcher 會記錄連結，並將證據標記為僅中繼資料，而不是匯入替代品。匯入與寫入預設走 `research_zotero`（`create` + `attach`），團隊只需在首次寫入時授權一次本地 API 金鑰；宿主 `zotero_*` 寫工具保留給使用者明確要求逐條審閱每次變更的場合。
 
 ### 顧問審查
 

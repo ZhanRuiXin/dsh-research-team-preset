@@ -1381,13 +1381,20 @@ function statusLabel(status) {
       }
 
       function openLiteratureItem(entry) {
-        const api = pluginCtx === null || typeof pluginCtx.get !== 'function' ? undefined : pluginCtx.get('sidebarRight')
+        // A zotero:// URL has to reach the OS protocol handler; the sidebar browser
+        // is a normal web tab and silently ignores a custom scheme.
         const url = `zotero://select/library/items/${entry.key}`
-        if (api !== undefined && typeof api.openTab === 'function') {
-          api.openTab('browser', { params: { url } })
+        const doc = typeof document === 'undefined' ? undefined : document
+        if (doc === undefined) {
+          setToast(url)
           return
         }
-        setToast(url)
+        const anchor = doc.createElement('a')
+        anchor.href = url
+        anchor.style.display = 'none'
+        doc.body.appendChild(anchor)
+        anchor.click()
+        doc.body.removeChild(anchor)
       }
 
       const header = h('div', { key: 'header', className: 'rtp-header' }, [
@@ -1583,8 +1590,22 @@ function statusLabel(status) {
             ])
       ])
 
-      const finishedCount = Number(state && state.finishedItems) || 0
-      const visibleCards = cards.filter((entry) => showFinished || !/^(done|canceled)$/.test(entry.status))
+      const isFinishedCard = (entry) => /^(done|canceled)$/.test(entry.status)
+      const parentIdOf = (entry) => (typeof entry.parent === 'string' ? entry.parent : '')
+      const cardById = new Map(cards.map((entry) => [entry.id, entry]))
+      const isChildCard = (entry) => {
+        const parent = parentIdOf(entry)
+        return parent !== '' && parent !== entry.id && cardById.has(parent)
+      }
+      // A step belongs to its gated item: hide it only when that item is hidden,
+      // never because the step itself finished (the 已完成 toggle is about items).
+      const parentHidden = (entry) => {
+        const parent = parentIdOf(entry)
+        if (parent === '' || parent === entry.id || cardById.has(parent) === false) return false
+        return showFinished === false && isFinishedCard(cardById.get(parent))
+      }
+      const visibleCards = cards.filter((entry) => parentHidden(entry) === false && (isChildCard(entry) || showFinished || isFinishedCard(entry) === false))
+      const finishedCount = cards.filter((entry) => isChildCard(entry) === false && isFinishedCard(entry)).length
       const visibleIds = new Set(visibleCards.map((entry) => entry.id))
       const childrenOf = new Map()
       const nested = new Set()
@@ -1787,13 +1808,6 @@ function statusLabel(status) {
                             : null
                         ]),
                         h('div', { key: 'act', className: 'rtp-litact' }, [
-                          h('button', {
-                            key: 'cite',
-                            type: 'button',
-                            className: 'rtp-ghost',
-                            title: tf('复制 {citation}', { citation: citeOf(entry) }),
-                            onClick: (event) => { event.stopPropagation(); copyCitation(citeOf(entry), tf('已复制 {citation} 引用', { citation: '\\cite' })) }
-                          }, 'cite'),
                           h('button', {
                             key: 'quote',
                             type: 'button',

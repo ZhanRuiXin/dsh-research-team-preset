@@ -147,6 +147,7 @@ window.__ModuleLoader__.load({
         '打开': '打开',
         '在 Zotero 中打开': '在 Zotero 中打开',
         '已在 Zotero 中打开': '已在 Zotero 中打开',
+        '已用默认应用打开': '已用默认应用打开',
         '打开失败': '打开失败',
         '科研': '科研',
         '团队状态：架构、工作项与实验': '团队状态：架构、工作项与实验'
@@ -273,6 +274,7 @@ window.__ModuleLoader__.load({
         '打开': 'Open',
         '在 Zotero 中打开': 'Open in Zotero',
         '已在 Zotero 中打开': 'Opened in Zotero',
+        '已用默认应用打开': 'Opened with the default application',
         '打开失败': 'Could not open',
         '科研': 'Research',
         '团队状态：架构、工作项与实验': 'Team status: architecture, work items and experiments'
@@ -1293,6 +1295,23 @@ function statusLabel(status) {
         postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? t('实验已批准。') : t('实验已拒绝。'))
       }
 
+      // The sidebar preview handles text and images; a PDF, an archive or an
+    // office file has no preview tab, so opening it there did nothing.
+      const NATIVE_OPEN = /\.(pdf|docx?|xlsx?|pptx?|zip|7z|rar|tar|gz|epub|mp4|mov|mp3|wav)$/i
+
+      function openThroughHost(filePath) {
+        void fetch(PANEL_ROUTE, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ op: 'open-file', path: filePath, sessionId })
+        })
+          .then((response) => response.json().catch(() => ({})).then((body) => {
+            if (body !== null && body.ok === true) setToast(t('已用默认应用打开'))
+            else setToast(String(body !== null && body.error ? body.error : t('打开失败')))
+          }))
+          .catch(() => setToast(t('打开失败')))
+      }
+
       function openDeliverable(event, file) {
         if (event !== undefined && typeof event.stopPropagation === 'function') event.stopPropagation()
         if (file === null || typeof file !== 'object') return
@@ -1302,14 +1321,27 @@ function statusLabel(status) {
           api.openTab('browser', { params: { url: file.url } })
           return
         }
+        const filePath = typeof file.path === 'string' ? file.path : ''
+        if (filePath !== '' && NATIVE_OPEN.test(filePath)) {
+          openThroughHost(filePath)
+          return
+        }
         // openResource takes a dsh-resource:// address, never a plain file URL;
         // the host sends the address it resolved for the deliverable.
         if (typeof file.address === 'string' && file.address.length > 0
           && api !== undefined && typeof api.openResource === 'function') {
-          api.openResource(file.address)
+          try {
+            api.openResource(file.address)
+            return
+          } catch (failure) {
+            void failure
+          }
+        }
+        if (filePath !== '') {
+          openThroughHost(filePath)
           return
         }
-        setToast(file.path ? tf('打不开 {path}', { path: file.path }) : t('无法在侧栏打开'))
+        setToast(t('打开失败'))
       }
 
       function quoteSelection() {

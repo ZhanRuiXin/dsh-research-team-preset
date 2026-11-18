@@ -4,6 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- A delivered PDF (or office file, archive, or media file) opens with the OS default application: those formats have no sidebar preview tab, so the click used to do nothing. The panel posts the worklog's relative path, the host refuses anything outside the project root and starts the file with `cmd /c start` / `open` / `xdg-open`; text and image deliverables still open in the sidebar preview, and a failed hand-off shows the reason.
 - 打开 hands the item to the desktop: a web page cannot follow `zotero://` and Electron forwards only http(s) links to the OS, so the panel posts the item key to the host, which rebuilds the fixed `zotero://select/library/items/<KEY>` link from the validated eight-character key and starts the system handler (`start` on Windows, `open` on macOS, `xdg-open` elsewhere).
 - The 文献 row has one citation action: the duplicate `cite` copy button is gone (the remaining 引用 button inserts into the composer and still falls back to the clipboard), and 打开 hands the `zotero://` link to the system protocol handler instead of the sidebar browser, which silently ignored the custom scheme.
 - The 已完成 toggle filters work items, not their steps: a finished internal step stays visible under its visible parent, its orphaned siblings stay hidden with the parent, and the toggle count now counts top-level items only.

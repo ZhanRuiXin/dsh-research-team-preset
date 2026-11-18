@@ -845,6 +845,46 @@ export function openZoteroItem(key, spawn = spawnProcess) {
   }
 }
 
+const NATIVE_OPEN_EXTENSIONS = new Set([
+  ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+  ".zip", ".7z", ".rar", ".tar", ".gz", ".epub", ".mp4", ".mov", ".mp3", ".wav"
+])
+
+export function deliveryNeedsNativeOpen(filePath) {
+  return NATIVE_OPEN_EXTENSIONS.has(path.extname(String(filePath ?? "")).toLowerCase())
+}
+
+/**
+ * Open a delivered file with the OS default application. The sidebar preview
+ * handles text and images; a PDF, an archive or an office file has no preview
+ * tab, so the click used to do nothing. Only a file inside the project is
+ * opened, and the path comes from the project worklog rather than the caller.
+ */
+export function openProjectFile(root, target, spawn = spawnProcess) {
+  const abs = path.resolve(root, String(target ?? ""))
+  const rel = path.relative(root, abs)
+  const inside = rel.length > 0 && !rel.startsWith("..") && !path.isAbsolute(rel)
+  if (inside === false) return { ok: false, error: "the file must be inside the project" }
+  if (fs.existsSync(abs) === false) return { ok: false, error: "file not found" }
+  try {
+    if (fs.statSync(abs).isFile() === false) return { ok: false, error: "not a file" }
+  } catch (error) {
+    return { ok: false, error: `cannot read the file: ${error.message}` }
+  }
+  const [command, argv] = process.platform === "win32"
+    ? ["cmd.exe", ["/c", "start", "", abs]]
+    : process.platform === "darwin"
+      ? ["open", [abs]]
+      : ["xdg-open", [abs]]
+  try {
+    const child = spawn(command, argv, { detached: true, stdio: "ignore", windowsHide: true })
+    if (child !== null && typeof child.unref === "function") child.unref()
+    return { ok: true, path: rel.split(path.sep).join("/") }
+  } catch (error) {
+    return { ok: false, error: `cannot start the default application: ${error.message}` }
+  }
+}
+
 export function buildPanelState(root, options = {}) {
   const worklogPlan = readPlan(root)
   const plan = {
@@ -1644,6 +1684,11 @@ export function apply(ctx) {
           return
         }
         const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
+        return
+      }
+      if (body?.op === 'open-file') {
+        const result = openProjectFile(root, body.path)
+        jsonResponse(res, result.ok ? 200 : 400, result)
         return
       }
       if (body?.op === 'open-zotero') {

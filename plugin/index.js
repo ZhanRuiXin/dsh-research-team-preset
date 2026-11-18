@@ -18,7 +18,7 @@
  *    handoff fails before the work item reaches review.
  */
 
-import { execFile } from 'node:child_process'
+import { execFile, spawn as spawnProcess } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -814,6 +814,35 @@ export function fileResourceAddress(absolute) {
     .split('/')
     .map((segment) => encodeURIComponent(segment).replace(/%3A/gi, ':'))
     .join('/')}`
+}
+
+export function zoteroItemUrl(key) {
+  return `zotero://select/library/items/${String(key ?? '').toUpperCase()}`
+}
+
+export function isZoteroItemKey(key) {
+  return /^[A-Z0-9]{8}$/.test(String(key ?? '').toUpperCase())
+}
+
+/**
+ * Hand a `zotero://` link to the desktop, because a web page cannot follow a
+ * custom scheme on its own: Electron's window-open handler and the browser tab
+ * both refuse it. The URL is fixed by the item key, never taken from the body.
+ */
+export function openZoteroItem(key, spawn = spawnProcess) {
+  const url = zoteroItemUrl(key)
+  const [command, argv] = process.platform === 'win32'
+    ? ['cmd.exe', ['/c', 'start', '', url]]
+    : process.platform === 'darwin'
+      ? ['open', [url]]
+      : ['xdg-open', [url]]
+  try {
+    const child = spawn(command, argv, { detached: true, stdio: 'ignore', windowsHide: true })
+    if (child !== null && typeof child.unref === 'function') child.unref()
+    return { ok: true, url }
+  } catch (error) {
+    return { ok: false, url, error: `cannot hand the Zotero link to the system: ${error.message}` }
+  }
 }
 
 export function buildPanelState(root, options = {}) {
@@ -1615,6 +1644,15 @@ export function apply(ctx) {
           return
         }
         const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
+        return
+      }
+      if (body?.op === 'open-zotero') {
+        if (isZoteroItemKey(body.id) === false) {
+          jsonResponse(res, 400, { ok: false, error: 'id must be the 8-character Zotero item key' })
+          return
+        }
+        const opened = openZoteroItem(body.id)
+        jsonResponse(res, opened.ok ? 200 : 500, { ok: opened.ok, url: opened.url, error: opened.error })
         return
       }
       if (body?.op === 'archive') {

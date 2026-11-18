@@ -141,6 +141,8 @@ export const MESSAGES = {
     '插入引用到会话输入框': '插入引用到会话输入框',
     '打开': '打开',
     '在 Zotero 中打开': '在 Zotero 中打开',
+    '已在 Zotero 中打开': '已在 Zotero 中打开',
+    '打开失败': '打开失败',
     '科研': '科研',
     '团队状态：架构、工作项与实验': '团队状态：架构、工作项与实验'
   },
@@ -265,6 +267,8 @@ export const MESSAGES = {
     '插入引用到会话输入框': 'Insert the citation into the chat input',
     '打开': 'Open',
     '在 Zotero 中打开': 'Open in Zotero',
+    '已在 Zotero 中打开': 'Opened in Zotero',
+    '打开失败': 'Could not open',
     '科研': 'Research',
     '团队状态：架构、工作项与实验': 'Team status: architecture, work items and experiments'
   }

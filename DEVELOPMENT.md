@@ -62,7 +62,7 @@ node --check client/index.js
 npm test
 ```
 
-`npm test` runs the eleven test files: spawn routing, permission inheritance and automatic team mode, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, the shared persona, the role-skill provider, the Zotero local-API library client, the project literature index, and settings-route mounting.
+`npm test` runs the twelve test files: spawn routing, permission inheritance and automatic team mode, write-envelope scope checks, worklog scaffolding, the JSON worklog store, architecture cards and the experiment lifecycle, the shared persona, the role-skill provider, the Zotero local-API library client, the project literature index, and settings-route mounting.
 
 Parse `cordis.patch.yml` with the `yaml` package after stripping `!!js` tags, confirm the single `research-team` preset carries the prompt row, the role-skills row and the `research-modeled-teammates` row, then check `prompt/core.md` and every `prompt/roles/*.md` (`node tmp/val-prompt.cjs`). Keep the 12 READMEs structurally in sync (same `## ` and `### ` headings in each).
 

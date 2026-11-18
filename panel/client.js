@@ -146,6 +146,8 @@ window.__ModuleLoader__.load({
         '插入引用到会话输入框': '插入引用到会话输入框',
         '打开': '打开',
         '在 Zotero 中打开': '在 Zotero 中打开',
+        '已在 Zotero 中打开': '已在 Zotero 中打开',
+        '打开失败': '打开失败',
         '科研': '科研',
         '团队状态：架构、工作项与实验': '团队状态：架构、工作项与实验'
       },
@@ -270,6 +272,8 @@ window.__ModuleLoader__.load({
         '插入引用到会话输入框': 'Insert the citation into the chat input',
         '打开': 'Open',
         '在 Zotero 中打开': 'Open in Zotero',
+        '已在 Zotero 中打开': 'Opened in Zotero',
+        '打开失败': 'Could not open',
         '科研': 'Research',
         '团队状态：架构、工作项与实验': 'Team status: architecture, work items and experiments'
       }
@@ -1381,20 +1385,21 @@ function statusLabel(status) {
       }
 
       function openLiteratureItem(entry) {
-        // A zotero:// URL has to reach the OS protocol handler; the sidebar browser
-        // is a normal web tab and silently ignores a custom scheme.
-        const url = `zotero://select/library/items/${entry.key}`
-        const doc = typeof document === 'undefined' ? undefined : document
-        if (doc === undefined) {
-          setToast(url)
-          return
-        }
-        const anchor = doc.createElement('a')
-        anchor.href = url
-        anchor.style.display = 'none'
-        doc.body.appendChild(anchor)
-        anchor.click()
-        doc.body.removeChild(anchor)
+        // A web page cannot follow zotero://: the browser refuses the scheme and
+        // Electron only hands http(s) links to the OS. The host builds the fixed
+        // link from the item key and starts it, so the desktop app opens the item.
+        const key = String(entry.key || '')
+        if (key === '') return
+        void fetch(PANEL_ROUTE, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ op: 'open-zotero', id: key, sessionId })
+        })
+          .then((response) => response.json().catch(() => ({})).then((body) => {
+            if (body !== null && body.ok === true) setToast(t('已在 Zotero 中打开'))
+            else setToast(String(body !== null && body.error ? body.error : t('打开失败')))
+          }))
+          .catch(() => setToast(t('打开失败')))
       }
 
       const header = h('div', { key: 'header', className: 'rtp-header' }, [

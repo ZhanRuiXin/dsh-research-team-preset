@@ -824,6 +824,53 @@ export function isZoteroItemKey(key) {
   return /^[A-Z0-9]{8}$/.test(String(key ?? '').toUpperCase())
 }
 
+function findOnPath(name) {
+  const raw = String(process.env.PATH ?? '')
+  for (const dir of raw.split(path.delimiter)) {
+    if (dir.length === 0) continue
+    const candidate = path.join(dir, name)
+    try {
+      if (fs.statSync(candidate).isFile()) return candidate
+    } catch (error) {
+      // not in this directory
+    }
+  }
+  return ''
+}
+
+/**
+ * The command that hands a URL or a file to the desktop without a console
+ * window. `cmd /c start` flashes a console on Windows because a detached
+ * console child allocates one; rundll32 is a GUI-subsystem process and runs
+ * the same ShellExecute path. Linux needs xdg-open or gio on PATH.
+ */
+export function systemOpenCommand(target) {
+  const value = String(target ?? '')
+  if (value.length === 0) return undefined
+  if (process.platform === 'win32') {
+    const rundll = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'rundll32.exe')
+    return [fs.existsSync(rundll) ? rundll : 'rundll32.exe', ['url.dll,FileProtocolHandler', value]]
+  }
+  if (process.platform === 'darwin') return ['open', [value]]
+  const xdg = findOnPath('xdg-open')
+  if (xdg !== '') return [xdg, [value]]
+  const gio = findOnPath('gio')
+  if (gio !== '') return [gio, ['open', value]]
+  return undefined
+}
+
+function launchSystem(target, spawn) {
+  const command = systemOpenCommand(target)
+  if (command === undefined) return { ok: false, error: 'no system opener is available (needs xdg-open or gio)' }
+  try {
+    const child = spawn(command[0], command[1], { detached: true, stdio: 'ignore', windowsHide: true })
+    if (child !== null && typeof child.unref === 'function') child.unref()
+    return { ok: true }
+  } catch (error) {
+    return { ok: false, error: error.message }
+  }
+}
+
 /**
  * Hand a `zotero://` link to the desktop, because a web page cannot follow a
  * custom scheme on its own: Electron's window-open handler and the browser tab
@@ -831,18 +878,9 @@ export function isZoteroItemKey(key) {
  */
 export function openZoteroItem(key, spawn = spawnProcess) {
   const url = zoteroItemUrl(key)
-  const [command, argv] = process.platform === 'win32'
-    ? ['cmd.exe', ['/c', 'start', '', url]]
-    : process.platform === 'darwin'
-      ? ['open', [url]]
-      : ['xdg-open', [url]]
-  try {
-    const child = spawn(command, argv, { detached: true, stdio: 'ignore', windowsHide: true })
-    if (child !== null && typeof child.unref === 'function') child.unref()
-    return { ok: true, url }
-  } catch (error) {
-    return { ok: false, url, error: `cannot hand the Zotero link to the system: ${error.message}` }
-  }
+  const launched = launchSystem(url, spawn)
+  if (launched.ok === false) return { ok: false, url, error: `cannot hand the Zotero link to the system: ${launched.error}` }
+  return { ok: true, url }
 }
 
 const NATIVE_OPEN_EXTENSIONS = new Set([
@@ -871,18 +909,9 @@ export function openProjectFile(root, target, spawn = spawnProcess) {
   } catch (error) {
     return { ok: false, error: `cannot read the file: ${error.message}` }
   }
-  const [command, argv] = process.platform === "win32"
-    ? ["cmd.exe", ["/c", "start", "", abs]]
-    : process.platform === "darwin"
-      ? ["open", [abs]]
-      : ["xdg-open", [abs]]
-  try {
-    const child = spawn(command, argv, { detached: true, stdio: "ignore", windowsHide: true })
-    if (child !== null && typeof child.unref === "function") child.unref()
-    return { ok: true, path: rel.split(path.sep).join("/") }
-  } catch (error) {
-    return { ok: false, error: `cannot start the default application: ${error.message}` }
-  }
+  const launched = launchSystem(abs, spawn)
+  if (launched.ok === false) return { ok: false, error: `cannot start the default application: ${launched.error}` }
+  return { ok: true, path: rel.split(path.sep).join("/") }
 }
 
 export function buildPanelState(root, options = {}) {

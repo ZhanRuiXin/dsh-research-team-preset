@@ -26,6 +26,14 @@ test('a delivered file opens through the default application', () => {
   assert.equal(call.options.detached, true)
   assert.equal(call.options.stdio, 'ignore')
   assert.ok(call.argv[call.argv.length - 1].endsWith('paper.pdf'))
+  if (process.platform === 'win32') {
+    assert.match(path.basename(call.command), /^rundll32\.exe$/i)
+    assert.equal(call.argv[0], 'url.dll,FileProtocolHandler')
+  } else if (process.platform === 'darwin') {
+    assert.equal(call.command, 'open')
+  } else {
+    assert.match(path.basename(call.command), /^(xdg-open|gio)$/)
+  }
   assert.equal(calls[1], 'unref')
 })
 

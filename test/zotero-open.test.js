@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import path from 'node:path'
 import { isZoteroItemKey, openZoteroItem, zoteroItemUrl } from '../plugin/index.js'
 
 test('the Zotero item URL is built from a validated key', () => {
@@ -23,6 +24,14 @@ test('opening an item hands the fixed link to a detached system command', () => 
   assert.equal(call.options.detached, true)
   assert.equal(call.options.stdio, 'ignore')
   assert.equal(call.argv[call.argv.length - 1], 'zotero://select/library/items/ABCD1234')
+  if (process.platform === 'win32') {
+    assert.match(path.basename(call.command), /^rundll32\.exe$/i)
+    assert.equal(call.argv[0], 'url.dll,FileProtocolHandler')
+  } else if (process.platform === 'darwin') {
+    assert.equal(call.command, 'open')
+  } else {
+    assert.match(path.basename(call.command), /^(xdg-open|gio)$/)
+  }
   assert.equal(calls[1], 'unref')
 })
 

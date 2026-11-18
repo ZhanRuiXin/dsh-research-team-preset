@@ -102,6 +102,51 @@ test('A single-use key consumed by a 401 is replaced once', async () => {
   assert.equal(writeCount, 2)
 })
 
+test('a remembered key is reused by the next client instead of asking again', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-zotero-key-'))
+  const keyFile = path.join(dir, 'key.json')
+  let authorized = 0
+  const routes = {
+    'GET /api/users/0/items?limit=1': () => jsonResponse(200, []),
+    'POST /api/local/authorize': () => {
+      authorized += 1
+      return jsonResponse(200, { key: 'KEY1', remember: true })
+    },
+    'POST /api/users/0/items': () => jsonResponse(200, { successful: { 0: { key: 'NEWKEY01', version: 2 } }, failed: {} })
+  }
+  const first = createLibraryClient({ fetch: recorder(routes).fetchImpl, keyFile })
+  await first.create({ itemType: 'note', note: '<p>a</p>' })
+  const secondCalls = recorder(routes)
+  const second = createLibraryClient({ fetch: secondCalls.fetchImpl, keyFile })
+  await second.create({ itemType: 'note', note: '<p>b</p>' })
+  assert.equal(authorized, 1)
+  const post = secondCalls.calls.find((call) => call.method === 'POST' && call.pathname === '/api/users/0/items')
+  assert.equal(post.headers['Zotero-API-Key'], 'KEY1')
+})
+
+test('a rejected stored key is replaced and the new key is stored', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-zotero-key-'))
+  const keyFile = path.join(dir, 'key.json')
+  fs.writeFileSync(keyFile, JSON.stringify({ baseUrl: 'http://127.0.0.1:23119/api', serverId: SERVER, key: 'STALE' }))
+  let authorized = 0
+  const { fetchImpl } = recorder({
+    'GET /api/users/0/items?limit=1': jsonResponse(200, []),
+    'POST /api/local/authorize': () => {
+      authorized += 1
+      return jsonResponse(200, { key: 'FRESH', remember: true })
+    },
+    'POST /api/users/0/items': (init) =>
+      init.headers['Zotero-API-Key'] === 'FRESH'
+        ? jsonResponse(200, { successful: { 0: { key: 'NEWKEY01', version: 2 } }, failed: {} })
+        : jsonResponse(401, { error: 'stale key' })
+  })
+  const client = createLibraryClient({ fetch: fetchImpl, keyFile })
+  const created = await client.create({ itemType: 'note', note: '<p>x</p>' })
+  assert.equal(created.key, 'NEWKEY01')
+  assert.equal(authorized, 1)
+  assert.equal(JSON.parse(fs.readFileSync(keyFile, 'utf8')).key, 'FRESH')
+})
+
 test('tags read, merge and patch under the item version', async () => {
   const { calls, fetchImpl } = recorder({
     'GET /api/users/0/items/ABCD1234': jsonResponse(200, { key: 'ABCD1234', version: 5, data: { key: 'ABCD1234', version: 5, itemType: 'journalArticle', tags: [{ tag: 'old' }] } }),

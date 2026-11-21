@@ -18,7 +18,7 @@
  *    handoff fails before the work item reaches review.
  */
 
-import { execFile } from 'node:child_process'
+import { execFile, spawn as spawnProcess } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -80,7 +80,7 @@ __pycache__/
 
 /** The coordination ledger: worklog files are the record (see `## Coordination ledger`). */
 const WORKLOG_PROTOCOL_EN = `The team records its work in the project worklog. Its machine state is JSON under .research/worklog/: plan.json (objective, milestones, next) and one items/<id>.json per work item (id, title, owner, status, kind, next, blocked, evidence, checklist). worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views of that state; read and write the ledger with research_worklog, never by editing the views.
-Status moves follow one table: todo -> in_progress -> in_review -> done; blocked and canceled are side states. blocked needs its reason, a gate needs at least one evidence entry or a noted checklist item, and every move is kept in the item history.
+Status moves follow one table: todo -> in_progress -> in_review -> done; blocked and canceled are side states. blocked needs its reason, canceled may carry one, a gate needs at least one evidence entry or a noted checklist item, and every move is kept in the item history.
 Discipline:
 1. Read before acting: call research_state (or research_worklog op=list) before starting, then read the one item you are taking. Do not scan every file in the worklog.
 2. Claim before working: call research_worklog op=claim with your role. If another owner holds the item, stop and report; never take it over.
@@ -816,6 +816,104 @@ export function fileResourceAddress(absolute) {
     .join('/')}`
 }
 
+export function zoteroItemUrl(key) {
+  return `zotero://select/library/items/${String(key ?? '').toUpperCase()}`
+}
+
+export function isZoteroItemKey(key) {
+  return /^[A-Z0-9]{8}$/.test(String(key ?? '').toUpperCase())
+}
+
+function findOnPath(name) {
+  const raw = String(process.env.PATH ?? '')
+  for (const dir of raw.split(path.delimiter)) {
+    if (dir.length === 0) continue
+    const candidate = path.join(dir, name)
+    try {
+      if (fs.statSync(candidate).isFile()) return candidate
+    } catch (error) {
+      // not in this directory
+    }
+  }
+  return ''
+}
+
+/**
+ * The command that hands a URL or a file to the desktop without a console
+ * window. `cmd /c start` flashes a console on Windows because a detached
+ * console child allocates one; rundll32 is a GUI-subsystem process and runs
+ * the same ShellExecute path. Linux needs xdg-open or gio on PATH.
+ */
+export function systemOpenCommand(target) {
+  const value = String(target ?? '')
+  if (value.length === 0) return undefined
+  if (process.platform === 'win32') {
+    const rundll = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'rundll32.exe')
+    return [fs.existsSync(rundll) ? rundll : 'rundll32.exe', ['url.dll,FileProtocolHandler', value]]
+  }
+  if (process.platform === 'darwin') return ['open', [value]]
+  const xdg = findOnPath('xdg-open')
+  if (xdg !== '') return [xdg, [value]]
+  const gio = findOnPath('gio')
+  if (gio !== '') return [gio, ['open', value]]
+  return undefined
+}
+
+function launchSystem(target, spawn) {
+  const command = systemOpenCommand(target)
+  if (command === undefined) return { ok: false, error: 'no system opener is available (needs xdg-open or gio)' }
+  try {
+    const child = spawn(command[0], command[1], { detached: true, stdio: 'ignore', windowsHide: true })
+    if (child !== null && typeof child.unref === 'function') child.unref()
+    return { ok: true }
+  } catch (error) {
+    return { ok: false, error: error.message }
+  }
+}
+
+/**
+ * Hand a `zotero://` link to the desktop, because a web page cannot follow a
+ * custom scheme on its own: Electron's window-open handler and the browser tab
+ * both refuse it. The URL is fixed by the item key, never taken from the body.
+ */
+export function openZoteroItem(key, spawn = spawnProcess) {
+  const url = zoteroItemUrl(key)
+  const launched = launchSystem(url, spawn)
+  if (launched.ok === false) return { ok: false, url, error: `cannot hand the Zotero link to the system: ${launched.error}` }
+  return { ok: true, url }
+}
+
+const NATIVE_OPEN_EXTENSIONS = new Set([
+  ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+  ".zip", ".7z", ".rar", ".tar", ".gz", ".epub", ".mp4", ".mov", ".mp3", ".wav"
+])
+
+export function deliveryNeedsNativeOpen(filePath) {
+  return NATIVE_OPEN_EXTENSIONS.has(path.extname(String(filePath ?? "")).toLowerCase())
+}
+
+/**
+ * Open a delivered file with the OS default application. The sidebar preview
+ * handles text and images; a PDF, an archive or an office file has no preview
+ * tab, so the click used to do nothing. Only a file inside the project is
+ * opened, and the path comes from the project worklog rather than the caller.
+ */
+export function openProjectFile(root, target, spawn = spawnProcess) {
+  const abs = path.resolve(root, String(target ?? ""))
+  const rel = path.relative(root, abs)
+  const inside = rel.length > 0 && !rel.startsWith("..") && !path.isAbsolute(rel)
+  if (inside === false) return { ok: false, error: "the file must be inside the project" }
+  if (fs.existsSync(abs) === false) return { ok: false, error: "file not found" }
+  try {
+    if (fs.statSync(abs).isFile() === false) return { ok: false, error: "not a file" }
+  } catch (error) {
+    return { ok: false, error: `cannot read the file: ${error.message}` }
+  }
+  const launched = launchSystem(abs, spawn)
+  if (launched.ok === false) return { ok: false, error: `cannot start the default application: ${launched.error}` }
+  return { ok: true, path: rel.split(path.sep).join("/") }
+}
+
 export function buildPanelState(root, options = {}) {
   const worklogPlan = readPlan(root)
   const plan = {
@@ -840,8 +938,11 @@ export function buildPanelState(root, options = {}) {
     updated: item.updated,
     next: item.next,
     blocked: item.blocked,
+    reason: item.reason,
     summary: item.summary,
     kind: item.kind,
+    parent: item.parent,
+    created: item.created,
     evidenceCount: Array.isArray(item.evidence) ? item.evidence.length : 0,
     checklistTotal: Array.isArray(item.checklist) ? item.checklist.length : 0,
     checklistDone: Array.isArray(item.checklist) ? item.checklist.filter((entry) => entry.done === true).length : 0,
@@ -1614,6 +1715,20 @@ export function apply(ctx) {
         const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
+      if (body?.op === 'open-file') {
+        const result = openProjectFile(root, body.path)
+        jsonResponse(res, result.ok ? 200 : 400, result)
+        return
+      }
+      if (body?.op === 'open-zotero') {
+        if (isZoteroItemKey(body.id) === false) {
+          jsonResponse(res, 400, { ok: false, error: 'id must be the 8-character Zotero item key' })
+          return
+        }
+        const opened = openZoteroItem(body.id)
+        jsonResponse(res, opened.ok ? 200 : 500, { ok: opened.ok, url: opened.url, error: opened.error })
+        return
+      }
       if (body?.op === 'archive') {
         const result = setArchitectureArchived(root, body.id, body.archived === true)
         if (result.error !== undefined) {
@@ -1810,7 +1925,7 @@ export function apply(ctx) {
   const disposeWorklog = ctx.tools.register({
     name: 'research_worklog',
     description:
-      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; done belongs to the user, who accepts an in_review item from the Research panel, so this tool refuses to set it. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history.',
+      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; an internal step may be closed with done by its owner, while a gated item reaches done only after the user accepted it in the Research panel. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, canceled may carry one (usually an internal step), a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history. Pass parent with the id of the gated item an internal step serves; the panel shows that step inside the item.',
     parameters: {
       type: 'object',
       properties: {
@@ -1820,8 +1935,10 @@ export function apply(ctx) {
         owner: { type: 'string', description: 'Role name of the owner, one of the eight standard teammate roles (advisor, researcher, data, designer, builder, runner, reviewer, writer).' },
         status: { type: 'string', enum: ['todo', 'in_progress', 'in_review', 'blocked', 'done', 'canceled'] },
         kind: { type: 'string', enum: ['gated', 'internal'] },
+        parent: { type: 'string', description: 'Optional id of the gated item an internal step serves; the panel nests the step inside that item when it is expanded.' },
         next: { type: 'string' },
         blocked: { type: 'string' },
+        reason: { type: 'string', description: 'op=update: why a canceled item was closed; optional.' },
         summary: { type: 'string' },
         base: { type: 'string' },
         head: { type: 'string' },
@@ -1841,7 +1958,10 @@ export function apply(ctx) {
             properties: { label: { type: 'string' }, path: { type: 'string' }, url: { type: 'string' } }
           }
         },
-        by: { type: 'string', description: 'Who records this; needed as "user" to set done.' },
+        by: {
+          type: 'string',
+          description: 'Who records this; a gated item needs by: "user" before it can be closed as done.'
+        },
         objective: { type: 'string', description: 'op=plan: the project objective.' },
         milestone: { type: 'string', description: 'op=plan: the current milestone.' },
         milestones: { type: 'array', items: { type: 'string' }, description: 'op=plan: the milestone list.' }
@@ -1857,9 +1977,6 @@ export function apply(ctx) {
       const workspace = await ctx.workspaceRegistry.resolveByPath(cwd).catch(() => undefined)
       const root = workspace !== undefined && typeof workspace.path === 'string' && workspace.path.length > 0 ? workspace.path : cwd
       const op = typeof args.op === 'string' ? args.op : ''
-      if (args.status === 'done') {
-        return { error: 'done belongs to the user: accept the item from the Research panel, the model cannot mark it done' }
-      }
       if (op === 'init') {
         const imported = migrateLegacy(root)
         if (!fs.existsSync(worklogDirs(root).planFile)) writePlan(root, { objective: args.objective })

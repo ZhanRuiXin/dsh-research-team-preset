@@ -22,7 +22,7 @@ Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 �
 | --- | --- |
 | **기본 역할** | 8개: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **워크플로** | 게이트 기반: 내부 단계는 작업 로그 색인 행, 사용자 게이트는 작업 항목 파일; 생성, 인수, 실행, 보고, 검토, 사용자 승인 |
-| **완료** | `in_review`가 에이전트의 마지막 지점입니다. 사용자만 작업 항목을 `done`으로 옮길 수 있습니다 |
+| **완료** | 승인이 필요한 작업 항목은 `in_review`에서 멈추고 사용자만 `done`으로 옮길 수 있습니다. 내부 단계는 담당자가 직접 닫습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
 | **Git** | 실질적 작업이 시작될 때 에이전트가 초기화. 파괴적 변경은 브랜치에서 진행하고 수락 후에만 병합 |
 | **Worklog** | `.research/worklog/`의 JSON 저장소. `PLAN.md`와 `INDEX.md`는 생성된 보기. 재개 시 먼저 `research_state` |
@@ -73,20 +73,20 @@ Lead의 답변은 상태 피드가 아니라 과학적 커뮤니케이션이다.
 ### DSH 플러그인 페이지에서 설치
 
 2. **설정 → 플러그인**을 열고 **추가**를 클릭합니다.
-3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.2.6`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.6`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
+3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.3.0`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
 4. **DSH를 재시작합니다.** 프리셋 행과 번들의 클라이언트 부분은 시작 시 로드됩니다.
 5. **같은 프로필에서 번들이 활성화되어 있는지 확인**한 뒤, **새 세션을 열고** 모드 선택기에서 **Research Team Mode**를 선택합니다.
 
 ### 명령줄에서 설치
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.6
+dsh plugin add dsh-research-team-preset@0.3.0
 ```
 
 레지스트리 대신 소스를 고정하려면:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.6
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
 ```
 
 > 이 모드는 프로필 수준 번들입니다. 한 프로필에 설치해도 다른 프로필에서는 활성화되지 않습니다. 프로필마다 설치와 사전 요구사항을 반복하세요.
@@ -171,6 +171,8 @@ Lead가 실행을 승인하고, runner는 기록이 없으면 시작을 거부�
 턴을 넘겨 계속되는 실행이나 장기 작업은 작업이나 터미널 핸들, 호스트, 시작 시각, 예상 완료, 그것이 따르는 결정 규칙을 작업 항목 파일이나 PLAN에 남긴다. 재개 시 먼저 생존을 확인하고, 핸들이 사라졌으면 고아 실행으로 표시해 산출물을 대조한 뒤 채택·재시작·중단을 사용자에게 묻는다. 같은 작업을 조용히 두 번 실행하지 않는다. 더 이상 존재하지 않는 세션이 보유한 카드는 인수하지 않고 사용자에게 재개를 요청한다.
 
 ## 연구 사이드바
+
+이 탭은 팀이 지금 무엇을 하는지, 어디서 막혔는지, 다음이 무엇인지 보여 줍니다: `.research/worklog/plan.json`의 목표, `.research/worklog/items/`의 진행 중 작업 항목(완료된 항목은 「已完成」 토글 뒤), 생애 주기와 승인 상태가 있는 실행(완료된 실행은 같은 토글 뒤; `runs/` 아래 `manifest.json`이 있는 디렉터리만 실행으로 집계), 프로젝트가 정의한 그룹의 아키텍처 카드, 그리고 실행 중인 팀입니다. 작업 항목이나 실행을 클릭하면 행이 펼쳐지고 다시 클릭하면 접힙니다. `parent`로 자신이 따르는 게이트 항목을 지정한 내부 단계는 그 항목 안에 중첩되어 최상위 행처럼 펼치고 접을 수 있으며, 여러 행을 동시에 열 수 있고 실행될 가능성이 높은 순서로 정렬됩니다. 文献 섹션은 팀이 `research_literature`로 유지하는 프로젝트 읽기 목록을 보여 줍니다: 에이전트가 정의한 범주와 Zotero 항목 키마다 하나의 카드(펼치면 markdown 메모)입니다.
 
 세션을 넘는 작업은 `.research/worklog/`의 JSON으로 저장합니다. `plan.json`에 목표·마일스톤·다음 단계·결정, 항목마다 `items/<id>.json`. `PLAN.md`, `INDEX.md`, 카드는 도구가 생성하며 손으로 고치지 않습니다.
 

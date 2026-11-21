@@ -22,7 +22,7 @@ El modo está pensado para investigaciones que abarcan días o semanas, que nece
 | --- | --- |
 | **Roles predeterminados** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Flujo de trabajo** | Por puertas: los pasos internos son filas del indice del worklog, las puertas del usuario son archivos de elementos de trabajo; crear, tomar, ejecutar, informar, revisar y aceptacion del usuario |
-| **Finalización** | `in_review` es la última parada del agente; solo el usuario puede mover un elemento de trabajo a `done` |
+| **Finalización** | Un elemento con puerta termina en `in_review` y solo el usuario lo pasa a `done`; un paso interno lo cierra su responsable |
 | **Enrutamiento de modelos** | Proveedor, modelo y esfuerzo de razonamiento por rol desde un formulario de ajustes de la página de Plugins |
 | **Git** | El agente lo inicializa al empezar el trabajo sustantivo; cambios destructivos en una rama; fusión solo tras la aceptación |
 | **Worklog** | Almacén JSON en `.research/worklog/`; `PLAN.md` e `INDEX.md` son vistas generadas; al reanudar, primero `research_state` |
@@ -73,20 +73,20 @@ Este preset se distribuye como bundle DSH y se publica en npm como `dsh-research
 ### Instalar desde la página de Plugins de DSH
 
 2. Abre **Ajustes → Plugins** y haz clic en **Añadir**.
-3. Pega el origen de instalación: `dsh-research-team-preset@0.2.6` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.6` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
+3. Pega el origen de instalación: `dsh-research-team-preset@0.3.0` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
 4. **Reinicia DSH.** Las filas del preset y la mitad cliente del bundle se cargan al iniciar.
 5. **Comprueba que el bundle está habilitado** en el mismo perfil, luego **abre una sesión nueva** y elige **Research Team Mode** en el selector de modo.
 
 ### Instalar desde la línea de comandos
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.6
+dsh plugin add dsh-research-team-preset@0.3.0
 ```
 
 Para fijar el código fuente en lugar del registro:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.6
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
 ```
 
 > El modo es un bundle a nivel de perfil: instalarlo en un perfil no lo habilita en otro. Repite la instalación y los prerrequisitos en cada perfil.
@@ -172,6 +172,8 @@ Una ejecución o trabajo largo que sobrevive al turno deja su identificador de t
 
 ## Barra lateral de investigación
 
+La pestaña responde qué está haciendo el equipo ahora, qué está bloqueado y qué viene después: el objetivo de `.research/worklog/plan.json`, los elementos de trabajo activos de `.research/worklog/items/` (los terminados detrás del conmutador «已完成»), las ejecuciones con su ciclo de vida y estado de aprobación (las terminadas detrás del mismo conmutador; solo un directorio bajo `runs/` con `manifest.json` cuenta como ejecución), las tarjetas de arquitectura en sus grupos definidos por el proyecto y el equipo en vivo. Haz clic en un elemento de trabajo o en una ejecución para expandir la fila y otra vez para contraerla; un paso interno que nombra con `parent` el elemento con puerta al que sirve se anida dentro de ese elemento y se expande y contrae como una fila de primer nivel, con varias filas abiertas a la vez y ordenadas según el orden probable de ejecución. Una sección 文献 muestra la lista de lectura que el equipo mantiene con `research_literature`: categorías definidas por el agente y una tarjeta por clave de elemento de Zotero, cuyo cuerpo expandido es la nota en markdown.
+
 El trabajo que puede cruzar sesiones vive como JSON en `.research/worklog/`: `plan.json` con objetivo, hitos, siguiente paso y decisiones, y un `items/<id>.json` por elemento. Los archivos `PLAN.md`, `INDEX.md` y las tarjetas los generan las herramientas; no se editan a mano.
 
 Las tarjetas de arquitectura son diagramas de nodos y aristas guardados como JSON en `.research/architecture/`, un archivo por tarjeta. El agente las lee y actualiza con la herramienta `research_architecture`, de modo que el diagrama siga al diseño en lugar de derivar en una diapositiva. La tarjeta se representa en SVG dentro del panel; al arrastrar un recuadro sobre los nodos se seleccionan, y la selección se puede citar en la conversación; lo que merezca conservarse se guarda en la tarjeta como nota que el agente lee antes de responder. La pestaña se registra mediante `dsh-better-sidebar` cuando ese plugin está instalado y, si no, en la barra lateral derecha nativa.
@@ -188,7 +190,7 @@ El diseñador posee las tarjetas que describen el método y el constructor las d
 
 Los cambios de estado siguen una tabla fija (`todo → in_progress → in_review → done`); `blocked` y `canceled` son estados laterales. `blocked` exige un motivo, una puerta exige al menos una entrada de evidencia, y cada cambio queda en el historial del elemento.
 
-En la puerta, el responsable escribe la lista con evidencia, el resumen de ejecucion, el rango de commits y el siguiente paso en el archivo de tarjeta, ejecuta `research_scope_check` sobre las rutas cambiadas y pone el estado en `in_review`. El reviewer escribe un PASS/FAIL con evidencia; el Lead informa id de tarjeta, estado y evidencia solo al llegar a la puerta o cuando el usuario debe actuar. `done` pertenece a la aceptacion del usuario; `blocked` significa que no se puede continuar y `canceled` que no se continuara.
+En la puerta, el responsable escribe la lista con evidencia, el resumen de ejecucion, el rango de commits y el siguiente paso en el archivo de tarjeta, ejecuta `research_scope_check` sobre las rutas cambiadas y pone el estado en `in_review`. El reviewer escribe un PASS/FAIL con evidencia; el Lead informa id de tarjeta, estado y evidencia solo al llegar a la puerta o cuando el usuario debe actuar. `done` pertenece a la aceptacion del usuario en los elementos con puerta y un paso interno lo cierra su responsable; `blocked` significa que no se puede continuar y `canceled` que no se continuara.
 
 ```text
 User goal

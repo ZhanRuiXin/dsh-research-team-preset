@@ -4,7 +4,7 @@
 
 **Un preset d'agent DSH qui transforme une session en une petite équipe de recherche coordonnée.**
 
-**Version 0.2.6** · **Mise à jour 2026-11-15**
+**Version 0.3.0** · **Mise à jour 2026-11-21**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <strong>Français</strong> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -22,7 +22,7 @@ Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semai
 | --- | --- |
 | **Rôles par défaut** | 8 : advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Flux** | Par portes : etapes internes en lignes d'index du worklog, portes utilisateur en fichiers d'éléments de travail ; creer, prendre, executer, rapporter, revoir, acceptation par l'utilisateur |
-| **Achèvement** | `in_review` est le dernier arrêt de l'agent ; seul l'utilisateur peut déplacer un élément de travail vers `done` |
+| **Achèvement** | Un élément soumis à validation s'arrête à `in_review` et seul l'utilisateur le passe à `done` ; une étape interne est clôturée par son responsable |
 | **Routage des modèles** | Provider, model et effort de raisonnement par rôle, depuis un formulaire de réglages de la page Plugins |
 | **Git** | Initialisé par l'agent au début du travail substantiel ; changements destructifs sur une branche ; fusion après acceptation seulement |
 | **Worklog** | Stockage JSON dans `.research/worklog/` ; `PLAN.md` et `INDEX.md` sont des vues générées ; à la reprise, d’abord `research_state` |
@@ -73,20 +73,20 @@ Ce preset est livré comme bundle DSH et publié sur npm sous le nom `dsh-resear
 ### Installer depuis la page Plugins de DSH
 
 2. Ouvrez **Réglages → Plugins** et cliquez sur **Ajouter**.
-3. Collez la source d’installation : `dsh-research-team-preset@0.2.6` pour le paquet npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.6` pour épingler la source, ou `link:/absolute/path/to/dsh-research-team-preset` pour un checkout local.
+3. Collez la source d’installation : `dsh-research-team-preset@0.3.0` pour le paquet npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0` pour épingler la source, ou `link:/absolute/path/to/dsh-research-team-preset` pour un checkout local.
 4. **Redémarrez DSH.** Les lignes de preset et la moitié client du bundle se chargent au démarrage.
 5. **Vérifiez que le bundle est activé** dans le même profil, puis **ouvrez une nouvelle session** et choisissez **Research Team Mode** dans le sélecteur de mode.
 
 ### Installer depuis la ligne de commande
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.6
+dsh plugin add dsh-research-team-preset@0.3.0
 ```
 
 Pour épingler la source plutôt que le registre :
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.6
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
 ```
 
 > Le mode est un bundle au niveau du profil : l’installer dans un profil ne l’active pas dans un autre. Répétez l’installation et les prérequis pour chaque profil.
@@ -172,6 +172,8 @@ Une exécution ou une tâche longue qui dépasse le tour laisse son identifiant 
 
 ## Barre latérale de recherche
 
+L’onglet répond à ce que fait l’équipe, à ce qui est bloqué et à la suite : l’objectif de `.research/worklog/plan.json`, les éléments de travail actifs de `.research/worklog/items/` (les terminés derrière le bouton «已完成»), les exécutions avec leur cycle de vie et leur état d’approbation (les terminées derrière le même bouton ; seul un dossier sous `runs/` portant `manifest.json` compte comme exécution), les cartes d’architecture dans les groupes définis par le projet, et l’équipe en direct. Un clic sur un élément de travail ou une exécution déplie la ligne, un second la replie ; une étape interne qui nomme en `parent` l’élément à porte qu’elle sert est imbriquée dans cet élément et se déplie/replie comme une ligne de premier niveau, plusieurs lignes ouvertes en même temps et rangées selon l’ordre d’exécution probable. Une section 文献 affiche la liste de lecture tenue par l’équipe avec `research_literature` : catégories définies par l’agent et une carte par clé d’élément Zotero, dont le corps déplié est la note markdown.
+
 Le travail qui traverse les sessions vit en JSON dans `.research/worklog/` : `plan.json` pour l’objectif, les jalons, la prochaine étape et les décisions, un `items/<id>.json` par élément. Les fichiers `PLAN.md`, `INDEX.md` et les cartes sont générés par les outils ; ne les éditez pas à la main.
 
 Les cartes d'architecture sont des diagrammes nœuds-liens stockés en JSON sous `.research/architecture/`, un fichier par carte. L'agent les lit et les met à jour avec l'outil `research_architecture`, afin que le diagramme suive la conception au lieu de dériver dans une diapositive. Une carte est rendue en SVG dans le panneau ; un cadre de sélection sur les nœuds les sélectionne, et la sélection peut être citée dans la conversation ; ce qui mérite d’être conservé est enregistré sur la carte comme note que l’agent lit avant de répondre. L'onglet s'enregistre via `dsh-better-sidebar` lorsque ce plugin est installé, sinon via la barre latérale droite native.
@@ -188,7 +190,7 @@ Le designer possède les cartes qui décrivent la méthode, le builder celles qu
 
 Les changements d’état suivent une table fixe (`todo → in_progress → in_review → done`) ; `blocked` et `canceled` sont des états latéraux. `blocked` exige un motif, une porte exige au moins une entrée de preuve, et chaque changement est conservé dans l’historique de l’élément.
 
-A la porte, le responsable ecrit la checklist avec preuves, le resume d'execution, la plage de commits et l'etape suivante dans le fichier de carte, lance `research_scope_check` sur les chemins modifies, puis passe le statut a `in_review`. Le reviewer ecrit un PASS/FAIL avec preuves ; le Lead ne rapporte l'id de carte, le statut et les preuves qu'a la porte ou quand l'utilisateur doit agir. `done` appartient a l'acceptation de l'utilisateur ; `blocked` signifie que le travail ne peut pas continuer, `canceled` qu'il ne continuera pas.
+A la porte, le responsable ecrit la checklist avec preuves, le resume d'execution, la plage de commits et l'etape suivante dans le fichier de carte, lance `research_scope_check` sur les chemins modifies, puis passe le statut a `in_review`. Le reviewer ecrit un PASS/FAIL avec preuves ; le Lead ne rapporte l'id de carte, le statut et les preuves qu'a la porte ou quand l'utilisateur doit agir. `done` appartient a l'acceptation de l'utilisateur pour un element soumis a validation, une etape interne est cloturee par son responsable ; `blocked` signifie que le travail ne peut pas continuer, `canceled` qu'il ne continuera pas.
 
 ```text
 User goal

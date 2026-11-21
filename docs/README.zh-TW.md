@@ -12,7 +12,7 @@
 
 ## 概觀
 
-Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊天的方式執行端到端研究。Lead 負責規劃工作、維護工作日誌記錄（使用者關卡用工作項檔，內部步驟用 INDEX 列）、分派工作、整合結果並與使用者溝通。八名預設專家分別涵蓋顧問評估、文獻與證據、資料取得、實驗設計、程式、執行、獨立複核與論文寫作。
+Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊天的方式執行端到端研究。Lead 負責規劃工作、維護工作日誌記錄（使用者關卡與內部步驟都是工作項，用 `kind` 區分）、分派工作、整合結果並與使用者溝通。八名預設專家分別涵蓋顧問評估、文獻與證據、資料取得、實驗設計、程式、執行、獨立複核與論文寫作。
 
 此模式是為橫跨數天或數週、需要可追溯證據，且受益於清楚角色界線的研究而打造。它不是一次問答模式：Lead 只會建立任務實際需要的角色。
 
@@ -21,8 +21,8 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊�
 | | |
 | --- | --- |
 | **預設角色** | 8 名：advisor、designer、researcher、data、builder、runner、reviewer、writer |
-| **工作流** | 關卡制：內部步驟是工作日誌索引列，使用者關卡是工作項檔；建卡、認領、執行、回報、複核、使用者驗收 |
-| **完成** | `in_review` 是 agent 的最後一站；只有使用者能把工作項移到 `done` |
+| **工作流** | 關卡制：每項工作都是工作項（`kind` 為 gated 或 internal）；建項、認領、執行、回報、複核、使用者驗收 |
+| **完成** | 需要你驗收的工作項停在 `in_review`，只有使用者能把它移到 `done`，面板只對這類工作項顯示「確認完成 / 退回」；內部步驟由負責人自行關閉 |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
 | **Git** | 實質性工作開始時由 agent 初始化；破壞性改動走分支；驗收通過後才合併 |
 | **工作日誌** | `.research/worklog/` 下的 JSON 儲存；`PLAN.md` 與 `INDEX.md` 是產生視圖；恢復時先讀 `research_state` |
@@ -73,20 +73,20 @@ Lead 的回覆是科學性溝通，而不是狀態播報：先給結論或結果
 ### 從 DSH 外掛頁面安裝
 
 2. 開啟 **設定 → 外掛**，點擊 **新增**。
-3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.2.6`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.2.6`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.3.0`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重新啟動 DSH。** preset 列與 bundle 的用戶端部分在啟動時載入。
 5. **確認 bundle 在同一個 profile 中已啟用**，然後**開啟新工作階段**，在模式選擇器中選擇 **Research Team Mode**。
 
 ### 從命令列安裝
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.6
+dsh plugin add dsh-research-team-preset@0.3.0
 ```
 
 若要固定原始碼而不是從 registry 安裝：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.6
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
 ```
 
 > 此模式是 profile 層級的 bundle：在一個 profile 中安裝不會在另一個 profile 中啟用。每個 profile 都要重複安裝與前置步驟。
@@ -132,9 +132,9 @@ Lead 負責目標釐清、拆解、工作日誌管理、分派、整合、摘要
 
 ### 共享 Zotero 文獻庫
 
-共享文庫也可以經由本預設的 `research_zotero` 工具直接存取 Zotero 本地 API：讀取不需要金鑰，首次寫入會在 Zotero 中請求一次本地 API 金鑰（使用者可選擇「永遠允許」），此後每次變更都會追加到 `.research/library-log.jsonl`。它涵蓋條目的完整生命週期——帶分頁與標籤／集合過濾的 `search`、`create`、`update`、標籤與集合歸屬、子筆記（`note`、`noteUpdate`、`noteDelete`）——以及入庫所需的操作：`attach` 走 Zotero 的三段式上傳把論文 PDF 存進庫，`export` 匯出 BibTeX、BibLaTeX、RIS 或 CSL JSON，`annotations`、`fulltext`、`file` 讀取 PDF 的註記、全文與路徑，`fields` 列出條目類型的合法欄位，集合的改名／移動／刪除、儲存的檢索與資源回收筒（`delete`/`restore`）補齊其餘管理。標籤和集合的修改按條目版本先讀後併寫，並行編輯會失敗而不是被覆蓋；刪除類操作需要 `confirm: true`，且只會移入資源回收筒。宿主的 `zotero_*` 寫入工具仍保留逐次計畫卡，需要逐條審核時用它們。
+共享文庫也可以經由本預設的 `research_zotero` 工具直接存取 Zotero 本地 API：讀取不需要金鑰，首次寫入會在 Zotero 中請求一次本地 API 金鑰（使用者可選擇「永遠允許」，金鑰會保存在 `~/.dsh/research-team/zotero-key.json`，之後的寫入與 DSH 重啟都直接沿用，不再重複詢問），此後每次變更都會追加到 `.research/library-log.jsonl`。它涵蓋條目的完整生命週期——帶分頁與標籤／集合過濾的 `search`、`create`、`update`、標籤與集合歸屬、子筆記（`note`、`noteUpdate`、`noteDelete`）——以及入庫所需的操作：`attach` 走 Zotero 的三段式上傳把論文 PDF 存進庫，`export` 匯出 BibTeX、BibLaTeX、RIS 或 CSL JSON，`annotations`、`fulltext`、`file` 讀取 PDF 的註記、全文與路徑，`fields` 列出條目類型的合法欄位，集合的改名／移動／刪除、儲存的檢索與資源回收筒（`delete`/`restore`）補齊其餘管理。標籤和集合的修改按條目版本先讀後併寫，並行編輯會失敗而不是被覆蓋；刪除類操作需要 `confirm: true`，且只會移入資源回收筒。宿主的 `zotero_*` 寫入工具仍保留逐次計畫卡，需要逐條審核時用它們。
 
-researcher 把使用者的 Zotero 文獻庫當作團隊的共享文獻來源：先搜尋既有的分類與條目，再搜尋公開網路；重複使用已附加的 PDF 與註記片段；只有在缺少某篇文獻時，才匯入正式版本（version of record）全文，附上 PDF 並歸檔到專案分類中。匯入時依 DOI 與標題去重，不去更動使用者的標籤與分類，並把 `zotero://` 條目參照記錄到證據表和工作日誌卡片上，讓每位隊友讀到同一篇論文，reviewer 也能抽查相同的頁面。當全文受付費牆限制或只有中繼資料時，researcher 會記錄連結，並將證據標記為僅中繼資料，而不是匯入替代品。
+researcher 把使用者的 Zotero 文獻庫當作團隊的共享文獻來源：先搜尋既有的分類與條目，再搜尋公開網路；重複使用已附加的 PDF 與註記片段；只有在缺少某篇文獻時，才匯入正式版本（version of record）全文，附上 PDF 並歸檔到專案分類中。匯入時依 DOI 與標題去重，不去更動使用者的標籤與分類，並把 `zotero://` 條目參照記錄到證據表和工作日誌卡片上，讓每位隊友讀到同一篇論文，reviewer 也能抽查相同的頁面。當全文受付費牆限制或只有中繼資料時，researcher 會記錄連結，並將證據標記為僅中繼資料，而不是匯入替代品。匯入與寫入預設走 `research_zotero`（`create` + `attach`），團隊只需在首次寫入時授權一次本地 API 金鑰；宿主 `zotero_*` 寫工具保留給使用者明確要求逐條審閱每次變更的場合。
 
 ### 顧問審查
 
@@ -173,7 +173,7 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 
 ## 研究側欄
 
-預設會在右側邊欄新增一個「研究面板」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：目標與里程碑來自 `.research/worklog/plan.json`，作用中的工作項來自 `.research/worklog/items/`（已完成項目在「已完成」開關之後），還有實驗（生命週期與審批狀態）、依專案自訂分組顯示的架構卡片，以及目前團隊成員。把滑鼠移到工作項上可查看類型、下一步、阻塞原因、證據與清單，列高保持不變。
+預設會在右側邊欄新增一個「研究面板」分頁。它回答團隊現在在做什麼、卡在哪裡、下一步是什麼：目標與里程碑來自 `.research/worklog/plan.json`，作用中的工作項來自 `.research/worklog/items/`（已完成項目在「已完成」開關之後），還有實驗（生命週期與審批狀態，已結束的實驗同樣收在「已完成」開關之後）、依專案自訂分組顯示的架構卡片，以及目前團隊成員。單擊工作項展開完整說明：類型、下一步、阻塞原因、證據與清單，再點一次收起。內部步驟用 `parent` 指向它所屬的關卡工作項，展開父項時才顯示；進行中的主工作項預設展開。內部步驟的展開與收起和頂層工作項一致，可以同時展開多列，並按大致執行順序排列：進行中、待辦、阻塞、待確認，已完成排在最後，同一組內按建立時間先後。
 
 架構卡片是以 JSON 形式存放在 `.research/architecture/` 下的節點-連線圖，一張卡片一個檔案。代理透過 `research_architecture` 工具讀取與更新它們，因此圖會與設計保持同步，而不是散落在簡報裡。卡片在面板內以 SVG 呈現；在節點上拖出選取框即可選取，選取後可以把這段選擇引用到會話裡；值得保留的提問會作為備註寫回卡片，代理在回答前會先讀取它。安裝了 `dsh-better-sidebar` 時標籤頁透過它註冊，否則回退到原生右側邊欄。
 
@@ -191,7 +191,7 @@ builder 實作該設計，runner 執行該設計，reviewer 在提案關卡檢�
 狀態轉移遵循固定表（`todo → in_progress → in_review → done`），`blocked` 與 `canceled` 是旁路狀態；`blocked` 必須寫明原因，進入 `in_review` 至少要有一條證據，每次轉移都記錄在該項的歷史裡。
 
 
-到達關卡時，負責人在工作項檔寫入帶證據的清單、執行摘要、提交範圍與下一步，對改動路徑執行 `research_scope_check`，再把狀態設為 `in_review`。reviewer 寫入帶證據的 PASS/FAIL 結論；Lead 只在到達關卡或需要使用者行動時回報卡片 id、狀態與證據。`done` 只屬於使用者的驗收動作；`blocked` 表示無法繼續，`canceled` 表示不再繼續。
+到達關卡時，負責人在工作項檔寫入帶證據的清單、執行摘要、提交範圍與下一步，對改動路徑執行 `research_scope_check`，再把狀態設為 `in_review`。reviewer 寫入帶證據的 PASS/FAIL 結論；Lead 只在到達關卡或需要使用者行動時回報卡片 id、狀態與證據。`done` 對需要驗收的工作項只屬於使用者的驗收動作，內部步驏由負責人自行關閉；`blocked` 表示無法繼續，`canceled` 表示不再繼續。
 
 ```text
 User goal

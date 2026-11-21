@@ -3,7 +3,10 @@
  *
  * Reads are unauthenticated. Writes (Zotero 10+) need a local API key from
  * POST /api/local/authorize, which Zotero surfaces as a dialog the user
- * confirms once ("Always Allow" makes the key reusable). The protocol follows
+ * confirms once ("Always Allow" makes the key reusable). The key is cached in
+ * <home>/.dsh/research-team/zotero-key.json (override with DSH_ZOTERO_KEY_FILE,
+ * disable with keyFile: false) so later tool calls and DSH restarts reuse it
+ * instead of opening the dialog again. The protocol follows
  * Zotero's Local API and Write Requests documentation:
  *
  * - Zotero-Server-ID is required on every write (428 without it, 412 when the
@@ -19,6 +22,7 @@
 
 import crypto from 'node:crypto'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const BASE_URL = 'http://127.0.0.1:23119/api'
@@ -133,6 +137,56 @@ function collectionName(entry) {
   return typeof entry?.data?.name === 'string' ? entry.data.name : typeof entry?.name === 'string' ? entry.name : ''
 }
 
+const DEFAULT_KEY_FILE = path.join(os.homedir(), '.dsh', 'research-team', 'zotero-key.json')
+
+function keyFileOf(options) {
+  if (options.keyFile === false) return null
+  if (typeof options.keyFile === 'string' && options.keyFile.length > 0) return options.keyFile
+  return DEFAULT_KEY_FILE
+}
+
+function readKeyFile(file, baseUrl) {
+  if (file === null) return null
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'))
+    if (
+      parsed !== null &&
+      typeof parsed === 'object' &&
+      parsed.baseUrl === baseUrl &&
+      typeof parsed.serverId === 'string' &&
+      typeof parsed.key === 'string'
+    ) {
+      return { key: parsed.key, serverId: parsed.serverId }
+    }
+  } catch (error) {
+    // no key stored yet, or an unreadable file; authorize again
+  }
+  return null
+}
+
+function writeKeyFile(file, baseUrl, remembered) {
+  if (file === null) return
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    fs.writeFileSync(
+      file,
+      JSON.stringify({ baseUrl, serverId: remembered.serverId, key: remembered.key, at: new Date().toISOString() }, null, 2) + '\n',
+      { mode: 0o600 }
+    )
+  } catch (error) {
+    // the cached key is an optimization; never fail a write because of it
+  }
+}
+
+function removeKeyFile(file) {
+  if (file === null) return
+  try {
+    fs.unlinkSync(file)
+  } catch (error) {
+    // nothing stored
+  }
+}
+
 export function createLibraryClient(options = {}) {
   const baseUrl = (typeof options.baseUrl === 'string' ? options.baseUrl : BASE_URL).replace(/\/+$/, '')
   const fetchImpl = options.fetch ?? globalThis.fetch
@@ -140,7 +194,8 @@ export function createLibraryClient(options = {}) {
   if (typeof fetchImpl !== 'function') {
     throw new LibraryError('LIBRARY_UNAVAILABLE', 'This runtime has no fetch; Zotero local API access needs Node 22 or newer.')
   }
-  let remembered = null
+  const keyFile = keyFileOf(options)
+  let remembered = readKeyFile(keyFile, baseUrl)
 
   async function send(method, pathname, { headers = {}, body, redirect } = {}) {
     let response
@@ -243,7 +298,10 @@ export function createLibraryClient(options = {}) {
     if (!response.ok || typeof json?.key !== 'string') {
       throw new LibraryError('LIBRARY_AUTH', failure('Zotero refused the local write authorization', response, text), status)
     }
-    if (json.remember === true) remembered = { key: json.key, serverId: id }
+    if (json.remember === true) {
+      remembered = { key: json.key, serverId: id }
+      writeKeyFile(keyFile, baseUrl, remembered)
+    }
     return json.key
   }
 
@@ -258,6 +316,7 @@ export function createLibraryClient(options = {}) {
     let result = await run(apiKey)
     if (statusOf(result.response) === 401) {
       remembered = null
+      removeKeyFile(keyFile)
       apiKey = await authorize(id)
       result = await run(apiKey)
     }
@@ -738,7 +797,7 @@ export function apply(ctx) {
       'Read and write the Zotero library through its local API (http://127.0.0.1:23119/api). ' +
       'Read ops: status, search, item, annotations, fulltext, file, export, fields, tagList, collectionList, collectionItems, searches, savedSearchItems, trash, log. ' +
       'Write ops: create, update, attach, note, noteUpdate, noteDelete, tags, collections, collection, collectionUpdate, collectionDelete, delete, restore, saveSearch, deleteSavedSearch, fulltextPut, tagDelete. ' +
-      'Reads need no key. The first write opens a Zotero dialog ("Always Allow" makes the key reusable); afterwards writes run without a per-change plan card and each one is appended to .research/library-log.jsonl. ' +
+      'Reads need no key. The first write opens a Zotero dialog ("Always Allow" keeps the key, so it is asked once and reused from ~/.dsh/research-team/zotero-key.json); afterwards writes run without a per-change plan card and each one is appended to .research/library-log.jsonl. ' +
       'attach uploads a local file as a stored-file attachment (three-phase upload) and is how a paper\'s full text enters the library: create the item first, then attach the PDF to it. ' +
       'Search by DOI before create. update/tags/collections read the item, merge, and write back under its version, so a concurrent edit fails with LIBRARY_CONFLICT instead of overwriting. ' +
       'delete moves an item to the trash and requires confirm:true; noteDelete, collectionDelete, tagDelete and deleteSavedSearch require it too. This tool never erases data permanently.',

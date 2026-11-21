@@ -20,6 +20,7 @@ const {
   listEvidence,
   listItems,
   readDesign,
+  readItem,
   saveDesign,
   upsertItem
 } = await import('../plugin/worklog.js')
@@ -68,16 +69,50 @@ test('claim refuses to take over another owner', (t) => {
   assert.match(result.error, /owned by data/)
 })
 
-test('done needs the user, and unknown statuses are rejected', (t) => {
+test('a gated item is accepted by the user only, and unknown statuses are rejected', (t) => {
   const dir = project(t)
-  upsertItem(dir, { id: 'task-2', title: 'step' })
-  assert.match(upsertItem(dir, { id: 'task-2', status: 'done', by: 'user' }).error, /cannot move "task-2" from todo to done/)
-  const gated = gateItem(dir, { id: 'task-2', evidence: ['reports/step.md'] })
+  upsertItem(dir, { id: 't-gate9', title: 'checkpoint' })
+  assert.match(upsertItem(dir, { id: 't-gate9', status: 'done', by: 'user' }).error, /cannot move "t-gate9" from todo to done/)
+  const gated = gateItem(dir, { id: 't-gate9', evidence: ['reports/step.md'] })
   assert.equal(gated.item.status, 'in_review')
-  assert.match(upsertItem(dir, { id: 'task-2', status: 'done' }).error, /done belongs to the user/)
-  const accepted = upsertItem(dir, { id: 'task-2', status: 'done', by: 'user' })
+  assert.match(upsertItem(dir, { id: 't-gate9', status: 'done' }).error, /done belongs to the user/)
+  const accepted = upsertItem(dir, { id: 't-gate9', status: 'done', by: 'user' })
   assert.equal(accepted.item.status, 'done')
-  assert.match(upsertItem(dir, { id: 'task-2', status: 'finished' }).error, /status must be one of/)
+  assert.match(upsertItem(dir, { id: 't-gate9', status: 'finished' }).error, /status must be one of/)
+})
+
+test('canceled is the owner\'s call and can carry a reason', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 'task-7', title: 'probe', status: 'in_progress' })
+  const canceled = upsertItem(dir, { id: 'task-7', status: 'canceled', reason: 'superseded by task-8' })
+  assert.equal(canceled.item.status, 'canceled')
+  assert.equal(canceled.item.reason, 'superseded by task-8')
+  upsertItem(dir, { id: 'task-8', title: 'probe two', status: 'in_progress' })
+  const dropped = upsertItem(dir, { id: 'task-8', status: 'canceled' })
+  assert.equal(dropped.item.status, 'canceled')
+  assert.equal(dropped.item.reason, '')
+})
+
+test('the panel does not accept an internal step', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 's1', title: 'Load the sample', kind: 'internal', status: 'in_progress' })
+  const review = upsertItem(dir, { id: 's1', title: 'Load the sample', kind: 'internal', status: 'in_review' })
+  assert.equal(review.error, undefined)
+  const refused = decideItem(dir, { id: 's1', decision: 'accept' })
+  assert.match(refused.error, /internal step/)
+  assert.equal(readItem(dir, 's1').status, 'in_review')
+  const closed = upsertItem(dir, { id: 's1', title: 'Load the sample', kind: 'internal', status: 'done', by: 'data' })
+  assert.equal(closed.item.status, 'done')
+})
+
+test('an internal step closes itself with done', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 'task-2', title: 'step', status: 'in_progress' })
+  const review = upsertItem(dir, { id: 'task-2', status: 'in_review' })
+  assert.equal(review.item.status, 'in_review')
+  const closed = upsertItem(dir, { id: 'task-2', status: 'done' })
+  assert.equal(closed.item.status, 'done')
+  assert.equal(closed.item.history.at(-1).to, 'done')
 })
 
 test('status moves follow the transition table and leave a history', (t) => {
@@ -179,6 +214,22 @@ test('only the user accepts a gated item, and a return sends it back with the re
   assert.deepEqual(back.item.history.at(-1).to, 'in_progress')
 })
 
+
+test('an internal step keeps the gated item it serves as parent', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-worklog-'))
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }))
+  upsertItem(root, { id: 't-alpha', title: 'Alpha gate', kind: 'gated', status: 'in_progress' })
+  upsertItem(root, { id: 'alpha-step-1', title: 'Read the paper', kind: 'internal', parent: 't-alpha', status: 'in_progress' })
+  const item = readItem(root, 'alpha-step-1')
+  assert.equal(item.parent, 't-alpha')
+  const created = item.created
+  assert.equal(typeof created, 'string')
+  assert.ok(created.length > 0)
+  upsertItem(root, { id: 'alpha-step-1', status: 'blocked', blocked: 'waiting for the PDF' })
+  assert.equal(readItem(root, 'alpha-step-1').created, created)
+  const listed = listItems(root).find((entry) => entry.id === 'alpha-step-1')
+  assert.equal(listed.parent, 't-alpha')
+})
 
 test('an item keeps its deliverables and drops empty entries', (t) => {
   const dir = project(t)

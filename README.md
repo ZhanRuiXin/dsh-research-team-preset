@@ -4,7 +4,7 @@
 
 **A DSH agent preset that turns one session into a small, coordinated research team.**
 
-**Version 0.2.6** · **Updated 2026-11-15**
+**Version 0.3.0** · **Updated 2026-11-21**
 
 <p align="center"><strong>English</strong> · <a href="docs/README.zh-CN.md">简体中文</a> · <a href="docs/README.zh-TW.md">繁體中文</a> · <a href="docs/README.ja.md">日本語</a> · <a href="docs/README.ko.md">한국어</a> · <a href="docs/README.de.md">Deutsch</a> · <a href="docs/README.fr.md">Français</a> · <a href="docs/README.es.md">Español</a> · <a href="docs/README.pt-BR.md">Português (Brasil)</a> · <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.ar.md">العربية</a> · <a href="docs/README.hi.md">हिन्दी</a></p>
 
@@ -24,7 +24,7 @@ The preset has one system prompt for the whole team. `prompt/core.md` holds the 
 | --- | --- |
 | **Default roles** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Gate-based: every piece of work is a work item; only steps that need your review carry a card view; create, claim, execute, report, review, user acceptance |
-| **Completion** | `in_review` is the agent's last stop; only the user can move a work item to `done` |
+| **Completion** | A gated item stops at `in_review` and only the user closes it; an internal step is closed by its owner |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
 | **Worklog** | `.research/worklog/` JSON store with generated `PLAN.md` and `INDEX.md` views; resume reads `research_state` first |
@@ -79,20 +79,20 @@ This preset ships as a DSH bundle and is published on npm as `dsh-research-team-
 
 1. **Enable the required bundles** in the target profile: Agent Teams [`@deepseek-ai/dsh-agent-team`](https://github.com/deepseek-ai/deepseek-harness). The optional integrations above can be added now or later.
 2. Open **Settings → Plugins** and click **Add**.
-3. Paste the install spec: `dsh-research-team-preset@0.2.6` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.6` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
+3. Paste the install spec: `dsh-research-team-preset@0.3.0` for the npm package, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0` to pin the source, or `link:/absolute/path/to/dsh-research-team-preset` for a local checkout.
 4. **Restart DSH.** Preset rows and the client half of the bundle load at startup.
 5. **Check the bundle is enabled** in the same profile, then **open a new session** and select **Research Team Mode** in the mode selector.
 
 ### Install from the CLI
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.6
+dsh plugin add dsh-research-team-preset@0.3.0
 ```
 
 To pin the source instead of the registry:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.6
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
 ```
 
 > The mode is a profile-level bundle: installing it in one profile does not enable it in another. Repeat the install and prerequisite steps per profile.
@@ -114,7 +114,7 @@ User: "Survey the literature on X, implement the baseline, and draft the method 
 Lead: research_project -> research_worklog (gated item at a user gate, internal item otherwise) -> send_message
 Members: research_worklog op=claim -> work -> op=gate with checklist evidence and base..head -> send_message
 Reviewer: independent PASS/FAIL with evidence through research_worklog op=update
-Lead: summarize -> user acceptance (done, set by the user)
+Lead: summarize -> a gated item goes to user acceptance (done, set by the user); internal steps close on their own
 ```
 
 ## Default team
@@ -134,9 +134,9 @@ The Lead owns goal clarification, decomposition, ledger management, dispatch, in
 
 ### Shared Zotero library
 
-The shared library is also reachable through the preset's `research_zotero` tool, which talks to Zotero's local API directly: reads need no key, the first write asks Zotero for a local API key the user can remember with "Always Allow", and each change is appended to `.research/library-log.jsonl`. It covers the whole entry lifecycle — `search` with limit/offset and tag or collection scope, `create`, `update`, tags and collection membership, child notes (`note`, `noteUpdate`, `noteDelete`) — plus what an intake needs: `attach` runs Zotero's three-phase upload that puts a paper's PDF into the library, `export` returns BibTeX, BibLaTeX, RIS or CSL JSON, `annotations`, `fulltext` and `file` read a PDF's highlights, indexed text and path, `fields` lists an item type's valid fields, and collection rename/move/delete, saved searches and the trash (`delete`/`restore`) manage the rest. Tag and collection edits read-merge-write under the item version so a concurrent edit fails instead of overwriting; destructive ops need `confirm: true` and only move objects to the trash. The host `zotero_*` write tools keep their per-change plan card, so use them when the user wants to review each change.
+The shared library is also reachable through the preset's `research_zotero` tool, which talks to Zotero's local API directly: reads need no key, the first write asks Zotero for a local API key the user can remember with "Always Allow" (the preset stores it under `~/.dsh/research-team/zotero-key.json`, so later writes and DSH restarts reuse it instead of asking again), and each change is appended to `.research/library-log.jsonl`. It covers the whole entry lifecycle — `search` with limit/offset and tag or collection scope, `create`, `update`, tags and collection membership, child notes (`note`, `noteUpdate`, `noteDelete`) — plus what an intake needs: `attach` runs Zotero's three-phase upload that puts a paper's PDF into the library, `export` returns BibTeX, BibLaTeX, RIS or CSL JSON, `annotations`, `fulltext` and `file` read a PDF's highlights, indexed text and path, `fields` lists an item type's valid fields, and collection rename/move/delete, saved searches and the trash (`delete`/`restore`) manage the rest. Tag and collection edits read-merge-write under the item version so a concurrent edit fails instead of overwriting; destructive ops need `confirm: true` and only move objects to the trash. The host `zotero_*` write tools keep their per-change plan card, so use them when the user wants to review each change.
 
-The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and in the item's evidence, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
+The researcher treats the user's Zotero library as the team's shared literature source. It searches existing collections and items before the open web, reuses the attached PDFs and annotation passages, and imports a missing paper only in its formal version of record, with the PDF attached and filed in a project collection. Imports go through `research_zotero` by default, so the team asks for the local API key once instead of a plan card per write; the host `zotero_*` write tools stay reserved for the case where the user asks to review each change. Imports dedupe by DOI and title, leave the user's tags and collections alone, and record the `zotero://` item ref in the evidence table and in the item's evidence, so every teammate reads the same paper and the reviewer can spot-check the same pages. When the full text is paywalled or only metadata exists, the researcher records the link and marks the evidence as metadata-only instead of importing a substitute.
 
 ### Advisory review
 
@@ -176,7 +176,7 @@ A run or long job that outlives the turn leaves its job or terminal handle, host
 
 ## Research sidebar
 
-The preset adds a Research panel tab to the right sidebar. It answers what the team is doing now, what is blocked, and what comes next: the objective from the plan, the active work items from the JSON store (finished ones sit behind a 已完成 toggle), the runs with their lifecycle and approval state (a directory under `runs/` only counts once it carries a `manifest.json`), the architecture cards in their project-defined groups, and the live team. Click a work item or an experiment to expand the row: an item opens its full title, next action, blocked reason, evidence and checklist; a run opens its question, hypothesis, decision rule, reason and timing. Clicking it again collapses it. A 文献 section renders the project reading list the team maintains with `research_literature`: agent-defined categories (related work, methods, models, data sets …), one card per Zotero item key showing the paper title, and an expanded markdown note with `\cite{key}`, insert-into-composer and open-in-Zotero actions.
+The preset adds a Research panel tab to the right sidebar. It answers what the team is doing now, what is blocked, and what comes next: the objective from the plan, the active work items from the JSON store (finished ones sit behind a 已完成 toggle), the runs with their lifecycle and approval state (finished ones sit behind the same 已完成 toggle, and only a directory under `runs/` that carries a `manifest.json` counts as a run), the architecture cards in their project-defined groups, and the live team. Click a work item or an experiment to expand the row: an item opens its full title, next action, blocked reason, evidence and checklist; a run opens its question, hypothesis, decision rule, reason and timing. Clicking it again collapses it. An internal step that names the gated item it serves in `parent` is nested inside that item and appears when the item is expanded; a gated item that is in progress is expanded by default. Nested steps behave like top-level rows — click to expand or collapse, several rows open at once — and they are ordered by likely execution order: in progress first, then todo, blocked, in review, and the finished ones last, with the oldest stamp first inside a bucket. A 文献 section renders the project reading list the team maintains with `research_literature`: agent-defined categories (related work, methods, models, data sets …), one card per Zotero item key showing the paper title, and an expanded markdown note with `\cite{key}`, insert-into-composer and open-in-Zotero actions.
 
 Architecture cards are node and edge diagrams stored as JSON under `.research/architecture/`, one file per card. The agent reads and updates them with the `research_architecture` tool, so the diagram stays in step with the design instead of drifting in a slide. The agent cannot see the rendered picture, so the tool returns a geometry audit instead: `op=check` lists overlapping or too-close boxes, boxes outside the canvas and crossing edges in plain coordinates, and `op=arrange` lays the card out as a left-to-right flow, grows the canvas and saves the result, so an agent can fix a tangled diagram without guessing. A card renders as SVG inside the panel; dragging a box over nodes selects them, and the selection can be quoted into the conversation; anything worth keeping is stored on the card as a note the agent reads before it answers. The tab registers through `dsh-better-sidebar` when that plugin is installed and falls back to the native right sidebar otherwise.
 

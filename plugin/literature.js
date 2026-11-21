@@ -141,16 +141,25 @@ export function removeCategory(root, id) {
   return index
 }
 
+function resolveCategory(index, raw) {
+  const wanted = text(raw, 60)
+  const wantedLower = wanted.toLowerCase()
+  const id = wantedLower.replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40)
+  const match = index.categories.find((category) => category.id === id || category.label.toLowerCase() === wantedLower)
+  if (match !== undefined) return match
+  const label = wanted.length > 0 ? wanted : "Reading list"
+  const created = { id: id.length > 0 ? id : categoryId(label, index), label, entries: [] }
+  index.categories.push(created)
+  return created
+}
+
 export function upsertLiteratureEntry(root, payload = {}) {
   const key = text(payload.key, 16).toUpperCase()
   if (KEY_PATTERN.test(key) === false) {
     throw new LiteratureError('LITERATURE_INVALID', 'key must be the 8-character Zotero item key')
   }
   const index = readLiteratureIndex(root)
-  const category = index.categories.find((item) => item.id === text(payload.category, 60))
-  if (category === undefined) {
-    throw new LiteratureError('LITERATURE_INVALID', `no category "${payload.category ?? ''}"; create it with op=category first`)
-  }
+  const category = resolveCategory(index, payload.category)
   const title = text(payload.title, 300)
   if (title.length === 0) throw new LiteratureError('LITERATURE_INVALID', 'an entry needs the paper title')
   const authors = Array.isArray(payload.authors) ? payload.authors.map((name) => text(name, 80)).filter((name) => name.length > 0).slice(0, 12) : []
@@ -225,6 +234,7 @@ export function apply(ctx) {
   const dispose = ctx.tools.register({
     name: 'research_literature',
     description:
+      'File every paper the work reads, cites or imports: call this as part of the work, not only when asked, because the Research panel 文献 section is the project reading list. ' +
       'Maintain the project reading list behind the Research panel 文献 section. Categories are the project\'s own labels (related work, methods, models, data sets …); each entry is a Zotero item key with its title and an optional markdown note that the panel expands. ' +
       'The index lives in .research/literature.json and each note in .research/literature/<KEY>.md, so it travels with the project and the writer can cite from it. ' +
       'Ops: list, get, category (add or rename, label), removeCategory (id), add (key, category, title, note, authors, year), remove (key), update the same way as add. ' +
@@ -236,7 +246,10 @@ export function apply(ctx) {
         id: { type: 'string', description: 'Category id for op=removeCategory, or the id to rename for op=category.' },
         label: { type: 'string', description: 'Category label shown in the panel, for op=category.' },
         key: { type: 'string', description: 'Zotero item key (8 characters), for op=get/add/remove.' },
-        category: { type: 'string', description: 'Category id the entry belongs to, for op=add.' },
+        category: {
+          type: 'string',
+          description: 'Category id or label for op=add; created when it does not exist yet (default Reading list).'
+        },
         title: { type: 'string', description: 'Paper title shown on the card, for op=add.' },
         authors: { type: 'array', items: { type: 'string' }, description: 'Optional author names for the card meta line.' },
         year: { type: 'number', description: 'Optional publication year.' },

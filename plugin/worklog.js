@@ -194,9 +194,11 @@ function normalizeItem(input) {
     owner: short(input.owner, 40),
     status,
     kind,
+    created: short(input.created, 32),
     updated: short(input.updated, 10),
     next: short(input.next, 300),
     blocked: short(input.blocked, 300),
+    reason: short(input.reason, 300),
     parent: short(input.parent, 64),
     summary: short(input.summary, 1200),
     base: short(input.base, 64),
@@ -374,8 +376,12 @@ export function upsertItem(root, input = {}) {
   if (!ITEM_STATUSES.includes(status)) {
     return { error: `status must be one of ${ITEM_STATUSES.join(', ')}` }
   }
-  if (input.status === 'done' && input.by !== 'user') {
-    return { error: 'done belongs to the user: record acceptance only after the user accepted the work (pass by: "user")' }
+  const guardKind = input.kind ?? previous?.kind ?? (/^t-/.test(id) ? 'gated' : 'internal')
+  if (input.status === 'done' && guardKind === 'gated' && input.by !== 'user') {
+    return {
+      error:
+        'done belongs to the user: a gated item is accepted from the Research panel; an internal step can be closed by its owner'
+    }
   }
   const history = previous !== undefined && Array.isArray(previous.history) ? [...previous.history] : []
   if (previous !== undefined && status !== previous.status) {
@@ -397,11 +403,13 @@ export function upsertItem(root, input = {}) {
     status,
     history,
     kind: input.kind ?? previous?.kind ?? (/^t-/.test(id) ? 'gated' : 'internal'),
+    created: previous?.created ?? (typeof input.created === 'string' && input.created !== '' ? input.created : nowIso()),
     updated: nowDay(),
     title: input.title ?? previous?.title ?? '',
     owner: input.owner ?? previous?.owner ?? '',
     next: input.next ?? previous?.next ?? '',
     blocked: input.blocked ?? previous?.blocked ?? '',
+    reason: input.reason ?? previous?.reason ?? '',
     evidence: input.evidence ?? previous?.evidence ?? [],
     checklist: input.checklist ?? previous?.checklist ?? []
   })
@@ -464,6 +472,9 @@ export function decideItem(root, input = {}) {
   if (previous === undefined) return { error: `no work item "${id}"` }
   if (previous.status !== 'in_review') {
     return { error: `"${id}" is ${previous.status}; only an item in in_review can be accepted or returned` }
+  }
+  if (previous.kind !== 'gated') {
+    return { error: `"${id}" is an internal step; its owner closes it with done, the panel does not accept it` }
   }
   const decision = input.decision
   if (decision !== 'accept' && decision !== 'return') {

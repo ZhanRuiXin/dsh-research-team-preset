@@ -22,7 +22,7 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 | --- | --- |
 | **既定の役割** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **ワークフロー** | ゲート方式：内部ステップはワークログのインデックス行、ユーザーゲートは作業項目ファイル。作成、引き受け、実行、報告、レビュー、ユーザー承認 |
-| **完了** | `in_review` がエージェントの最終地点。作業項目を `done` に移動できるのはユーザーだけ |
+| **完了** | 承認が必要な作業項目は `in_review` で止まり、`done` にできるのはユーザーだけ。内部ステップは担当者が自身で閉じる |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
 | **Git** | 実質的な作業の開始時にエージェントが初期化。破壊的な変更はブランチで行い、受け入れ後にのみマージ |
 | **Worklog** | `.research/worklog/` の JSON ストア。`PLAN.md` と `INDEX.md` は生成されたビュー。再開時はまず `research_state` |
@@ -73,20 +73,20 @@ Lead の返答は科学的なコミュニケーションであり、ステータ
 ### DSH のプラグインページからインストール
 
 2. **設定 → プラグイン** を開き、**追加** をクリックします。
-3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.2.6`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.2.6`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
+3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.3.0`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
 4. **DSH を再起動します。** プリセット行とバンドルのクライアント側は起動時に読み込まれます。
 5. **同じプロファイルでバンドルが有効になっていることを確認**し、**新しいセッションを開いて** モード選択で **Research Team Mode** を選びます。
 
 ### コマンドラインからインストール
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.6
+dsh plugin add dsh-research-team-preset@0.3.0
 ```
 
 レジストリではなくソースを固定する場合:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.6
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
 ```
 
 > このモードはプロファイル単位のバンドルです。あるプロファイルにインストールしても別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件を繰り返してください。
@@ -172,6 +172,8 @@ Lead が実行を承認し、runner は記録がなければ起動を拒否し�
 
 ## リサーチサイドバー
 
+このタブは、チームが今何をしていて、どこで止まり、次に何が来るかを示します：`.research/worklog/plan.json` の目標、`.research/worklog/items/` の進行中の作業項目（完了したものは「已完成」スイッチの背後）、ライフサイクルと承認状態を持つ実行（完了したものは同じスイッチの背後。`runs/` 配下で `manifest.json` を持つディレクトリだけが実行として数えられます）、プロジェクトが定義したグループごとのアーキテクチャカード、そして稼働中のチームです。作業項目や実行をクリックすると行が展開し、もう一度クリックすると折りたたまれます。`parent` で所属するゲート項目を指す内部ステップはその項目の中に入れ子になり、最上位の行と同じように展開・折りたたみでき、複数の行を同時に開け、実行されそうな順に並びます。文献セクションは、チームが `research_literature` で維持するプロジェクトの読書リストを表示します：エージェントが定義したカテゴリと、Zotero 項目キーごとのカード（展開すると markdown のメモ）です。
+
 アーキテクチャカードは `.research/architecture/` に JSON で保存されるノードとエッジの図で、1 枚につき 1 ファイルです。エージェントは `research_architecture` ツールで読み書きするため、図はスライドの中ではなく設計と同期したままになります。カードはパネル内で SVG として描画され、ノードの上をドラッグして範囲選択でき、選択したノードは会話に引用でき、残すべき内容はカードのメモとして保存され、エージェントは回答前にそれを読みます。`dsh-better-sidebar` がインストールされていればそれ経由で、なければネイティブの右サイドバーに登録されます。
 
 パネルは稼働中のチームも表示します。各メンバーの名前・役割・モデル・状態（実行中または待機中）と、そのメンバーが担当する作業項目です。
@@ -186,7 +188,7 @@ Lead が実行を承認し、runner は記録がなければ起動を拒否し�
 
 状態遷移は固定表に従います（`todo → in_progress → in_review → done`）。`blocked` と `canceled` は側状態です。`blocked` には理由が必要で、ゲートには証拠が 1 件以上必要で、各遷移は項目の履歴に残ります。
 
-ゲートでは、担当者が証拠付きチェックリスト、実行サマリー、コミット範囲、次のアクションを作業項目ファイルに書き、変更パスに `research_scope_check` を実行してから状態を `in_review` にします。reviewer は証拠付きの PASS/FAIL を書き、Lead はゲート到達時またはユーザーの判断が必要なときだけカード id、状態、証拠を報告します。`done` はユーザーの承認だけが設定できます。`blocked` は継続不可、`canceled` は今後進めないという意味です。
+ゲートでは、担当者が証拠付きチェックリスト、実行サマリー、コミット範囲、次のアクションを作業項目ファイルに書き、変更パスに `research_scope_check` を実行してから状態を `in_review` にします。reviewer は証拠付きの PASS/FAIL を書き、Lead はゲート到達時またはユーザーの判断が必要なときだけカード id、状態、証拠を報告します。`done` は承認が必要な作業項目ではユーザーの承認だけが設定でき、内部ステップは担当者が自身で閉じます。`blocked` は継続不可、`canceled` は今後進めないという意味です。
 
 ```text
 User goal

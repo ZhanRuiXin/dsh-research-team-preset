@@ -57,6 +57,7 @@ window.__ModuleLoader__.load({
         '需要你验收': '需要你验收',
         '内部步骤': '内部步骤',
         '阻塞：{text}': '阻塞：{text}',
+        '取消：{text}': '取消：{text}',
         '证据 {count} 条': '证据 {count} 条',
         '清单 {done}/{total}': '清单 {done}/{total}',
         '未命名成员': '未命名成员',
@@ -109,6 +110,7 @@ window.__ModuleLoader__.load({
         '引用': '引用',
         '工作项': '工作项',
         '隐藏已完成': '隐藏已完成',
+      '暂无进行中的实验': '暂无进行中的实验',
         '已完成 {count}': '已完成 {count}',
         '暂无工作项': '暂无工作项',
         ' · 下一步 {next}': ' · 下一步 {next}',
@@ -144,6 +146,9 @@ window.__ModuleLoader__.load({
         '插入引用到会话输入框': '插入引用到会话输入框',
         '打开': '打开',
         '在 Zotero 中打开': '在 Zotero 中打开',
+        '已在 Zotero 中打开': '已在 Zotero 中打开',
+        '已用默认应用打开': '已用默认应用打开',
+        '打开失败': '打开失败',
         '科研': '科研',
         '团队状态：架构、工作项与实验': '团队状态：架构、工作项与实验'
       },
@@ -179,6 +184,7 @@ window.__ModuleLoader__.load({
         '需要你验收': 'Needs your sign-off',
         '内部步骤': 'Internal step',
         '阻塞：{text}': 'Blocked: {text}',
+        '取消：{text}': 'Canceled: {text}',
         '证据 {count} 条': 'Evidence: {count}',
         '清单 {done}/{total}': 'Checklist {done}/{total}',
         '未命名成员': 'Unnamed member',
@@ -231,6 +237,7 @@ window.__ModuleLoader__.load({
         '引用': 'Cite',
         '工作项': 'Work items',
         '隐藏已完成': 'Hide completed',
+      '暂无进行中的实验': 'No runs in progress',
         '已完成 {count}': 'Completed: {count}',
         '暂无工作项': 'No work items yet',
         ' · 下一步 {next}': ' · Next: {next}',
@@ -266,6 +273,9 @@ window.__ModuleLoader__.load({
         '插入引用到会话输入框': 'Insert the citation into the chat input',
         '打开': 'Open',
         '在 Zotero 中打开': 'Open in Zotero',
+        '已在 Zotero 中打开': 'Opened in Zotero',
+        '已用默认应用打开': 'Opened with the default application',
+        '打开失败': 'Could not open',
         '科研': 'Research',
         '团队状态：架构、工作项与实验': 'Team status: architecture, work items and experiments'
       }
@@ -557,6 +567,7 @@ function entryExtra(entry) {
   return [
     entry.kind === 'gated' ? t('需要你验收') : entry.kind === 'internal' ? t('内部步骤') : '',
     entry.blocked ? tf('阻塞：{text}', { text: entry.blocked }) : '',
+    entry.reason ? tf('取消：{text}', { text: entry.reason }) : '',
     entry.evidenceCount ? tf('证据 {count} 条', { count: entry.evidenceCount }) : '',
     entry.checklistTotal ? tf('清单 {done}/{total}', { done: entry.checklistDone || 0, total: entry.checklistTotal }) : ''
   ].filter(Boolean).join(' · ')
@@ -655,12 +666,24 @@ function statusLabel(status) {
 .rtp-row:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
 .rtp-dot{flex:0 0 auto;width:6px;height:6px;margin-top:7px;border-radius:50%}
 .rtp-rowmain{min-width:0;flex:1}
-.rtp-rowtitle{display:flex;align-items:baseline;gap:6px;font-size:15px;line-height:1.35;color:var(--dsw-alias-label-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-rowtitle{display:flex;align-items:flex-start;gap:8px;font-size:15px;line-height:1.35;color:var(--dsw-alias-label-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtp-rowtitletext{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rtp-rowtitle > .rtp-chip,.rtp-rowtitle > .rtp-rowdecide{flex:0 0 auto;margin-top:1px;display:inline-flex;align-items:center;gap:5px}
 .rtp-id{flex:0 0 auto;font-size:13px;color:var(--dsw-alias-label-tertiary);font-family:var(--dsw-font-family-mono);letter-spacing:.02em}
 .rtp-rowmeta{margin-top:3px;font-size:13.5px;line-height:1.45;color:var(--dsw-alias-label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rtp-row.open .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;flex-wrap:wrap;overflow-wrap:anywhere}
+.rtp-row.open > .rtp-rowmain > .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.rtp-row.open > .rtp-rowmain > .rtp-rowtitle > .rtp-rowtitletext{white-space:normal;overflow:visible;overflow-wrap:anywhere}
 .rtp-row.open{flex-wrap:wrap}
-.rtp-row.open .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.rtp-row.open > .rtp-rowmain > .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.rtp-subrow.open > .rtp-rowmain > .rtp-rowtitle{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.rtp-subrow.open > .rtp-rowmain > .rtp-rowtitle > .rtp-rowtitletext{white-space:normal;overflow:visible;overflow-wrap:anywhere}
+.rtp-subrow.open > .rtp-rowmain > .rtp-rowmeta{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.rtp-subitems{flex:0 0 auto;width:calc(100% - 15px);margin:6px 0 2px 15px;display:flex;flex-direction:column;gap:6px}
+.rtp-subrow{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:8px;border:.5px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);cursor:pointer}
+.rtp-subrow:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
+.rtp-subrow.open{flex-wrap:wrap;background:var(--dsw-alias-bg-layer-1)}
+.rtp-subrow .rtp-rowtitle{font-size:15px;line-height:1.4}
+.rtp-subrow .rtp-rowmeta{font-size:13px;margin-top:2px}
 .rtp-itemextra{margin-top:5px;font-size:13px;line-height:1.5;color:var(--dsw-alias-label-secondary);white-space:normal;overflow-wrap:anywhere}
 .rtp-files{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
 .rtp-fileslabel{font-size:12.5px;line-height:1.4;color:var(--dsw-alias-label-tertiary)}
@@ -683,6 +706,7 @@ function statusLabel(status) {
 .rtp-mem:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l2)}
 .rtp-mem.is-lead{background:linear-gradient(180deg,var(--dsw-alias-bg-layer-2),var(--dsw-alias-bg-layer-1));border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 34%,transparent)}
 .rtp-mem.is-lead .rtp-avatar{color:var(--dsw-alias-brand-primary);border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 40%,transparent)}
+.rtp-mem.is-lead .rtp-avatar.is-on{border-color:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--dsw-alias-state-success-primary) 16%,transparent)}
 .rtp-avatar{position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;font-size:12.5px;font-weight:600;text-transform:uppercase;background:var(--dsw-alias-bg-layer-3);border:.5px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
 .rtp-avatar.is-on{border-color:var(--dsw-alias-state-success-primary);color:var(--dsw-alias-label-primary)}
 .rtp-pulse{position:absolute;right:-2px;bottom:-2px;width:8px;height:8px;border-radius:50%;background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 0 var(--dsw-alias-state-success-primary);animation:rtp-pulse 1.6s ease-out infinite}
@@ -1148,7 +1172,8 @@ function statusLabel(status) {
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
       const [showFinished, setShowFinished] = React.useState(false)
-      const [openItem, setOpenItem] = React.useState('')
+      const [showFinishedRuns, setShowFinishedRuns] = React.useState(false)
+      const [openItems, setOpenItems] = React.useState(null)
       const [openRun, setOpenRun] = React.useState('')
       const [literature, setLiterature] = React.useState({ loading: true, categories: [], count: 0, error: '' })
       const [openLit, setOpenLit] = React.useState('')
@@ -1228,6 +1253,9 @@ function statusLabel(status) {
       const worklog = (state && state.worklog) || {}
       const cards = (state && state.cards) || []
       const runs = (state && state.runs) || []
+      const runState = (entry) => (entry.state === undefined ? entry.status : entry.state)
+      const finishedRuns = runs.filter((entry) => /^(completed|stopped|failed|rejected)$/.test(runState(entry)))
+      const visibleRuns = showFinishedRuns ? runs : runs.filter((entry) => /^(completed|stopped|failed|rejected)$/.test(runState(entry)) === false)
       const team = (state && state.team) || []
       const experimentSettings = (state && state.experimentSettings) || { approval: 'required' }
 
@@ -1267,6 +1295,23 @@ function statusLabel(status) {
         postPanel({ op: 'approve', runId, decision }, decision === 'approved' ? t('实验已批准。') : t('实验已拒绝。'))
       }
 
+      // The sidebar preview handles text and images; a PDF, an archive or an
+    // office file has no preview tab, so opening it there did nothing.
+      const NATIVE_OPEN = /\.(pdf|docx?|xlsx?|pptx?|zip|7z|rar|tar|gz|epub|mp4|mov|mp3|wav)$/i
+
+      function openThroughHost(filePath) {
+        void fetch(PANEL_ROUTE, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ op: 'open-file', path: filePath, sessionId })
+        })
+          .then((response) => response.json().catch(() => ({})).then((body) => {
+            if (body !== null && body.ok === true) setToast(t('已用默认应用打开'))
+            else setToast(String(body !== null && body.error ? body.error : t('打开失败')))
+          }))
+          .catch(() => setToast(t('打开失败')))
+      }
+
       function openDeliverable(event, file) {
         if (event !== undefined && typeof event.stopPropagation === 'function') event.stopPropagation()
         if (file === null || typeof file !== 'object') return
@@ -1276,14 +1321,27 @@ function statusLabel(status) {
           api.openTab('browser', { params: { url: file.url } })
           return
         }
+        const filePath = typeof file.path === 'string' ? file.path : ''
+        if (filePath !== '' && NATIVE_OPEN.test(filePath)) {
+          openThroughHost(filePath)
+          return
+        }
         // openResource takes a dsh-resource:// address, never a plain file URL;
         // the host sends the address it resolved for the deliverable.
         if (typeof file.address === 'string' && file.address.length > 0
           && api !== undefined && typeof api.openResource === 'function') {
-          api.openResource(file.address)
+          try {
+            api.openResource(file.address)
+            return
+          } catch (failure) {
+            void failure
+          }
+        }
+        if (filePath !== '') {
+          openThroughHost(filePath)
           return
         }
-        setToast(file.path ? tf('打不开 {path}', { path: file.path }) : t('无法在侧栏打开'))
+        setToast(t('打开失败'))
       }
 
       function quoteSelection() {
@@ -1359,13 +1417,21 @@ function statusLabel(status) {
       }
 
       function openLiteratureItem(entry) {
-        const api = pluginCtx === null || typeof pluginCtx.get !== 'function' ? undefined : pluginCtx.get('sidebarRight')
-        const url = `zotero://select/library/items/${entry.key}`
-        if (api !== undefined && typeof api.openTab === 'function') {
-          api.openTab('browser', { params: { url } })
-          return
-        }
-        setToast(url)
+        // A web page cannot follow zotero://: the browser refuses the scheme and
+        // Electron only hands http(s) links to the OS. The host builds the fixed
+        // link from the item key and starts it, so the desktop app opens the item.
+        const key = String(entry.key || '')
+        if (key === '') return
+        void fetch(PANEL_ROUTE, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ op: 'open-zotero', id: key, sessionId })
+        })
+          .then((response) => response.json().catch(() => ({})).then((body) => {
+            if (body !== null && body.ok === true) setToast(t('已在 Zotero 中打开'))
+            else setToast(String(body !== null && body.error ? body.error : t('打开失败')))
+          }))
+          .catch(() => setToast(t('打开失败')))
       }
 
       const header = h('div', { key: 'header', className: 'rtp-header' }, [
@@ -1561,8 +1627,101 @@ function statusLabel(status) {
             ])
       ])
 
-      const finishedCount = Number(state && state.finishedItems) || 0
-      const visibleCards = cards.filter((entry) => showFinished || !/^(done|canceled)$/.test(entry.status))
+      const isFinishedCard = (entry) => /^(done|canceled)$/.test(entry.status)
+      const parentIdOf = (entry) => (typeof entry.parent === 'string' ? entry.parent : '')
+      const cardById = new Map(cards.map((entry) => [entry.id, entry]))
+      const isChildCard = (entry) => {
+        const parent = parentIdOf(entry)
+        return parent !== '' && parent !== entry.id && cardById.has(parent)
+      }
+      // A step belongs to its gated item: hide it only when that item is hidden,
+      // never because the step itself finished (the 已完成 toggle is about items).
+      const parentHidden = (entry) => {
+        const parent = parentIdOf(entry)
+        if (parent === '' || parent === entry.id || cardById.has(parent) === false) return false
+        return showFinished === false && isFinishedCard(cardById.get(parent))
+      }
+      const visibleCards = cards.filter((entry) => parentHidden(entry) === false && (isChildCard(entry) || showFinished || isFinishedCard(entry) === false))
+      const finishedCount = cards.filter((entry) => isChildCard(entry) === false && isFinishedCard(entry)).length
+      const visibleIds = new Set(visibleCards.map((entry) => entry.id))
+      const childrenOf = new Map()
+      const nested = new Set()
+      for (const entry of visibleCards) {
+        const parent = typeof entry.parent === 'string' ? entry.parent : ''
+        if (parent === '' || parent === entry.id || visibleIds.has(parent) === false) continue
+        if (childrenOf.has(parent) === false) childrenOf.set(parent, [])
+        childrenOf.get(parent).push(entry)
+        nested.add(entry.id)
+      }
+      const STEP_BUCKET = { in_progress: 0, todo: 1, blocked: 2, in_review: 3, done: 4, canceled: 5 }
+      const stepOrder = (a, b) => (STEP_BUCKET[a.status] ?? 9) - (STEP_BUCKET[b.status] ?? 9)
+        || String(a.created || a.updated || '').localeCompare(String(b.created || b.updated || ''))
+      for (const list of childrenOf.values()) list.sort(stepOrder)
+      const topCards = visibleCards.filter((entry) => nested.has(entry.id) === false)
+      const autoOpen = (entry, depth) => depth === 0 && entry.status === 'in_progress'
+      const isOpen = (entry, depth) => openItems === null ? autoOpen(entry, depth) : openItems.has(entry.id)
+      const toggleItem = (entry, depth) => {
+        const next = openItems === null
+          ? new Set(visibleCards.filter((card) => autoOpen(card, 0)).map((card) => card.id))
+          : new Set(openItems)
+        if (isOpen(entry, depth)) next.delete(entry.id)
+        else next.add(entry.id)
+        setOpenItems(next)
+      }
+      const itemRow = (entry, depth) => {
+        const kids = childrenOf.get(entry.id) || []
+        const open = isOpen(entry, depth)
+        return h('div', {
+          key: entry.id,
+          className: `${depth === 0 ? 'rtp-row' : 'rtp-subrow'}${open ? ' open' : ''}`,
+          onClick: (event) => {
+            if (depth > 0) event.stopPropagation()
+            toggleItem(entry, depth)
+          }
+        }, [
+          h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
+          h('div', { key: 'main', className: 'rtp-rowmain' }, [
+            h('div', { key: 't', className: 'rtp-rowtitle' }, [
+              h('span', { key: 'text', className: 'rtp-rowtitletext' }, entry.title),
+              entry.kind === 'gated' && entry.status === 'in_review'
+                ? h('span', { key: 'decide', className: 'rtp-rowdecide' }, [
+                    h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
+                    h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))
+                  ])
+                : h('span', {
+                    key: 'chip',
+                    className: 'rtp-chip',
+                    style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
+                  }, statusLabel(entry.status))
+            ]),
+            h('div', { key: 'm', className: 'rtp-rowmeta' }, [
+              h('span', { key: 'id', className: 'rtp-id' }, entry.id),
+              entry.owner ? ` · @${entry.owner}` : '',
+              entry.next ? tf(' · 下一步 {next}', { next: entry.next }) : '',
+              entry.deliverables && entry.deliverables.length ? tf(' · 附件 {count}', { count: entry.deliverables.length }) : '',
+              entry.updated ? ` · ${formatSince(entry.updated)}` : '',
+            ]),
+            open && entryExtra(entry) !== ''
+              ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry))
+              : null,
+            open && Array.isArray(entry.deliverables) && entry.deliverables.length > 0
+              ? h('div', { key: 'files', className: 'rtp-files' }, [
+                  h('span', { key: 'l', className: 'rtp-fileslabel' }, t('交付文件')),
+                  ...entry.deliverables.map((file, index) => h('button', {
+                    key: `file-${index}`,
+                    type: 'button',
+                    className: file.exists === false ? 'rtp-file missing' : 'rtp-file',
+                    title: file.exists === false ? tf('{path}（未找到）', { path: file.path || file.url }) : (file.path || file.url),
+                    onClick: (event) => openDeliverable(event, file)
+                  }, file.label || file.path || file.url))
+                ])
+              : null
+          ]),
+          open && kids.length > 0
+            ? h('div', { key: 'kids', className: 'rtp-subitems' }, kids.map((kid) => itemRow(kid, depth + 1)))
+            : null
+        ])
+      }
       const cardsSection = h(Section, {
         key: 'cards',
         title: t('工作项'),
@@ -1572,50 +1731,9 @@ function statusLabel(status) {
           className: 'rtp-toggle',
           onClick: () => setShowFinished(!showFinished)
         }, showFinished ? t('隐藏已完成') : tf('已完成 {count}', { count: finishedCount }))
-      }, visibleCards.length === 0
+      }, topCards.length === 0
         ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无工作项'))
-        : h('div', { key: 'list', className: 'rtp-items' }, visibleCards.map((entry) => h('div', {
-            key: entry.id,
-            className: openItem === entry.id ? 'rtp-row open' : 'rtp-row',
-            onClick: () => setOpenItem(openItem === entry.id ? '' : entry.id)
-          }, [
-            h('span', { key: 'dot', className: 'rtp-dot', style: { background: statusTone(entry.status) } }),
-            h('div', { key: 'main', className: 'rtp-rowmain' }, [
-              h('div', { key: 't', className: 'rtp-rowtitle' }, entry.title),
-              h('div', { key: 'm', className: 'rtp-rowmeta' }, [
-                h('span', { key: 'id', className: 'rtp-id' }, entry.id),
-                entry.owner ? ` · @${entry.owner}` : '',
-                entry.next ? tf(' · 下一步 {next}', { next: entry.next }) : '',
-                entry.deliverables && entry.deliverables.length ? tf(' · 附件 {count}', { count: entry.deliverables.length }) : '',
-                entry.updated ? ` · ${formatSince(entry.updated)}` : ''
-              ]),
-              openItem === entry.id && entryExtra(entry) !== ''
-                ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry))
-                : null,
-              openItem === entry.id && Array.isArray(entry.deliverables) && entry.deliverables.length > 0
-                ? h('div', { key: 'files', className: 'rtp-files' }, [
-                    h('span', { key: 'l', className: 'rtp-fileslabel' }, t('交付文件')),
-                    ...entry.deliverables.map((file, index) => h('button', {
-                      key: `file-${index}`,
-                      type: 'button',
-                      className: file.exists === false ? 'rtp-file missing' : 'rtp-file',
-                      title: file.exists === false ? tf('{path}（未找到）', { path: file.path || file.url }) : (file.path || file.url),
-                      onClick: (event) => openDeliverable(event, file)
-                    }, file.label || file.path || file.url))
-                  ])
-                : null
-            ]),
-            entry.status === 'in_review'
-              ? h('span', { key: 'decide', style: { display: 'flex', gap: '5px' } }, [
-                  h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
-                  h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))
-                ])
-              : h('span', {
-                  key: 'chip',
-                  className: 'rtp-chip',
-                  style: { color: statusTone(entry.status), borderColor: 'color-mix(in srgb,currentColor 30%,transparent)', background: 'color-mix(in srgb,currentColor 9%,transparent)' }
-                }, statusLabel(entry.status)),
-          ]))))
+        : h('div', { key: 'list', className: 'rtp-items' }, topCards.map((entry) => itemRow(entry, 0))))
 
       const approvalSelect = h('select', {
         key: 'mode',
@@ -1631,11 +1749,20 @@ function statusLabel(status) {
       const runsSection = h(Section, {
         key: 'runs',
         title: t('实验'),
-        count: runs.length === 0 ? 0 : runs.length,
-        action: approvalSelect
+        action: h('div', { key: 'acts', style: { display: 'flex', alignItems: 'center', gap: '6px' } }, [
+          finishedRuns.length === 0 ? null : h('button', {
+            key: 'finished',
+            type: 'button',
+            className: 'rtp-toggle',
+            onClick: () => setShowFinishedRuns(!showFinishedRuns)
+          }, showFinishedRuns ? t('隐藏已完成') : tf('已完成 {count}', { count: finishedRuns.length })),
+          approvalSelect
+        ])
       }, runs.length === 0
         ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无实验记录'))
-        : h('div', { key: 'list', className: 'rtp-exp' }, runs.map((entry) => {
+        : visibleRuns.length === 0
+        ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无进行中的实验'))
+        : h('div', { key: 'list', className: 'rtp-exp' }, visibleRuns.map((entry) => {
             const state = entry.state === undefined ? entry.status : entry.state
             const pending = state === 'awaiting_approval'
             const elapsed = formatElapsed(entry.elapsedMs)
@@ -1718,13 +1845,6 @@ function statusLabel(status) {
                             : null
                         ]),
                         h('div', { key: 'act', className: 'rtp-litact' }, [
-                          h('button', {
-                            key: 'cite',
-                            type: 'button',
-                            className: 'rtp-ghost',
-                            title: tf('复制 {citation}', { citation: citeOf(entry) }),
-                            onClick: (event) => { event.stopPropagation(); copyCitation(citeOf(entry), tf('已复制 {citation} 引用', { citation: '\\cite' })) }
-                          }, 'cite'),
                           h('button', {
                             key: 'quote',
                             type: 'button',

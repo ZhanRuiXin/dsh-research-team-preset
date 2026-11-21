@@ -4,7 +4,7 @@
 
 **Ein DSH-Agent-Preset, das eine Sitzung in ein kleines, koordiniertes Forschungsteam verwandelt.**
 
-**Version 0.2.6** · **Aktualisiert 2026-11-15**
+**Version 0.3.0** · **Aktualisiert 2026-11-21**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <strong>Deutsch</strong> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -22,7 +22,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 | --- | --- |
 | **Standardrollen** | 8: advisor, designer, researcher, data, builder, runner, reviewer, writer |
 | **Workflow** | Gate-basiert: interne Schritte als Worklog-Indexzeilen, Nutzer-Gates als Work-Item-Dateien; erstellen, uebernehmen, ausfuehren, berichten, pruefen, Abnahme durch die nutzende Person |
-| **Abschluss** | `in_review` ist die letzte Station des Agenten; nur die nutzende Person kann ein Arbeitselement auf `done` setzen |
+| **Abschluss** | Ein Freigabe-Element endet in `in_review`, nur die nutzende Person setzt `done`; interne Schritte schliesst der Verantwortliche selbst |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
 | **Git** | Wird beim Start substanzieller Arbeit vom Agenten initialisiert; destruktive Änderungen auf einem Branch; Zusammenführung erst nach Abnahme |
 | **Worklog** | JSON-Speicher in `.research/worklog/`; `PLAN.md` und `INDEX.md` sind generierte Ansichten; beim Wiederaufnehmen zuerst `research_state` |
@@ -73,20 +73,20 @@ Dieses Preset wird als DSH-Bundle ausgeliefert und ist auf npm als `dsh-research
 ### Installation über die DSH-Plugins-Seite
 
 2. Öffnen Sie **Einstellungen → Plugins** und klicken Sie auf **Hinzufügen**.
-3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.2.6` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.2.6` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
+3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.3.0` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
 4. **Starten Sie DSH neu.** Preset-Zeilen und die Client-Hälfte des Bundles werden beim Start geladen.
 5. **Prüfen Sie, dass das Bundle im selben Profil aktiviert ist**, öffnen Sie dann **eine neue Sitzung** und wählen Sie **Research Team Mode** in der Modusauswahl.
 
 ### Installation über die Kommandozeile
 
 ```text
-dsh plugin add dsh-research-team-preset@0.2.6
+dsh plugin add dsh-research-team-preset@0.3.0
 ```
 
 Um stattdessen die Quelle zu pinnen statt den Registrierungsserver:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.2.6
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
 ```
 
 > Der Modus ist ein profilweites Bundle: Die Installation in einem Profil aktiviert ihn nicht in einem anderen. Wiederholen Sie Installation und Voraussetzungen für jedes Profil.
@@ -172,6 +172,8 @@ Ein Lauf oder Langzeitjob, der den Turn überlebt, hinterlässt Job- oder Termin
 
 ## Forschungs-Seitenleiste
 
+Der Tab beantwortet, was das Team gerade tut, wo es blockiert ist und was als Nächstes kommt: das Ziel aus `.research/worklog/plan.json`, die aktiven Arbeitseinträge aus `.research/worklog/items/` (erledigte hinter dem Schalter „已完成“), die Läufe mit Lebenszyklus und Genehmigungsstatus (erledigte hinter demselben Schalter; nur ein Verzeichnis unter `runs/` mit `manifest.json` zählt als Lauf), die Architekturkarten in ihren projektdefinierten Gruppen und das laufende Team. Ein Klick auf einen Arbeitseintrag oder Lauf klappt die Zeile auf, ein weiterer Klick klappt sie zu; ein interner Schritt, der mit `parent` auf seinen zugehörigen Gate-Eintrag verweist, ist in diesen eingebettet und lässt sich wie eine oberste Zeile auf- und zuklappen, mit mehreren gleichzeitig offenen Zeilen und in der Reihenfolge der wahrscheinlichen Ausführung. Ein Bereich 文献 zeigt die Leseliste, die das Team mit `research_literature` pflegt: vom Agenten benannte Kategorien und eine Karte pro Zotero-Eintragsschlüssel, deren aufgeklappter Inhalt die Markdown-Notiz ist.
+
 Arbeit, die über Sitzungen reicht, liegt als JSON in `.research/worklog/`: `plan.json` für Ziel, Meilensteine, nächsten Schritt und Entscheidungen, ein `items/<id>.json` pro Eintrag. Die Dateien `PLAN.md`, `INDEX.md` und die Karten werden von den Werkzeugen erzeugt und nicht von Hand bearbeitet.
 
 Architekturkarten sind Knoten-Kanten-Diagramme als JSON unter `.research/architecture/`, eine Datei pro Karte. Der Agent liest und aktualisiert sie mit dem Werkzeug `research_architecture`, damit das Diagramm mit dem Design Schritt hält statt in einer Folie zu veralten. Eine Karte wird im Panel als SVG gerendert; ein Auswahlrahmen über Knoten wählt sie aus, und die Auswahl lässt sich in die Unterhaltung zitieren; was festgehalten werden soll, wird als Notiz an der Karte gespeichert, die der Agent vor seiner Antwort liest. Der Tab registriert sich über `dsh-better-sidebar`, wenn dieses Plugin installiert ist, und sonst über die native rechte Seitenleiste.
@@ -188,7 +190,7 @@ Der Designer besitzt die Karten zur Methode, der Builder die Karten zur Implemen
 
 Statuswechsel folgen einer festen Tabelle (`todo → in_progress → in_review → done`); `blocked` und `canceled` sind Nebenstatus. `blocked` verlangt einen Grund, ein Gate verlangt mindestens einen Evidenzeintrag, und jeder Wechsel wird in der Historie des Eintrags festgehalten.
 
-Am Gate schreibt der Verantwortliche die Checkliste mit Evidenz, die Ausfuehrungszusammenfassung, den Commit-Bereich und den naechsten Schritt in die Kartendatei, fuehrt `research_scope_check` auf den geaenderten Pfaden aus und setzt den Status auf `in_review`. Der Reviewer schreibt ein PASS/FAIL mit Evidenz; der Lead berichtet Karten-id, Status und Evidenz nur am Gate oder wenn die Person handeln muss. `done` gehoert allein der Abnahme durch die Person; `blocked` heisst nicht fortfahrbar, `canceled` heisst beendet.
+Am Gate schreibt der Verantwortliche die Checkliste mit Evidenz, die Ausfuehrungszusammenfassung, den Commit-Bereich und den naechsten Schritt in die Kartendatei, fuehrt `research_scope_check` auf den geaenderten Pfaden aus und setzt den Status auf `in_review`. Der Reviewer schreibt ein PASS/FAIL mit Evidenz; der Lead berichtet Karten-id, Status und Evidenz nur am Gate oder wenn die Person handeln muss. `done` gehoert bei Freigabe-Elementen allein der Abnahme durch die Person, interne Schritte schliesst der Verantwortliche selbst; `blocked` heisst nicht fortfahrbar, `canceled` heisst beendet.
 
 ```text
 User goal

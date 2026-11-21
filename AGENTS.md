@@ -18,7 +18,7 @@ node --check plugin/literature.js
 node --check client/index.js
 node --check panel/index.js
 node --check panel/client.js
-node --test test/modeled-teammates.test.js test/scope-check.test.js test/workspace-init.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js test/team-mode.test.js test/prompt.test.js test/roles.test.js test/library.test.js test/literature.test.js
+node --test test/modeled-teammates.test.js test/scope-check.test.js test/workspace-init.test.js test/settings-route.test.js test/architecture.test.js test/worklog.test.js test/team-mode.test.js test/prompt.test.js test/roles.test.js test/library.test.js test/literature.test.js test/panel-i18n.test.js test/zotero-open.test.js test/open-file.test.js
 ```
 
 - Parse `cordis.patch.yml` with the `yaml` package (strip `!!js` tags first), confirm the single `research-team` preset carries a prompt row, the role-skills row and the modeled-teammates row, and that no inline `persona` row remains. Run `node tmp/val-prompt.cjs` to check `prompt/core.md` and every role brief.

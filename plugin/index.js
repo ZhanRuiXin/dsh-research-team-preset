@@ -914,6 +914,12 @@ export function openProjectFile(root, target, spawn = spawnProcess) {
   return { ok: true, path: rel.split(path.sep).join("/") }
 }
 
+export function worklogItem(root, id) {
+  const item = readItem(root, id)
+  if (item === undefined) return { error: `no work item "${String(id)}"` }
+  return item.kind === 'gated' ? { ...item, card: itemCardPath(root, item.id) } : { ...item }
+}
+
 export function buildPanelState(root, options = {}) {
   const worklogPlan = readPlan(root)
   const plan = {
@@ -1984,12 +1990,7 @@ export function apply(ctx) {
         return { ...worklogSummary(root), notes: imported.notes, migrated: imported.migrated }
       }
       if (op === 'list') return worklogSummary(root)
-      if (op === 'get') {
-        const item = readItem(root, args.id)
-        return item === undefined
-          ? { error: `no work item "${String(args.id)}"` }
-          : { ...item, card: item.kind === 'gated' ? itemCardPath(root, item.id) : undefined }
-      }
+      if (op === 'get') return worklogItem(root, args.id)
       if (op === 'plan') return { plan: writePlan(root, { objective: args.objective, milestone: args.milestone, milestones: args.milestones, next: args.next }) }
       if (op === 'claim') return claimItem(root, { id: args.id, owner: args.owner })
       if (op === 'gate') {

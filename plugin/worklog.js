@@ -416,7 +416,9 @@ export function upsertItem(root, input = {}) {
   if (item.title === '') return { error: 'title is required when creating an item' }
   writeJson(path.join(dirs.items, `${id}.json`), item)
   renderViews(root)
-  return { item, card: item.kind === 'gated' ? cardFile(root, item) : undefined, created: previous === undefined }
+  const result = { item, created: previous === undefined }
+  if (item.kind === 'gated') result.card = cardFile(root, item)
+  return result
 }
 
 export function claimItem(root, input = {}) {

@@ -2,6 +2,10 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.0.
 
+## Unreleased
+
+- Fixed `research_worklog` returning a nested `undefined` for internal steps (`op=update` and `op=get`), which the host rejects as "not lossless JSON" before the model sees the result. A new test runs the worklog, panel, architecture, experiment and literature payloads through the same rule the host enforces.
+
 ## 0.3.0 — 2026-11-21
 
 - Opening a file or a `zotero://` link no longer flashes a console window on Windows: the host used `cmd /c start`, whose detached child allocates a console, and now runs the GUI-subsystem `rundll32 url.dll,FileProtocolHandler`, which reaches the same ShellExecute path. macOS keeps `open`; Linux prefers `xdg-open` and falls back to `gio open`, and a host without either reports the reason instead of failing silently.

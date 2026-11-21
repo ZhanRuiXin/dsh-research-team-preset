@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.2.6.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.0.
 
-## Unreleased
+## 0.3.0 — 2026-11-21
 
 - Opening a file or a `zotero://` link no longer flashes a console window on Windows: the host used `cmd /c start`, whose detached child allocates a console, and now runs the GUI-subsystem `rundll32 url.dll,FileProtocolHandler`, which reaches the same ShellExecute path. macOS keeps `open`; Linux prefers `xdg-open` and falls back to `gio open`, and a host without either reports the reason instead of failing silently.
 - A delivered PDF (or office file, archive, or media file) opens with the OS default application: those formats have no sidebar preview tab, so the click used to do nothing. The panel posts the worklog's relative path, the host refuses anything outside the project root and starts the file with the system opener; text and image deliverables still open in the sidebar preview, and a failed hand-off shows the reason.

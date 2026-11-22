@@ -150,7 +150,12 @@ window.__ModuleLoader__.load({
         '已用默认应用打开': '已用默认应用打开',
         '打开失败': '打开失败',
         '科研': '科研',
-        '团队状态：架构、工作项与实验': '团队状态：架构、工作项与实验'
+        '团队状态：架构、工作项与实验': '团队状态：架构、工作项与实验',
+        '阻塞项决策方式': '阻塞项决策方式',
+        '人工决策': '人工决策',
+        '智能决策': '智能决策',
+        '阻塞项改由 advisor 决策。': '阻塞项改由 advisor 决策。',
+        '阻塞项改由你决策。': '阻塞项改由你决策。'
       },
       en: {
         '输入': 'Input',
@@ -277,7 +282,12 @@ window.__ModuleLoader__.load({
         '已用默认应用打开': 'Opened with the default application',
         '打开失败': 'Could not open',
         '科研': 'Research',
-        '团队状态：架构、工作项与实验': 'Team status: architecture, work items and experiments'
+        '团队状态：架构、工作项与实验': 'Team status: architecture, work items and experiments',
+        '阻塞项决策方式': 'Blocker decisions',
+        '人工决策': 'Human',
+        '智能决策': 'Advisor',
+        '阻塞项改由 advisor 决策。': 'Blockers are decided by the advisor now.',
+        '阻塞项改由你决策。': 'Blockers are yours to decide now.'
       }
     }
 
@@ -1258,6 +1268,7 @@ function statusLabel(status) {
       const visibleRuns = showFinishedRuns ? runs : runs.filter((entry) => /^(completed|stopped|failed|rejected)$/.test(runState(entry)) === false)
       const team = (state && state.team) || []
       const experimentSettings = (state && state.experimentSettings) || { approval: 'required' }
+      const decisionMode = state && state.decisionMode === 'advisor' ? 'advisor' : 'human'
 
       function toggleNode(id) {
         setSelectedNodes((current) => (current.indexOf(id) >= 0 ? current.filter((item) => item !== id) : [...current, id]))
@@ -1285,6 +1296,10 @@ function statusLabel(status) {
 
       function setApprovalMode(mode) {
         postPanel({ op: 'approval-mode', mode }, mode === 'auto' ? t('实验审批方式已设为自动审批。') : t('实验审批方式已设为需要审批。'))
+      }
+
+      function setDecisionMode(mode) {
+        postPanel({ op: 'decision-mode', mode }, mode === 'advisor' ? t('阻塞项改由 advisor 决策。') : t('阻塞项改由你决策。'))
       }
 
       function decideItem(itemId, decision) {
@@ -1725,12 +1740,24 @@ function statusLabel(status) {
       const cardsSection = h(Section, {
         key: 'cards',
         title: t('工作项'),
-        action: finishedCount === 0 ? undefined : h('button', {
-          key: 'finished',
-          type: 'button',
-          className: 'rtp-toggle',
-          onClick: () => setShowFinished(!showFinished)
-        }, showFinished ? t('隐藏已完成') : tf('已完成 {count}', { count: finishedCount }))
+        action: h('div', { key: 'acts', style: { display: 'flex', alignItems: 'center', gap: '6px' } }, [
+          finishedCount === 0 ? null : h('button', {
+            key: 'finished',
+            type: 'button',
+            className: 'rtp-toggle',
+            onClick: () => setShowFinished(!showFinished)
+          }, showFinished ? t('隐藏已完成') : tf('已完成 {count}', { count: finishedCount })),
+          h('select', {
+            key: 'decision',
+            className: 'rtp-sel',
+            value: decisionMode,
+            title: t('阻塞项决策方式'),
+            onChange: (event) => setDecisionMode(event.target.value)
+          }, [
+            h('option', { key: 'human', value: 'human' }, t('人工决策')),
+            h('option', { key: 'advisor', value: 'advisor' }, t('智能决策'))
+          ])
+        ])
       }, topCards.length === 0
         ? h('div', { key: 'empty', className: 'rtp-empty' }, t('暂无工作项'))
         : h('div', { key: 'list', className: 'rtp-items' }, topCards.map((entry) => itemRow(entry, 0))))

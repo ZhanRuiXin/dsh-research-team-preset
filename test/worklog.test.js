@@ -21,8 +21,10 @@ const {
   listItems,
   readDesign,
   readItem,
+  readWorklogSettings,
   saveDesign,
-  upsertItem
+  upsertItem,
+  writeWorklogSettings
 } = await import('../plugin/worklog.js')
 
 function project(t) {
@@ -272,4 +274,19 @@ test('an item keeps its deliverables and drops empty entries', (t) => {
   assert.equal(item.deliverables[0].label, 'E2 report')
   assert.equal(item.deliverables[0].path, 'reports/e2.md')
   assert.equal(item.deliverables[1].url, 'https://example.org/paper')
+})
+
+test('advisor mode sends new blockers to the advisor and leaves old ones alone', (t) => {
+  const dir = project(t)
+  assert.deepEqual(readWorklogSettings(dir), { blockedMode: 'human' })
+  assert.equal(upsertItem(dir, { id: 'a-1', title: 'First', status: 'blocked', blocked: 'waiting' }).item.status, 'blocked')
+  assert.deepEqual(writeWorklogSettings(dir, { blockedMode: 'advisor' }), { blockedMode: 'advisor' })
+  assert.deepEqual(readWorklogSettings(dir), { blockedMode: 'advisor' })
+  const refused = upsertItem(dir, { id: 'b-2', title: 'Second', status: 'blocked', blocked: 'waiting' })
+  assert.match(refused.error, /blocked decisions go to the advisor/)
+  const kept = upsertItem(dir, { id: 'a-1', title: 'First (edited)' })
+  assert.equal(kept.item.title, 'First (edited)')
+  assert.equal(kept.item.status, 'blocked')
+  writeWorklogSettings(dir, { blockedMode: 'human' })
+  assert.equal(upsertItem(dir, { id: 'b-2', title: 'Second', status: 'blocked', blocked: 'waiting' }).item.status, 'blocked')
 })

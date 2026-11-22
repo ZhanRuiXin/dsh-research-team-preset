@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Work items carry a project decision mode next to the 已完成 toggle: 人工决策 keeps new blockers for the user, while 智能决策 refuses a move into `blocked` and routes the question to the advisor, whose answer is recorded with `research_decision` before the item moves to the agreed next step. `research_worklog op=decision-mode` reads or sets it, and the mode lives in `.research/worklog/settings.json`.
+
 - Every turn opens with a short ledger reminder built from the project: the objective and milestone, open work items, non-archived architecture cards and unfinished experiments. It is state, not an instruction, and it disappears when the project has nothing open.
 
 - An item cannot enter `in_review` while steps that name it as parent are still open: the tool refuses the move with `"<id>" still has N open step(s): …`, so the user only sees an item for acceptance after its steps are done or canceled.

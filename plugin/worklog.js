@@ -19,6 +19,30 @@ import path from 'node:path'
 
 export const ITEM_STATUSES = Object.freeze(['todo', 'in_progress', 'in_review', 'blocked', 'done', 'canceled'])
 export const ITEM_KINDS = Object.freeze(['gated', 'internal'])
+export const DECISION_MODES = Object.freeze(['human', 'advisor'])
+
+function worklogSettingsPath(root) {
+  return path.join(root, '.research', 'worklog', 'settings.json')
+}
+
+export function readWorklogSettings(root) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(worklogSettingsPath(root), 'utf8'))
+    return { blockedMode: parsed !== null && parsed.blockedMode === 'advisor' ? 'advisor' : 'human' }
+  } catch (error) {
+    return { blockedMode: 'human' }
+  }
+}
+
+export function writeWorklogSettings(root, settings = {}) {
+  const file = worklogSettingsPath(root)
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  const blockedMode = settings.blockedMode === 'advisor' ? 'advisor' : 'human'
+  const temp = `${file}.tmp-${process.pid}`
+  fs.writeFileSync(temp, `${JSON.stringify({ blockedMode }, null, 2)}\n`, 'utf8')
+  fs.renameSync(temp, file)
+  return { blockedMode }
+}
 
 /** Allowed status moves. `done` and `canceled` are terminal; a reopen goes through the user. */
 export const ITEM_TRANSITIONS = Object.freeze({
@@ -381,6 +405,13 @@ export function upsertItem(root, input = {}) {
     return {
       error:
         'done belongs to the user: a gated item is accepted from the Research panel; an internal step can be closed by its owner'
+    }
+  }
+  const enteringBlocked = status === 'blocked' && (previous === undefined || previous.status !== 'blocked')
+  if (enteringBlocked && readWorklogSettings(root).blockedMode === 'advisor') {
+    return {
+      error:
+        'blocked decisions go to the advisor in this project: ask the advisor with the question and its options, record the answer with research_decision, then set the item to the agreed next step (in_progress with next, or canceled) instead of blocked'
     }
   }
   const history = previous !== undefined && Array.isArray(previous.history) ? [...previous.history] : []

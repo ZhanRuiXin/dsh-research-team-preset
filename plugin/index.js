@@ -39,12 +39,14 @@ import {
   readDesign,
   readItem,
   readPlan,
+  readWorklogSettings,
   renderViews,
   saveDesign,
   upsertItem,
   worklogDirs,
   worklogSummary,
-  writePlan
+  writePlan,
+  writeWorklogSettings
 } from './worklog.js'
 import { matchRoleName, modelForRole } from './settings-store.js'
 
@@ -1050,6 +1052,7 @@ export function buildPanelState(root, options = {}) {
     finishedItems: finished.length,
     runs: runs.slice(0, 40),
     experimentSettings: settings,
+    decisionMode: readWorklogSettings(root).blockedMode,
     designs: designs.slice(0, 12),
     architectures: listArchitectureCards(root)
   }
@@ -1707,6 +1710,16 @@ export function apply(ctx) {
         const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
+      if (body?.op === 'decision-mode') {
+        const mode = body.mode === 'advisor' ? 'advisor' : body.mode === 'human' ? 'human' : ''
+        if (mode === '') {
+          jsonResponse(res, 400, { ok: false, error: 'mode must be human or advisor' })
+          return
+        }
+        writeWorklogSettings(root, { blockedMode: mode })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
+        return
+      }
       if (body?.op === 'approve') {
         const decision = body.decision === 'approved' || body.decision === 'rejected' ? body.decision : ''
         if (decision === '') {
@@ -1931,11 +1944,11 @@ export function apply(ctx) {
   const disposeWorklog = ctx.tools.register({
     name: 'research_worklog',
     description:
-      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; an internal step may be closed with done by its owner, while a gated item reaches done only after the user accepted it in the Research panel. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, canceled may carry one (usually an internal step), a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history. Pass parent with the id of the gated item an internal step serves; the panel shows that step inside the item.',
+      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; an internal step may be closed with done by its owner, while a gated item reaches done only after the user accepted it in the Research panel. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, canceled may carry one (usually an internal step), a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history. Pass parent with the id of the gated item an internal step serves; the panel shows that step inside the item. The project decision mode (op=decision-mode) either leaves blockers to the user (human) or sends every new blocker to the advisor (advisor): in advisor mode a move into blocked is refused, so message the advisor with the question and its options, record the answer with research_decision, and set the agreed next step instead.',
     parameters: {
       type: 'object',
       properties: {
-        op: { type: 'string', enum: ['init', 'list', 'get', 'update', 'claim', 'gate', 'plan'] },
+        op: { type: 'string', enum: ['init', 'list', 'get', 'update', 'claim', 'gate', 'plan', 'decision-mode'] },
         id: { type: 'string', description: 'Work item id, [A-Za-z0-9][A-Za-z0-9._-]{0,63}.' },
         title: { type: 'string' },
         owner: { type: 'string', description: 'Role name of the owner, one of the eight standard teammate roles (advisor, researcher, data, designer, builder, runner, reviewer, writer).' },
@@ -1944,6 +1957,12 @@ export function apply(ctx) {
         parent: { type: 'string', description: 'Optional id of the gated item an internal step serves; the panel nests the step inside that item when it is expanded.' },
         next: { type: 'string' },
         blocked: { type: 'string' },
+        blockedMode: {
+          type: 'string',
+          enum: ['human', 'advisor'],
+          description:
+            'For op=decision-mode: human leaves new blockers to the user; advisor sends every new blocker to the advisor, so a move into blocked is refused.'
+        },
         reason: { type: 'string', description: 'op=update: why a canceled item was closed; optional.' },
         summary: { type: 'string' },
         base: { type: 'string' },
@@ -1992,6 +2011,15 @@ export function apply(ctx) {
       if (op === 'list') return worklogSummary(root)
       if (op === 'get') return worklogItem(root, args.id)
       if (op === 'plan') return { plan: writePlan(root, { objective: args.objective, milestone: args.milestone, milestones: args.milestones, next: args.next }) }
+      if (op === 'decision-mode') {
+        if (args.blockedMode === 'human' || args.blockedMode === 'advisor') {
+          const next = writeWorklogSettings(root, { blockedMode: args.blockedMode })
+          return next.blockedMode === 'advisor'
+            ? { mode: 'advisor', message: 'Blockers now go to the advisor: message the advisor with the question and its options, record the answer with research_decision, then set the item to the agreed next step (in_progress with next, or canceled).' }
+            : { mode: 'human', message: "Blockers are the user's call: set the item to blocked and write what it is waiting for." }
+        }
+        return { mode: readWorklogSettings(root).blockedMode }
+      }
       if (op === 'claim') return claimItem(root, { id: args.id, owner: args.owner })
       if (op === 'gate') {
         const result = gateItem(root, args)

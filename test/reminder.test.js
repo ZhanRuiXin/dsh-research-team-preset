@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { apply, buildReminder, REMINDER_CONTEXT, REMINDER_ORDER } from '../plugin/reminder.js'
-import { upsertItem, writePlan } from '../plugin/worklog.js'
+import { upsertItem, writePlan, writeWorklogSettings } from '../plugin/worklog.js'
 
 function project() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-reminder-'))
@@ -64,4 +64,14 @@ test('the context resolves the project from the assembling agent', () => {
   const text = entries[0].text({ agent: { session: { header: { cwd: root } } } })
   assert.match(text, /Enough/)
   assert.equal(entries[0].text({}), '')
+})
+
+test('advisor mode names the blocked items that need the advisor', () => {
+  const root = project()
+  upsertItem(root, { id: 'b-1', title: 'Blocked work', status: 'blocked', blocked: 'waiting on GPUs' })
+  assert.doesNotMatch(buildReminder(root), /Blocked items the advisor decides/)
+  writeWorklogSettings(root, { blockedMode: 'advisor' })
+  const text = buildReminder(root)
+  assert.match(text, /Blocked items the advisor decides \(1\): b-1/)
+  assert.match(text, /research_decision/)
 })

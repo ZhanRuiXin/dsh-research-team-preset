@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { readPlan, listItems } from './worklog.js'
+import { listItems, readPlan, readWorklogSettings } from './worklog.js'
 
 export const REMINDER_CONTEXT = 'research-team:ledger'
 export const REMINDER_ORDER = 240
@@ -79,6 +79,15 @@ export function buildReminder(root) {
       lines.push(`- ${item.id} ${item.title} (${item.status}${owner})${extra}`)
     }
     if (items.length > MAX_ITEMS) lines.push(`- +${items.length - MAX_ITEMS} more`)
+  }
+  const blockedMode = readWorklogSettings(root).blockedMode
+  const blockedItems = items.filter((item) => item.status === 'blocked')
+  if (blockedMode === 'advisor' && blockedItems.length > 0) {
+    const ids = blockedItems.slice(0, MAX_ITEMS).map((item) => item.id).join(', ')
+    const rest = blockedItems.length > MAX_ITEMS ? `, +${blockedItems.length - MAX_ITEMS} more` : ''
+    lines.push(
+      `Blocked items the advisor decides (${blockedItems.length}): ${ids}${rest}. Send the advisor the question with its options and evidence, record the answer with research_decision, then move each item to the agreed next step (in_progress with next, or canceled).`
+    )
   }
   if (cards.length > 0) {
     lines.push(`Architecture cards not archived (${cards.length}): ${cards.slice(0, MAX_CARDS).join('; ')}${cards.length > MAX_CARDS ? '; …' : ''}`)

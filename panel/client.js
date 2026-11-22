@@ -563,9 +563,9 @@ const LITERATURE_ROUTE = '/api/dsh-research-team-literature'
     }
 
     /* One line of detail shown only when a work item row is expanded. */
-function entryExtra(entry) {
+function entryExtra(entry, depth = 0) {
   return [
-    entry.kind === 'gated' ? t('需要你验收') : entry.kind === 'internal' ? t('内部步骤') : '',
+    depth > 0 ? t('内部步骤') : entry.kind === 'gated' ? t('需要你验收') : entry.kind === 'internal' ? t('内部步骤') : '',
     entry.blocked ? tf('阻塞：{text}', { text: entry.blocked }) : '',
     entry.reason ? tf('取消：{text}', { text: entry.reason }) : '',
     entry.evidenceCount ? tf('证据 {count} 条', { count: entry.evidenceCount }) : '',
@@ -1683,7 +1683,7 @@ function statusLabel(status) {
           h('div', { key: 'main', className: 'rtp-rowmain' }, [
             h('div', { key: 't', className: 'rtp-rowtitle' }, [
               h('span', { key: 'text', className: 'rtp-rowtitletext' }, entry.title),
-              entry.kind === 'gated' && entry.status === 'in_review'
+              depth === 0 && entry.kind === 'gated' && entry.status === 'in_review'
                 ? h('span', { key: 'decide', className: 'rtp-rowdecide' }, [
                     h('button', { key: 'ok', type: 'button', className: 'rtp-mini ok', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'accept') } }, t('确认完成')),
                     h('button', { key: 'no', type: 'button', className: 'rtp-mini no', disabled: busy, onClick: (event) => { event.stopPropagation(); decideItem(entry.id, 'return') } }, t('退回'))
@@ -1701,8 +1701,8 @@ function statusLabel(status) {
               entry.deliverables && entry.deliverables.length ? tf(' · 附件 {count}', { count: entry.deliverables.length }) : '',
               entry.updated ? ` · ${formatSince(entry.updated)}` : '',
             ]),
-            open && entryExtra(entry) !== ''
-              ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry))
+            open && entryExtra(entry, depth) !== ''
+              ? h('div', { key: 'extra', className: 'rtp-itemextra' }, entryExtra(entry, depth))
               : null,
             open && Array.isArray(entry.deliverables) && entry.deliverables.length > 0
               ? h('div', { key: 'files', className: 'rtp-files' }, [

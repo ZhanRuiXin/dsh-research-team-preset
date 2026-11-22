@@ -475,6 +475,9 @@ export function decideItem(root, input = {}) {
   if (previous.status !== 'in_review') {
     return { error: `"${id}" is ${previous.status}; only an item in in_review can be accepted or returned` }
   }
+  if (typeof previous.parent === 'string' && previous.parent.length > 0) {
+    return { error: `"${id}" is a step inside "${previous.parent}"; accept that item and the step is covered` }
+  }
   if (previous.kind !== 'gated') {
     return { error: `"${id}" is an internal step; its owner closes it with done, the panel does not accept it` }
   }

@@ -25,7 +25,7 @@ Le mode est conçu pour des recherches qui s'étalent sur des jours ou des semai
 | **Achèvement** | Un élément soumis à validation s'arrête à `in_review` et seul l'utilisateur le passe à `done` ; une étape interne est clôturée par son responsable |
 | **Routage des modèles** | Provider, model et effort de raisonnement par rôle, depuis un formulaire de réglages de la page Plugins |
 | **Git** | Initialisé par l'agent au début du travail substantiel ; changements destructifs sur une branche ; fusion après acceptation seulement |
-| **Worklog** | Stockage JSON dans `.research/worklog/` ; `PLAN.md` et `INDEX.md` sont des vues générées ; à la reprise, d’abord `research_state` |
+| **Worklog** | Stockage JSON dans `.research/worklog/` ; `PLAN.md` et `INDEX.md` sont des vues générées ; à la reprise, d’abord `research_state` ; chaque tour s’ouvre aussi sur un bref rappel des tâches ouvertes, des cartes actives et des expériences inachevées |
 | **Runtime** | PTC (`run_code` + SDK généré), une couche de sous-agent par membre |
 
 ## À qui s'adresse ce mode

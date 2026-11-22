@@ -166,6 +166,10 @@
             name: 'dsh-research-team-preset/library'
           - id: research-literature
             name: 'dsh-research-team-preset/literature'
+          - id: research-reminder
+            # A short per-turn reminder of open items, cards and runs, built
+            # from the project ledger at assembly time.
+            name: 'dsh-research-team-preset/reminder'
 
 # Top-level host row for the Plugins-page settings form. The row must name the
 # package root, not a subpath: dsh-client-modules only associates a package's

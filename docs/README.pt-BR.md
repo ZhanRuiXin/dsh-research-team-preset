@@ -25,7 +25,7 @@ O modo é voltado a pesquisas que duram dias ou semanas, exigem evidências rast
 | **Conclusão** | Um item com portão para em `in_review` e só o usuário o move para `done`; um passo interno é fechado pelo responsável |
 | **Roteamento de modelos** | Provedor, modelo e esforço de raciocínio por função, definidos em um formulário na página de Plugins |
 | **Git** | Inicializado pelo agente quando o trabalho substantivo começa; mudanças destrutivas em uma branch; mesclagem somente após a aceitação |
-| **Worklog** | Armazenamento JSON em `.research/worklog/`; `PLAN.md` e `INDEX.md` são visões geradas; ao retomar, primeiro `research_state` |
+| **Worklog** | Armazenamento JSON em `.research/worklog/`; `PLAN.md` e `INDEX.md` são visões geradas; ao retomar, primeiro `research_state`; cada turno também começa com um lembrete curto dos itens abertos, cartões ativos e experimentos inacabados |
 | **Runtime** | PTC (`run_code` + SDK gerado), uma camada de subagente por membro |
 
 ## Para quem

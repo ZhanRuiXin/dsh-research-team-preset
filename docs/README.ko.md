@@ -25,7 +25,7 @@ Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 �
 | **완료** | 승인이 필요한 작업 항목은 `in_review`에서 멈추고 사용자만 `done`으로 옮길 수 있습니다. 내부 단계는 담당자가 직접 닫습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
 | **Git** | 실질적 작업이 시작될 때 에이전트가 초기화. 파괴적 변경은 브랜치에서 진행하고 수락 후에만 병합 |
-| **Worklog** | `.research/worklog/`의 JSON 저장소. `PLAN.md`와 `INDEX.md`는 생성된 보기. 재개 시 먼저 `research_state` |
+| **Worklog** | `.research/worklog/`의 JSON 저장소. `PLAN.md`와 `INDEX.md`는 생성된 보기. 재개 시 먼저 `research_state`. 각 턴은 미완료 작업 항목, 보관되지 않은 아키텍처 카드, 미완료 실험을 담은 짧은 알림으로 시작한다 |
 | **런타임** | PTC(`run_code` + 생성된 SDK), 멤버당 하위 에이전트 계층 1개 |
 
 ## 대상 사용자

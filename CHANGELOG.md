@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Every turn opens with a short ledger reminder built from the project: the objective and milestone, open work items, non-archived architecture cards and unfinished experiments. It is state, not an instruction, and it disappears when the project has nothing open.
+
 - An item cannot enter `in_review` while steps that name it as parent are still open: the tool refuses the move with `"<id>" still has N open step(s): …`, so the user only sees an item for acceptance after its steps are done or canceled.
 - Steps inside a work item never ask for their own acceptance: the panel shows 确认完成/退回 only on top-level gated items, a nested row reads 内部步骤, and the panel refuses a decision on a nested item with `"<id>" is a step inside "<parent>"`; accepting the parent covers its steps.
 - The Zotero tool shares one client per process, joins parallel first writes into a single authorization request, and re-reads the key file before asking again, so a burst of writes no longer opens one Zotero dialog each; `status` now reports `keyCached`, the key file in use and the home directory it resolves. The key is cached unless Zotero explicitly marks it single-use, so a response that omits the flag no longer costs a dialog per write.

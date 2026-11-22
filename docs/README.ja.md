@@ -25,7 +25,7 @@ Research Team Mode は、単一のチャットではなくチームとしてエ�
 | **完了** | 承認が必要な作業項目は `in_review` で止まり、`done` にできるのはユーザーだけ。内部ステップは担当者が自身で閉じる |
 | **モデルルーティング** | Plugins ページの設定フォームから、役割ごとに provider、model、reasoning effort を指定 |
 | **Git** | 実質的な作業の開始時にエージェントが初期化。破壊的な変更はブランチで行い、受け入れ後にのみマージ |
-| **Worklog** | `.research/worklog/` の JSON ストア。`PLAN.md` と `INDEX.md` は生成されたビュー。再開時はまず `research_state` |
+| **Worklog** | `.research/worklog/` の JSON ストア。`PLAN.md` と `INDEX.md` は生成されたビュー。再開時はまず `research_state`。各ターンは未完了の作業項目・未アーカイブのアーキテクチャカード・未完了の実験の短いリマインダーから始まる |
 | **ランタイム** | PTC（`run_code` + 生成 SDK）。メンバーごとにサブエージェント 1 層 |
 
 ## 対象となるユーザー

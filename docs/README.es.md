@@ -25,7 +25,7 @@ El modo está pensado para investigaciones que abarcan días o semanas, que nece
 | **Finalización** | Un elemento con puerta termina en `in_review` y solo el usuario lo pasa a `done`; un paso interno lo cierra su responsable |
 | **Enrutamiento de modelos** | Proveedor, modelo y esfuerzo de razonamiento por rol desde un formulario de ajustes de la página de Plugins |
 | **Git** | El agente lo inicializa al empezar el trabajo sustantivo; cambios destructivos en una rama; fusión solo tras la aceptación |
-| **Worklog** | Almacén JSON en `.research/worklog/`; `PLAN.md` e `INDEX.md` son vistas generadas; al reanudar, primero `research_state` |
+| **Worklog** | Almacén JSON en `.research/worklog/`; `PLAN.md` e `INDEX.md` son vistas generadas; al reanudar, primero `research_state`; cada turno empieza además con un recordatorio breve de los elementos abiertos, las tarjetas activas y los experimentos sin terminar |
 | **Runtime** | PTC (`run_code` + SDK generado), una capa de subagente por miembro |
 
 ## Para quién es

@@ -25,7 +25,7 @@ Der Modus ist für Forschung gedacht, die sich über Tage oder Wochen erstreckt,
 | **Abschluss** | Ein Freigabe-Element endet in `in_review`, nur die nutzende Person setzt `done`; interne Schritte schliesst der Verantwortliche selbst |
 | **Modell-Routing** | Provider, Modell und Reasoning-Effort pro Rolle über ein Einstellungsformular auf der Plugins-Seite |
 | **Git** | Wird beim Start substanzieller Arbeit vom Agenten initialisiert; destruktive Änderungen auf einem Branch; Zusammenführung erst nach Abnahme |
-| **Worklog** | JSON-Speicher in `.research/worklog/`; `PLAN.md` und `INDEX.md` sind generierte Ansichten; beim Wiederaufnehmen zuerst `research_state` |
+| **Worklog** | JSON-Speicher in `.research/worklog/`; `PLAN.md` und `INDEX.md` sind generierte Ansichten; beim Wiederaufnehmen zuerst `research_state`; jede Runde beginnt zusätzlich mit einer kurzen Erinnerung an offene Arbeitseinträge, aktive Karten und laufende Experimente |
 | **Laufzeit** | PTC (`run_code` + generiertes SDK), eine Subagent-Ebene pro Mitglied |
 
 ## Für wen es gedacht ist

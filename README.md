@@ -27,7 +27,7 @@ The preset has one system prompt for the whole team. `prompt/core.md` holds the 
 | **Completion** | A gated item stops at `in_review` and only the user closes it; an internal step is closed by its owner |
 | **Model routing** | Per-role provider, model, and reasoning effort from a Plugins-page settings form |
 | **Git** | Initialized by the agent when substantive work starts; branches for destructive changes; merged only after acceptance |
-| **Worklog** | `.research/worklog/` JSON store with generated `PLAN.md` and `INDEX.md` views; resume reads `research_state` first |
+| **Worklog** | `.research/worklog/` JSON store with generated `PLAN.md` and `INDEX.md` views; resume reads `research_state` first; each turn also opens with a short ledger reminder of open items, live cards and unfinished runs |
 | **Continuity** | One store per project at its root; a resumed session calls `research_state` and reads the one item it needs; the store and git carry state across sessions |
 | **Runtime** | PTC (`run_code` + generated SDK), one subagent layer per member |
 

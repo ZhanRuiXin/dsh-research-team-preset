@@ -25,7 +25,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊�
 | **完成** | 需要你驗收的工作項停在 `in_review`，只有使用者能把它移到 `done`，面板只對這類工作項顯示「確認完成 / 退回」；內部步驟由負責人自行關閉 |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
 | **Git** | 實質性工作開始時由 agent 初始化；破壞性改動走分支；驗收通過後才合併 |
-| **工作日誌** | `.research/worklog/` 下的 JSON 儲存；`PLAN.md` 與 `INDEX.md` 是產生視圖；恢復時先讀 `research_state` |
+| **工作日誌** | `.research/worklog/` 下的 JSON 儲存；`PLAN.md` 與 `INDEX.md` 是產生視圖；恢復時先讀 `research_state`；每輪開始也會注入一則簡短提醒：未完成的工作項目、未封存的架構卡和未結束的實驗 |
 | **執行環境** | PTC（`run_code` + 產生的 SDK），每位成員一層 subagent |
 
 ## 適用對象

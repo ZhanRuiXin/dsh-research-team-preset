@@ -394,6 +394,18 @@ export function upsertItem(root, input = {}) {
     if (status === 'blocked' && short(input.blocked ?? previous.blocked, 300) === '') {
       return { error: 'blocked needs a reason: pass blocked with what the item is waiting for' }
     }
+    if (status === 'in_review') {
+      const steps = listItems(root).filter(
+        (entry) => entry.parent === id && entry.status !== 'done' && entry.status !== 'canceled'
+      )
+      if (steps.length > 0) {
+        const listed = steps.slice(0, 5).map((entry) => `${entry.id} (${entry.status})`).join(', ')
+        const rest = steps.length > 5 ? `, +${steps.length - 5} more` : ''
+        return {
+          error: `"${id}" still has ${steps.length} open step${steps.length === 1 ? '' : 's'}: ${listed}${rest}; close them before it goes to in_review`
+        }
+      }
+    }
     history.push({ at: nowIso(), from: previous.status, to: status, by: short(input.by ?? input.owner ?? previous.owner, 40) })
   }
   const item = normalizeItem({

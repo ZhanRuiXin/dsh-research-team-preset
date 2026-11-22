@@ -105,6 +105,20 @@ test('the panel does not accept an internal step', (t) => {
   assert.equal(closed.item.status, 'done')
 })
 
+test('an item does not enter review while its steps are open', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 't-parent', title: 'Parent', status: 'in_progress' })
+  upsertItem(dir, { id: 'step-a', title: 'Step', kind: 'internal', parent: 't-parent', status: 'in_progress' })
+  const refused = upsertItem(dir, { id: 't-parent', status: 'in_review' })
+  assert.match(refused.error, /still has 1 open step/)
+  assert.equal(readItem(dir, 't-parent').status, 'in_progress')
+  upsertItem(dir, { id: 'step-a', status: 'in_review' })
+  upsertItem(dir, { id: 'step-a', status: 'done' })
+  const ok = upsertItem(dir, { id: 't-parent', status: 'in_review' })
+  assert.equal(ok.error, undefined)
+  assert.equal(ok.item.status, 'in_review')
+})
+
 test('a step inside an item is accepted with its parent, not on its own', (t) => {
   const dir = project(t)
   upsertItem(dir, { id: 't-parent', title: 'Parent', status: 'in_progress' })

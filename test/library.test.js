@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { createLibraryClient, itemKey, noteHtml, LibraryError, apply as applyLibrary } from '../plugin/library.js'
+import { createLibraryClient, itemKey, libraryClient, noteHtml, LibraryError, apply as applyLibrary } from '../plugin/library.js'
 
 const SERVER = 'sPMHtLD6HHBd'
 
@@ -63,6 +63,7 @@ test('status reports the server id and library version from headers', async () =
   assert.equal(state.apiVersion, '3')
   assert.equal(state.lastModifiedVersion, 3009)
   assert.equal(state.totalResults, 545)
+  assert.equal(state.keyCached, false)
 })
 
 test('create authorizes with the server id and posts the item array', async () => {
@@ -316,4 +317,51 @@ test('a destructive op refuses to run without confirm', async () => {
     { agent: { session: { id: 's1', header: { cwd: os.tmpdir() } } } }
   )
   assert.match(noteRefused.error, /LIBRARY_UNCONFIRMED/)
+})
+
+test('parallel writes share one authorization and one key file', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-key-'))
+  const file = path.join(root, 'zotero-key.json')
+  let authorized = 0
+  const { calls, fetchImpl } = recorder({
+    'GET /api/users/0/items?limit=1': () => jsonResponse(200, []),
+    'POST /api/local/authorize': async () => {
+      authorized += 1
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      return jsonResponse(200, { key: 'KEY-SHARED', remember: true })
+    },
+    'POST /api/users/0/items': () => jsonResponse(200, { successful: { 0: { key: 'PARALLEL' } }, failed: {} })
+  })
+  const client = createLibraryClient({ fetch: fetchImpl, keyFile: file })
+  await Promise.all([
+    client.create({ itemType: 'note', note: 'a' }),
+    client.create({ itemType: 'note', note: 'b' })
+  ])
+  assert.equal(authorized, 1)
+  assert.equal(calls.filter((call) => call.method === 'POST' && call.pathname === '/api/users/0/items').length, 2)
+  assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).key, 'KEY-SHARED')
+})
+
+test('a client reuses a key another instance stored while it was idle', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-key-'))
+  const file = path.join(root, 'zotero-key.json')
+  let authorized = 0
+  const { fetchImpl } = recorder({
+    'GET /api/users/0/items?limit=1': () => jsonResponse(200, []),
+    'POST /api/local/authorize': () => {
+      authorized += 1
+      return jsonResponse(200, { key: 'KEY-A', remember: true })
+    },
+    'POST /api/users/0/items': () => jsonResponse(200, { successful: { 0: { key: 'NEW' } }, failed: {} })
+  })
+  const early = createLibraryClient({ fetch: fetchImpl, keyFile: file })
+  const late = createLibraryClient({ fetch: fetchImpl, keyFile: file })
+  await early.create({ itemType: 'note', note: 'x' })
+  await late.create({ itemType: 'note', note: 'y' })
+  assert.equal(authorized, 1)
+})
+
+test('libraryClient shares one client per base url and key file', () => {
+  const options = { keyFile: false, fetch: () => Promise.resolve(jsonResponse(200, [])) }
+  assert.equal(libraryClient(options), libraryClient(options))
 })

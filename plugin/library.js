@@ -196,6 +196,7 @@ export function createLibraryClient(options = {}) {
   }
   const keyFile = keyFileOf(options)
   let remembered = readKeyFile(keyFile, baseUrl)
+  let pendingAuthorization = null
 
   async function send(method, pathname, { headers = {}, body, redirect } = {}) {
     let response
@@ -283,6 +284,11 @@ export function createLibraryClient(options = {}) {
   }
 
   async function authorize(id) {
+    const stored = readKeyFile(keyFile, baseUrl)
+    if (stored !== null && stored.serverId === id) {
+      remembered = stored
+      return stored.key
+    }
     const { response, json, text } = await send('POST', '/local/authorize', {
       headers: { 'Content-Type': 'application/json', 'Zotero-Server-ID': id },
       body: JSON.stringify({ appName: APP_NAME })
@@ -305,6 +311,15 @@ export function createLibraryClient(options = {}) {
     return json.key
   }
 
+  function authorizeOnce(id) {
+    if (pendingAuthorization === null) {
+      pendingAuthorization = authorize(id).finally(() => {
+        pendingAuthorization = null
+      })
+    }
+    return pendingAuthorization
+  }
+
   async function write(method, pathname, body, headers = {}) {
     const id = await serverId()
     const run = async (apiKey) =>
@@ -312,12 +327,12 @@ export function createLibraryClient(options = {}) {
         headers: { 'Content-Type': 'application/json', 'Zotero-Server-ID': id, 'Zotero-API-Key': apiKey, ...headers },
         body: body === undefined ? undefined : JSON.stringify(body)
       })
-    let apiKey = remembered !== null && remembered.serverId === id ? remembered.key : await authorize(id)
+    let apiKey = remembered !== null && remembered.serverId === id ? remembered.key : await authorizeOnce(id)
     let result = await run(apiKey)
     if (statusOf(result.response) === 401) {
       remembered = null
       removeKeyFile(keyFile)
-      apiKey = await authorize(id)
+      apiKey = await authorizeOnce(id)
       result = await run(apiKey)
     }
     const status = statusOf(result.response)
@@ -372,10 +387,13 @@ export function createLibraryClient(options = {}) {
       }
       if (status === 0) throw new LibraryError('LIBRARY_UNAVAILABLE', `Zotero's local API is not reachable at ${baseUrl}.`)
       const header = (name) => (typeof response.headers?.get === 'function' ? response.headers.get(name) : null)
+      const serverIdValue = header('zotero-server-id') ?? ''
       return {
         reachable: response.ok,
         baseUrl,
-        serverId: header('zotero-server-id') ?? '',
+        keyCached: remembered !== null && serverIdValue.length > 0 && remembered.serverId === serverIdValue,
+        keyFile: keyFile === null ? '' : keyFile,
+        serverId: serverIdValue,
         apiVersion: header('zotero-api-version') ?? '',
         schemaVersion: header('zotero-schema-version') ?? '',
         lastModifiedVersion: Number(header('last-modified-version') ?? 0) || 0,
@@ -766,6 +784,20 @@ export function createLibraryClient(options = {}) {
   }
 }
 
+const sharedClients = new Map()
+
+export function libraryClient(options = {}) {
+  const baseUrl = (typeof options.baseUrl === 'string' ? options.baseUrl : BASE_URL).replace(/\/+$/, '')
+  const keyFile = keyFileOf(options)
+  const cacheKey = `${baseUrl}|${keyFile === null ? 'off' : keyFile}`
+  let client = sharedClients.get(cacheKey)
+  if (client === undefined) {
+    client = createLibraryClient(options)
+    sharedClients.set(cacheKey, client)
+  }
+  return client
+}
+
 function projectLibraryLog(exec) {
   const cwd = exec?.agent?.session?.header?.cwd
   if (typeof cwd !== 'string' || cwd.length === 0) return ''
@@ -865,7 +897,7 @@ export function apply(ctx) {
       const op = typeof args?.op === 'string' ? args.op : ''
       const dryRun = args?.dryRun === true
       const confirm = args?.confirm === true
-      const client = createLibraryClient()
+      const client = libraryClient()
       const logFile = projectLibraryLog(exec)
       const log = (entry) => {
         appendLibraryLog(logFile, { at: new Date().toISOString(), by: exec?.agent?.session?.id ?? '', ...entry })

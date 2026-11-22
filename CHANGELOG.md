@@ -4,7 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
-- The Zotero tool shares one client per process, joins parallel first writes into a single authorization request, and re-reads the key file before asking again, so a burst of writes no longer opens one Zotero dialog each; `status` now reports `keyCached` and the key file in use.
+- The Zotero tool shares one client per process, joins parallel first writes into a single authorization request, and re-reads the key file before asking again, so a burst of writes no longer opens one Zotero dialog each; `status` now reports `keyCached`, the key file in use and the home directory it resolves. The key is cached unless Zotero explicitly marks it single-use, so a response that omits the flag no longer costs a dialog per write.
 - Fixed `research_worklog` returning a nested `undefined` for internal steps (`op=update` and `op=get`), which the host rejects as "not lossless JSON" before the model sees the result. A new test runs the worklog, panel, architecture, experiment and literature payloads through the same rule the host enforces.
 
 ## 0.3.0 — 2026-11-21

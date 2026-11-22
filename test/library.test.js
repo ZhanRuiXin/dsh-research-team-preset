@@ -365,3 +365,16 @@ test('libraryClient shares one client per base url and key file', () => {
   const options = { keyFile: false, fetch: () => Promise.resolve(jsonResponse(200, [])) }
   assert.equal(libraryClient(options), libraryClient(options))
 })
+
+test('a key without an explicit remember flag is cached', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-zotero-key-'))
+  const keyFile = path.join(dir, 'key.json')
+  const { fetchImpl } = recorder({
+    'GET /api/users/0/items?limit=1': () => jsonResponse(200, []),
+    'POST /api/local/authorize': () => jsonResponse(200, { key: 'KEY-OMITTED' }),
+    'POST /api/users/0/items': () => jsonResponse(200, { successful: { 0: { key: 'NEWKEY01' } }, failed: {} })
+  })
+  const client = createLibraryClient({ fetch: fetchImpl, keyFile })
+  await client.create({ itemType: 'note', note: '<p>x</p>' })
+  assert.equal(JSON.parse(fs.readFileSync(keyFile, 'utf8')).key, 'KEY-OMITTED')
+})

@@ -304,7 +304,10 @@ export function createLibraryClient(options = {}) {
     if (!response.ok || typeof json?.key !== 'string') {
       throw new LibraryError('LIBRARY_AUTH', failure('Zotero refused the local write authorization', response, text), status)
     }
-    if (json.remember === true) {
+    // Cache unless Zotero explicitly said this key is single-use. The grant is
+    // remembered by the client, so a repeat write must not open another dialog;
+    // a single-use key that slips through is detected by the 401 retry below.
+    if (json.remember !== false) {
       remembered = { key: json.key, serverId: id }
       writeKeyFile(keyFile, baseUrl, remembered)
     }
@@ -393,6 +396,7 @@ export function createLibraryClient(options = {}) {
         baseUrl,
         keyCached: remembered !== null && serverIdValue.length > 0 && remembered.serverId === serverIdValue,
         keyFile: keyFile === null ? '' : keyFile,
+        home: os.homedir(),
         serverId: serverIdValue,
         apiVersion: header('zotero-api-version') ?? '',
         schemaVersion: header('zotero-schema-version') ?? '',

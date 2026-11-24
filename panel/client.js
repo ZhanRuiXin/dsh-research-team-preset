@@ -1106,6 +1106,7 @@ function statusLabel(status) {
       const [busy, setBusy] = React.useState(false)
       const [toast, setToast] = React.useState('')
       const [hover, setHover] = React.useState(null)
+      const tipRef = React.useRef(null)
       const [showFinished, setShowFinished] = React.useState(false)
       const [showFinishedRuns, setShowFinishedRuns] = React.useState(false)
       const [openItems, setOpenItems] = React.useState(null)
@@ -1441,6 +1442,7 @@ function statusLabel(status) {
             type: 'button',
             className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}`,
             'aria-label': archBrief(entry).join('; '),
+        title: archBrief(entry).join('\n'),
             onClick: () => {
               setSelectedCard(entry.id)
               setSelectedNodes([])
@@ -1491,8 +1493,22 @@ function statusLabel(status) {
         const top = below + height > box.height + scrollTop
           ? Math.max(8, rect.top - box.top + scrollTop - height - 9)
           : below
-        setHover({ lines, left, top, arrow })
+        setHover({ lines, left, top, arrow, anchorBottom: rect.bottom - box.top + scrollTop, anchorTop: rect.top - box.top + scrollTop, height, width, adjusted: false })
       }
+
+      React.useEffect(() => {
+        const el = tipRef.current
+        const rootEl = rootRef.current
+        if (el === null || rootEl === null || hover === null || hover.adjusted === true) return
+        const box = rootEl.getBoundingClientRect()
+        const scrollTop = rootEl.scrollTop || 0
+        const height = el.offsetHeight
+        const tallest = box.height + scrollTop - 16
+        let top = hover.anchorBottom + 9
+        if (top + height > tallest) top = hover.anchorTop - 9 - height
+        top = Math.max(8, Math.min(top, tallest - height))
+        setHover({ ...hover, top, height, adjusted: true })
+      }, [hover])
 
       const teamSection = h(Section, {
         key: 'team',
@@ -1828,6 +1844,7 @@ function statusLabel(status) {
         error === '' ? null : h('div', { key: 'error', className: 'rtp-error' }, error),
         ...(Array.isArray(body) ? body : [body]),
         hover === null ? null : h('div', {
+        ref: tipRef,
           key: 'tip',
           className: 'rtp-tip',
           style: { left: `${hover.left}px`, top: `${hover.top}px` }

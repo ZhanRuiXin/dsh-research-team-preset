@@ -1442,7 +1442,6 @@ function statusLabel(status) {
             type: 'button',
             className: `rtp-arch${entry.id === (card && card.id) ? ' on' : ''}`,
             'aria-label': archBrief(entry).join('; '),
-        title: archBrief(entry).join('\n'),
             onClick: () => {
               setSelectedCard(entry.id)
               setSelectedNodes([])

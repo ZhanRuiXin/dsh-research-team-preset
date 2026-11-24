@@ -17,7 +17,7 @@ function card(root, name, value) {
 }
 
 function run(root, id, value) {
-  const dir = path.join(root, '.research', 'runs', id)
+  const dir = path.join(root, 'runs', id)
   fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(value))
 }
@@ -74,4 +74,15 @@ test('advisor mode names the blocked items that need the advisor', () => {
   const text = buildReminder(root)
   assert.match(text, /Blocked items the advisor decides \(1\): b-1/)
   assert.match(text, /research_decision/)
+})
+
+test('an experiment directory outside runs/ is not a run', () => {
+  const root = project()
+  const stray = path.join(root, '.research', 'runs', 'stray')
+  fs.mkdirSync(stray, { recursive: true })
+  fs.writeFileSync(path.join(stray, 'manifest.json'), JSON.stringify({ state: 'running' }))
+  run(root, 'real-run', { state: 'running' })
+  const text = buildReminder(root)
+  assert.match(text, /real-run running/)
+  assert.doesNotMatch(text, /stray/)
 })

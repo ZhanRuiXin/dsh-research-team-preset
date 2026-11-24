@@ -41,7 +41,7 @@ function architectureRows(root) {
 }
 
 function experimentRows(root) {
-  const dir = path.join(root, '.research', 'runs')
+  const dir = path.join(root, 'runs')
   let names = []
   try {
     names = fs.readdirSync(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort()

@@ -451,6 +451,25 @@ test('checkArchitectureCard audits the laid-out diagram, not stale coordinates',
   }
 })
 
+test('a node keeps the one-line description its hover card shows', () => {
+  const root = makeRoot()
+  const saved = saveArchitectureCard(root, {
+    id: 'hover-card',
+    title: 'Hover card',
+    group: 'impl',
+    nodes: [
+      { id: 'a', label: 'Load', description: '  reads the manifest before anything else runs  ' },
+      { id: 'b', label: 'Run' }
+    ],
+    edges: [{ from: 'a', to: 'b' }]
+  })
+  assert.equal(saved.error, undefined)
+  const card = readArchitectureCard(root, 'hover-card')
+  const described = card.nodes.find((node) => node.id === 'a')
+  assert.equal(described.description, 'reads the manifest before anything else runs')
+  assert.equal(card.nodes.find((node) => node.id === 'b').description, '')
+})
+
 test('saving a card stores the arranged coordinates', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'research-team-save-'))
   const saved = saveArchitectureCard(root, {

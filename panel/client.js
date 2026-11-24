@@ -983,7 +983,7 @@ function statusLabel(status) {
             props.onToggle(node.id)
           },
           onPointerDown: (event) => event.stopPropagation(),
-          onMouseEnter: (event) => props.onNodeHover(event, [node.label, `${t(KIND_LABELS[node.kind] || node.kind || '模块')} · ${node.id}`]),
+          onMouseEnter: (event) => props.onNodeHover(event, [node.label, node.description, `${t(KIND_LABELS[node.kind] || node.kind || '模块')} · ${node.id}`].filter((line) => String(line ?? '').trim() !== '')),
           onMouseLeave: () => props.onNodeHoverEnd(),
           style: { cursor: 'pointer' }
         }, [

@@ -4,6 +4,8 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Architecture nodes carry an optional one-line `description` that the node hover card shows under the label, so a box too small for the detail still explains itself; the card schema documents it and the role briefs say when to use it. The architecture tool text no longer promises a 整理 button.
+
 - Architecture cards lay themselves out: saving measures each label (CJK one em, Latin 0.55 em, capped at 220 px), wraps it, places the nodes by longest-path levels with barycentre ordering inside each layer, and picks the horizontal or vertical direction whose aspect best fits the sidebar. Stored coordinates are the drawn ones, `op=check` audits that layout, and the panel has no 整理 button because a saved or legacy card already arrives arranged.
 
 - Work items carry a project decision mode next to the 已完成 toggle: 人工决策 keeps new blockers for the user, while 智能决策 refuses a move into `blocked` and routes the question to the advisor, whose answer is recorded with `research_decision` before the item moves to the agreed next step. `research_worklog op=decision-mode` reads or sets it, and the mode lives in `.research/worklog/settings.json`. Items that are already `blocked` keep their status, but in advisor mode the per-turn ledger reminder names them and instructs the agent to take each one to the advisor and record the answer.

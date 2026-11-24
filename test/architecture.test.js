@@ -5,6 +5,9 @@ import path from 'node:path'
 import test from 'node:test'
 
 import {
+  ARCH_NODE_TEXT,
+  architectureBoxes,
+  architectureNodeBox,
   arrangeArchitectureCard,
   buildPanelState,
   checkArchitectureCard,
@@ -420,7 +423,7 @@ test('deliverables resolve to openable files and http links', () => {
   assert.equal(files[3].address, '')
 })
 
-test('checkArchitectureCard reports overlaps, boxes outside the canvas and crossing edges', () => {
+test('checkArchitectureCard audits the laid-out diagram, not stale coordinates', () => {
   const card = normalizeArchitectureCard({
     id: 'audit',
     title: 'Layout audit',
@@ -438,13 +441,45 @@ test('checkArchitectureCard reports overlaps, boxes outside the canvas and cross
     ]
   })
   const audit = checkArchitectureCard(card)
-  assert.equal(audit.ok, false)
-  const codes = audit.issues.map((issue) => issue.code)
-  assert.ok(codes.includes('overlap'))
-  assert.ok(codes.includes('outside'))
-  const overlap = audit.issues.find((issue) => issue.code === 'overlap')
-  assert.deepEqual(overlap.nodes.sort(), ['a', 'b'])
-  for (const issue of audit.issues) assert.ok(issue.message.includes('\"') || issue.message.includes('canvas'))
+  // The stored coordinates above overlap; the panel draws the computed layout,
+  // so the audit must report that layout, which never overlaps or leaves the canvas.
+  assert.equal(audit.nodes, 5)
+  assert.deepEqual(audit.issues.filter((issue) => ['overlap', 'tight', 'outside'].includes(issue.code)), [])
+  for (const box of architectureBoxes(card)) {
+    assert.ok(box.x >= 0 && box.y >= 0)
+    assert.ok(box.x + box.w <= audit.canvas.width && box.y + box.h <= audit.canvas.height)
+  }
+})
+
+test('saving a card stores the arranged coordinates', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'research-team-save-'))
+  const saved = saveArchitectureCard(root, {
+    id: 'stored',
+    title: 'Stored layout',
+    nodes: [
+      { id: 'a', label: 'Load data', x: 0, y: 0 },
+      { id: 'b', label: 'Model the lattice', x: 0, y: 0 },
+      { id: 'c', label: 'Report', x: 0, y: 0 }
+    ],
+    edges: [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }]
+  })
+  assert.equal(saved.error, undefined)
+  const stored = readArchitectureCard(root, 'stored')
+  const placed = new Map(stored.nodes.map((node) => [node.id, node]))
+  assert.ok(placed.get('a').x !== placed.get('b').x || placed.get('a').y !== placed.get('b').y)
+  assert.deepEqual(checkArchitectureCard(stored).ok, true)
+  assert.ok(stored.canvas.width >= 320 && stored.canvas.height >= 200)
+})
+
+test('the panel mirrors the server box metrics', () => {
+  const source = fs.readFileSync(new URL('../panel/client.js', import.meta.url), 'utf8')
+  const number = (name) => Number(new RegExp(`const ${name} = (\\d+)`).exec(source)[1])
+  assert.equal(number('NODE_FONT'), ARCH_NODE_TEXT.fontSize)
+  assert.equal(number('NODE_PAD_X'), ARCH_NODE_TEXT.padX)
+  assert.equal(number('NODE_MIN_W'), ARCH_NODE_TEXT.minW)
+  assert.equal(number('NODE_MAX_W'), ARCH_NODE_TEXT.maxW)
+  assert.equal(number('NODE_LINE_H'), ARCH_NODE_TEXT.lineH)
+  assert.equal(number('NODE_MIN_H'), ARCH_NODE_TEXT.minH)
 })
 
 test('arrangeArchitectureCard lays a card out without overlaps and grows the canvas', () => {
@@ -464,8 +499,6 @@ test('arrangeArchitectureCard lays a card out without overlaps and grows the can
       { from: 'b', to: 'd' }
     ]
   })
-  assert.equal(checkArchitectureCard(card).ok, false)
-
   const arranged = arrangeArchitectureCard(card)
   assert.deepEqual([...arranged.moved].sort(), ['a', 'b', 'c', 'd'])
   const sorted = arrangeArchitectureCard(card).nodes
@@ -473,9 +506,10 @@ test('arrangeArchitectureCard lays a card out without overlaps and grows the can
   const audit = checkArchitectureCard(laid)
   assert.equal(audit.ok, true, JSON.stringify(audit.issues))
   assert.equal(laid.edges.length, 3)
-  assert.ok(arranged.canvas.width > 320)
-  // Longest path: a -> b -> c/d, so c and d share the rightmost column.
+  assert.ok(arranged.canvas.width > 320 || arranged.canvas.height > 200)
+  // Longest path: a -> b -> c/d, so c and d share one column (or row).
   const byId = new Map(laid.nodes.map((node) => [node.id, node]))
-  assert.ok(byId.get('a').x < byId.get('b').x)
-  assert.equal(byId.get('c').x, byId.get('d').x)
+  const ahead = (left, right) => left.x < right.x || left.y < right.y
+  assert.ok(ahead(byId.get('a'), byId.get('b')))
+  assert.ok(byId.get('c').x === byId.get('d').x || byId.get('c').y === byId.get('d').y)
 })

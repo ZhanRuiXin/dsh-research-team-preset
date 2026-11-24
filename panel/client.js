@@ -391,90 +391,6 @@ const LITERATURE_ROUTE = '/api/dsh-research-team-literature'
       return tf('{month}月{day}日', { month: date.getMonth() + 1, day: date.getDate() })
     }
 
-    let measureCanvas = null
-
-    /* Real glyph widths beat an average: mixed CJK/Latin labels wrap badly otherwise. */
-    function textWidthOf(text, fontSize, fontFamily) {
-      try {
-        if (measureCanvas === null) measureCanvas = document.createElement('canvas')
-        const context = typeof measureCanvas.getContext === 'function' ? measureCanvas.getContext('2d') : null
-        if (context === null) return null
-        context.font = `${fontSize}px ${fontFamily}`
-        return context.measureText(String(text)).width
-      } catch (error) {
-        return null
-      }
-    }
-
-    function estimateWidth(text, fontSize) {
-      let width = 0
-      for (const char of String(text)) width += /[\u3400-\u9fff]/.test(char) ? fontSize : fontSize * 0.55
-      return width
-    }
-
-    function fontFamilyOf(element) {
-      try {
-        if (typeof window !== 'undefined' && window.getComputedStyle && element) {
-          const family = String(window.getComputedStyle(element).fontFamily || '')
-          if (family !== '') return family
-        }
-      } catch (error) {
-        /* fall through to the default stack */
-      }
-      return 'system-ui, sans-serif'
-    }
-
-    /* Split at spaces and CJK boundaries so a line never cuts a Latin word. */
-    function labelParts(text) {
-      const parts = []
-      let buffer = ''
-      const flush = () => { if (buffer !== '') { parts.push(buffer); buffer = '' } }
-      for (const char of String(text)) {
-        if (char === ' ') { flush(); parts.push(' ') }
-        else if (/[\u3400-\u9fff]/.test(char)) { flush(); parts.push(char) }
-        else buffer += char
-      }
-      flush()
-      return parts
-    }
-
-    function fitLabel(label, maxWidth, fontSize, fontFamily) {
-      const text = String(label ?? '').replace(/\s+/g, ' ').trim()
-      if (text === '') return ['']
-      const limit = Math.max(24, maxWidth)
-      const measured = (value) => {
-        const width = textWidthOf(value, fontSize, fontFamily)
-        return width === null ? estimateWidth(value, fontSize) : width
-      }
-      if (measured(text) <= limit) return [text]
-      const parts = []
-      for (const part of labelParts(text)) {
-        if (measured(part) <= limit) { parts.push(part); continue }
-        for (const char of part) parts.push(char)
-      }
-      const lines = []
-      let index = 0
-      while (index < parts.length && lines.length < 2) {
-        let line = ''
-        while (index < parts.length) {
-          if (line === '' && parts[index].trim() === '') { index += 1; continue }
-          const candidate = line + parts[index]
-          if (line !== '' && measured(candidate.replace(/\s+$/, '')) > limit) break
-          line = candidate
-          index += 1
-        }
-        if (line === '' && index < parts.length) { line = parts[index]; index += 1 }
-        lines.push(line.replace(/\s+$/, ''))
-      }
-      if (index < parts.length && lines.length > 0) {
-        const last = lines.length - 1
-        let tail = lines[last]
-        while (tail !== '' && measured(`${tail}…`) > limit) tail = tail.slice(0, -1)
-        lines[last] = `${tail.replace(/\s+$/, '')}…`
-      }
-      return lines.length === 0 ? [''] : lines
-    }
-
     const NODE_FONT = 14
     const NODE_PAD_X = 12
     const NODE_MIN_W = 96
@@ -482,49 +398,58 @@ const LITERATURE_ROUTE = '/api/dsh-research-team-literature'
     const NODE_LINE_H = 15
     const NODE_MIN_H = 42
 
-    /* Boxes that share a column are centred on one axis, so a vertical flow reads
-       as a column instead of a left-aligned staircase. */
-    function alignColumns(nodes) {
-      const list = nodes.map((node) => ({ ...node }))
-      if (list.length < 2) return list
-      const parent = list.map((_, index) => index)
-      const find = (index) => (parent[index] === index ? index : (parent[index] = find(parent[index])))
-      for (let i = 0; i < list.length; i += 1) {
-        for (let j = i + 1; j < list.length; j += 1) {
-          const a = list[i]
-          const b = list[j]
-          const overlap = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)
-          if (overlap > Math.min(a.w, b.w) * 0.4) {
-            const ra = find(i)
-            const rb = find(j)
-            if (ra !== rb) parent[ra] = rb
-          }
-        }
-      }
-      const groups = new Map()
-      for (let index = 0; index < list.length; index += 1) {
-        const root = find(index)
-        if (!groups.has(root)) groups.set(root, [])
-        groups.get(root).push(index)
-      }
-      for (const indices of groups.values()) {
-        if (indices.length < 2) continue
-        let sum = 0
-        for (const index of indices) sum += list[index].x + list[index].w / 2
-        const axis = sum / indices.length
-        for (const index of indices) list[index].x = axis - list[index].w / 2
-      }
-      return list
+    /* Deterministic box metrics mirrored from plugin/index.js ARCH_NODE_TEXT:
+       the panel and the layout tool must agree, or a card that checks clean
+       server-side draws as overlapped boxes here. */
+    function nodeWidthOf(text) {
+      let width = 0
+      for (const char of String(text ?? '')) width += /[\u3400-\u9fff]/.test(char) ? NODE_FONT : NODE_FONT * 0.55
+      return width
     }
 
-    /* Width and height follow the label: one line if it fits, two if it must wrap. */
-    function sizeNode(node, fontFamily) {
+    /* CJK breaks per character, Latin per word, over-long lines split by width. */
+    function wrapNodeLabel(label) {
+      const limit = Math.max(24, NODE_MAX_W - NODE_PAD_X * 2)
+      const words = []
+      let buffer = ''
+      for (const char of String(label ?? '')) {
+        if (/[\u3400-\u9fff]/.test(char) || char === ' ') {
+          if (buffer !== '') { words.push(buffer); buffer = '' }
+          words.push(char)
+        } else buffer += char
+      }
+      if (buffer !== '') words.push(buffer)
+      const lines = []
+      let line = ''
+      let width = 0
+      for (const word of words) {
+        const advance = nodeWidthOf(word)
+        if (word !== ' ' && width > 0 && width + advance > limit) { lines.push(line.trimEnd()); line = ''; width = 0 }
+        line += word
+        width += advance
+        while (width > limit && line.length > 1) {
+          let keep = ''
+          let used = 0
+          for (const char of line) {
+            const size = /[\u3400-\u9fff]/.test(char) ? NODE_FONT : NODE_FONT * 0.55
+            if (used + size > limit && keep !== '') break
+            keep += char
+            used += size
+          }
+          lines.push(keep.trimEnd())
+          line = line.slice(keep.length)
+          width = nodeWidthOf(line)
+        }
+      }
+      lines.push(line.trimEnd())
+      return lines.length === 0 ? [''] : lines
+    }
+
+    /* Width follows the label, height the wrapped lines; same rule as the server. */
+    function sizeNode(node) {
       const label = String(node.label ?? '')
-      const natural = textWidthOf(label, NODE_FONT, fontFamily)
-      const single = (natural === null ? estimateWidth(label, NODE_FONT) : natural) + NODE_PAD_X * 2
-      const w = Math.min(NODE_MAX_W, Math.max(NODE_MIN_W, single))
-      const lines = fitLabel(label, w - NODE_PAD_X * 2, NODE_FONT, fontFamily)
-      const h = Math.max(NODE_MIN_H, lines.length * NODE_LINE_H + 20)
+      const w = Math.min(NODE_MAX_W, Math.max(NODE_MIN_W, Math.ceil(nodeWidthOf(label) + NODE_PAD_X * 2)))
+      const lines = wrapNodeLabel(label)
       return {
         id: node.id,
         label: node.label,
@@ -532,7 +457,7 @@ const LITERATURE_ROUTE = '/api/dsh-research-team-literature'
         x: Number(node.x) || 0,
         y: Number(node.y) || 0,
         w,
-        h,
+        h: Math.max(NODE_MIN_H, lines.length * NODE_LINE_H + 20),
         lines,
         fontSize: NODE_FONT
       }
@@ -704,7 +629,8 @@ function statusLabel(status) {
 .rtp-teamgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px}
 .rtp-mem{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 9px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:.5px solid var(--dsw-alias-border-l1)}
 .rtp-archgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-width:100%;align-items:center}
-.rtp-archg{flex:0 0 100%;font-size:11.5px;line-height:1.4;color:var(--dsw-alias-label-tertiary);margin:2px 0 0}
+.rtp-hint{margin:2px 0 5px;font-size:12.5px;line-height:1.4;color:var(--dsw-alias-state-warn-primary)}
+    .rtp-archg{flex:0 0 100%;font-size:11.5px;line-height:1.4;color:var(--dsw-alias-label-tertiary);margin:2px 0 0}
 .rtp-arch{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;max-width:200px;height:26px;padding:0 11px;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden}
 .rtp-arch-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rtp-arch:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
@@ -919,8 +845,7 @@ function statusLabel(status) {
         return () => observer.disconnect()
       }, [])
       const nodes = Array.isArray(card.nodes) ? card.nodes : []
-      const fontFamily = fontFamilyOf(svgRef.current)
-      const sized = alignColumns(nodes.map((node) => sizeNode(node, fontFamily)))
+      const sized = nodes.map((node) => sizeNode(node))
       const auto = fitBox(sized, aspect)
       const box = view || auto
       const zoom = Math.round((auto.w / box.w) * 100)

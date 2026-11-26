@@ -4,6 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- The Zotero write grant now lives in the host credentials store (`dsh-research-team-preset/zotero-local-write-key`), with the key file kept as a fallback: the store is resolved lazily so a credentials provider that mounts after the plugin still counts, a key Zotero rejects is tombstoned before a new authorization, and `status` reports `keyStore` (`credentials` / `file` / `none`) and `keyStoreError` so a machine that keeps asking for permission is diagnosable in one call.
 - Make delegation the Lead's default rather than an option: the Lead brief now maps each workstream to its role before starting, sets a floor of two members when there are two or more workstreams, keeps only integration and the user channel for itself, and says to hand a specialist step back to its owner the moment it notices it is doing that work. The per-turn ledger reminder also names unowned and Lead-owned open items as delegation gaps.
 
 ## 0.3.1 — 2026-11-26

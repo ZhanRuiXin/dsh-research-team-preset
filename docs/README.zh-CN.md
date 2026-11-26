@@ -132,7 +132,7 @@ Lead 负责目标澄清、任务拆解、工作日志管理、分派、整合、
 
 ### 共享 Zotero 文库
 
-共享文库也可以经由本预设的 `research_zotero` 工具直接访问 Zotero 本地 API：读取不需要密钥，首次写入会在 Zotero 中请求一次本地 API 密钥（用户可选择“始终允许”，密钥会保存在 `~/.dsh/research-team/zotero-key.json`，之后的写入和 DSH 重启都直接复用，不再重复询问），此后每次变更都会追加到 `.research/library-log.jsonl`。它覆盖条目的完整生命周期——带分页与标签/集合过滤的 `search`、`create`、`update`、标签与集合归属、子笔记（`note`、`noteUpdate`、`noteDelete`）——以及入库所需的操作：`attach` 走 Zotero 的三段式上传把论文 PDF 存进库，`export` 导出 BibTeX、BibLaTeX、RIS 或 CSL JSON，`annotations`、`fulltext`、`file` 读取 PDF 的批注、全文与路径，`fields` 列出条目类型的合法字段，集合的改名/移动/删除、保存的检索与回收站（`delete`/`restore`）补齐其余管理。标签和集合的修改按条目版本先读后并写，并发编辑会失败而不是被覆盖；删除类操作需要 `confirm: true`，且只会移入回收站。宿主的 `zotero_*` 写入工具仍保留逐次计划卡，需要逐条审核时用它们。
+共享文库也可以经由本预设的 `research_zotero` 工具直接访问 Zotero 本地 API：读取不需要密钥，首次写入会在 Zotero 中请求一次本地 API 密钥（用户可选择“始终允许”，密钥会保存在宿主的 credentials 存储中（若该 profile 未组装 credentials 服务，则退回 `~/.dsh/research-team/zotero-key.json`），之后的写入和 DSH 重启都直接复用，不再重复询问），此后每次变更都会追加到 `.research/library-log.jsonl`。它覆盖条目的完整生命周期——带分页与标签/集合过滤的 `search`、`create`、`update`、标签与集合归属、子笔记（`note`、`noteUpdate`、`noteDelete`）——以及入库所需的操作：`attach` 走 Zotero 的三段式上传把论文 PDF 存进库，`export` 导出 BibTeX、BibLaTeX、RIS 或 CSL JSON，`annotations`、`fulltext`、`file` 读取 PDF 的批注、全文与路径，`fields` 列出条目类型的合法字段，集合的改名/移动/删除、保存的检索与回收站（`delete`/`restore`）补齐其余管理。标签和集合的修改按条目版本先读后并写，并发编辑会失败而不是被覆盖；删除类操作需要 `confirm: true`，且只会移入回收站。宿主的 `zotero_*` 写入工具仍保留逐次计划卡，需要逐条审核时用它们。
 
 researcher 把用户的 Zotero 文库作为团队的共享文献源：先检索现有的分类和条目，再检索公开网络；复用已附带的 PDF 和批注片段；只有在缺少某篇文献时，才导入正式版（version of record）全文，附带 PDF 并归档到项目分类中。导入按 DOI 和标题去重，不改动用户的标签和分类，并把 `zotero://` 条目引用记录到证据表和工作日志卡片上，让每位团队成员读到同一篇论文，reviewer 也能抽查相同的页面。当全文受付费墙限制或只有元数据时，researcher 会记录链接，并将证据标记为仅元数据，而不是导入替代品。导入与写操作默认走 `research_zotero`（`create` + `attach`），团队只需在首次写入时授权一次本地 API 密钥；宿主 `zotero_*` 写工具保留给用户明确要求逐条审阅每次变更的场合。
 

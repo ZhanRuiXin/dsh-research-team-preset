@@ -137,16 +137,71 @@ function collectionName(entry) {
   return typeof entry?.data?.name === 'string' ? entry.data.name : typeof entry?.name === 'string' ? entry.name : ''
 }
 
-const DEFAULT_KEY_FILE = path.join(os.homedir(), '.dsh', 'research-team', 'zotero-key.json')
+const KEY_FILE_RELATIVE = path.join('.dsh', 'research-team', 'zotero-key.json')
+// Diagnostics for the last persistence attempt. A silent cache failure used to
+// make every write ask for a new grant, so the failure is kept for op=status.
+let lastKeyStore = { file: '', error: '' }
 
-function keyFileOf(options) {
-  if (options.keyFile === false) return null
-  if (typeof options.keyFile === 'string' && options.keyFile.length > 0) return options.keyFile
-  return DEFAULT_KEY_FILE
+export const GRANT_RECORD = 'dsh-research-team-preset/zotero-local-write-key'
+// The host's credentials service is the durable home for the grant when the
+// profile composes one; the key file stays as a fallback for other hosts.
+let credentialsStore = { credentials: null, ctx: null, recordKey: GRANT_RECORD }
+
+export function configureLibraryStore(options = {}) {
+  const credentials = options.credentials ?? null
+  credentialsStore = {
+    credentials:
+      credentials !== null && typeof credentials.readRecord === 'function' && typeof credentials.modifyRecord === 'function'
+        ? credentials
+        : null,
+    ctx: options.ctx ?? null,
+    recordKey: typeof options.recordKey === 'string' && options.recordKey.length > 0 ? options.recordKey : GRANT_RECORD
+  }
+}
+
+// The service is resolved lazily: at plugin apply time the credentials
+// provider may still be mounting, and a client created later must still see it.
+function resolveCredentials(options = {}) {
+  if (options.credentials !== undefined) return options.credentials
+  if (credentialsStore.credentials !== null) return credentialsStore.credentials
+  const ctx = credentialsStore.ctx
+  if (ctx === null || typeof ctx.get !== 'function') return null
+  const service = ctx.get('credentials', false)
+  return service === undefined ? null : service
+}
+
+function parseGrantRecord(record) {
+  if (record === null || typeof record !== 'object' || record.kind !== 'grant') return null
+  const payload = record.payload
+  if (payload === null || typeof payload !== 'object' || payload.revoked === true) return null
+  const key = typeof payload.key === 'string' ? payload.key : ''
+  const serverId = typeof payload.serverId === 'string' ? payload.serverId : ''
+  return key.length > 0 && serverId.length > 0 ? { key, serverId } : null
+}
+
+function keyFilesOf(options) {
+  if (options.keyFile === false) return []
+  if (Array.isArray(options.keyFiles) && options.keyFiles.length > 0) {
+    return options.keyFiles.filter((file) => typeof file === 'string' && file.length > 0)
+  }
+  if (typeof options.keyFile === 'string' && options.keyFile.length > 0) return [options.keyFile]
+  const files = []
+  const add = (base) => {
+    if (typeof base === 'string' && base.length > 0) files.push(path.join(base, KEY_FILE_RELATIVE))
+  }
+  const home = os.homedir()
+  add(home)
+  if (typeof process.env.USERPROFILE === 'string' && process.env.USERPROFILE !== home) add(process.env.USERPROFILE)
+  if (typeof process.env.DSH_HOME === 'string' && process.env.DSH_HOME.length > 0) {
+    files.push(path.join(process.env.DSH_HOME, 'research-team', 'zotero-key.json'))
+  }
+  const env = process.env.DSH_ZOTERO_KEY_FILE
+  const unique = [...new Set(files)]
+  if (typeof env === 'string' && env.length > 0) return [env, ...unique]
+  return unique
 }
 
 function readKeyFile(file, baseUrl) {
-  if (file === null) return null
   try {
     const parsed = JSON.parse(fs.readFileSync(file, 'utf8'))
     if (
@@ -156,7 +211,7 @@ function readKeyFile(file, baseUrl) {
       typeof parsed.serverId === 'string' &&
       typeof parsed.key === 'string'
     ) {
-      return { key: parsed.key, serverId: parsed.serverId }
+      return { key: parsed.key, serverId: parsed.serverId, file }
     }
   } catch (error) {
     // no key stored yet, or an unreadable file; authorize again
@@ -164,26 +219,51 @@ function readKeyFile(file, baseUrl) {
   return null
 }
 
-function writeKeyFile(file, baseUrl, remembered) {
-  if (file === null) return
-  try {
-    fs.mkdirSync(path.dirname(file), { recursive: true })
-    fs.writeFileSync(
-      file,
-      JSON.stringify({ baseUrl, serverId: remembered.serverId, key: remembered.key, at: new Date().toISOString() }, null, 2) + '\n',
-      { mode: 0o600 }
-    )
-  } catch (error) {
-    // the cached key is an optimization; never fail a write because of it
+function readStoredKey(files, baseUrl) {
+  for (const file of files) {
+    const stored = readKeyFile(file, baseUrl)
+    if (stored !== null) return stored
   }
+  return null
 }
 
-function removeKeyFile(file) {
-  if (file === null) return
-  try {
-    fs.unlinkSync(file)
-  } catch (error) {
-    // nothing stored
+function writeKeyFile(file, baseUrl, remembered) {
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  fs.writeFileSync(
+    file,
+    JSON.stringify({ baseUrl, serverId: remembered.serverId, key: remembered.key, at: new Date().toISOString() }, null, 2) + '\n',
+    { mode: 0o600 }
+  )
+  const check = JSON.parse(fs.readFileSync(file, 'utf8'))
+  if (check.key !== remembered.key) throw new Error('the stored key did not survive a read-back')
+}
+
+function writeStoredKey(files, baseUrl, remembered) {
+  if (files.length === 0) {
+    lastKeyStore = { file: '', error: 'key caching is disabled' }
+    return ''
+  }
+  const errors = []
+  for (const file of files) {
+    try {
+      writeKeyFile(file, baseUrl, remembered)
+      lastKeyStore = { file, error: '' }
+      return file
+    } catch (error) {
+      errors.push(`${file}: ${error?.message ?? error}`)
+    }
+  }
+  lastKeyStore = { file: '', error: errors.join('; ') }
+  return ''
+}
+
+function removeStoredKeys(files) {
+  for (const file of files) {
+    try {
+      fs.unlinkSync(file)
+    } catch (error) {
+      // nothing stored
+    }
   }
 }
 
@@ -194,9 +274,83 @@ export function createLibraryClient(options = {}) {
   if (typeof fetchImpl !== 'function') {
     throw new LibraryError('LIBRARY_UNAVAILABLE', 'This runtime has no fetch; Zotero local API access needs Node 22 or newer.')
   }
-  const keyFile = keyFileOf(options)
-  let remembered = readKeyFile(keyFile, baseUrl)
+  const keyFiles = keyFilesOf(options)
+  const credentials = resolveCredentials(options)
+  const recordKey =
+    typeof options.recordKey === 'string' && options.recordKey.length > 0 ? options.recordKey : credentialsStore.recordKey
+  const grantStore =
+    credentials !== null && credentials !== undefined && typeof credentials.readRecord === 'function' && typeof credentials.modifyRecord === 'function'
+      ? credentials
+      : null
+  let remembered = null
+  let keyStore = 'none'
+  let keyStoreError = ''
   let pendingAuthorization = null
+
+  async function loadRemembered(id) {
+    if (remembered !== null) return remembered.serverId === id ? remembered : null
+    if (grantStore !== null) {
+      try {
+        const stored = parseGrantRecord(await grantStore.readRecord(recordKey))
+        if (stored !== null) {
+          remembered = stored
+          keyStore = 'credentials'
+          return stored.serverId === id ? remembered : null
+        }
+      } catch (error) {
+        keyStoreError = `credentials: ${error?.message ?? error}`
+      }
+    }
+    const stored = readStoredKey(keyFiles, baseUrl)
+    if (stored !== null) {
+      remembered = stored
+      keyStore = 'file'
+      return stored.serverId === id ? remembered : null
+    }
+    return null
+  }
+
+  async function persistRemembered(id) {
+    if (grantStore !== null && remembered !== null) {
+      try {
+        const payload = { key: remembered.key, serverId: id, appName: APP_NAME, authorizedAt: new Date().toISOString() }
+        await grantStore.modifyRecord(recordKey, async (current) => {
+          const existing = parseGrantRecord(current)
+          if (existing !== null && existing.key === payload.key && existing.serverId === id) return undefined
+          return { kind: 'grant', payload }
+        })
+        keyStore = 'credentials'
+        keyStoreError = ''
+        return
+      } catch (error) {
+        keyStoreError = `credentials: ${error?.message ?? error}`
+      }
+    }
+    const file = writeStoredKey(keyFiles, baseUrl, remembered)
+    if (file !== '') {
+      keyStore = 'file'
+      keyStoreError = ''
+    } else {
+      keyStore = 'none'
+      keyStoreError = lastKeyStore.error
+    }
+  }
+
+  async function forgetRemembered() {
+    remembered = null
+    if (grantStore !== null) {
+      try {
+        await grantStore.modifyRecord(recordKey, async (current) => {
+          const existing = parseGrantRecord(current)
+          if (existing === null) return undefined
+          return { kind: 'grant', payload: { revoked: true, serverId: existing.serverId, revokedAt: new Date().toISOString() } }
+        })
+      } catch (error) {
+        keyStoreError = `credentials: ${error?.message ?? error}`
+      }
+    }
+    removeStoredKeys(keyFiles)
+  }
 
   async function send(method, pathname, { headers = {}, body, redirect } = {}) {
     let response
@@ -284,11 +438,8 @@ export function createLibraryClient(options = {}) {
   }
 
   async function authorize(id) {
-    const stored = readKeyFile(keyFile, baseUrl)
-    if (stored !== null && stored.serverId === id) {
-      remembered = stored
-      return stored.key
-    }
+    const stored = await loadRemembered(id)
+    if (stored !== null) return stored.key
     const { response, json, text } = await send('POST', '/local/authorize', {
       headers: { 'Content-Type': 'application/json', 'Zotero-Server-ID': id },
       body: JSON.stringify({ appName: APP_NAME })
@@ -309,7 +460,7 @@ export function createLibraryClient(options = {}) {
     // a single-use key that slips through is detected by the 401 retry below.
     if (json.remember !== false) {
       remembered = { key: json.key, serverId: id }
-      writeKeyFile(keyFile, baseUrl, remembered)
+      await persistRemembered(id)
     }
     return json.key
   }
@@ -330,11 +481,11 @@ export function createLibraryClient(options = {}) {
         headers: { 'Content-Type': 'application/json', 'Zotero-Server-ID': id, 'Zotero-API-Key': apiKey, ...headers },
         body: body === undefined ? undefined : JSON.stringify(body)
       })
-    let apiKey = remembered !== null && remembered.serverId === id ? remembered.key : await authorizeOnce(id)
+    const stored = await loadRemembered(id)
+    let apiKey = stored !== null ? stored.key : await authorizeOnce(id)
     let result = await run(apiKey)
     if (statusOf(result.response) === 401) {
-      remembered = null
-      removeKeyFile(keyFile)
+      await forgetRemembered()
       apiKey = await authorizeOnce(id)
       result = await run(apiKey)
     }
@@ -391,11 +542,15 @@ export function createLibraryClient(options = {}) {
       if (status === 0) throw new LibraryError('LIBRARY_UNAVAILABLE', `Zotero's local API is not reachable at ${baseUrl}.`)
       const header = (name) => (typeof response.headers?.get === 'function' ? response.headers.get(name) : null)
       const serverIdValue = header('zotero-server-id') ?? ''
+      const stored = serverIdValue.length > 0 ? await loadRemembered(serverIdValue) : null
       return {
         reachable: response.ok,
         baseUrl,
-        keyCached: remembered !== null && serverIdValue.length > 0 && remembered.serverId === serverIdValue,
-        keyFile: keyFile === null ? '' : keyFile,
+        keyCached: stored !== null,
+        keyStore,
+        keyFile: lastKeyStore.file || keyFiles[0] || '',
+        keyFiles,
+        keyStoreError,
         home: os.homedir(),
         serverId: serverIdValue,
         apiVersion: header('zotero-api-version') ?? '',
@@ -792,8 +947,12 @@ const sharedClients = new Map()
 
 export function libraryClient(options = {}) {
   const baseUrl = (typeof options.baseUrl === 'string' ? options.baseUrl : BASE_URL).replace(/\/+$/, '')
-  const keyFile = keyFileOf(options)
-  const cacheKey = `${baseUrl}|${keyFile === null ? 'off' : keyFile}`
+  const keyFiles = keyFilesOf(options)
+  const credentials = resolveCredentials(options)
+  const recordKey =
+    typeof options.recordKey === 'string' && options.recordKey.length > 0 ? options.recordKey : credentialsStore.recordKey
+  const store = credentials !== null && credentials !== undefined && typeof credentials.readRecord === 'function' ? recordKey : 'files'
+  const cacheKey = `${baseUrl}|${keyFiles.join(',') || 'off'}|${store}`
   let client = sharedClients.get(cacheKey)
   if (client === undefined) {
     client = createLibraryClient(options)
@@ -827,13 +986,14 @@ export const name = 'research-team-library'
 export const inject = ['tools']
 
 export function apply(ctx) {
+  configureLibraryStore({ ctx: typeof ctx?.get === 'function' ? ctx : null })
   const dispose = ctx.tools.register({
     name: 'research_zotero',
     description:
       'Read and write the Zotero library through its local API (http://127.0.0.1:23119/api). ' +
       'Read ops: status, search, item, annotations, fulltext, file, export, fields, tagList, collectionList, collectionItems, searches, savedSearchItems, trash, log. ' +
       'Write ops: create, update, attach, note, noteUpdate, noteDelete, tags, collections, collection, collectionUpdate, collectionDelete, delete, restore, saveSearch, deleteSavedSearch, fulltextPut, tagDelete. ' +
-      'Reads need no key. The first write opens a Zotero dialog ("Always Allow" keeps the key, so it is asked once and reused from ~/.dsh/research-team/zotero-key.json); afterwards writes run without a per-change plan card and each one is appended to .research/library-log.jsonl. ' +
+      'Reads need no key. The first write opens a Zotero dialog ("Always Allow" keeps the key, so it is asked once and reused from the host credentials store, or from a key file when the profile composes no credentials service); afterwards writes run without a per-change plan card and each one is appended to .research/library-log.jsonl. ' +
       'attach uploads a local file as a stored-file attachment (three-phase upload) and is how a paper\'s full text enters the library: create the item first, then attach the PDF to it. ' +
       'Search by DOI before create. update/tags/collections read the item, merge, and write back under its version, so a concurrent edit fails with LIBRARY_CONFLICT instead of overwriting. ' +
       'delete moves an item to the trash and requires confirm:true; noteDelete, collectionDelete, tagDelete and deleteSavedSearch require it too. This tool never erases data permanently.',

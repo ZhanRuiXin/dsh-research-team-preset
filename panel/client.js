@@ -593,14 +593,17 @@ function statusLabel(status) {
 .rtp-eyebrow{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;letter-spacing:.12em;color:var(--dsw-alias-label-tertiary);text-transform:uppercase}
 .rtp-live{width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-success-primary) 18%,transparent)}
 .rtp-title{margin-top:0;font-size:18px;font-weight:600;line-height:1.4;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rtp-section{padding:14px 16px 2px}
+.rtp-section{margin:0 8px 10px;padding:8px 4px 7px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-base)}
 .rtp-sechead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
 .rtp-sechead.is-foldable{cursor:pointer;margin:-3px -4px 9px;padding:3px 4px;border-radius:6px}
 .rtp-sechead.is-foldable:hover{background:var(--dsw-alias-interactive-bg-hover)}
 .rtp-sechead.is-foldable:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.rtp-secchev{flex:0 0 auto;color:var(--dsw-alias-label-tertiary);transition:transform .15s ease}
-.rtp-secchev.is-collapsed{transform:rotate(-90deg)}
+.rtp-secchev{flex:0 0 auto;color:var(--dsw-alias-label-tertiary)}
 .rtp-secacts{display:contents}
+.rtp-items,.rtp-exp,.rtp-lit{max-height:min(520px,62vh);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-4px}
+.rtp-items::-webkit-scrollbar,.rtp-exp::-webkit-scrollbar,.rtp-lit::-webkit-scrollbar{width:8px}
+.rtp-items::-webkit-scrollbar-thumb,.rtp-exp::-webkit-scrollbar-thumb,.rtp-lit::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l2);border-radius:8px}
+.rtp-items::-webkit-scrollbar-track,.rtp-exp::-webkit-scrollbar-track,.rtp-lit::-webkit-scrollbar-track{background:transparent}
 .rtp-seclabel{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--dsw-alias-label-tertiary)}
 .rtp-count{font-size:13px;line-height:1;padding:3px 6px;border-radius:999px;color:var(--dsw-alias-label-secondary);background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1);font-variant-numeric:tabular-nums}
 .rtp-grow{flex:1}
@@ -783,7 +786,7 @@ function statusLabel(status) {
               }, [
                 h('path', {
                   key: 'p',
-                  d: 'M2.5 3.5 L5 6.5 L7.5 3.5',
+                  d: collapsed ? 'M4 2.5 L6.7 5 L4 7.5' : 'M2.5 4 L5 6.7 L7.5 4',
                   fill: 'none',
                   stroke: 'currentColor',
                   strokeWidth: 1.4,
@@ -1137,6 +1140,57 @@ function statusLabel(status) {
 
     let pluginCtx = null
 
+    /* Folded sections are a local display preference: they survive a reload and
+     * never travel through the project store. */
+    const FOLDED_KEY = 'dsh-research-team-panel:folded-v1'
+    const FOLDED_SECTIONS = ['arch', 'cards', 'runs', 'literature']
+
+    function readFolded() {
+      try {
+        const store = typeof window === 'undefined' ? null : window.localStorage
+        if (store === null || store === undefined) return {}
+        const parsed = JSON.parse(store.getItem(FOLDED_KEY) || '{}')
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+        const folded = {}
+        for (const name of FOLDED_SECTIONS) {
+          if (parsed[name] === true) folded[name] = true
+        }
+        return folded
+      } catch (error) {
+        return {}
+      }
+    }
+
+    /* Set as soon as this page writes a fold, so a slow poll cannot adopt an
+     * older host value over the click the user just made. */
+    let foldedSent = false
+
+    function writeFolded(folded) {
+      try {
+        const store = typeof window === 'undefined' ? null : window.localStorage
+        if (store === null || store === undefined) return
+        const kept = {}
+        for (const name of FOLDED_SECTIONS) {
+          if (folded[name] === true) kept[name] = true
+        }
+        store.setItem(FOLDED_KEY, JSON.stringify(kept))
+      } catch (error) {
+        /* a browser that refuses storage still keeps the fold for this page */
+      }
+    }
+
+    async function postFolded(sessionId, folded) {
+      try {
+        await fetch(PANEL_ROUTE, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ op: 'fold', folded, sessionId })
+        })
+      } catch (error) {
+        /* the host copy catches up on the next toggle; the page already folded */
+      }
+    }
+
     function focusComposer() {
       if (typeof document === 'undefined') return
       const card = document.querySelector('[data-composer-card]')
@@ -1159,8 +1213,24 @@ function statusLabel(status) {
       const tipRef = React.useRef(null)
       const [showFinished, setShowFinished] = React.useState(false)
       const [showFinishedRuns, setShowFinishedRuns] = React.useState(false)
-      const [folded, setFolded] = React.useState({})
-      const toggleSection = (name) => setFolded((current) => ({ ...current, [name]: current[name] !== true }))
+      const [folded, setFolded] = React.useState(readFolded)
+      const toggleSection = (name) => {
+        const next = { ...folded, [name]: folded[name] !== true }
+        foldedSent = true
+        setFolded(next)
+        writeFolded(next)
+        postFolded(sessionId, next)
+      }
+
+      /* Adopt the stored set once per page, before the user touches a heading. */
+      React.useEffect(() => {
+        if (foldedSent) return
+        const stored = state === null ? null : state.folded
+        if (stored === null || typeof stored !== 'object') return
+        if (FOLDED_SECTIONS.every((name) => (folded[name] === true) === (stored[name] === true))) return
+        setFolded(stored)
+        writeFolded(stored)
+      }, [state, folded])
       const [openItems, setOpenItems] = React.useState(null)
       const [openRun, setOpenRun] = React.useState('')
       const [literature, setLiterature] = React.useState({ loading: true, categories: [], count: 0, error: '' })
@@ -1591,6 +1661,8 @@ function statusLabel(status) {
         key: 'arch',
         title: t('架构'),
         count: 0,
+        collapsed: folded.arch === true,
+        onToggle: () => toggleSection('arch'),
         action: card === undefined
           ? undefined
           : h('button', {
@@ -1852,7 +1924,7 @@ function statusLabel(status) {
             ? [h('div', { key: 'error', className: 'rtp-empty' }, literature.error)]
             : literature.categories.length === 0
               ? [h('div', { key: 'empty', className: 'rtp-empty' }, t('还没有文献分类'))]
-              : literature.categories.map((category) => h('div', { key: category.id, className: 'rtp-litgroup' }, [
+              : h('div', { key: 'list', className: 'rtp-lit' }, literature.categories.map((category) => h('div', { key: category.id, className: 'rtp-litgroup' }, [
                   h('div', { key: 'label', className: 'rtp-litcat' }, category.label),
                   category.entries.length === 0
                     ? h('div', { key: 'none', className: 'rtp-litnone' }, t('暂无条目'))
@@ -1889,7 +1961,7 @@ function statusLabel(status) {
                           }, t('打开'))
                         ])
                       ])))
-                ])))
+                ]))))
 
       const body = state === null && error === ''
         ? h('div', { key: 'skel', className: 'rtp-section' }, [

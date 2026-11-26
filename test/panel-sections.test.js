@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -42,6 +43,7 @@ test('a collapsible section hides its body and toggles from its head', () => {
   const chevron = chevronOf(head)
   assert.ok(chevron, 'the head lost its chevron')
   assert.equal(chevron.props.className, 'rtp-secchev')
+  const down = chevron.children[0].props.d
   assert.equal(expanded.children[1].children[0], body)
   head.props.onClick()
   assert.equal(toggled, 1)
@@ -50,7 +52,13 @@ test('a collapsible section hides its body and toggles from its head', () => {
   assert.equal(collapsed.children.length, 1)
   assert.equal(collapsed.children[0].props['aria-expanded'], 'false')
   assert.equal(collapsed.children[0].props.title, '展开')
-  assert.equal(chevronOf(collapsed.children[0]).props.className, 'rtp-secchev is-collapsed')
+  const closedChevron = chevronOf(collapsed.children[0])
+  assert.equal(closedChevron.props.className, 'rtp-secchev is-collapsed')
+  const right = closedChevron.children[0].props.d
+  assert.notEqual(down, right, 'the open and closed heads draw the same chevron')
+  /* Open points down, closed points right: no rotation trick, two real shapes. */
+  assert.ok(down.indexOf('M2.5 4') === 0, `the open chevron is not a down arrow: ${down}`)
+  assert.ok(right.indexOf('M4 2.5') === 0, `the closed chevron is not a right arrow: ${right}`)
 })
 
 test('a section without a toggle keeps its plain head and body', () => {
@@ -79,18 +87,48 @@ test('the head keeps its action controls out of the toggle', () => {
   assert.equal(toggled, 0)
 })
 
-test('work items, experiments and literature are the collapsible sections', () => {
-  for (const [title, name] of [['工作项', 'cards'], ['实验', 'runs'], ['文献', 'literature']]) {
+test('architecture, work items, experiments and literature are the collapsible sections', () => {
+  for (const [title, name] of [['架构', 'arch'], ['工作项', 'cards'], ['实验', 'runs'], ['文献', 'literature']]) {
     const pattern = new RegExp(
       `title: t\\('${title}'\\),[\\s\\S]{0,140}?collapsed: folded\\.${name} === true,[\\s\\S]{0,90}?onToggle: \\(\\) => toggleSection\\('${name}'\\)`
     )
     assert.match(source, pattern, `${title} is not wired to a collapse toggle`)
   }
-  assert.match(source, /const \[folded, setFolded\] = React\.useState\(\{\}\)/, 'the folded state is missing')
+  assert.match(source, /const \[folded, setFolded\] = React\.useState\(readFolded\)/, 'the folded state is not restored from storage')
+  assert.match(source, /store\.setItem\(FOLDED_KEY/, 'a toggle does not persist the folded state')
+  assert.match(source, /window\.localStorage/, 'the folded state is not stored locally')
+  assert.match(source, /op: 'fold'/, 'a toggle is not written to the host store')
+  assert.match(source, /stored = state === null \? null : state\.folded/, 'the stored set is not adopted on load')
 })
 
-test('the work item and experiment lists scroll with the panel', () => {
-  assert.doesNotMatch(source, /max-height:320px/, 'the work item list still has its own scroller')
-  assert.doesNotMatch(source, /max-height:304px/, 'the experiment list still has its own scroller')
-  assert.doesNotMatch(source, /rtp-exp::-webkit-scrollbar/, 'the experiment list still styles a scrollbar')
+test('the list sections scroll inside their own taller boxes', () => {
+  assert.match(source, /\.rtp-items,\.rtp-exp,\.rtp-lit\{[^}]*max-height:min\(520px,62vh\)/, 'the shared scroller lost its height')
+  assert.match(source, /\.rtp-items,\.rtp-exp,\.rtp-lit\{[^}]*overflow-y:auto/, 'the shared scroller lost its overflow')
+  assert.doesNotMatch(source, /max-height:320px/, 'an older, shorter cap is still in the stylesheet')
+  assert.match(source, /className: 'rtp-lit'/, 'the literature list is not wrapped in the scroller')
+})
+
+test('every section is drawn as a bordered card', () => {
+  assert.match(source, /\.rtp-section\{[^}]*border:1px solid var\(--dsw-alias-border-l2\)/, 'the sections lost their border')
+  assert.match(source, /\.rtp-section\{[^}]*border-radius:12px/, 'the sections lost their radius')
+})
+
+test('the host keeps the folded set under ~/.dsh and reads it back', async () => {
+  const { readPanelUi, writePanelUi, buildPanelState } = await import('../plugin/index.js')
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-fold-'))
+  const file = path.join(root, 'panel-ui.json')
+  assert.deepEqual(readPanelUi({ file }).folded, {}, 'a missing file must read as nothing folded')
+
+  writePanelUi({ folded: { arch: true, runs: true, nonsense: true } }, { file })
+  assert.deepEqual(readPanelUi({ file }).folded, { arch: true, runs: true }, 'only the known sections are kept')
+  assert.deepEqual(JSON.parse(fs.readFileSync(file, 'utf8')), { folded: { arch: true, runs: true } })
+
+  writePanelUi({ folded: { arch: true } }, { file })
+  assert.deepEqual(readPanelUi({ file }).folded, { arch: true }, 'an unfolded section is dropped, not merged')
+
+  writePanelUi({ folded: {} }, { file })
+  assert.deepEqual(readPanelUi({ file }).folded, {}, 'unfolding everything clears the file')
+
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-foldproj-'))
+  assert.deepEqual(buildPanelState(project).folded, {}, 'the panel state reports the stored set')
 })

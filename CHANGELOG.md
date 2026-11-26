@@ -4,6 +4,7 @@ All notable changes to Research Team Mode are documented here. The project uses 
 
 ## Unreleased
 
+- Fix the `research_experiment` output so its rendered content is a block array again; a plain string there made `dsh-spill-policy` reject the call and, on the PTC path, crashed the desktop host with `parked.result.content.some is not a function`. A new guard test renders every registered tool with a normal and an error value.
 - Architecture nodes carry an optional one-line `description` that the node hover card shows under the label, so a box too small for the detail still explains itself; the card schema documents it and the role briefs say when to use it. The architecture tool text no longer promises a 整理 button.
 
 - Architecture cards lay themselves out: saving measures each label (CJK one em, Latin 0.55 em, capped at 220 px), wraps it, places the nodes by longest-path levels with barycentre ordering inside each layer, and picks the horizontal or vertical direction whose aspect best fits the sidebar. Stored coordinates are the drawn ones, `op=check` audits that layout, and the panel has no 整理 button because a saved or legacy card already arrives arranged.

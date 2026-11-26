@@ -2119,7 +2119,7 @@ export function apply(ctx) {
     output: {
       schema: {},
       render(_args, value) {
-        return renderExperiment(value)
+        return [{ type: 'text', text: renderExperiment(value) }]
       }
     },
     async execute(args, exec) {

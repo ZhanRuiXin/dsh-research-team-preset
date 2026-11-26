@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.0.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.1.
 
-## Unreleased
+## 0.3.1 — 2026-11-26
 
 - Fix the `research_experiment` output so its rendered content is a block array again; a plain string there made `dsh-spill-policy` reject the call and, on the PTC path, crashed the desktop host with `parked.result.content.some is not a function`. A new guard test renders every registered tool with a normal and an error value.
 - Architecture nodes carry an optional one-line `description` that the node hover card shows under the label, so a box too small for the detail still explains itself; the card schema documents it and the role briefs say when to use it. The architecture tool text no longer promises a 整理 button.

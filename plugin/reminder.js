@@ -92,7 +92,7 @@ export function buildReminder(root) {
     const ids = blockedItems.slice(0, MAX_ITEMS).map((item) => item.id).join(', ')
     const rest = blockedItems.length > MAX_ITEMS ? `, +${blockedItems.length - MAX_ITEMS} more` : ''
     lines.push(
-      `Blocked items the advisor decides (${blockedItems.length}): ${ids}${rest}. Send the advisor the question with its options and evidence, record the answer with research_decision, then move each item to the agreed next step (in_progress with next, or canceled).`
+      `Blocked items the advisor decides (${blockedItems.length}): ${ids}${rest}. The Lead takes each question to the advisor with its options and the evidence that separates them, records the answer with research_decision, then moves the item to the agreed next step (in_progress with next, or canceled).`
     )
   }
   if (cards.length > 0) {

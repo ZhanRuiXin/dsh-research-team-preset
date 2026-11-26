@@ -411,7 +411,7 @@ export function upsertItem(root, input = {}) {
   if (enteringBlocked && readWorklogSettings(root).blockedMode === 'advisor') {
     return {
       error:
-        'blocked decisions go to the advisor in this project: ask the advisor with the question and its options, record the answer with research_decision, then set the item to the agreed next step (in_progress with next, or canceled) instead of blocked'
+        'blocked decisions go to the advisor in this project: give the Lead the question with its options and the evidence that separates them (if you are the Lead, consult the advisor yourself), record the answer with research_decision, then set the item to the agreed next step (in_progress with next, or canceled) instead of blocked'
     }
   }
   const history = previous !== undefined && Array.isArray(previous.history) ? [...previous.history] : []
@@ -472,7 +472,7 @@ export function claimItem(root, input = {}) {
   const previous = readItem(root, id)
   if (previous === undefined) return { error: `no work item "${id}"; create it with op=update first` }
   if (previous.owner !== '' && previous.owner !== owner && previous.status !== 'todo') {
-    return { error: `"${id}" is owned by ${previous.owner} (${previous.status}); do not take it over — report it to the user` }
+    return { error: `"${id}" is owned by ${previous.owner} (${previous.status}); do not take it over — report it to the Lead, who reassigns it` }
   }
   return upsertItem(root, { ...previous, id, owner, status: 'in_progress' })
 }

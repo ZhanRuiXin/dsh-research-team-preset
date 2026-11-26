@@ -4,7 +4,7 @@
 
 **하나의 세션을 작고 긴밀하게 협력하는 연구 팀으로 바꾸는 DSH 에이전트 프리셋입니다.**
 
-**버전 0.2.2** · **업데이트 2026-11-14**
+**버전 0.3.1** · **업데이트 2026-11-26**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <strong>한국어</strong> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -25,7 +25,7 @@ Research Team Mode는 단일 채팅이 아니라 팀으로 연구를 끝까지 �
 | **완료** | 승인이 필요한 작업 항목은 `in_review`에서 멈추고 사용자만 `done`으로 옮길 수 있습니다. 내부 단계는 담당자가 직접 닫습니다 |
 | **모델 라우팅** | Plugins 페이지 설정 폼에서 역할별 provider, model, 추론 강도(reasoning effort)를 지정합니다 |
 | **Git** | 실질적 작업이 시작될 때 에이전트가 초기화. 파괴적 변경은 브랜치에서 진행하고 수락 후에만 병합 |
-| **Worklog** | `.research/worklog/`의 JSON 저장소. `PLAN.md`와 `INDEX.md`는 생성된 보기. 재개 시 먼저 `research_state` |
+| **Worklog** | `.research/worklog/`의 JSON 저장소. `PLAN.md`와 `INDEX.md`는 생성된 보기. 재개 시 먼저 `research_state`. 각 턴은 미완료 작업 항목, 보관되지 않은 아키텍처 카드, 미완료 실험을 담은 짧은 알림으로 시작한다 |
 | **런타임** | PTC(`run_code` + 생성된 SDK), 멤버당 하위 에이전트 계층 1개 |
 
 ## 대상 사용자
@@ -73,20 +73,20 @@ Lead의 답변은 상태 피드가 아니라 과학적 커뮤니케이션이다.
 ### DSH 플러그인 페이지에서 설치
 
 2. **설정 → 플러그인**을 열고 **추가**를 클릭합니다.
-3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.3.0`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
+3. 설치 소스를 붙여넣습니다: npm 패키지는 `dsh-research-team-preset@0.3.1`, 소스를 고정하려면 `github:ZhanRuiXin/dsh-research-team-preset#v0.3.1`, 로컬 체크아웃은 `link:/absolute/path/to/dsh-research-team-preset`.
 4. **DSH를 재시작합니다.** 프리셋 행과 번들의 클라이언트 부분은 시작 시 로드됩니다.
 5. **같은 프로필에서 번들이 활성화되어 있는지 확인**한 뒤, **새 세션을 열고** 모드 선택기에서 **Research Team Mode**를 선택합니다.
 
 ### 명령줄에서 설치
 
 ```text
-dsh plugin add dsh-research-team-preset@0.3.0
+dsh plugin add dsh-research-team-preset@0.3.1
 ```
 
 레지스트리 대신 소스를 고정하려면:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.1
 ```
 
 > 이 모드는 프로필 수준 번들입니다. 한 프로필에 설치해도 다른 프로필에서는 활성화되지 않습니다. 프로필마다 설치와 사전 요구사항을 반복하세요.

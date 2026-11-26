@@ -21,8 +21,10 @@ const {
   listItems,
   readDesign,
   readItem,
+  readWorklogSettings,
   saveDesign,
-  upsertItem
+  upsertItem,
+  writeWorklogSettings
 } = await import('../plugin/worklog.js')
 
 function project(t) {
@@ -103,6 +105,30 @@ test('the panel does not accept an internal step', (t) => {
   assert.equal(readItem(dir, 's1').status, 'in_review')
   const closed = upsertItem(dir, { id: 's1', title: 'Load the sample', kind: 'internal', status: 'done', by: 'data' })
   assert.equal(closed.item.status, 'done')
+})
+
+test('an item does not enter review while its steps are open', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 't-parent', title: 'Parent', status: 'in_progress' })
+  upsertItem(dir, { id: 'step-a', title: 'Step', kind: 'internal', parent: 't-parent', status: 'in_progress' })
+  const refused = upsertItem(dir, { id: 't-parent', status: 'in_review' })
+  assert.match(refused.error, /still has 1 open step/)
+  assert.equal(readItem(dir, 't-parent').status, 'in_progress')
+  upsertItem(dir, { id: 'step-a', status: 'in_review' })
+  upsertItem(dir, { id: 'step-a', status: 'done' })
+  const ok = upsertItem(dir, { id: 't-parent', status: 'in_review' })
+  assert.equal(ok.error, undefined)
+  assert.equal(ok.item.status, 'in_review')
+})
+
+test('a step inside an item is accepted with its parent, not on its own', (t) => {
+  const dir = project(t)
+  upsertItem(dir, { id: 't-parent', title: 'Parent', status: 'in_progress' })
+  upsertItem(dir, { id: 'child-1', title: 'A step', kind: 'gated', parent: 't-parent', status: 'in_progress' })
+  upsertItem(dir, { id: 'child-1', title: 'A step', kind: 'gated', parent: 't-parent', status: 'in_review' })
+  const refused = decideItem(dir, { id: 'child-1', decision: 'accept' })
+  assert.match(refused.error, /step inside "t-parent"/)
+  assert.equal(readItem(dir, 'child-1').status, 'in_review')
 })
 
 test('an internal step closes itself with done', (t) => {
@@ -248,4 +274,19 @@ test('an item keeps its deliverables and drops empty entries', (t) => {
   assert.equal(item.deliverables[0].label, 'E2 report')
   assert.equal(item.deliverables[0].path, 'reports/e2.md')
   assert.equal(item.deliverables[1].url, 'https://example.org/paper')
+})
+
+test('advisor mode sends new blockers to the advisor and leaves old ones alone', (t) => {
+  const dir = project(t)
+  assert.deepEqual(readWorklogSettings(dir), { blockedMode: 'human' })
+  assert.equal(upsertItem(dir, { id: 'a-1', title: 'First', status: 'blocked', blocked: 'waiting' }).item.status, 'blocked')
+  assert.deepEqual(writeWorklogSettings(dir, { blockedMode: 'advisor' }), { blockedMode: 'advisor' })
+  assert.deepEqual(readWorklogSettings(dir), { blockedMode: 'advisor' })
+  const refused = upsertItem(dir, { id: 'b-2', title: 'Second', status: 'blocked', blocked: 'waiting' })
+  assert.match(refused.error, /blocked decisions go to the advisor/)
+  const kept = upsertItem(dir, { id: 'a-1', title: 'First (edited)' })
+  assert.equal(kept.item.title, 'First (edited)')
+  assert.equal(kept.item.status, 'blocked')
+  writeWorklogSettings(dir, { blockedMode: 'human' })
+  assert.equal(upsertItem(dir, { id: 'b-2', title: 'Second', status: 'blocked', blocked: 'waiting' }).item.status, 'blocked')
 })

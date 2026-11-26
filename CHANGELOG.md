@@ -1,6 +1,22 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.0.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.1.
+
+## 0.3.1 — 2026-11-26
+
+- Fix the `research_experiment` output so its rendered content is a block array again; a plain string there made `dsh-spill-policy` reject the call and, on the PTC path, crashed the desktop host with `parked.result.content.some is not a function`. A new guard test renders every registered tool with a normal and an error value.
+- Architecture nodes carry an optional one-line `description` that the node hover card shows under the label, so a box too small for the detail still explains itself; the card schema documents it and the role briefs say when to use it. The architecture tool text no longer promises a 整理 button.
+
+- Architecture cards lay themselves out: saving measures each label (CJK one em, Latin 0.55 em, capped at 220 px), wraps it, places the nodes by longest-path levels with barycentre ordering inside each layer, and picks the horizontal or vertical direction whose aspect best fits the sidebar. Stored coordinates are the drawn ones, `op=check` audits that layout, and the panel has no 整理 button because a saved or legacy card already arrives arranged.
+
+- Work items carry a project decision mode next to the 已完成 toggle: 人工决策 keeps new blockers for the user, while 智能决策 refuses a move into `blocked` and routes the question to the advisor, whose answer is recorded with `research_decision` before the item moves to the agreed next step. `research_worklog op=decision-mode` reads or sets it, and the mode lives in `.research/worklog/settings.json`. Items that are already `blocked` keep their status, but in advisor mode the per-turn ledger reminder names them and instructs the agent to take each one to the advisor and record the answer.
+
+- Every turn opens with a short ledger reminder built from the project: the objective and milestone, open work items, non-archived architecture cards and unfinished experiments. Experiments are read from `<project>/runs/<id>/manifest.json` (the same path `research_experiment` writes), so a registered, approved or running run shows up as `Unfinished experiments`. It is state, not an instruction, and it disappears when the project has nothing open.
+
+- An item cannot enter `in_review` while steps that name it as parent are still open: the tool refuses the move with `"<id>" still has N open step(s): …`, so the user only sees an item for acceptance after its steps are done or canceled.
+- Steps inside a work item never ask for their own acceptance: the panel shows 确认完成/退回 only on top-level gated items, a nested row reads 内部步骤, and the panel refuses a decision on a nested item with `"<id>" is a step inside "<parent>"`; accepting the parent covers its steps.
+- The Zotero tool shares one client per process, joins parallel first writes into a single authorization request, and re-reads the key file before asking again, so a burst of writes no longer opens one Zotero dialog each; `status` now reports `keyCached`, the key file in use and the home directory it resolves. The key is cached unless Zotero explicitly marks it single-use, so a response that omits the flag no longer costs a dialog per write.
+- Fixed `research_worklog` returning a nested `undefined` for internal steps (`op=update` and `op=get`), which the host rejects as "not lossless JSON" before the model sees the result. A new test runs the worklog, panel, architecture, experiment and literature payloads through the same rule the host enforces.
 
 ## 0.3.0 — 2026-11-21
 

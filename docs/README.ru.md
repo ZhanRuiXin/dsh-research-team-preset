@@ -4,7 +4,7 @@
 
 **DSH agent preset, превращающий одну сессию в небольшую слаженную исследовательскую команду.**
 
-**Версия 0.2.2** · **Обновлено 2026-11-14**
+**Версия 0.3.1** · **Обновлено 2026-11-26**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <strong>Русский</strong> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -25,7 +25,7 @@ Research Team Mode - это пресет агента DSH для сквозно�
 | **Завершение** | Элемент с воротами останавливается на `in_review`, и только пользователь переводит его в `done`; внутренний шаг закрывает его владелец |
 | **Маршрутизация моделей** | Провайдер, модель и усилие рассуждения для каждой роли через форму настроек на странице Plugins |
 | **Git** | Инициализируется агентом при начале существенной работы; разрушительные изменения — в ветке; слияние только после приёмки |
-| **Worklog** | JSON-хранилище в `.research/worklog/`; `PLAN.md` и `INDEX.md` — сгенерированные представления; при возобновлении сначала `research_state` |
+| **Worklog** | JSON-хранилище в `.research/worklog/`; `PLAN.md` и `INDEX.md` — сгенерированные представления; при возобновлении сначала `research_state`; каждый ход также начинается с короткого напоминания об открытых рабочих элементах, активных карточках и незавершённых экспериментах |
 | **Среда выполнения** | PTC (`run_code` + сгенерированный SDK), один уровень subagent на участника |
 
 ## Для кого
@@ -73,20 +73,20 @@ Research Team Mode - это пресет агента DSH для сквозно�
 ### Установка со страницы плагинов DSH
 
 2. Откройте **Настройки → Плагины** и нажмите **Добавить**.
-3. Вставьте источник установки: `dsh-research-team-preset@0.3.0` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
+3. Вставьте источник установки: `dsh-research-team-preset@0.3.1` для пакета npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.1` чтобы закрепить исходный код, или `link:/absolute/path/to/dsh-research-team-preset` для локального чекаута.
 4. **Перезапустите DSH.** Строки пресета и клиентская часть бандла загружаются при старте.
 5. **Убедитесь, что бандл включён** в том же профиле, затем **откройте новую сессию** и выберите **Research Team Mode** в выборе режима.
 
 ### Установка из командной строки
 
 ```text
-dsh plugin add dsh-research-team-preset@0.3.0
+dsh plugin add dsh-research-team-preset@0.3.1
 ```
 
 Чтобы закрепить исходный код вместо реестра:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.1
 ```
 
 > Режим является бандлом уровня профиля: установка в одном профиле не включает его в другом. Повторите установку и предварительные условия для каждого профиля.

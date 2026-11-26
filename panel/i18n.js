@@ -145,7 +145,12 @@ export const MESSAGES = {
     '已用默认应用打开': '已用默认应用打开',
     '打开失败': '打开失败',
     '科研': '科研',
-    '团队状态：架构、工作项与实验': '团队状态：架构、工作项与实验'
+    '团队状态：架构、工作项与实验': '团队状态：架构、工作项与实验',
+    '阻塞项决策方式': '阻塞项决策方式',
+    '人工决策': '人工决策',
+    '智能决策': '智能决策',
+    '阻塞项改由 advisor 决策。': '阻塞项改由 advisor 决策。',
+    '阻塞项改由你决策。': '阻塞项改由你决策。'
   },
   en: {
     '输入': 'Input',
@@ -272,7 +277,12 @@ export const MESSAGES = {
     '已用默认应用打开': 'Opened with the default application',
     '打开失败': 'Could not open',
     '科研': 'Research',
-    '团队状态：架构、工作项与实验': 'Team status: architecture, work items and experiments'
+    '团队状态：架构、工作项与实验': 'Team status: architecture, work items and experiments',
+    '阻塞项决策方式': 'Blocker decisions',
+    '人工决策': 'Human',
+    '智能决策': 'Advisor',
+    '阻塞项改由 advisor 决策。': 'Blockers are decided by the advisor now.',
+    '阻塞项改由你决策。': 'Blockers are yours to decide now.'
   }
 }
 

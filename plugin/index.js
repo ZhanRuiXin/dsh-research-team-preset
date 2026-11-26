@@ -39,12 +39,14 @@ import {
   readDesign,
   readItem,
   readPlan,
+  readWorklogSettings,
   renderViews,
   saveDesign,
   upsertItem,
   worklogDirs,
   worklogSummary,
-  writePlan
+  writePlan,
+  writeWorklogSettings
 } from './worklog.js'
 import { matchRoleName, modelForRole } from './settings-store.js'
 
@@ -80,7 +82,7 @@ __pycache__/
 
 /** The coordination ledger: worklog files are the record (see `## Coordination ledger`). */
 const WORKLOG_PROTOCOL_EN = `The team records its work in the project worklog. Its machine state is JSON under .research/worklog/: plan.json (objective, milestones, next) and one items/<id>.json per work item (id, title, owner, status, kind, next, blocked, evidence, checklist). worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views of that state; read and write the ledger with research_worklog, never by editing the views.
-Status moves follow one table: todo -> in_progress -> in_review -> done; blocked and canceled are side states. blocked needs its reason, canceled may carry one, a gate needs at least one evidence entry or a noted checklist item, and every move is kept in the item history.
+An item enters in_review only when every step that names it as parent is done or canceled; else the move is refused with the open steps. Status moves follow one table: todo -> in_progress -> in_review -> done; blocked and canceled are side states. blocked needs its reason, canceled may carry one, a gate needs at least one evidence entry or a noted checklist item, and every move is kept in the item history.
 Discipline:
 1. Read before acting: call research_state (or research_worklog op=list) before starting, then read the one item you are taking. Do not scan every file in the worklog.
 2. Claim before working: call research_worklog op=claim with your role. If another owner holds the item, stop and report; never take it over.
@@ -316,6 +318,7 @@ export function normalizeArchitectureCard(input, previous) {
     nodes.push({
       id: nodeId,
       label: shortText(raw.label, 80) || nodeId,
+      description: shortText(raw.description, 200),
       kind: NODE_KINDS.includes(raw.kind) ? raw.kind : 'module',
       x: clampNumber(raw.x, 0, 4000, 40),
       y: clampNumber(raw.y, 0, 4000, 40),
@@ -394,16 +397,83 @@ export function readArchitectureCard(root, id) {
 /** Minimum breathing room between two node boxes, in canvas pixels. */
 export const ARCH_NODE_GAP = 24
 
-/** The boxes the panel draws, with the same defaults the card normalizer uses. */
-export function architectureBoxes(card) {
-  return (Array.isArray(card?.nodes) ? card.nodes : []).map((node) => ({
-    id: String(node.id),
-    label: String(node.label ?? ''),
-    x: Number(node.x) || 0,
-    y: Number(node.y) || 0,
-    w: Number(node.w) || 160,
-    h: Number(node.h) || 56
-  }))
+/**
+ * Box metrics shared with the panel. The panel cannot import this module, so
+ * `panel/client.js` mirrors this arithmetic exactly; keep the two in step or a
+ * layout that checks clean here draws overlapped there.
+ */
+export const ARCH_NODE_TEXT = { fontSize: 14, padX: 12, minW: 96, maxW: 220, lineH: 15, minH: 42 }
+
+/** Approximate width of one label: CJK counts a full em, Latin 0.55 em. */
+export function measureLabelWidth(label) {
+  let width = 0
+  for (const char of String(label ?? '')) width += /[\u3400-\u9fff]/.test(char) ? ARCH_NODE_TEXT.fontSize : ARCH_NODE_TEXT.fontSize * 0.55
+  return width
+}
+
+/** Wrap a label the way the panel draws it: CJK breaks per character, Latin per word. */
+export function wrapNodeLabel(label) {
+  const usable = (w) => Math.max(24, w - ARCH_NODE_TEXT.padX * 2)
+  const widthOf = (value) => {
+    let total = 0
+    for (const char of String(value)) total += /[\u3400-\u9fff]/.test(char) ? ARCH_NODE_TEXT.fontSize : ARCH_NODE_TEXT.fontSize * 0.55
+    return total
+  }
+  const words = []
+  let buffer = ''
+  for (const char of String(label ?? '')) {
+    if (/[\u3400-\u9fff]/.test(char) || char === ' ') {
+      if (buffer !== '') { words.push(buffer); buffer = '' }
+      words.push(char)
+    } else buffer += char
+  }
+  if (buffer !== '') words.push(buffer)
+  const limit = usable(ARCH_NODE_TEXT.maxW)
+  const lines = []
+  let line = ''
+  let width = 0
+  for (const word of words) {
+    const advance = widthOf(word)
+    if (word !== ' ' && width > 0 && width + advance > limit) {
+      lines.push(line.trimEnd())
+      line = ''
+      width = 0
+    }
+    line += word
+    width += advance
+    while (width > limit && line.length > 1) {
+      const chars = [...line]
+      let keep = ''
+      let used = 0
+      for (const char of chars) {
+        const size = /[\u3400-\u9fff]/.test(char) ? ARCH_NODE_TEXT.fontSize : ARCH_NODE_TEXT.fontSize * 0.55
+        if (used + size > limit && keep !== '') break
+        keep += char
+        used += size
+      }
+      lines.push(keep.trimEnd())
+      line = line.slice(keep.length)
+      width = widthOf(line)
+    }
+  }
+  lines.push(line.trimEnd())
+  return lines.length === 0 ? [''] : lines
+}
+
+/** The box the panel draws for one node: width follows the label, height the wrapped lines. */
+export function architectureNodeBox(node) {
+  const label = String(node?.label ?? '')
+  const w = Math.min(ARCH_NODE_TEXT.maxW, Math.max(ARCH_NODE_TEXT.minW, Math.ceil(measureLabelWidth(label) + ARCH_NODE_TEXT.padX * 2)))
+  const lines = wrapNodeLabel(label)
+  return { w, h: Math.max(ARCH_NODE_TEXT.minH, lines.length * ARCH_NODE_TEXT.lineH + 20), lines }
+}
+
+/** Boxes sized from their labels, before any position is chosen. */
+export function measuredBoxes(card) {
+  return (Array.isArray(card?.nodes) ? card.nodes : []).map((node) => {
+    const box = architectureNodeBox(node)
+    return { id: String(node.id), label: String(node.label ?? ''), x: 0, y: 0, w: box.w, h: box.h }
+  })
 }
 
 function segmentCrosses(a, b) {
@@ -422,12 +492,14 @@ function segmentCrosses(a, b) {
  */
 export function checkArchitectureCard(card) {
   const issues = []
-  const boxes = architectureBoxes(card)
+  const laid = layoutArchitectureCard(card)
+  const placed = new Map(laid.nodes.map((node) => [node.id, node]))
+  const boxes = measuredBoxes(card).map((box) => {
+    const node = placed.get(box.id)
+    return { ...box, x: Number(node?.x) || 0, y: Number(node?.y) || 0 }
+  })
   const byId = new Map(boxes.map((box) => [box.id, box]))
-  const canvas = {
-    width: Number(card?.canvas?.width) || 520,
-    height: Number(card?.canvas?.height) || 300
-  }
+  const canvas = laid.canvas
   for (const box of boxes) {
     if (box.x < 0 || box.y < 0 || box.x + box.w > canvas.width || box.y + box.h > canvas.height) {
       const right = box.x + box.w
@@ -486,20 +558,114 @@ export function checkArchitectureCard(card) {
 }
 
 /**
- * Lay the card out as a left-to-right flow: one column per longest-path level,
- * boxes separated by a fixed gap, canvas grown to fit. Existing order inside a
- * level is kept, so a hand-placed card keeps its reading order.
+ * Order nodes inside each column so edges cross as little as possible: four
+ * alternating sweeps rank a node by the average position of its parents
+ * (forward pass) or its children (backward pass), keeping the card's own order
+ * as the tie-break.
  */
-export function arrangeArchitectureCard(card) {
-  const boxes = architectureBoxes(card)
-  const edges = Array.isArray(card?.edges) ? card.edges : []
+function columnOrder(columns, edges, ids) {
+  const parents = new Map(ids.map((id) => [id, []]))
+  const children = new Map(ids.map((id) => [id, []]))
+  for (const edge of edges) {
+    parents.get(edge.to).push(edge.from)
+    children.get(edge.from).push(edge.to)
+  }
+  const keys = [...columns.keys()].sort((a, b) => a - b)
+  const indexIn = new Map()
+  for (const key of keys) columns.get(key).forEach((box, index) => indexIn.set(box.id, index))
+  const centre = (id, neighbours) => {
+    const list = neighbours.get(id) ?? []
+    if (list.length === 0) return indexIn.get(id) ?? 0
+    let sum = 0
+    for (const other of list) sum += indexIn.get(other) ?? 0
+    return sum / list.length
+  }
+  for (let pass = 0; pass < 4; pass += 1) {
+    const forward = pass % 2 === 0
+    const sequence = forward ? keys : [...keys].reverse()
+    const neighbours = forward ? parents : children
+    for (const key of sequence) {
+      const column = columns.get(key)
+      column.sort((a, b) => (centre(a.id, neighbours) - centre(b.id, neighbours)) || (indexIn.get(a.id) - indexIn.get(b.id)))
+      column.forEach((box, index) => indexIn.set(box.id, index))
+    }
+  }
+}
+
+function placeVertical(columns, keys, gapY, pad) {
+  const gapX = 34
+  const rows = keys.map((key) => columns.get(key))
+  const rowWidths = rows.map((row) => row.reduce((total, box) => total + box.w, 0) + gapX * Math.max(0, row.length - 1))
+  const maxWidth = Math.max(0, ...rowWidths)
+  const rowHeights = rows.map((row) => Math.max(0, ...row.map((box) => box.h)))
+  const totalHeight = rowHeights.reduce((total, height) => total + height, 0) + gapY * Math.max(0, rows.length - 1)
+  const placed = new Map()
+  const moved = []
+  let y = pad
+  rows.forEach((row, index) => {
+    let x = pad + Math.max(0, (maxWidth - rowWidths[index]) / 2)
+    for (const box of row) {
+      if (box.x !== x || box.y !== y) moved.push(box.id)
+      placed.set(box.id, { x: Math.round(x), y: Math.round(y) })
+      x += box.w + gapX
+    }
+    y += rowHeights[index] + gapY
+  })
+  return {
+    placed,
+    moved,
+    canvas: {
+      width: Math.min(4000, Math.max(320, Math.round(maxWidth + pad * 2))),
+      height: Math.min(4000, Math.max(200, Math.round(totalHeight + pad * 2)))
+    }
+  }
+}
+
+function placeHorizontal(columns, keys, gapY, pad) {
+  const gapX = 56
+  const widths = keys.map((key) => Math.max(0, ...columns.get(key).map((box) => box.w)))
+  const heights = keys.map((key) => columns.get(key).reduce((total, box) => total + box.h, 0) + gapY * Math.max(0, columns.get(key).length - 1))
+  const tallest = Math.max(0, ...heights)
+  const placed = new Map()
+  const moved = []
+  let x = pad
+  keys.forEach((key, index) => {
+    const column = columns.get(key)
+    let y = pad + Math.max(0, (tallest - heights[index]) / 2)
+    for (const box of column) {
+      if (box.x !== x || box.y !== y) moved.push(box.id)
+      placed.set(box.id, { x: Math.round(x), y: Math.round(y) })
+      y += box.h + gapY
+    }
+    x += widths[index] + gapX
+  })
+  return {
+    placed,
+    moved,
+    canvas: {
+      width: Math.min(4000, Math.max(320, Math.round(x - gapX + pad))),
+      height: Math.min(4000, Math.max(200, Math.round(tallest + pad * 2)))
+    }
+  }
+}
+
+/**
+ * Lay the card out as a flow whose boxes are exactly the ones the panel draws:
+ * one column or row per longest-path level, ordered by the average position of
+ * the nodes it connects, and the direction (left-to-right or top-to-bottom)
+ * that best fits the narrow sidebar wins. The panel draws the stored
+ * coordinates unchanged, so running this after adding or renaming nodes is what
+ * keeps a card legible.
+ */
+export function layoutArchitectureCard(card) {
+  const boxes = measuredBoxes(card)
   const ids = boxes.map((box) => box.id)
   const known = new Set(ids)
+  const edges = (Array.isArray(card?.edges) ? card.edges : []).filter((edge) => known.has(edge.from) && known.has(edge.to))
   const level = new Map(ids.map((id) => [id, 0]))
   for (let pass = 0; pass <= ids.length; pass += 1) {
     let changed = false
     for (const edge of edges) {
-      if (!known.has(edge.from) || !known.has(edge.to)) continue
       const want = (level.get(edge.from) ?? 0) + 1
       if (want > (level.get(edge.to) ?? 0) && want < ids.length) {
         level.set(edge.to, want)
@@ -508,40 +674,55 @@ export function arrangeArchitectureCard(card) {
     }
     if (!changed) break
   }
+  const parentsOf = new Map(ids.map((id) => [id, []]))
+  const childrenOf = new Map(ids.map((id) => [id, []]))
+  for (const edge of edges) {
+    parentsOf.get(edge.to).push(edge.from)
+    childrenOf.get(edge.from).push(edge.to)
+  }
+  /* A side input with no parents sits next to the level it feeds, not at the far
+     left, so its edge does not cut across the whole diagram. */
+  for (const id of ids) {
+    if ((parentsOf.get(id) ?? []).length > 0) continue
+    const children = childrenOf.get(id) ?? []
+    if (children.length === 0) continue
+    const nearest = Math.min(...children.map((child) => level.get(child) ?? 0))
+    if (nearest > 0 && (level.get(id) ?? 0) < nearest - 1) level.set(id, nearest - 1)
+  }
   const columns = new Map()
   boxes.forEach((box, index) => {
     const key = level.get(box.id) ?? 0
     if (!columns.has(key)) columns.set(key, [])
     columns.get(key).push({ ...box, index })
   })
-  const gapX = 56
+  const keys = [...columns.keys()].sort((a, b) => a - b)
+  columnOrder(columns, edges, ids)
   const gapY = 28
   const pad = 24
-  let x = pad
-  let maxBottom = pad
-  const moved = []
-  const placed = new Map()
-  for (const key of [...columns.keys()].sort((a, b) => a - b)) {
-    const column = columns.get(key)
-    const width = Math.max(...column.map((box) => box.w))
-    let y = pad
-    for (const box of column) {
-      if (box.x !== x || box.y !== y) moved.push(box.id)
-      placed.set(box.id, { ...box, x, y })
-      y += box.h + gapY
-    }
-    maxBottom = Math.max(maxBottom, y - gapY)
-    x += width + gapX
-  }
+  const candidates = [placeHorizontal(columns, keys, gapY, pad), placeVertical(columns, keys, gapY, pad)]
+  const target = 1.15
+  const score = (candidate) => Math.abs(Math.log((candidate.canvas.width / candidate.canvas.height) / target))
+  const best = score(candidates[0]) <= score(candidates[1]) ? candidates[0] : candidates[1]
   const nodes = boxes.map((box) => {
-    const next = placed.get(box.id) ?? box
+    const next = best.placed.get(box.id) ?? { x: box.x, y: box.y }
     return { ...(card.nodes.find((node) => node.id === box.id) ?? box), x: next.x, y: next.y }
   })
-  const canvas = {
-    width: Math.min(4000, Math.max(320, x - gapX + pad)),
-    height: Math.min(4000, Math.max(200, maxBottom + pad))
-  }
-  return { nodes, canvas, moved }
+  return { nodes, canvas: best.canvas, moved: best.moved }
+}
+
+/** Re-lay the card and return the coordinates the panel draws. */
+export function arrangeArchitectureCard(card) {
+  return layoutArchitectureCard(card)
+}
+
+/** The boxes the panel actually draws: measured sizes at their laid-out positions. */
+export function architectureBoxes(card) {
+  const laid = layoutArchitectureCard(card)
+  const placed = new Map(laid.nodes.map((node) => [node.id, node]))
+  return measuredBoxes(card).map((box) => {
+    const node = placed.get(box.id)
+    return { ...box, x: Number(node?.x) || 0, y: Number(node?.y) || 0 }
+  })
 }
 
 export function listArchitectureCards(root) {
@@ -572,8 +753,15 @@ export function saveArchitectureCard(root, input, expectedVersion) {
       return { error: `version conflict: card "${id}" is at v${current}, reload before saving` }
     }
   }
-  const next = normalizeArchitectureCard({ ...input, id }, previous)
-  if (next.error !== undefined) return next
+  const normalized = normalizeArchitectureCard({ ...input, id }, previous)
+  if (normalized.error !== undefined) return normalized
+  const laid = layoutArchitectureCard(normalized)
+  const placed = new Map(laid.nodes.map((node) => [node.id, node]))
+  const next = {
+    ...normalized,
+    nodes: normalized.nodes.map((node) => ({ ...node, x: Number(placed.get(node.id)?.x) || 0, y: Number(placed.get(node.id)?.y) || 0 })),
+    canvas: laid.canvas
+  }
   const dir = architectureDir(root)
   fs.mkdirSync(dir, { recursive: true })
   const file = path.join(dir, `${id}.json`)
@@ -914,6 +1102,12 @@ export function openProjectFile(root, target, spawn = spawnProcess) {
   return { ok: true, path: rel.split(path.sep).join("/") }
 }
 
+export function worklogItem(root, id) {
+  const item = readItem(root, id)
+  if (item === undefined) return { error: `no work item "${String(id)}"` }
+  return item.kind === 'gated' ? { ...item, card: itemCardPath(root, item.id) } : { ...item }
+}
+
 export function buildPanelState(root, options = {}) {
   const worklogPlan = readPlan(root)
   const plan = {
@@ -1044,6 +1238,7 @@ export function buildPanelState(root, options = {}) {
     finishedItems: finished.length,
     runs: runs.slice(0, 40),
     experimentSettings: settings,
+    decisionMode: readWorklogSettings(root).blockedMode,
     designs: designs.slice(0, 12),
     architectures: listArchitectureCards(root)
   }
@@ -1701,6 +1896,16 @@ export function apply(ctx) {
         const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
         return
       }
+      if (body?.op === 'decision-mode') {
+        const mode = body.mode === 'advisor' ? 'advisor' : body.mode === 'human' ? 'human' : ''
+        if (mode === '') {
+          jsonResponse(res, 400, { ok: false, error: 'mode must be human or advisor' })
+          return
+        }
+        writeWorklogSettings(root, { blockedMode: mode })
+        const state = await panelState(ctx, root, body?.sessionId); jsonResponse(res, 200, { ok: true, ...state })
+        return
+      }
       if (body?.op === 'approve') {
         const decision = body.decision === 'approved' || body.decision === 'rejected' ? body.decision : ''
         if (decision === '') {
@@ -1727,6 +1932,22 @@ export function apply(ctx) {
         }
         const opened = openZoteroItem(body.id)
         jsonResponse(res, opened.ok ? 200 : 500, { ok: opened.ok, url: opened.url, error: opened.error })
+        return
+      }
+      if (body?.op === 'arrange') {
+        const target = readArchitectureCard(root, body.id)
+        if (target === undefined) {
+          jsonResponse(res, 404, { ok: false, error: `No architecture card "${String(body.id)}".` })
+          return
+        }
+        const arranged = arrangeArchitectureCard(target)
+        const saved = saveArchitectureCard(root, { ...target, canvas: arranged.canvas, nodes: arranged.nodes }, target.version)
+        if (saved.error !== undefined) {
+          jsonResponse(res, 400, { ok: false, error: saved.error })
+          return
+        }
+        const state = await panelState(ctx, root, body?.sessionId)
+        jsonResponse(res, 200, { ok: true, ...state })
         return
       }
       if (body?.op === 'archive') {
@@ -1799,7 +2020,7 @@ export function apply(ctx) {
   const disposeArchitecture = ctx.tools.register({
     name: 'research_architecture',
     description:
-      'Read or update the architecture cards shown in the Research sidebar: the diagrams of this project, stored as JSON under .research/architecture/<id>.json. A project names its own groups, one group per aspect it wants to show (for example method, implementation, data or training), and the panel draws one chip row per group; put every card in the group it belongs to. Use op=list to see them, op=get to read one, op=save to create or update, op=check to audit the layout, op=arrange to re-lay it out automatically, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a specific short title shown on its chip and a description shown in the chip hover card, and it already sits in its group row, so do not repeat the group name as a prefix (write 分析路径, not 实现：分析路径); before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and quote them into the conversation composer; when the point should stay with the card, record it in `notes` with op=save, and read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. You cannot see the rendered picture, so after op=save call op=check: it reports boxes that overlap, sit closer than 24 px, run past the canvas, or edges that cross, in plain coordinates. Fix the coordinates yourself or call op=arrange, which lays the nodes out as a left-to-right flow, grows the canvas, and saves the result; then op=check again until it is clean. Nodes carry an optional w and h (the box size in pixels, default 160x56) so a long label reserves the room it needs.',
+      'Read or update the architecture cards shown in the Research sidebar: the diagrams of this project, stored as JSON under .research/architecture/<id>.json. A project names its own groups, one group per aspect it wants to show (for example method, implementation, data or training), and the panel draws one chip row per group; put every card in the group it belongs to. Use op=list to see them, op=get to read one, op=save to create or update, op=check to audit the layout, op=arrange to re-lay it out automatically, op=remove to delete, op=archive to retire one and op=restore to bring it back. A card is a node/edge graph with absolute coordinates, a specific short title shown on its chip and a description shown in the chip hover card, and it already sits in its group row, so do not repeat the group name as a prefix (write 分析路径, not 实现：分析路径); before updating an existing card, read it and pass expectedVersion so a concurrent edit is not overwritten. op=archive retires a card without deleting it, and an archived card is hidden from the panel until op=restore brings it back. The user can select nodes in the sidebar and quote them into the conversation composer; when the point should stay with the card, record it in `notes` with op=save, and read the card before answering it. The designer owns the method card and the builder owns the implementation card; the advisor reads both before a review, and the reviewer checks them at the results gate. You cannot see the rendered picture, so after op=save call op=check: it reports boxes that overlap, sit closer than 24 px, run past the canvas, or edges that cross, in plain coordinates. Fix the coordinates yourself or call op=arrange: it sizes every box from its label exactly the way the panel draws it (CJK counts one em, Latin 0.55 em, width capped at 220), orders each level to reduce crossed edges, picks left-to-right or top-to-bottom by which one fits the narrow sidebar, grows the canvas and saves the result; then op=check again until it is clean. Node w and h in the card are ignored, because the panel measures the box from the label. A node may carry a one-line `description` (up to 200 characters) that its hover card shows under the label, for a detail too long for the box itself.',
     parameters: {
       type: 'object',
       properties: {
@@ -1807,7 +2028,7 @@ export function apply(ctx) {
         id: { type: 'string', description: 'Card id matching [a-z0-9][a-z0-9_-]{0,63}.' },
         card: {
           type: 'object',
-          description: 'Full card for op=save: id, title (a specific short title, under 40 characters, shown on the sidebar chip; the chip already sits in its group row, so do not prefix it with the group name), description (the detail shown in the chip hover card, a sentence or two), group (the aspect this card belongs to, up to 24 characters, for example 方法, 实现, 数据 or 训练; a project defines its own), kind (an optional color hint: method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y,w,h}], edges [{from,to,label}], and notes. The panel is a narrow column: draw on a landscape canvas (default 520x300), 3 to 8 nodes in a left-to-right flow, at least 32 px apart, with labels short enough for two lines because they are clipped to the box.'
+          description: 'Full card for op=save: id, title (a specific short title, under 40 characters, shown on the sidebar chip; the chip already sits in its group row, so do not prefix it with the group name), description (the detail shown in the chip hover card, a sentence or two), group (the aspect this card belongs to, up to 24 characters, for example 方法, 实现, 数据 or 训练; a project defines its own), kind (an optional color hint: method, model, experiment, pipeline), canvas {width,height}, nodes [{id,label,kind,x,y,description}], edges [{from,to,label}], and notes. The optional node description (up to 200 characters) appears in the node hover card; w and h are ignored because the box is measured from the label. The panel is a narrow column: keep 3 to 8 nodes and short labels (a label wraps to at most two lines), and call op=arrange to place them instead of hand-writing coordinates.'
         },
         expectedVersion: { type: 'number', description: 'For op=save on an existing card, the version you read; a mismatch is rejected.' }
       },
@@ -1898,7 +2119,7 @@ export function apply(ctx) {
     output: {
       schema: {},
       render(_args, value) {
-        return renderExperiment(value)
+        return [{ type: 'text', text: renderExperiment(value) }]
       }
     },
     async execute(args, exec) {
@@ -1925,11 +2146,11 @@ export function apply(ctx) {
   const disposeWorklog = ctx.tools.register({
     name: 'research_worklog',
     description:
-      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; an internal step may be closed with done by its owner, while a gated item reaches done only after the user accepted it in the Research panel. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, canceled may carry one (usually an internal step), a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history. Pass parent with the id of the gated item an internal step serves; the panel shows that step inside the item.',
+      'Read and write the project worklog. The machine state lives in .research/worklog (plan.json and one items/<id>.json per item); worklog/PLAN.md, worklog/INDEX.md and worklog/<id>.md are generated views that this tool rewrites, so do not hand-edit them. ops: init (create the store, importing a legacy markdown worklog once), list, get, update (create or patch an item: title, owner, status, kind, next, blocked, summary, base, head, evidence, checklist, deliverables: an array of { label, path } files relative to the project root, or { label, url } for an http(s) link; the panel shows each as a button that opens it in the right sidebar), claim (take an item as owner and set in_progress; refuses to take over another owner), gate (set in_review after writing the checklist with evidence, summary, base..head and next), plan (patch objective, milestone, milestones, next). Status is one of todo, in_progress, in_review, blocked, done, canceled; an internal step may be closed with done by its owner, while a gated item reaches done only after the user accepted it in the Research panel. Moves follow one table: todo -> in_progress -> in_review -> done, with blocked and canceled as side states; blocked requires its reason, canceled may carry one (usually an internal step), a gate requires at least one evidence entry or a noted checklist item, and every move is kept in the item history. Pass parent with the id of the gated item an internal step serves; the panel shows that step inside the item. The project decision mode (op=decision-mode) either leaves blockers to the user (human) or sends every new blocker to the advisor (advisor): in advisor mode a move into blocked is refused, so message the advisor with the question and its options, record the answer with research_decision, and set the agreed next step instead.',
     parameters: {
       type: 'object',
       properties: {
-        op: { type: 'string', enum: ['init', 'list', 'get', 'update', 'claim', 'gate', 'plan'] },
+        op: { type: 'string', enum: ['init', 'list', 'get', 'update', 'claim', 'gate', 'plan', 'decision-mode'] },
         id: { type: 'string', description: 'Work item id, [A-Za-z0-9][A-Za-z0-9._-]{0,63}.' },
         title: { type: 'string' },
         owner: { type: 'string', description: 'Role name of the owner, one of the eight standard teammate roles (advisor, researcher, data, designer, builder, runner, reviewer, writer).' },
@@ -1938,6 +2159,12 @@ export function apply(ctx) {
         parent: { type: 'string', description: 'Optional id of the gated item an internal step serves; the panel nests the step inside that item when it is expanded.' },
         next: { type: 'string' },
         blocked: { type: 'string' },
+        blockedMode: {
+          type: 'string',
+          enum: ['human', 'advisor'],
+          description:
+            'For op=decision-mode: human leaves new blockers to the user; advisor sends every new blocker to the advisor, so a move into blocked is refused.'
+        },
         reason: { type: 'string', description: 'op=update: why a canceled item was closed; optional.' },
         summary: { type: 'string' },
         base: { type: 'string' },
@@ -1984,13 +2211,17 @@ export function apply(ctx) {
         return { ...worklogSummary(root), notes: imported.notes, migrated: imported.migrated }
       }
       if (op === 'list') return worklogSummary(root)
-      if (op === 'get') {
-        const item = readItem(root, args.id)
-        return item === undefined
-          ? { error: `no work item "${String(args.id)}"` }
-          : { ...item, card: item.kind === 'gated' ? itemCardPath(root, item.id) : undefined }
-      }
+      if (op === 'get') return worklogItem(root, args.id)
       if (op === 'plan') return { plan: writePlan(root, { objective: args.objective, milestone: args.milestone, milestones: args.milestones, next: args.next }) }
+      if (op === 'decision-mode') {
+        if (args.blockedMode === 'human' || args.blockedMode === 'advisor') {
+          const next = writeWorklogSettings(root, { blockedMode: args.blockedMode })
+          return next.blockedMode === 'advisor'
+            ? { mode: 'advisor', message: 'Blockers now go to the advisor: message the advisor with the question and its options, record the answer with research_decision, then set the item to the agreed next step (in_progress with next, or canceled).' }
+            : { mode: 'human', message: "Blockers are the user's call: set the item to blocked and write what it is waiting for." }
+        }
+        return { mode: readWorklogSettings(root).blockedMode }
+      }
       if (op === 'claim') return claimItem(root, { id: args.id, owner: args.owner })
       if (op === 'gate') {
         const result = gateItem(root, args)

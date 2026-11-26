@@ -4,7 +4,7 @@
 
 **إعداد وكيل في DSH يحوّل جلسة واحدة إلى فريق بحث صغير ومنسّق.**
 
-**الإصدار 0.2.2** · **آخر تحديث 2026-11-14**
+**الإصدار 0.3.1** · **آخر تحديث 2026-11-26**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <strong>العربية</strong> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -25,7 +25,7 @@
 | **الإنجاز** | عنصر العمل الذي يحتاج موافقة يتوقف عند `in_review` ولا ينقله إلى `done` إلا المستخدم؛ والخطوة الداخلية يغلقها صاحبها |
 | **توجيه النماذج** | provider وmodel وقوة الاستدلال لكل دور من نموذج إعدادات في صفحة Plugins |
 | **Git** | يهيّئه الوكيل عند بدء العمل الجوهري؛ التغييرات المدمِّرة على فرع؛ الدمج بعد القبول فقط |
-| **Worklog** | مخزن JSON في `.research/worklog/`؛ `PLAN.md` و`INDEX.md` عرضان مولّدان؛ الاستئناف يبدأ بـ`research_state` |
+| **Worklog** | مخزن JSON في `.research/worklog/`؛ `PLAN.md` و`INDEX.md` عرضان مولّدان؛ الاستئناف يبدأ بـ`research_state`؛ وتبدأ كل جولة أيضًا بتذكير قصير بالعناصر المفتوحة والبطاقات النشطة والتجارب غير المكتملة |
 | **بيئة التشغيل** | PTC (`run_code` + SDK المولَّد)، وطبقة subagent واحدة لكل عضو |
 
 ## لمن هذا الوضع
@@ -75,20 +75,20 @@
 ### التثبيت من صفحة الإضافات في DSH
 
 2. افتح **الإعدادات ← الإضافات** واضغط **إضافة**.
-3. الصق مصدر التثبيت: `dsh-research-team-preset@0.3.0` لحزمة npm، أو `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0` لتثبيت المصدر، أو `link:/absolute/path/to/dsh-research-team-preset` لنسخة محلية.
+3. الصق مصدر التثبيت: `dsh-research-team-preset@0.3.1` لحزمة npm، أو `github:ZhanRuiXin/dsh-research-team-preset#v0.3.1` لتثبيت المصدر، أو `link:/absolute/path/to/dsh-research-team-preset` لنسخة محلية.
 4. **أعد تشغيل DSH.** تُحمَّل أسطر الإعداد المسبق والجزء العميلي من الحزمة عند البدء.
 5. **تحقق من تفعيل الحزمة** في ملف التعريف نفسه، ثم **افتح جلسة جديدة** واختر **Research Team Mode** في محدِّد الوضع.
 
 ### التثبيت من سطر الأوامر
 
 ```text
-dsh plugin add dsh-research-team-preset@0.3.0
+dsh plugin add dsh-research-team-preset@0.3.1
 ```
 
 لتثبيت المصدر بدلاً من السجل:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.1
 ```
 
 > الوضع هو حزمة على مستوى ملف التعريف: تثبيته في ملف تعريف لا يفعّله في ملف آخر. أعد التثبيت والمتطلبات المسبقة لكل ملف تعريف.

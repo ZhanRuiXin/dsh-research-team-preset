@@ -4,7 +4,7 @@
 
 **一個把單一工作階段變成小型、協同研究團隊的 DSH agent preset。**
 
-**版本 0.2.2** · **更新 2026-11-14**
+**版本 0.3.1** · **更新 2026-11-26**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <strong>繁體中文</strong> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -25,7 +25,7 @@ Research Team Mode 是一個 DSH agent preset，用來以團隊而非單一聊�
 | **完成** | 需要你驗收的工作項停在 `in_review`，只有使用者能把它移到 `done`，面板只對這類工作項顯示「確認完成 / 退回」；內部步驟由負責人自行關閉 |
 | **模型路由** | 透過 Plugins 頁面的設定表單，為各角色設定 provider、model 與推理強度 |
 | **Git** | 實質性工作開始時由 agent 初始化；破壞性改動走分支；驗收通過後才合併 |
-| **工作日誌** | `.research/worklog/` 下的 JSON 儲存；`PLAN.md` 與 `INDEX.md` 是產生視圖；恢復時先讀 `research_state` |
+| **工作日誌** | `.research/worklog/` 下的 JSON 儲存；`PLAN.md` 與 `INDEX.md` 是產生視圖；恢復時先讀 `research_state`；每輪開始也會注入一則簡短提醒：未完成的工作項目、未封存的架構卡和未結束的實驗；工作項目標題列還有「阻塞項決策方式」下拉：人工決策把新的阻塞留給你，智慧決策交給 advisor 決策後直接落到下一步 |
 | **執行環境** | PTC（`run_code` + 產生的 SDK），每位成員一層 subagent |
 
 ## 適用對象
@@ -73,20 +73,20 @@ Lead 的回覆是科學性溝通，而不是狀態播報：先給結論或結果
 ### 從 DSH 外掛頁面安裝
 
 2. 開啟 **設定 → 外掛**，點擊 **新增**。
-3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.3.0`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.3.0`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
+3. 貼上安裝來源：npm 套件用 `dsh-research-team-preset@0.3.1`；固定原始碼用 `github:ZhanRuiXin/dsh-research-team-preset#v0.3.1`；本機 checkout 用 `link:/absolute/path/to/dsh-research-team-preset`。
 4. **重新啟動 DSH。** preset 列與 bundle 的用戶端部分在啟動時載入。
 5. **確認 bundle 在同一個 profile 中已啟用**，然後**開啟新工作階段**，在模式選擇器中選擇 **Research Team Mode**。
 
 ### 從命令列安裝
 
 ```text
-dsh plugin add dsh-research-team-preset@0.3.0
+dsh plugin add dsh-research-team-preset@0.3.1
 ```
 
 若要固定原始碼而不是從 registry 安裝：
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.0
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.1
 ```
 
 > 此模式是 profile 層級的 bundle：在一個 profile 中安裝不會在另一個 profile 中啟用。每個 profile 都要重複安裝與前置步驟。

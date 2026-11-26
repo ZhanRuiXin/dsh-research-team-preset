@@ -19,6 +19,30 @@ import path from 'node:path'
 
 export const ITEM_STATUSES = Object.freeze(['todo', 'in_progress', 'in_review', 'blocked', 'done', 'canceled'])
 export const ITEM_KINDS = Object.freeze(['gated', 'internal'])
+export const DECISION_MODES = Object.freeze(['human', 'advisor'])
+
+function worklogSettingsPath(root) {
+  return path.join(root, '.research', 'worklog', 'settings.json')
+}
+
+export function readWorklogSettings(root) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(worklogSettingsPath(root), 'utf8'))
+    return { blockedMode: parsed !== null && parsed.blockedMode === 'advisor' ? 'advisor' : 'human' }
+  } catch (error) {
+    return { blockedMode: 'human' }
+  }
+}
+
+export function writeWorklogSettings(root, settings = {}) {
+  const file = worklogSettingsPath(root)
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  const blockedMode = settings.blockedMode === 'advisor' ? 'advisor' : 'human'
+  const temp = `${file}.tmp-${process.pid}`
+  fs.writeFileSync(temp, `${JSON.stringify({ blockedMode }, null, 2)}\n`, 'utf8')
+  fs.renameSync(temp, file)
+  return { blockedMode }
+}
 
 /** Allowed status moves. `done` and `canceled` are terminal; a reopen goes through the user. */
 export const ITEM_TRANSITIONS = Object.freeze({
@@ -383,6 +407,13 @@ export function upsertItem(root, input = {}) {
         'done belongs to the user: a gated item is accepted from the Research panel; an internal step can be closed by its owner'
     }
   }
+  const enteringBlocked = status === 'blocked' && (previous === undefined || previous.status !== 'blocked')
+  if (enteringBlocked && readWorklogSettings(root).blockedMode === 'advisor') {
+    return {
+      error:
+        'blocked decisions go to the advisor in this project: ask the advisor with the question and its options, record the answer with research_decision, then set the item to the agreed next step (in_progress with next, or canceled) instead of blocked'
+    }
+  }
   const history = previous !== undefined && Array.isArray(previous.history) ? [...previous.history] : []
   if (previous !== undefined && status !== previous.status) {
     const allowed = ITEM_TRANSITIONS[previous.status] ?? []
@@ -393,6 +424,18 @@ export function upsertItem(root, input = {}) {
     }
     if (status === 'blocked' && short(input.blocked ?? previous.blocked, 300) === '') {
       return { error: 'blocked needs a reason: pass blocked with what the item is waiting for' }
+    }
+    if (status === 'in_review') {
+      const steps = listItems(root).filter(
+        (entry) => entry.parent === id && entry.status !== 'done' && entry.status !== 'canceled'
+      )
+      if (steps.length > 0) {
+        const listed = steps.slice(0, 5).map((entry) => `${entry.id} (${entry.status})`).join(', ')
+        const rest = steps.length > 5 ? `, +${steps.length - 5} more` : ''
+        return {
+          error: `"${id}" still has ${steps.length} open step${steps.length === 1 ? '' : 's'}: ${listed}${rest}; close them before it goes to in_review`
+        }
+      }
     }
     history.push({ at: nowIso(), from: previous.status, to: status, by: short(input.by ?? input.owner ?? previous.owner, 40) })
   }
@@ -416,7 +459,9 @@ export function upsertItem(root, input = {}) {
   if (item.title === '') return { error: 'title is required when creating an item' }
   writeJson(path.join(dirs.items, `${id}.json`), item)
   renderViews(root)
-  return { item, card: item.kind === 'gated' ? cardFile(root, item) : undefined, created: previous === undefined }
+  const result = { item, created: previous === undefined }
+  if (item.kind === 'gated') result.card = cardFile(root, item)
+  return result
 }
 
 export function claimItem(root, input = {}) {
@@ -472,6 +517,9 @@ export function decideItem(root, input = {}) {
   if (previous === undefined) return { error: `no work item "${id}"` }
   if (previous.status !== 'in_review') {
     return { error: `"${id}" is ${previous.status}; only an item in in_review can be accepted or returned` }
+  }
+  if (typeof previous.parent === 'string' && previous.parent.length > 0) {
+    return { error: `"${id}" is a step inside "${previous.parent}"; accept that item and the step is covered` }
   }
   if (previous.kind !== 'gated') {
     return { error: `"${id}" is an internal step; its owner closes it with done, the panel does not accept it` }

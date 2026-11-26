@@ -2,6 +2,10 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.1.
 
+## Unreleased
+
+- Make delegation the Lead's default rather than an option: the Lead brief now maps each workstream to its role before starting, sets a floor of two members when there are two or more workstreams, keeps only integration and the user channel for itself, and says to hand a specialist step back to its owner the moment it notices it is doing that work. The per-turn ledger reminder also names unowned and Lead-owned open items as delegation gaps.
+
 ## 0.3.1 — 2026-11-26
 
 - Fix the `research_experiment` output so its rendered content is a block array again; a plain string there made `dsh-spill-policy` reject the call and, on the PTC path, crashed the desktop host with `parked.result.content.some is not a function`. A new guard test renders every registered tool with a normal and an error value.

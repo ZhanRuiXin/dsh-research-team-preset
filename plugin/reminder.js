@@ -80,6 +80,12 @@ export function buildReminder(root) {
     }
     if (items.length > MAX_ITEMS) lines.push(`- +${items.length - MAX_ITEMS} more`)
   }
+  const loose = items.filter((item) => typeof item.owner !== 'string' || item.owner === '' || item.owner === 'lead')
+  if (loose.length > 0) {
+    const ids = loose.slice(0, MAX_ITEMS).map((item) => `${item.id} (${item.status}, ${typeof item.owner === 'string' && item.owner !== '' ? item.owner : 'unowned'})`).join(', ')
+    const rest = loose.length > MAX_ITEMS ? ', +more' : ''
+    lines.push(`Unowned or Lead-owned open items (${loose.length}): ${ids}${rest}. Assign every specialist step to its role; the Lead keeps integration, the ledger and the user channel.`)
+  }
   const blockedMode = readWorklogSettings(root).blockedMode
   const blockedItems = items.filter((item) => item.status === 'blocked')
   if (blockedMode === 'advisor' && blockedItems.length > 0) {

@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.1.
+All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.2.
 
-## Unreleased
+## 0.3.2 — 2026-11-28
 
 - Close the gaps in the delegation contract: the single-workstream exception is limited to a small task, a workstream outside the eight roles is mapped to the closest standard role instead of a new member, the Lead never claims a member's item (a claim locks the member out), the first update names the split, dependent steps start only once their input is `done`, a blocked member must take the question with its options to the Lead, tracked work is still recorded by the Lead, and the Lead re-dispatches a dead member's item to a fresh member of the same role instead of doing it. The advisor-decision path now routes through the Lead (who owns consultations) in the prompt text, the blocked-item reminder and the worklog guard, and the claim refusal points a teammate at the Lead rather than the user.
 - The Zotero write grant now lives in the host credentials store (`dsh-research-team-preset/zotero-local-write-key`), with the key file kept as a fallback: the store is resolved lazily so a credentials provider that mounts after the plugin still counts, a key Zotero rejects is tombstoned before a new authorization, and `status` reports `keyStore` (`credentials` / `file` / `none`) and `keyStoreError` so a machine that keeps asking for permission is diagnosable in one call.

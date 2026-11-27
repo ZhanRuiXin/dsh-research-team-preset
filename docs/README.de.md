@@ -4,7 +4,7 @@
 
 **Ein DSH-Agent-Preset, das eine Sitzung in ein kleines, koordiniertes Forschungsteam verwandelt.**
 
-**Version 0.3.1** · **Aktualisiert 2026-11-26**
+**Version 0.3.2** · **Aktualisiert 2026-11-28**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <strong>Deutsch</strong> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -73,20 +73,20 @@ Dieses Preset wird als DSH-Bundle ausgeliefert und ist auf npm als `dsh-research
 ### Installation über die DSH-Plugins-Seite
 
 2. Öffnen Sie **Einstellungen → Plugins** und klicken Sie auf **Hinzufügen**.
-3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.3.1` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.1` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
+3. Fügen Sie die Installationsquelle ein: `dsh-research-team-preset@0.3.2` für das npm-Paket, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.2` um die Quelle zu pinnen, oder `link:/absolute/path/to/dsh-research-team-preset` für einen lokalen Checkout.
 4. **Starten Sie DSH neu.** Preset-Zeilen und die Client-Hälfte des Bundles werden beim Start geladen.
 5. **Prüfen Sie, dass das Bundle im selben Profil aktiviert ist**, öffnen Sie dann **eine neue Sitzung** und wählen Sie **Research Team Mode** in der Modusauswahl.
 
 ### Installation über die Kommandozeile
 
 ```text
-dsh plugin add dsh-research-team-preset@0.3.1
+dsh plugin add dsh-research-team-preset@0.3.2
 ```
 
 Um stattdessen die Quelle zu pinnen statt den Registrierungsserver:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.2
 ```
 
 > Der Modus ist ein profilweites Bundle: Die Installation in einem Profil aktiviert ihn nicht in einem anderen. Wiederholen Sie Installation und Voraussetzungen für jedes Profil.
@@ -172,7 +172,7 @@ Ein Lauf oder Langzeitjob, der den Turn überlebt, hinterlässt Job- oder Termin
 
 ## Forschungs-Seitenleiste
 
-Der Tab beantwortet, was das Team gerade tut, wo es blockiert ist und was als Nächstes kommt: das Ziel aus `.research/worklog/plan.json`, die aktiven Arbeitseinträge aus `.research/worklog/items/` (erledigte hinter dem Schalter „已完成“), die Läufe mit Lebenszyklus und Genehmigungsstatus (erledigte hinter demselben Schalter; nur ein Verzeichnis unter `runs/` mit `manifest.json` zählt als Lauf), die Architekturkarten in ihren projektdefinierten Gruppen und das laufende Team. Ein Klick auf einen Arbeitseintrag oder Lauf klappt die Zeile auf, ein weiterer Klick klappt sie zu; ein interner Schritt, der mit `parent` auf seinen zugehörigen Gate-Eintrag verweist, ist in diesen eingebettet und lässt sich wie eine oberste Zeile auf- und zuklappen, mit mehreren gleichzeitig offenen Zeilen und in der Reihenfolge der wahrscheinlichen Ausführung. Ein Bereich 文献 zeigt die Leseliste, die das Team mit `research_literature` pflegt: vom Agenten benannte Kategorien und eine Karte pro Zotero-Eintragsschlüssel, deren aufgeklappter Inhalt die Markdown-Notiz ist.
+Der Tab beantwortet, was das Team gerade tut, wo es blockiert ist und was als Nächstes kommt: das Ziel aus `.research/worklog/plan.json`, die aktiven Arbeitseinträge aus `.research/worklog/items/` (erledigte hinter dem Schalter „已完成“), die Läufe mit Lebenszyklus und Genehmigungsstatus (erledigte hinter demselben Schalter; nur ein Verzeichnis unter `runs/` mit `manifest.json` zählt als Lauf), die Architekturkarten in ihren projektdefinierten Gruppen und das laufende Team. Ein Klick auf einen Arbeitseintrag oder Lauf klappt die Zeile auf, ein weiterer Klick klappt sie zu; ein interner Schritt, der mit `parent` auf seinen zugehörigen Gate-Eintrag verweist, ist in diesen eingebettet und lässt sich wie eine oberste Zeile auf- und zuklappen, mit mehreren gleichzeitig offenen Zeilen und in der Reihenfolge der wahrscheinlichen Ausführung. Ein Bereich 文献 zeigt die Leseliste, die das Team mit `research_literature` pflegt: vom Agenten benannte Kategorien und eine Karte pro Zotero-Eintragsschlüssel, deren aufgeklappter Inhalt die Markdown-Notiz ist. Die Abschnitte Architektur, Arbeitseinträge, Läufe und Literatur lassen sich über ihre Überschrift zuklappen (geöffnet ein Pfeil nach unten, geschlossen nach rechts); der Zustand wird auf diesem Rechner gemerkt, und jede geöffnete Liste scrollt in ihrer eigenen, höheren Karte.
 
 Arbeit, die über Sitzungen reicht, liegt als JSON in `.research/worklog/`: `plan.json` für Ziel, Meilensteine, nächsten Schritt und Entscheidungen, ein `items/<id>.json` pro Eintrag. Die Dateien `PLAN.md`, `INDEX.md` und die Karten werden von den Werkzeugen erzeugt und nicht von Hand bearbeitet.
 

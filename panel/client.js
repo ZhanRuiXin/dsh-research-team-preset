@@ -110,6 +110,8 @@ window.__ModuleLoader__.load({
         '引用': '引用',
         '工作项': '工作项',
         '隐藏已完成': '隐藏已完成',
+    '收起': '收起',
+    '展开': '展开',
       '暂无进行中的实验': '暂无进行中的实验',
         '已完成 {count}': '已完成 {count}',
         '暂无工作项': '暂无工作项',
@@ -242,6 +244,8 @@ window.__ModuleLoader__.load({
         '引用': 'Cite',
         '工作项': 'Work items',
         '隐藏已完成': 'Hide completed',
+    '收起': 'Collapse',
+    '展开': 'Expand',
       '暂无进行中的实验': 'No runs in progress',
         '已完成 {count}': 'Completed: {count}',
         '暂无工作项': 'No work items yet',
@@ -589,8 +593,17 @@ function statusLabel(status) {
 .rtp-eyebrow{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;letter-spacing:.12em;color:var(--dsw-alias-label-tertiary);text-transform:uppercase}
 .rtp-live{width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-success-primary) 18%,transparent)}
 .rtp-title{margin-top:0;font-size:18px;font-weight:600;line-height:1.4;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rtp-section{padding:14px 16px 2px}
+.rtp-section{margin:0 8px 10px;padding:8px 4px 7px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-base)}
 .rtp-sechead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.rtp-sechead.is-foldable{cursor:pointer;margin:-3px -4px 9px;padding:3px 4px;border-radius:6px}
+.rtp-sechead.is-foldable:hover{background:var(--dsw-alias-interactive-bg-hover)}
+.rtp-sechead.is-foldable:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.rtp-secchev{flex:0 0 auto;color:var(--dsw-alias-label-tertiary)}
+.rtp-secacts{display:contents}
+.rtp-items,.rtp-exp,.rtp-lit{max-height:min(520px,62vh);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-4px}
+.rtp-items::-webkit-scrollbar,.rtp-exp::-webkit-scrollbar,.rtp-lit::-webkit-scrollbar{width:8px}
+.rtp-items::-webkit-scrollbar-thumb,.rtp-exp::-webkit-scrollbar-thumb,.rtp-lit::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l2);border-radius:8px}
+.rtp-items::-webkit-scrollbar-track,.rtp-exp::-webkit-scrollbar-track,.rtp-lit::-webkit-scrollbar-track{background:transparent}
 .rtp-seclabel{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--dsw-alias-label-tertiary)}
 .rtp-count{font-size:13px;line-height:1;padding:3px 6px;border-radius:999px;color:var(--dsw-alias-label-secondary);background:var(--dsw-alias-bg-layer-2);border:.5px solid var(--dsw-alias-border-l1);font-variant-numeric:tabular-nums}
 .rtp-grow{flex:1}
@@ -669,15 +682,10 @@ function statusLabel(status) {
 .rtp-pill.warn{color:var(--dsw-alias-state-warn-primary);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 30%,transparent)}
 .rtp-pill.err{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 30%,transparent)}
 .rtp-seeds{display:inline-flex;gap:3px;align-items:center;vertical-align:middle}
- .rtp-items{max-height:320px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
     .rtp-tag{padding:1px 7px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);border:1px solid var(--dsw-alias-border-l1)}
  .rtp-tag.warn{color:var(--dsw-alias-state-warn);border-color:color-mix(in srgb,var(--dsw-alias-state-warn) 35%,transparent)}
  .rtp-toggle{height:22px;padding:0 9px;border-radius:999px;border:1px solid var(--dsw-alias-border-l2);background:transparent;color:var(--dsw-alias-label-secondary);font-size:12px;cursor:pointer}
  .rtp-toggle:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
- .rtp-exp{max-height:304px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-border-l2) transparent;padding-right:4px;margin-right:-6px}
-.rtp-exp::-webkit-scrollbar{width:8px}
-.rtp-exp::-webkit-scrollbar-thumb{background:var(--dsw-alias-border-l2);border-radius:8px}
-.rtp-exp::-webkit-scrollbar-track{background:transparent}
 .rtp-sel{height:24px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);border:.5px solid var(--dsw-alias-border-l1);font:inherit;font-size:12.5px;padding:0 4px;outline:none;cursor:pointer}
 .rtp-sel:hover{border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-primary)}
 .rtp-mini{height:24px;padding:0 9px;border-radius:6px;font:inherit;font-size:12.5px;line-height:1;cursor:pointer;background:transparent;border:.5px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
@@ -747,16 +755,61 @@ function statusLabel(status) {
     }
 
     function Section(props) {
+      const collapsible = typeof props.onToggle === 'function'
+      const collapsed = props.collapsed === true
+      const head = {
+        key: 'head',
+        className: collapsible ? 'rtp-sechead is-foldable' : 'rtp-sechead'
+      }
+      if (collapsible) {
+        head.role = 'button'
+        head.tabIndex = 0
+        head['aria-expanded'] = collapsed ? 'false' : 'true'
+        head.title = collapsed ? t('展开') : t('收起')
+        head.onClick = () => props.onToggle()
+        head.onKeyDown = (event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return
+          event.preventDefault()
+          props.onToggle()
+        }
+      }
       return h('section', { className: 'rtp-section' }, [
-        h('div', { key: 'head', className: 'rtp-sechead' }, [
+        h('div', head, [
+          collapsible
+            ? h('svg', {
+                key: 'chev',
+                className: collapsed ? 'rtp-secchev is-collapsed' : 'rtp-secchev',
+                width: 10,
+                height: 10,
+                viewBox: '0 0 10 10',
+                'aria-hidden': 'true'
+              }, [
+                h('path', {
+                  key: 'p',
+                  d: collapsed ? 'M4 2.5 L6.7 5 L4 7.5' : 'M2.5 4 L5 6.7 L7.5 4',
+                  fill: 'none',
+                  stroke: 'currentColor',
+                  strokeWidth: 1.4,
+                  strokeLinecap: 'round',
+                  strokeLinejoin: 'round'
+                })
+              ])
+            : null,
           h('span', { key: 'label', className: 'rtp-seclabel' }, props.title),
           props.count === undefined || props.count === 0
             ? null
             : h('span', { key: 'count', className: 'rtp-count' }, props.count),
           h('span', { key: 'grow', className: 'rtp-grow' }),
-          props.action === undefined ? null : props.action
+          props.action === undefined
+            ? null
+            : h('span', {
+                key: 'acts',
+                className: 'rtp-secacts',
+                onClick: (event) => event.stopPropagation(),
+                onKeyDown: (event) => event.stopPropagation()
+              }, [props.action])
         ]),
-        h('div', { key: 'body' }, props.children)
+        collapsed ? null : h('div', { key: 'body' }, props.children)
       ])
     }
 
@@ -1087,6 +1140,57 @@ function statusLabel(status) {
 
     let pluginCtx = null
 
+    /* Folded sections are a local display preference: they survive a reload and
+     * never travel through the project store. */
+    const FOLDED_KEY = 'dsh-research-team-panel:folded-v1'
+    const FOLDED_SECTIONS = ['arch', 'cards', 'runs', 'literature']
+
+    function readFolded() {
+      try {
+        const store = typeof window === 'undefined' ? null : window.localStorage
+        if (store === null || store === undefined) return {}
+        const parsed = JSON.parse(store.getItem(FOLDED_KEY) || '{}')
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+        const folded = {}
+        for (const name of FOLDED_SECTIONS) {
+          if (parsed[name] === true) folded[name] = true
+        }
+        return folded
+      } catch (error) {
+        return {}
+      }
+    }
+
+    /* Set as soon as this page writes a fold, so a slow poll cannot adopt an
+     * older host value over the click the user just made. */
+    let foldedSent = false
+
+    function writeFolded(folded) {
+      try {
+        const store = typeof window === 'undefined' ? null : window.localStorage
+        if (store === null || store === undefined) return
+        const kept = {}
+        for (const name of FOLDED_SECTIONS) {
+          if (folded[name] === true) kept[name] = true
+        }
+        store.setItem(FOLDED_KEY, JSON.stringify(kept))
+      } catch (error) {
+        /* a browser that refuses storage still keeps the fold for this page */
+      }
+    }
+
+    async function postFolded(sessionId, folded) {
+      try {
+        await fetch(PANEL_ROUTE, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ op: 'fold', folded, sessionId })
+        })
+      } catch (error) {
+        /* the host copy catches up on the next toggle; the page already folded */
+      }
+    }
+
     function focusComposer() {
       if (typeof document === 'undefined') return
       const card = document.querySelector('[data-composer-card]')
@@ -1109,6 +1213,24 @@ function statusLabel(status) {
       const tipRef = React.useRef(null)
       const [showFinished, setShowFinished] = React.useState(false)
       const [showFinishedRuns, setShowFinishedRuns] = React.useState(false)
+      const [folded, setFolded] = React.useState(readFolded)
+      const toggleSection = (name) => {
+        const next = { ...folded, [name]: folded[name] !== true }
+        foldedSent = true
+        setFolded(next)
+        writeFolded(next)
+        postFolded(sessionId, next)
+      }
+
+      /* Adopt the stored set once per page, before the user touches a heading. */
+      React.useEffect(() => {
+        if (foldedSent) return
+        const stored = state === null ? null : state.folded
+        if (stored === null || typeof stored !== 'object') return
+        if (FOLDED_SECTIONS.every((name) => (folded[name] === true) === (stored[name] === true))) return
+        setFolded(stored)
+        writeFolded(stored)
+      }, [state, folded])
       const [openItems, setOpenItems] = React.useState(null)
       const [openRun, setOpenRun] = React.useState('')
       const [literature, setLiterature] = React.useState({ loading: true, categories: [], count: 0, error: '' })
@@ -1539,6 +1661,8 @@ function statusLabel(status) {
         key: 'arch',
         title: t('架构'),
         count: 0,
+        collapsed: folded.arch === true,
+        onToggle: () => toggleSection('arch'),
         action: card === undefined
           ? undefined
           : h('button', {
@@ -1680,6 +1804,8 @@ function statusLabel(status) {
       const cardsSection = h(Section, {
         key: 'cards',
         title: t('工作项'),
+        collapsed: folded.cards === true,
+        onToggle: () => toggleSection('cards'),
         action: h('div', { key: 'acts', style: { display: 'flex', alignItems: 'center', gap: '6px' } }, [
           finishedCount === 0 ? null : h('button', {
             key: 'finished',
@@ -1716,6 +1842,8 @@ function statusLabel(status) {
       const runsSection = h(Section, {
         key: 'runs',
         title: t('实验'),
+        collapsed: folded.runs === true,
+        onToggle: () => toggleSection('runs'),
         action: h('div', { key: 'acts', style: { display: 'flex', alignItems: 'center', gap: '6px' } }, [
           finishedRuns.length === 0 ? null : h('button', {
             key: 'finished',
@@ -1784,14 +1912,19 @@ function statusLabel(status) {
             ])
           })))
 
-      const literatureSection = h(Section, { key: 'literature', title: t('文献') },
+      const literatureSection = h(Section, {
+        key: 'literature',
+        title: t('文献'),
+        collapsed: folded.literature === true,
+        onToggle: () => toggleSection('literature')
+      },
         literature.loading
           ? [h('div', { key: 'loading', className: 'rtp-empty' }, t('读取文献…'))]
           : literature.error !== ''
             ? [h('div', { key: 'error', className: 'rtp-empty' }, literature.error)]
             : literature.categories.length === 0
               ? [h('div', { key: 'empty', className: 'rtp-empty' }, t('还没有文献分类'))]
-              : literature.categories.map((category) => h('div', { key: category.id, className: 'rtp-litgroup' }, [
+              : h('div', { key: 'list', className: 'rtp-lit' }, literature.categories.map((category) => h('div', { key: category.id, className: 'rtp-litgroup' }, [
                   h('div', { key: 'label', className: 'rtp-litcat' }, category.label),
                   category.entries.length === 0
                     ? h('div', { key: 'none', className: 'rtp-litnone' }, t('暂无条目'))
@@ -1828,7 +1961,7 @@ function statusLabel(status) {
                           }, t('打开'))
                         ])
                       ])))
-                ])))
+                ]))))
 
       const body = state === null && error === ''
         ? h('div', { key: 'skel', className: 'rtp-section' }, [

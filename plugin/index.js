@@ -20,6 +20,7 @@
 
 import { execFile, spawn as spawnProcess } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
@@ -1108,6 +1109,43 @@ export function worklogItem(root, id) {
   return item.kind === 'gated' ? { ...item, card: itemCardPath(root, item.id) } : { ...item }
 }
 
+const FOLDED_SECTIONS = ['arch', 'cards', 'runs', 'literature']
+
+/* Folded sections are a display preference for this machine: one file under
+ * ~/.dsh, shared by every project, so a restart or a new web port keeps it. */
+export function panelUiFile() {
+  return path.join(os.homedir(), '.dsh', 'research-team', 'panel-ui.json')
+}
+
+export function readPanelUi(options = {}) {
+  const file = options.file || panelUiFile()
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'))
+    const folded = {}
+    for (const name of FOLDED_SECTIONS) {
+      if (parsed?.folded?.[name] === true) folded[name] = true
+    }
+    return { folded }
+  } catch (error) {
+    return { folded: {} }
+  }
+}
+
+export function writePanelUi(patch, options = {}) {
+  const file = options.file || panelUiFile()
+  const current = readPanelUi({ file })
+  const folded = { ...current.folded }
+  for (const name of FOLDED_SECTIONS) {
+    if (patch?.folded?.[name] === true) folded[name] = true
+    else delete folded[name]
+  }
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  const temporary = `${file}.tmp`
+  fs.writeFileSync(temporary, `${JSON.stringify({ folded }, null, 2)}\n`, 'utf8')
+  fs.renameSync(temporary, file)
+  return { folded }
+}
+
 export function buildPanelState(root, options = {}) {
   const worklogPlan = readPlan(root)
   const plan = {
@@ -1232,6 +1270,7 @@ export function buildPanelState(root, options = {}) {
   return {
     root,
     team,
+    folded: readPanelUi(options.uiFile ? { file: options.uiFile } : {}).folded,
     worklog: plan,
     cards,
     itemsTotal: items.length,
@@ -1948,6 +1987,12 @@ export function apply(ctx) {
         }
         const state = await panelState(ctx, root, body?.sessionId)
         jsonResponse(res, 200, { ok: true, ...state })
+        return
+      }
+      if (body?.op === 'fold') {
+        const stored = writePanelUi({ folded: body.folded })
+        const state = await panelState(ctx, root, body?.sessionId)
+        jsonResponse(res, 200, { ok: true, folded: stored.folded, ...state })
         return
       }
       if (body?.op === 'archive') {

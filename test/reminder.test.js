@@ -44,6 +44,19 @@ test('the reminder lists open items, live cards and unfinished runs', () => {
   assert.doesNotMatch(text, /run-b/)
 })
 
+test('the reminder names unowned and Lead-owned items as delegation gaps', () => {
+  const root = project()
+  upsertItem(root, { id: 'idle-step', title: 'Read the draft', status: 'todo' })
+  upsertItem(root, { id: 'lead-step', title: 'Integrate results', status: 'in_progress', owner: 'lead' })
+  const text = buildReminder(root)
+  assert.match(text, /Unowned or Lead-owned open items \(2\)/)
+  assert.match(text, /idle-step \(todo, unowned\)/)
+  assert.match(text, /lead-step \(in_progress, lead\)/)
+  upsertItem(root, { id: 'idle-step', title: 'Read the draft', status: 'todo', owner: 'researcher' })
+  upsertItem(root, { id: 'lead-step', title: 'Integrate results', status: 'in_progress', owner: 'builder' })
+  assert.doesNotMatch(buildReminder(root), /Unowned or Lead-owned/)
+})
+
 test('a project without a ledger has no reminder', () => {
   const root = project()
   assert.equal(buildReminder(root), '')

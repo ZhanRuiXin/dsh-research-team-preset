@@ -4,7 +4,7 @@
 
 **Un preset de agente de DSH que convierte una sesión en un pequeño equipo de investigación coordinado.**
 
-**Versión 0.3.1** · **Actualizado 2026-11-26**
+**Versión 0.3.2** · **Actualizado 2026-11-28**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <strong>Español</strong> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -73,20 +73,20 @@ Este preset se distribuye como bundle DSH y se publica en npm como `dsh-research
 ### Instalar desde la página de Plugins de DSH
 
 2. Abre **Ajustes → Plugins** y haz clic en **Añadir**.
-3. Pega el origen de instalación: `dsh-research-team-preset@0.3.1` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.1` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
+3. Pega el origen de instalación: `dsh-research-team-preset@0.3.2` para el paquete npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.2` para fijar el código fuente, o `link:/absolute/path/to/dsh-research-team-preset` para un checkout local.
 4. **Reinicia DSH.** Las filas del preset y la mitad cliente del bundle se cargan al iniciar.
 5. **Comprueba que el bundle está habilitado** en el mismo perfil, luego **abre una sesión nueva** y elige **Research Team Mode** en el selector de modo.
 
 ### Instalar desde la línea de comandos
 
 ```text
-dsh plugin add dsh-research-team-preset@0.3.1
+dsh plugin add dsh-research-team-preset@0.3.2
 ```
 
 Para fijar el código fuente en lugar del registro:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.2
 ```
 
 > El modo es un bundle a nivel de perfil: instalarlo en un perfil no lo habilita en otro. Repite la instalación y los prerrequisitos en cada perfil.
@@ -172,7 +172,7 @@ Una ejecución o trabajo largo que sobrevive al turno deja su identificador de t
 
 ## Barra lateral de investigación
 
-La pestaña responde qué está haciendo el equipo ahora, qué está bloqueado y qué viene después: el objetivo de `.research/worklog/plan.json`, los elementos de trabajo activos de `.research/worklog/items/` (los terminados detrás del conmutador «已完成»), las ejecuciones con su ciclo de vida y estado de aprobación (las terminadas detrás del mismo conmutador; solo un directorio bajo `runs/` con `manifest.json` cuenta como ejecución), las tarjetas de arquitectura en sus grupos definidos por el proyecto y el equipo en vivo. Haz clic en un elemento de trabajo o en una ejecución para expandir la fila y otra vez para contraerla; un paso interno que nombra con `parent` el elemento con puerta al que sirve se anida dentro de ese elemento y se expande y contrae como una fila de primer nivel, con varias filas abiertas a la vez y ordenadas según el orden probable de ejecución. Una sección 文献 muestra la lista de lectura que el equipo mantiene con `research_literature`: categorías definidas por el agente y una tarjeta por clave de elemento de Zotero, cuyo cuerpo expandido es la nota en markdown.
+La pestaña responde qué está haciendo el equipo ahora, qué está bloqueado y qué viene después: el objetivo de `.research/worklog/plan.json`, los elementos de trabajo activos de `.research/worklog/items/` (los terminados detrás del conmutador «已完成»), las ejecuciones con su ciclo de vida y estado de aprobación (las terminadas detrás del mismo conmutador; solo un directorio bajo `runs/` con `manifest.json` cuenta como ejecución), las tarjetas de arquitectura en sus grupos definidos por el proyecto y el equipo en vivo. Haz clic en un elemento de trabajo o en una ejecución para expandir la fila y otra vez para contraerla; un paso interno que nombra con `parent` el elemento con puerta al que sirve se anida dentro de ese elemento y se expande y contrae como una fila de primer nivel, con varias filas abiertas a la vez y ordenadas según el orden probable de ejecución. Una sección 文献 muestra la lista de lectura que el equipo mantiene con `research_literature`: categorías definidas por el agente y una tarjeta por clave de elemento de Zotero, cuyo cuerpo expandido es la nota en markdown. Las secciones de arquitectura, elementos de trabajo, ejecuciones y literatura se pliegan desde su encabezado (flecha hacia abajo abierta, hacia la derecha cerrada), el estado se recuerda en esta máquina y cada lista abierta se desplaza dentro de su propia tarjeta, ahora más alta.
 
 El trabajo que puede cruzar sesiones vive como JSON en `.research/worklog/`: `plan.json` con objetivo, hitos, siguiente paso y decisiones, y un `items/<id>.json` por elemento. Los archivos `PLAN.md`, `INDEX.md` y las tarjetas los generan las herramientas; no se editan a mano.
 

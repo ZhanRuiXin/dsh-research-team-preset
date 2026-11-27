@@ -4,7 +4,7 @@
 
 **1 つのセッションを、小規模で連携の取れた研究チームに変える DSH エージェントプリセット。**
 
-**バージョン 0.3.1** · **更新 2026-11-26**
+**バージョン 0.3.2** · **更新 2026-11-28**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <strong>日本語</strong> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -73,20 +73,20 @@ Lead の返答は科学的なコミュニケーションであり、ステータ
 ### DSH のプラグインページからインストール
 
 2. **設定 → プラグイン** を開き、**追加** をクリックします。
-3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.3.1`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.3.1`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
+3. インストール元を貼り付けます: npm パッケージは `dsh-research-team-preset@0.3.2`、ソースを固定する場合は `github:ZhanRuiXin/dsh-research-team-preset#v0.3.2`、ローカルチェックアウトは `link:/absolute/path/to/dsh-research-team-preset`。
 4. **DSH を再起動します。** プリセット行とバンドルのクライアント側は起動時に読み込まれます。
 5. **同じプロファイルでバンドルが有効になっていることを確認**し、**新しいセッションを開いて** モード選択で **Research Team Mode** を選びます。
 
 ### コマンドラインからインストール
 
 ```text
-dsh plugin add dsh-research-team-preset@0.3.1
+dsh plugin add dsh-research-team-preset@0.3.2
 ```
 
 レジストリではなくソースを固定する場合:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.2
 ```
 
 > このモードはプロファイル単位のバンドルです。あるプロファイルにインストールしても別のプロファイルでは有効になりません。プロファイルごとにインストールと前提条件を繰り返してください。
@@ -172,7 +172,7 @@ Lead が実行を承認し、runner は記録がなければ起動を拒否し�
 
 ## リサーチサイドバー
 
-このタブは、チームが今何をしていて、どこで止まり、次に何が来るかを示します：`.research/worklog/plan.json` の目標、`.research/worklog/items/` の進行中の作業項目（完了したものは「已完成」スイッチの背後）、ライフサイクルと承認状態を持つ実行（完了したものは同じスイッチの背後。`runs/` 配下で `manifest.json` を持つディレクトリだけが実行として数えられます）、プロジェクトが定義したグループごとのアーキテクチャカード、そして稼働中のチームです。作業項目や実行をクリックすると行が展開し、もう一度クリックすると折りたたまれます。`parent` で所属するゲート項目を指す内部ステップはその項目の中に入れ子になり、最上位の行と同じように展開・折りたたみでき、複数の行を同時に開け、実行されそうな順に並びます。文献セクションは、チームが `research_literature` で維持するプロジェクトの読書リストを表示します：エージェントが定義したカテゴリと、Zotero 項目キーごとのカード（展開すると markdown のメモ）です。
+このタブは、チームが今何をしていて、どこで止まり、次に何が来るかを示します：`.research/worklog/plan.json` の目標、`.research/worklog/items/` の進行中の作業項目（完了したものは「已完成」スイッチの背後）、ライフサイクルと承認状態を持つ実行（完了したものは同じスイッチの背後。`runs/` 配下で `manifest.json` を持つディレクトリだけが実行として数えられます）、プロジェクトが定義したグループごとのアーキテクチャカード、そして稼働中のチームです。作業項目や実行をクリックすると行が展開し、もう一度クリックすると折りたたまれます。`parent` で所属するゲート項目を指す内部ステップはその項目の中に入れ子になり、最上位の行と同じように展開・折りたたみでき、複数の行を同時に開け、実行されそうな順に並びます。文献セクションは、チームが `research_literature` で維持するプロジェクトの読書リストを表示します：エージェントが定義したカテゴリと、Zotero 項目キーごとのカード（展開すると markdown のメモ）です。 アーキテクチャ・作業項目・実験・文献の各セクションは見出しから折りたためます（開いているときは下向きの矢印、閉じているときは右向きの矢印）。折りたたみ状態はこのマシンに記憶され、開いた一覧はそれぞれ高くなったカードの中でスクロールします。
 
 アーキテクチャカードは `.research/architecture/` に JSON で保存されるノードとエッジの図で、1 枚につき 1 ファイルです。エージェントは `research_architecture` ツールで読み書きするため、図はスライドの中ではなく設計と同期したままになります。カードはパネル内で SVG として描画され、ノードの上をドラッグして範囲選択でき、選択したノードは会話に引用でき、残すべき内容はカードのメモとして保存され、エージェントは回答前にそれを読みます。`dsh-better-sidebar` がインストールされていればそれ経由で、なければネイティブの右サイドバーに登録されます。
 

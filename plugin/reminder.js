@@ -80,13 +80,19 @@ export function buildReminder(root) {
     }
     if (items.length > MAX_ITEMS) lines.push(`- +${items.length - MAX_ITEMS} more`)
   }
+  const loose = items.filter((item) => typeof item.owner !== 'string' || item.owner === '' || item.owner === 'lead')
+  if (loose.length > 0) {
+    const ids = loose.slice(0, MAX_ITEMS).map((item) => `${item.id} (${item.status}, ${typeof item.owner === 'string' && item.owner !== '' ? item.owner : 'unowned'})`).join(', ')
+    const rest = loose.length > MAX_ITEMS ? ', +more' : ''
+    lines.push(`Unowned or Lead-owned open items (${loose.length}): ${ids}${rest}. Assign every specialist step to its role; the Lead keeps integration, the ledger and the user channel.`)
+  }
   const blockedMode = readWorklogSettings(root).blockedMode
   const blockedItems = items.filter((item) => item.status === 'blocked')
   if (blockedMode === 'advisor' && blockedItems.length > 0) {
     const ids = blockedItems.slice(0, MAX_ITEMS).map((item) => item.id).join(', ')
     const rest = blockedItems.length > MAX_ITEMS ? `, +${blockedItems.length - MAX_ITEMS} more` : ''
     lines.push(
-      `Blocked items the advisor decides (${blockedItems.length}): ${ids}${rest}. Send the advisor the question with its options and evidence, record the answer with research_decision, then move each item to the agreed next step (in_progress with next, or canceled).`
+      `Blocked items the advisor decides (${blockedItems.length}): ${ids}${rest}. The Lead takes each question to the advisor with its options and the evidence that separates them, records the answer with research_decision, then moves the item to the agreed next step (in_progress with next, or canceled).`
     )
   }
   if (cards.length > 0) {

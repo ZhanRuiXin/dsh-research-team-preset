@@ -5,7 +5,16 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { createLibraryClient, itemKey, libraryClient, noteHtml, LibraryError, apply as applyLibrary } from '../plugin/library.js'
+import {
+  GRANT_RECORD,
+  configureLibraryStore,
+  createLibraryClient,
+  itemKey,
+  libraryClient,
+  noteHtml,
+  LibraryError,
+  apply as applyLibrary
+} from '../plugin/library.js'
 
 const SERVER = 'sPMHtLD6HHBd'
 
@@ -101,6 +110,91 @@ test('A single-use key consumed by a 401 is replaced once', async () => {
   assert.equal(created.key, 'NEWKEY01')
   assert.equal(calls.filter((call) => call.pathname === '/api/local/authorize').length, 2)
   assert.equal(writeCount, 2)
+})
+
+function fakeCredentials(initial = {}) {
+  const records = new Map(Object.entries(initial))
+  return {
+    records,
+    async readRecord(key) {
+      return records.get(key)
+    },
+    async modifyRecord(key, mutate) {
+      const current = records.get(key)
+      const next = await mutate(current)
+      if (next === undefined) return current
+      records.set(key, next)
+      return next
+    }
+  }
+}
+
+test('a grant stored in the host credentials service is reused by the next client', async () => {
+  const credentials = fakeCredentials()
+  let authorized = 0
+  const routes = {
+    'GET /api/users/0/items?limit=1': () => jsonResponse(200, []),
+    'POST /api/local/authorize': () => {
+      authorized += 1
+      return jsonResponse(200, { key: 'KEY1', remember: true })
+    },
+    'POST /api/users/0/items': () => jsonResponse(200, { successful: { 0: { key: 'NEWKEY01', version: 2 } }, failed: {} })
+  }
+  const first = createLibraryClient({ fetch: recorder(routes).fetchImpl, keyFile: false, credentials })
+  await first.create({ itemType: 'note', note: '<p>a</p>' })
+  const record = credentials.records.get(GRANT_RECORD)
+  assert.equal(record.kind, 'grant')
+  assert.equal(record.payload.key, 'KEY1')
+  assert.equal(record.payload.serverId, SERVER)
+  assert.equal(record.payload.appName, 'DSH research preset')
+  const secondCalls = recorder(routes)
+  const second = createLibraryClient({ fetch: secondCalls.fetchImpl, keyFile: false, credentials })
+  await second.create({ itemType: 'note', note: '<p>b</p>' })
+  assert.equal(authorized, 1)
+  const post = secondCalls.calls.find((call) => call.method === 'POST' && call.pathname === '/api/users/0/items')
+  assert.equal(post.headers['Zotero-API-Key'], 'KEY1')
+  const status = await second.status()
+  assert.equal(status.keyCached, true)
+  assert.equal(status.keyStore, 'credentials')
+})
+
+test('a rejected stored grant is tombstoned before a new authorization', async () => {
+  const credentials = fakeCredentials({ [GRANT_RECORD]: { kind: 'grant', payload: { key: 'STALE', serverId: SERVER } } })
+  let authorized = 0
+  const { fetchImpl } = recorder({
+    'GET /api/users/0/items?limit=1': jsonResponse(200, []),
+    'POST /api/local/authorize': () => {
+      authorized += 1
+      return jsonResponse(200, { key: 'FRESH', remember: true })
+    },
+    'POST /api/users/0/items': (init) =>
+      init.headers['Zotero-API-Key'] === 'FRESH'
+        ? jsonResponse(200, { successful: { 0: { key: 'NEWKEY02', version: 2 } }, failed: {} })
+        : jsonResponse(401, { error: 'API key required' })
+  })
+  const client = createLibraryClient({ fetch: fetchImpl, keyFile: false, credentials })
+  await client.create({ itemType: 'note', note: '<p>c</p>' })
+  assert.equal(authorized, 1)
+  assert.equal(credentials.records.get(GRANT_RECORD).payload.key, 'FRESH')
+})
+
+test('the credentials service is picked up even when it mounts after apply', async () => {
+  const credentials = fakeCredentials()
+  let service
+  configureLibraryStore({ ctx: { get: (name) => (name === 'credentials' ? service : undefined) } })
+  try {
+    service = credentials
+    const { fetchImpl } = recorder({
+      'GET /api/users/0/items?limit=1': jsonResponse(200, []),
+      'POST /api/local/authorize': () => jsonResponse(200, { key: 'LAZY', remember: true }),
+      'POST /api/users/0/items': () => jsonResponse(200, { successful: { 0: { key: 'NEWKEY03', version: 2 } }, failed: {} })
+    })
+    const client = createLibraryClient({ fetch: fetchImpl, keyFile: false })
+    await client.create({ itemType: 'note', note: '<p>d</p>' })
+    assert.equal(credentials.records.get(GRANT_RECORD).payload.key, 'LAZY')
+  } finally {
+    configureLibraryStore({})
+  }
 })
 
 test('a remembered key is reused by the next client instead of asking again', async () => {

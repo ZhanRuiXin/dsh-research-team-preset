@@ -4,7 +4,7 @@
 
 **Um preset de agente do DSH que transforma uma sessão em uma pequena equipe de pesquisa coordenada.**
 
-**Versão 0.3.1** · **Atualizado 2026-11-26**
+**Versão 0.3.2** · **Atualizado 2026-11-28**
 
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.de.md">Deutsch</a> · <a href="README.fr.md">Français</a> · <a href="README.es.md">Español</a> · <strong>Português (Brasil)</strong> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.hi.md">हिन्दी</a></p>
 
@@ -75,20 +75,20 @@ Este preset é distribuído como bundle DSH e publicado no npm como `dsh-researc
 ### Instalar pela página de Plugins do DSH
 
 2. Abra **Configurações → Plugins** e clique em **Adicionar**.
-3. Cole a origem de instalação: `dsh-research-team-preset@0.3.1` para o pacote npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.1` para fixar o código-fonte, ou `link:/absolute/path/to/dsh-research-team-preset` para um checkout local.
+3. Cole a origem de instalação: `dsh-research-team-preset@0.3.2` para o pacote npm, `github:ZhanRuiXin/dsh-research-team-preset#v0.3.2` para fixar o código-fonte, ou `link:/absolute/path/to/dsh-research-team-preset` para um checkout local.
 4. **Reinicie o DSH.** As linhas do preset e a metade cliente do bundle carregam na inicialização.
 5. **Verifique se o bundle está habilitado** no mesmo perfil, depois **abra uma nova sessão** e escolha **Research Team Mode** no seletor de modo.
 
 ### Instalar pela linha de comando
 
 ```text
-dsh plugin add dsh-research-team-preset@0.3.1
+dsh plugin add dsh-research-team-preset@0.3.2
 ```
 
 Para fixar o código-fonte em vez do registro:
 
 ```text
-dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.1
+dsh plugin add github:ZhanRuiXin/dsh-research-team-preset#v0.3.2
 ```
 
 > O modo é um bundle no nível do perfil: instalá-lo em um perfil não o habilita em outro. Repita a instalação e os pré-requisitos em cada perfil.
@@ -174,7 +174,7 @@ Uma execução ou job longo que sobrevive ao turno deixa seu identificador de jo
 
 ## Barra lateral de pesquisa
 
-A aba responde o que a equipe está fazendo agora, onde está travada e o que vem a seguir: o objetivo de `.research/worklog/plan.json`, os itens de trabalho ativos de `.research/worklog/items/` (os concluídos atrás do botão «已完成»), as execuções com seu ciclo de vida e estado de aprovação (as concluídas atrás do mesmo botão; só um diretório em `runs/` com `manifest.json` conta como execução), os cartões de arquitetura em seus grupos definidos pelo projeto e a equipe ativa. Clique em um item de trabalho ou execução para expandir a linha e clique de novo para recolher; um passo interno que nomeia em `parent` o item de gate que serve fica aninhado dentro dele e expande/recolhe como uma linha de topo, com várias linhas abertas ao mesmo tempo e ordenadas pela provável ordem de execução. Uma seção 文献 mostra a lista de leitura que a equipe mantém com `research_literature`: categorias definidas pelo agente e um cartão por chave de item do Zotero, cujo corpo expandido é a nota markdown.
+A aba responde o que a equipe está fazendo agora, onde está travada e o que vem a seguir: o objetivo de `.research/worklog/plan.json`, os itens de trabalho ativos de `.research/worklog/items/` (os concluídos atrás do botão «已完成»), as execuções com seu ciclo de vida e estado de aprovação (as concluídas atrás do mesmo botão; só um diretório em `runs/` com `manifest.json` conta como execução), os cartões de arquitetura em seus grupos definidos pelo projeto e a equipe ativa. Clique em um item de trabalho ou execução para expandir a linha e clique de novo para recolher; um passo interno que nomeia em `parent` o item de gate que serve fica aninhado dentro dele e expande/recolhe como uma linha de topo, com várias linhas abertas ao mesmo tempo e ordenadas pela provável ordem de execução. Uma seção 文献 mostra a lista de leitura que a equipe mantém com `research_literature`: categorias definidas pelo agente e um cartão por chave de item do Zotero, cujo corpo expandido é a nota markdown. As seções de arquitetura, itens de trabalho, execuções e literatura recolhem pelo título (seta para baixo aberta, para a direita fechada), o estado fica lembrado nesta máquina e cada lista aberta rola dentro do próprio cartão, agora mais alto.
 
 Os cartões de arquitetura são diagramas de nós e arestas armazenados como JSON em `.research/architecture/`, um arquivo por cartão. O agente os lê e atualiza com a ferramenta `research_architecture`, para que o diagrama acompanhe o design em vez de ficar desatualizado num slide. Um cartão é renderizado em SVG dentro do painel; arrastar uma caixa sobre os nós os seleciona, e a seleção pode ser citada na conversa; o que vale guardar é salvo no cartão como nota que o agente lê antes de responder. A aba se registra via `dsh-better-sidebar` quando esse plugin está instalado e, caso contrário, na barra lateral direita nativa.
 

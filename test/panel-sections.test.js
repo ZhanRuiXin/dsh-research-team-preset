@@ -130,5 +130,5 @@ test('the host keeps the folded set under ~/.dsh and reads it back', async () =>
   assert.deepEqual(readPanelUi({ file }).folded, {}, 'unfolding everything clears the file')
 
   const project = fs.mkdtempSync(path.join(os.tmpdir(), 'rtp-foldproj-'))
-  assert.deepEqual(buildPanelState(project).folded, {}, 'the panel state reports the stored set')
+  assert.deepEqual(buildPanelState(project, { uiFile: file }).folded, {}, 'the panel state reports the stored set')
 })

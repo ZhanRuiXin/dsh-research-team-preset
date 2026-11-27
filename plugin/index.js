@@ -1270,7 +1270,7 @@ export function buildPanelState(root, options = {}) {
   return {
     root,
     team,
-    folded: readPanelUi().folded,
+    folded: readPanelUi(options.uiFile ? { file: options.uiFile } : {}).folded,
     worklog: plan,
     cards,
     itemsTotal: items.length,

@@ -2,6 +2,10 @@
 
 All notable changes to Research Team Mode are documented here. The project uses semantic versioning. The plugin is published on npm as `dsh-research-team-preset`; the current release is 0.3.2.
 
+## Unreleased
+
+- Make a single specialist request a dispatch instead of an exception: the Lead now asks which role owns a request before judging its size, and a one-role task is treated as a full dispatch rather than a reason to keep the work. The size test limits only the small-answer exception, and the scale rule decides how many roles the work needs, not whether to delegate.
+
 ## 0.3.2 — 2026-11-28
 
 - Close the gaps in the delegation contract: the single-workstream exception is limited to a small task, a workstream outside the eight roles is mapped to the closest standard role instead of a new member, the Lead never claims a member's item (a claim locks the member out), the first update names the split, dependent steps start only once their input is `done`, a blocked member must take the question with its options to the Lead, tracked work is still recorded by the Lead, and the Lead re-dispatches a dead member's item to a fresh member of the same role instead of doing it. The advisor-decision path now routes through the Lead (who owns consultations) in the prompt text, the blocked-item reminder and the worklog guard, and the claim refusal points a teammate at the Lead rather than the user.
